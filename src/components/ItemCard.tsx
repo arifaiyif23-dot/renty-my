@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, ShieldCheck } from "lucide-react";
+import { SaveItemButton } from "./SaveItemButton";
 
 interface ItemCardProps {
   id: string;
@@ -13,6 +14,7 @@ interface ItemCardProps {
   reviewCount: number;
   location: string;
   distance?: string;
+  isOwnerVerified?: boolean;
 }
 
 const ItemCard = ({
@@ -25,6 +27,7 @@ const ItemCard = ({
   reviewCount,
   location,
   distance,
+  isOwnerVerified = false,
 }: ItemCardProps) => {
   return (
     <Link to={`/items/${id}`}>
@@ -40,12 +43,20 @@ const ItemCard = ({
           <Badge className="absolute top-2 md:top-3 left-2 md:left-3 bg-card/90 text-foreground border-border text-xs">
             {category}
           </Badge>
+          <div className="absolute top-2 right-2 z-10">
+            <SaveItemButton itemId={id} variant="ghost" size="icon" />
+          </div>
         </div>
 
         {/* Content */}
         <div className="p-3 md:p-4 space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-sm md:text-base text-foreground line-clamp-2 flex-1">{title}</h3>
+            <h3 className="font-semibold text-sm md:text-base text-foreground line-clamp-2 flex-1 flex items-center gap-1">
+              {title}
+              {isOwnerVerified && (
+                <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+              )}
+            </h3>
             {rating > 0 && (
               <div className="flex items-center gap-1 text-xs md:text-sm shrink-0">
                 <Star className="h-3.5 w-3.5 md:h-4 md:w-4 fill-primary text-primary" />

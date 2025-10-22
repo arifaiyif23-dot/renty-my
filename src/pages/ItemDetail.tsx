@@ -12,7 +12,7 @@ import { ReviewsList } from '@/components/ReviewsList';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package, Calendar as CalendarIcon } from 'lucide-react';
+import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -26,6 +26,9 @@ import SkeletonCard from '@/components/SkeletonCard';
 import SEO from '@/components/SEO';
 import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
 import { DateRangePicker } from '@/components/DateRangePicker';
+import { SaveItemButton } from '@/components/SaveItemButton';
+import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { SocialProof } from '@/components/SocialProof';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -267,10 +270,27 @@ export default function ItemDetail() {
           
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle>{item.title}</CardTitle>
-                <Badge>{item.category}</Badge>
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1">
+                  <CardTitle>{item.title}</CardTitle>
+                  <SocialProof itemId={item.id} />
+                </div>
+                <div className="flex gap-2">
+                  <SaveItemButton itemId={item.id} />
+                  <Button variant="ghost" size="icon" onClick={() => {
+                    navigator.share?.({ 
+                      title: item.title, 
+                      url: window.location.href 
+                    }).catch(() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success('Link copied to clipboard');
+                    });
+                  }}>
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
+              <Badge className="w-fit">{item.category}</Badge>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">{item.description}</p>
@@ -283,6 +303,12 @@ export default function ItemDetail() {
               <div className="flex items-center gap-2 text-sm">
                 <User className="w-4 h-4" />
                 <span>{item.owner?.full_name}</span>
+                {item.owner?.is_verified && (
+                  <Badge variant="secondary" className="gap-1">
+                    <ShieldCheck className="h-3 w-3" />
+                    Verified
+                  </Badge>
+                )}
               </div>
               
               <div className="text-2xl font-bold">
@@ -290,6 +316,8 @@ export default function ItemDetail() {
               </div>
             </CardContent>
           </Card>
+          
+          <AvailabilityCalendar itemId={item.id} />
         </div>
 
         <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">

@@ -141,8 +141,17 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className="border-2 border-dashed border-border rounded-lg p-6 md:p-8 text-center hover:border-primary transition-colors cursor-pointer min-h-[160px] flex items-center justify-center"
+        className="border-2 border-dashed border-border rounded-lg p-6 md:p-8 text-center hover:border-primary transition-colors min-h-[160px]"
       >
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="gallery-upload"
+          disabled={uploading || images.length >= maxImages}
+        />
         <input
           type="file"
           multiple
@@ -150,18 +159,47 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
           capture="environment"
           onChange={handleFileChange}
           className="hidden"
-          id="image-upload"
+          id="camera-upload"
           disabled={uploading || images.length >= maxImages}
         />
-        <label htmlFor="image-upload" className="cursor-pointer">
-          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-sm md:text-base text-muted-foreground mb-2 font-medium">
-            {uploading ? "Uploading..." : "Tap to select or drag images"}
-          </p>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            <span className="font-semibold">{images.length} / {maxImages}</span> images uploaded
-          </p>
-        </label>
+        
+        <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <p className="text-sm md:text-base text-muted-foreground mb-4 font-medium">
+          {uploading ? "Uploading..." : "Add photos"}
+        </p>
+        
+        <div className="flex gap-3 justify-center mb-4">
+          <label htmlFor="camera-upload">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              disabled={uploading || images.length >= maxImages}
+              asChild
+            >
+              <span className="cursor-pointer">
+                📷 Camera
+              </span>
+            </Button>
+          </label>
+          <label htmlFor="gallery-upload">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm"
+              disabled={uploading || images.length >= maxImages}
+              asChild
+            >
+              <span className="cursor-pointer">
+                🖼️ Gallery
+              </span>
+            </Button>
+          </label>
+        </div>
+        
+        <p className="text-xs md:text-sm text-muted-foreground">
+          <span className="font-semibold">{images.length} / {maxImages}</span> images uploaded
+        </p>
       </div>
 
       {images.length > 0 && (

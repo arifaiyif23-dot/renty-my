@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search } from "lucide-react";
+import { User, Menu, Search, Heart } from "lucide-react";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -56,9 +56,14 @@ const Header = () => {
                 Browse
               </Link>
               {user && (
-                <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                  My Rentals
-                </Link>
+                <>
+                  <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                    My Rentals
+                  </Link>
+                  <Link to="/wishlist" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                    Wishlist
+                  </Link>
+                </>
               )}
             </nav>
 
@@ -101,6 +106,12 @@ const Header = () => {
                           <Link to="/profile" className="flex items-center cursor-pointer">
                             <User className="h-4 w-4 mr-2" />
                             Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/wishlist" className="flex items-center cursor-pointer">
+                            <Heart className="h-4 w-4 mr-2" />
+                            Wishlist
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
