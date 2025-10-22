@@ -90,13 +90,13 @@ export default function Dashboard() {
     <>
       <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
-        <h1 className="text-3xl font-bold mb-6">My Rentals</h1>
+        <h1 className="text-3xl font-bold mb-6 text-foreground">My Rentals</h1>
       
       <Tabs defaultValue="active" className="w-full">
-        <TabsList>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
+        <TabsList className="bg-muted/20">
+          <TabsTrigger value="active" className="data-[state=active]:bg-card data-[state=active]:text-foreground">Active</TabsTrigger>
+          <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:text-foreground">Pending</TabsTrigger>
+          <TabsTrigger value="past" className="data-[state=active]:bg-card data-[state=active]:text-foreground">Past</TabsTrigger>
         </TabsList>
         
         <TabsContent value="active" className="space-y-4">

@@ -51,16 +51,6 @@ const MobileBottomNav = () => {
             </Button>
           </Link>
         </div>
-
-        {/* Notifications (Mobile Only) */}
-        {user && (
-          <div className="flex flex-col items-center justify-center flex-1 h-full min-w-[60px]">
-            <div className="relative">
-              <NotificationBell />
-            </div>
-            <span className="text-[10px] font-medium text-muted-foreground mt-1">Alerts</span>
-          </div>
-        )}
         
         {/* Right Nav Items */}
         {rightNavItems.map((item) => {
