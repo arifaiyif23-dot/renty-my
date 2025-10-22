@@ -166,13 +166,23 @@ export default function ItemDetail() {
         .from('wallet_transactions')
         .insert({
           wallet_id: walletData.id,
-          amount: totalPrice,
+          amount: -totalPrice,
           type: 'rental_payment',
           description: `Payment for ${item?.title}`,
           reference_id: rentalData.id,
         });
 
       if (transactionError) throw transactionError;
+
+      // Process payment to owner immediately (rental starts now)
+      try {
+        await supabase.functions.invoke('process-rental-payment', {
+          body: { rentalId: rentalData.id }
+        });
+      } catch (paymentError) {
+        console.error('Failed to process rental payment:', paymentError);
+        // Continue - payment will be processed later
+      }
       
       toast.success(`Booking confirmed! RM ${totalPrice.toFixed(2)} deducted from your wallet.`);
       navigate('/dashboard');
