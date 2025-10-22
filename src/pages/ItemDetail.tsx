@@ -17,6 +17,9 @@ import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
 import EmptyState from '@/components/EmptyState';
+import ImageCarousel from '@/components/ImageCarousel';
+import ItemCard from '@/components/ItemCard';
+import SkeletonCard from '@/components/SkeletonCard';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -26,6 +29,8 @@ export default function ItemDetail() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isBooking, setIsBooking] = useState(false);
+  const [similarItems, setSimilarItems] = useState<any[]>([]);
+  const [loadingSimilar, setLoadingSimilar] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -47,11 +52,39 @@ export default function ItemDetail() {
 
       if (error) throw error;
       setItem(data);
+
+      // Fetch similar items
+      if (data) {
+        fetchSimilarItems(data.category, data.id);
+      }
     } catch (error: any) {
       toast.error('Failed to load item');
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSimilarItems = async (category: string, currentItemId: string) => {
+    setLoadingSimilar(true);
+    try {
+      const { data, error } = await supabase
+        .from('items')
+        .select(`
+          *,
+          images:item_images(*)
+        `)
+        .eq('category', category as any)
+        .eq('is_available', true)
+        .neq('id', currentItemId)
+        .limit(4);
+
+      if (error) throw error;
+      setSimilarItems(data || []);
+    } catch (error) {
+      console.error('Failed to load similar items:', error);
+    } finally {
+      setLoadingSimilar(false);
     }
   };
 
@@ -208,17 +241,7 @@ export default function ItemDetail() {
         
         <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center">
-            {item.images?.[0] ? (
-              <img 
-                src={item.images[0].image_url} 
-                alt={item.title}
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <p className="text-muted-foreground">No image</p>
-            )}
-          </div>
+          <ImageCarousel images={item.images || []} title={item.title} />
           
           <Card>
             <CardHeader>
@@ -293,6 +316,39 @@ export default function ItemDetail() {
           <h2 className="text-2xl font-bold mb-6">Reviews</h2>
           <ReviewsList itemId={item.id} />
         </div>
+
+        {/* Similar Items */}
+        {similarItems.length > 0 && (
+          <>
+            <Separator className="my-8" />
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Similar Items</h2>
+              {loadingSimilar ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <SkeletonCard key={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {similarItems.map((similarItem) => (
+                    <ItemCard
+                      key={similarItem.id}
+                      id={similarItem.id}
+                      title={similarItem.title}
+                      image={similarItem.images?.[0]?.image_url || '/placeholder.svg'}
+                      pricePerDay={Number(similarItem.price_per_day)}
+                      category={similarItem.category}
+                      rating={0}
+                      reviewCount={0}
+                      location={similarItem.location}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </>
   );

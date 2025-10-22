@@ -153,38 +153,38 @@ export default function Messages() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 pb-mobile-nav">
-        <h1 className="text-3xl font-bold mb-6">Messages</h1>
+      <div className="container mx-auto p-4 pb-mobile-nav max-w-7xl">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6">Messages</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Conversations List */}
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <CardTitle>Conversations</CardTitle>
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Conversations</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className="h-[500px] md:h-[600px]">
               {conversations.map((conv) => (
                 <div
                   key={conv.userId}
                   onClick={() => setSelectedUserId(conv.userId)}
-                  className={`p-4 cursor-pointer hover:bg-accent border-b ${
+                  className={`p-3 md:p-4 cursor-pointer hover:bg-accent border-b transition-colors min-h-[60px] ${
                     selectedUserId === conv.userId ? 'bg-accent' : ''
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar>
+                    <Avatar className="h-10 w-10 md:h-12 md:w-12">
                       <AvatarImage src={conv.userAvatar} />
                       <AvatarFallback>{conv.userName[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate">{conv.userName}</div>
-                      <div className="text-sm text-muted-foreground truncate">
+                      <div className="font-semibold text-sm md:text-base truncate">{conv.userName}</div>
+                      <div className="text-xs md:text-sm text-muted-foreground truncate">
                         {conv.lastMessage}
                       </div>
                     </div>
                     {conv.unreadCount > 0 && (
-                      <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                      <div className="bg-primary text-primary-foreground rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center text-xs flex-shrink-0">
                         {conv.unreadCount}
                       </div>
                     )}
@@ -192,8 +192,9 @@ export default function Messages() {
                 </div>
               ))}
               {conversations.length === 0 && (
-                <div className="p-4 text-center text-muted-foreground">
-                  No conversations yet
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>No conversations yet</p>
+                  <p className="text-xs mt-2">Messages will appear here when you start chatting</p>
                 </div>
               )}
             </ScrollArea>
@@ -201,33 +202,33 @@ export default function Messages() {
         </Card>
 
         {/* Messages Thread */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">
               {selectedUserId
                 ? conversations.find(c => c.userId === selectedUserId)?.userName
                 : 'Select a conversation'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6">
             {selectedUserId ? (
               <>
-                <ScrollArea className="h-[480px] mb-4">
-                  <div className="space-y-4">
+                <ScrollArea className="h-[380px] md:h-[480px] mb-3 md:mb-4 pr-2">
+                  <div className="space-y-3 md:space-y-4">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
                         className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-lg p-3 ${
+                          className={`max-w-[80%] md:max-w-[70%] rounded-lg p-2.5 md:p-3 ${
                             msg.sender_id === user.id
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}
                         >
-                          <div>{msg.content}</div>
-                          <div className="text-xs opacity-70 mt-1">
+                          <div className="text-sm md:text-base break-words">{msg.content}</div>
+                          <div className="text-[10px] md:text-xs opacity-70 mt-1">
                             {new Date(msg.created_at).toLocaleTimeString()}
                           </div>
                         </div>
@@ -241,16 +242,23 @@ export default function Messages() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                    className="min-h-[44px]"
                   />
-                  <Button onClick={sendMessage} size="icon">
+                  <Button 
+                    onClick={sendMessage} 
+                    size="icon"
+                    disabled={!newMessage.trim()}
+                    className="min-h-[44px] min-w-[44px]"
+                  >
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
               </>
             ) : (
-              <div className="h-[540px] flex items-center justify-center text-muted-foreground">
-                Select a conversation to start messaging
+              <div className="h-[440px] md:h-[540px] flex flex-col items-center justify-center text-muted-foreground text-center p-4">
+                <p className="text-base md:text-lg mb-2">Select a conversation</p>
+                <p className="text-xs md:text-sm">Choose a conversation from the list to start messaging</p>
               </div>
             )}
           </CardContent>

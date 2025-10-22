@@ -3,12 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Item, ItemCategory } from '@/types';
 import ItemCard from '@/components/ItemCard';
+import SkeletonCard from '@/components/SkeletonCard';
+import EmptyState from '@/components/EmptyState';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIcon, Calendar as CalendarIcon, X, MapPin, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search as SearchIcon, Calendar as CalendarIcon, X, MapPin, Loader2, ArrowUpDown, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
@@ -26,6 +29,7 @@ export default function Search() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [userLocation, setUserLocation] = useState<string>('');
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>('newest');
 
   useEffect(() => {
     const startDate = searchParams.get('start_date');
@@ -79,7 +83,7 @@ export default function Search() {
 
   useEffect(() => {
     fetchItems();
-  }, [searchQuery, category, minPrice, maxPrice, dateRange, userLocation]);
+  }, [searchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy]);
 
   const fetchItems = async () => {
     try {
@@ -112,7 +116,16 @@ export default function Search() {
         query = query.lte('price_per_day', parseFloat(maxPrice));
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      // Apply sorting
+      if (sortBy === 'newest') {
+        query = query.order('created_at', { ascending: false });
+      } else if (sortBy === 'price_low') {
+        query = query.order('price_per_day', { ascending: true });
+      } else if (sortBy === 'price_high') {
+        query = query.order('price_per_day', { ascending: false });
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -143,7 +156,7 @@ export default function Search() {
     <>
       <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
-        <h1 className="text-3xl font-bold mb-6">Search Items</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-6">Search Items</h1>
 
         <div className="grid md:grid-cols-5 gap-4 mb-6">
           <div className="md:col-span-2 relative">
@@ -233,46 +246,132 @@ export default function Search() {
         </Popover>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex gap-2 flex-1">
             <Input
               type="number"
               placeholder="Min RM"
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
+              className="flex-1"
             />
-          </div>
-          <div className="flex-1">
             <Input
               type="number"
               placeholder="Max RM"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
+              className="flex-1"
             />
           </div>
+          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="price_low">Price: Low to High</SelectItem>
+              <SelectItem value="price_high">Price: High to Low</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-      {dateRange?.from && dateRange?.to && (
-        <div className="mb-4 text-sm text-muted-foreground">
-          Showing items available from {format(dateRange.from, "MMM d, yyyy")} to {format(dateRange.to, "MMM d, yyyy")}
-        </div>
-      )}
+        {/* Active Filters */}
+        {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {searchQuery && (
+              <Badge variant="secondary" className="gap-2">
+                Search: {searchQuery}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchQuery('')} />
+              </Badge>
+            )}
+            {category !== 'all' && (
+              <Badge variant="secondary" className="gap-2">
+                Category: {category}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => setCategory('all')} />
+              </Badge>
+            )}
+            {minPrice && (
+              <Badge variant="secondary" className="gap-2">
+                Min: RM {minPrice}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => setMinPrice('')} />
+              </Badge>
+            )}
+            {maxPrice && (
+              <Badge variant="secondary" className="gap-2">
+                Max: RM {maxPrice}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => setMaxPrice('')} />
+              </Badge>
+            )}
+            {userLocation && (
+              <Badge variant="secondary" className="gap-2">
+                Location: {userLocation}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => setUserLocation('')} />
+              </Badge>
+            )}
+            {dateRange?.from && dateRange?.to && (
+              <Badge variant="secondary" className="gap-2">
+                Dates: {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => setDateRange(undefined)} />
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchQuery('');
+                setCategory('all');
+                setMinPrice('');
+                setMaxPrice('');
+                setUserLocation('');
+                setDateRange(undefined);
+              }}
+              className="h-7 text-xs"
+            >
+              Clear All
+            </Button>
+          </div>
+        )}
+
+      {/* Results */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {loading ? 'Searching...' : `${items.length} items found`}
+        </p>
+      </div>
 
       {loading ? (
-        <div className="text-center py-8">Loading...</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">No items found</div>
+        <EmptyState
+          icon={Package}
+          title="No Items Found"
+          description="Try adjusting your filters or search terms to find what you're looking for."
+          actionLabel="Clear Filters"
+          onAction={() => {
+            setSearchQuery('');
+            setCategory('all');
+            setMinPrice('');
+            setMaxPrice('');
+            setUserLocation('');
+            setDateRange(undefined);
+          }}
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {items.map((item) => (
             <ItemCard
               key={item.id}
               id={item.id}
               title={item.title}
               image={item.images?.[0]?.image_url || '/placeholder.svg'}
-              pricePerDay={item.price_per_day}
+              pricePerDay={Number(item.price_per_day)}
               category={item.category}
-              rating={4.5}
+              rating={0}
               reviewCount={0}
               location={item.location}
             />

@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Star, Package, ShoppingBag } from "lucide-react";
+import { MapPin, Calendar, Star, Package, ShoppingBag, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
+import ProfileEditDialog from "@/components/ProfileEditDialog";
 
 export default function Profile() {
   const { user, profile } = useAuth();
@@ -20,6 +21,7 @@ export default function Profile() {
     totalReviews: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -106,9 +108,13 @@ export default function Profile() {
                   Joined {format(new Date(profile.created_at), "MMMM yyyy")}
                 </p>
 
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2 mt-4 flex-wrap">
+                  <Button size="sm" onClick={() => setEditDialogOpen(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
                   <Link to="/dashboard">
-                    <Button size="sm">View Dashboard</Button>
+                    <Button size="sm" variant="outline">Dashboard</Button>
                   </Link>
                   <Link to="/wallet">
                     <Button size="sm" variant="outline">Wallet</Button>
@@ -181,6 +187,13 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Profile Dialog */}
+        <ProfileEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onSuccess={fetchStats}
+        />
       </div>
     </>
   );
