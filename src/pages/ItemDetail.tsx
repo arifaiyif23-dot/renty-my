@@ -12,8 +12,11 @@ import { ReviewsList } from '@/components/ReviewsList';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package } from 'lucide-react';
+import { MapPin, User, Package, Calendar as CalendarIcon } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
 import EmptyState from '@/components/EmptyState';
@@ -22,6 +25,7 @@ import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import SEO from '@/components/SEO';
 import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
+import { DateRangePicker } from '@/components/DateRangePicker';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -296,13 +300,7 @@ export default function ItemDetail() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Select Dates</Label>
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  disabled={(date) => date < new Date()}
-                  className="rounded-md border"
-                />
+                <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} />
               </div>
 
               {dateRange?.from && dateRange?.to && (

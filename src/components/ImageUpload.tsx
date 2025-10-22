@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast as sonnerToast } from "sonner";
 
 interface ImageUploadProps {
   onImagesChange: (urls: string[]) => void;
@@ -13,6 +15,7 @@ interface ImageUploadProps {
 export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps) => {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [primaryIndex, setPrimaryIndex] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -115,7 +118,22 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
   const removeImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
+    // Adjust primary index if needed
+    if (index === primaryIndex && newImages.length > 0) {
+      setPrimaryIndex(0);
+    } else if (index < primaryIndex) {
+      setPrimaryIndex(primaryIndex - 1);
+    }
     onImagesChange(newImages);
+  };
+
+  const setPrimary = (index: number) => {
+    // Reorder array so selected image is first
+    const newImages = [images[index], ...images.filter((_, i) => i !== index)];
+    setImages(newImages);
+    setPrimaryIndex(0);
+    onImagesChange(newImages);
+    sonnerToast.success("Cover image updated");
   };
 
   return (
@@ -123,12 +141,13 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+        className="border-2 border-dashed border-border rounded-lg p-6 md:p-8 text-center hover:border-primary transition-colors cursor-pointer min-h-[160px] flex items-center justify-center"
       >
         <input
           type="file"
           multiple
           accept="image/*"
+          capture="environment"
           onChange={handleFileChange}
           className="hidden"
           id="image-upload"
@@ -136,35 +155,52 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
         />
         <label htmlFor="image-upload" className="cursor-pointer">
           <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mb-2">
-            {uploading ? "Uploading..." : "Drag and drop images here, or click to select"}
+          <p className="text-sm md:text-base text-muted-foreground mb-2 font-medium">
+            {uploading ? "Uploading..." : "Tap to select or drag images"}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {images.length}/{maxImages} images uploaded
+          <p className="text-xs md:text-sm text-muted-foreground">
+            <span className="font-semibold">{images.length} / {maxImages}</span> images uploaded
           </p>
         </label>
       </div>
 
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {images.map((url, index) => (
-            <div key={index} className="relative group">
+            <div 
+              key={index} 
+              className="relative group aspect-square cursor-pointer"
+              onClick={() => setPrimary(index)}
+            >
               <img
                 src={url}
                 alt={`Upload ${index + 1}`}
-                className="w-full h-32 object-cover rounded-lg"
+                className={`w-full h-full object-cover rounded-lg transition-all ${
+                  index === primaryIndex ? 'ring-2 ring-primary ring-offset-2' : ''
+                }`}
               />
               <Button
                 variant="destructive"
                 size="icon"
-                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => removeImage(index)}
+                className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeImage(index);
+                }}
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5 md:h-4 md:w-4" />
               </Button>
-              {index === 0 && (
-                <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded text-xs">
-                  Primary
+              {index === primaryIndex && (
+                <Badge className="absolute bottom-2 left-2 gap-1 bg-primary shadow-lg">
+                  <Star className="h-3 w-3 fill-current" />
+                  Cover
+                </Badge>
+              )}
+              {index !== primaryIndex && (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg flex items-center justify-center">
+                  <Badge variant="secondary" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    Tap to set as cover
+                  </Badge>
                 </div>
               )}
             </div>

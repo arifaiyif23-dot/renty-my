@@ -117,7 +117,7 @@ export default function ListItem() {
             <CardTitle>List Your Item</CardTitle>
           </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label>Item Images *</Label>
               <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
@@ -127,33 +127,39 @@ export default function ListItem() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title" className="text-sm font-medium">Title *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="h-12 text-base"
+                placeholder="e.g., Canon EOS R5 Camera"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={4}
+                className="min-h-[120px] text-base resize-none"
+                placeholder="Describe your item in detail..."
                 required
               />
+              <p className="text-xs text-muted-foreground text-right">
+                {formData.description.length} / 1000
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value as ItemCategory })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 text-base">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,7 +174,7 @@ export default function ListItem() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price per Day (RM)</Label>
+              <Label htmlFor="price" className="text-sm font-medium">Price per Day (RM) *</Label>
               <Input
                 id="price"
                 type="number"
@@ -176,23 +182,29 @@ export default function ListItem() {
                 min="0"
                 value={formData.price_per_day}
                 onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
+                className="h-12 text-base"
+                placeholder="0.00"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="h-12 text-base"
+                placeholder="City, State"
                 required
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Listing...' : 'List Item'}
-            </Button>
+            <div className="sticky bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
+              <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
+                {isLoading ? 'Listing...' : 'List Item'}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

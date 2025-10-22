@@ -105,45 +105,46 @@ export default function Auth() {
             </TabsList>
             
             <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
                   <Input
                     id="login-email"
                     type="email"
                     placeholder="your@email.com"
                     value={loginData.email}
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    className="h-12 text-base"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
                   <div className="relative">
                     <Input
                       id="login-password"
                       type={showLoginPassword ? "text" : "password"}
                       value={loginData.password}
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      className="pr-10"
+                      className="h-12 text-base pr-12"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
                     >
                       {showLoginPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-5 w-5 text-muted-foreground" />
                       )}
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
@@ -157,82 +158,84 @@ export default function Auth() {
                 </AlertDescription>
               </Alert>
               
-              <form onSubmit={handleSignup} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="signup-name" className="text-sm font-medium">Full Name</Label>
                   <Input
                     id="signup-name"
                     type="text"
                     placeholder="John Doe"
                     value={signupData.fullName}
                     onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                    className="h-12 text-base"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
                     placeholder="your@email.com"
                     value={signupData.email}
                     onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                    className="h-12 text-base"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
                       type={showSignupPassword ? "text" : "password"}
                       value={signupData.password}
                       onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      className="pr-10"
+                      className="h-12 text-base pr-12"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
                     >
                       {showSignupPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-5 w-5 text-muted-foreground" />
                       )}
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirm Password</Label>
+                  <Label htmlFor="signup-confirm" className="text-sm font-medium">Confirm Password</Label>
                   <div className="relative">
                     <Input
                       id="signup-confirm"
                       type={showConfirmPassword ? "text" : "password"}
                       value={signupData.confirmPassword}
                       onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                      className="pr-10"
+                      className="h-12 text-base pr-12"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <EyeOff className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
+                        <Eye className="h-5 w-5 text-muted-foreground" />
                       )}
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
                   {isLoading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>

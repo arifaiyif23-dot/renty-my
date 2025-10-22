@@ -3,14 +3,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Rental } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ReviewForm } from '@/components/ReviewForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 import Header from '@/components/Header';
+import { RentalCard } from '@/components/RentalCard';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -87,87 +82,6 @@ export default function Dashboard() {
     return rentals.filter(r => status.includes(r.status));
   };
 
-  const RentalCard = ({ rental }: { rental: Rental }) => {
-    const isOwner = rental.owner_id === user?.id;
-    const canReview = rental.status === 'completed';
-    const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
-    
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-lg">{rental.item?.title}</CardTitle>
-            <Badge>{rental.status}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm space-y-1">
-            <p><strong>Dates:</strong> {format(new Date(rental.start_date), 'MMM d, yyyy')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}</p>
-            <p><strong>Total:</strong> RM {rental.total_price}</p>
-            <p><strong>{isOwner ? 'Renter' : 'Owner'}:</strong> {isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
-          </div>
-          
-          {isOwner && rental.status === 'pending' && (
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                onClick={() => updateRentalStatus(rental.id, 'approved')}
-              >
-                Approve
-              </Button>
-              <Button 
-                size="sm" 
-                variant="destructive"
-                onClick={() => updateRentalStatus(rental.id, 'rejected')}
-              >
-                Reject
-              </Button>
-            </div>
-          )}
-          
-          {rental.status === 'approved' && (
-            <Button 
-              size="sm" 
-              onClick={() => updateRentalStatus(rental.id, 'active')}
-            >
-              Mark as Active
-            </Button>
-          )}
-          
-          {rental.status === 'active' && (
-            <Button 
-              size="sm" 
-              onClick={() => updateRentalStatus(rental.id, 'completed')}
-            >
-              Complete Rental
-            </Button>
-          )}
-
-          {canReview && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline">Leave a Review</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Rate your experience</DialogTitle>
-                </DialogHeader>
-                <ReviewForm 
-                  rentalId={rental.id} 
-                  revieweeId={revieweeId}
-                  onSuccess={() => {
-                    toast.success('Thank you for your review!');
-                    fetchRentals();
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
   if (loading) {
     return <div className="container mx-auto p-4">Loading...</div>;
   }
@@ -187,19 +101,37 @@ export default function Dashboard() {
         
         <TabsContent value="active" className="space-y-4">
           {filterRentals(['approved', 'active']).map(rental => (
-            <RentalCard key={rental.id} rental={rental} />
+            <RentalCard 
+              key={rental.id} 
+              rental={rental}
+              isOwner={rental.owner_id === user?.id}
+              onStatusUpdate={updateRentalStatus}
+              onReviewSuccess={fetchRentals}
+            />
           ))}
         </TabsContent>
         
         <TabsContent value="pending" className="space-y-4">
           {filterRentals(['pending']).map(rental => (
-            <RentalCard key={rental.id} rental={rental} />
+            <RentalCard 
+              key={rental.id} 
+              rental={rental}
+              isOwner={rental.owner_id === user?.id}
+              onStatusUpdate={updateRentalStatus}
+              onReviewSuccess={fetchRentals}
+            />
           ))}
         </TabsContent>
         
         <TabsContent value="past" className="space-y-4">
           {filterRentals(['completed', 'cancelled', 'rejected']).map(rental => (
-            <RentalCard key={rental.id} rental={rental} />
+            <RentalCard 
+              key={rental.id} 
+              rental={rental}
+              isOwner={rental.owner_id === user?.id}
+              onStatusUpdate={updateRentalStatus}
+              onReviewSuccess={fetchRentals}
+            />
           ))}
         </TabsContent>
       </Tabs>
