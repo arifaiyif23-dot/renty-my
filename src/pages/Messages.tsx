@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import type { Message, Profile } from "@/types";
+import Header from "@/components/Header";
 
 interface Conversation {
   userId: string;
@@ -150,8 +151,10 @@ export default function Messages() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Messages</h1>
+    <>
+      <Header />
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6">Messages</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Conversations List */}
@@ -252,7 +255,8 @@ export default function Messages() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

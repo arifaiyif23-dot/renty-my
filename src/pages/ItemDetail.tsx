@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import { MapPin, User } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
+import Header from '@/components/Header';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -107,8 +108,10 @@ export default function ItemDetail() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="grid md:grid-cols-2 gap-6">
+    <>
+      <Header />
+      <div className="container mx-auto p-4">
+        <div className="grid md:grid-cols-2 gap-6">
         <div>
           <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center">
             {item.images?.[0] ? (
@@ -191,10 +194,11 @@ export default function ItemDetail() {
 
       <Separator className="my-8" />
 
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6">Reviews</h2>
-        <ReviewsList itemId={item.id} />
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6">Reviews</h2>
+          <ReviewsList itemId={item.id} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

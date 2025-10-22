@@ -4,8 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Wallet as WalletType, WalletTransaction } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import Header from "@/components/Header";
 
 export default function Wallet() {
@@ -13,6 +17,9 @@ export default function Wallet() {
   const [wallet, setWallet] = useState<WalletType | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [topUpAmount, setTopUpAmount] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -47,7 +54,7 @@ export default function Wallet() {
   };
 
   const getTransactionIcon = (type: string) => {
-    if (type === 'deposit' || type === 'rental_earning' || type === 'refund') {
+    if (type === 'deposit' || type === 'rental_earning' || type === 'refund' || type === 'top_up') {
       return <ArrowDownCircle className="h-5 w-5 text-success" />;
     }
     return <ArrowUpCircle className="h-5 w-5 text-destructive" />;
@@ -89,10 +96,44 @@ export default function Wallet() {
               RM {wallet?.balance.toFixed(2) || "0.00"}
             </p>
             <div className="flex gap-3 mt-4">
-              <Button size="sm" variant="outline" disabled>
-                <ArrowDownCircle className="h-4 w-4 mr-2" />
-                Top Up (Coming Soon)
-              </Button>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Top Up via ToyyibPay
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Top Up Wallet</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Amount (RM)</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        min="10"
+                        step="0.01"
+                        placeholder="Enter amount (min RM 10)"
+                        value={topUpAmount}
+                        onChange={(e) => setTopUpAmount(e.target.value)}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Minimum top up: RM 10.00
+                      </p>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleTopUp}
+                      disabled={isProcessing || !topUpAmount}
+                    >
+                      {isProcessing ? 'Processing...' : 'Continue to Payment'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
               <Button size="sm" variant="outline" disabled>
                 <ArrowUpCircle className="h-4 w-4 mr-2" />
                 Withdraw (Coming Soon)
@@ -127,7 +168,7 @@ export default function Wallet() {
                       </div>
                     </div>
                     <p className={`font-semibold ${
-                      transaction.type === 'deposit' || transaction.type === 'rental_earning' || transaction.type === 'refund'
+                      transaction.type === 'deposit' || transaction.type === 'rental_earning' || transaction.type === 'refund' || transaction.type === 'top_up'
                         ? 'text-success'
                         : 'text-destructive'
                     }`}>

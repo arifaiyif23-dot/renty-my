@@ -280,10 +280,13 @@ export type Database = {
           id: string
           item_id: string
           owner_id: string
+          payment_method: string | null
+          payment_status: string | null
           renter_id: string
           start_date: string
           status: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
+          toyyibpay_bill_code: string | null
           updated_at: string | null
         }
         Insert: {
@@ -292,10 +295,13 @@ export type Database = {
           id?: string
           item_id: string
           owner_id: string
+          payment_method?: string | null
+          payment_status?: string | null
           renter_id: string
           start_date: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
+          toyyibpay_bill_code?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -304,10 +310,13 @@ export type Database = {
           id?: string
           item_id?: string
           owner_id?: string
+          payment_method?: string | null
+          payment_status?: string | null
           renter_id?: string
           start_date?: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price?: number
+          toyyibpay_bill_code?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -487,6 +496,7 @@ export type Database = {
           description: string
           id: string
           reference_id: string | null
+          toyyibpay_transaction_id: string | null
           type: Database["public"]["Enums"]["wallet_transaction_type"]
           wallet_id: string
         }
@@ -496,6 +506,7 @@ export type Database = {
           description: string
           id?: string
           reference_id?: string | null
+          toyyibpay_transaction_id?: string | null
           type: Database["public"]["Enums"]["wallet_transaction_type"]
           wallet_id: string
         }
@@ -505,6 +516,7 @@ export type Database = {
           description?: string
           id?: string
           reference_id?: string | null
+          toyyibpay_transaction_id?: string | null
           type?: Database["public"]["Enums"]["wallet_transaction_type"]
           wallet_id?: string
         }
