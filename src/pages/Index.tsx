@@ -109,7 +109,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-mobile-nav">
       <Header />
 
       {/* Hero Section */}

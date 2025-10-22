@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { ItemCategory } from '@/types';
 import { ImageUpload } from '@/components/ImageUpload';
 import Header from '@/components/Header';
+import BackButton from '@/components/BackButton';
 
 export default function ListItem() {
   const { user, profile } = useAuth();
@@ -104,11 +105,17 @@ export default function ListItem() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>List Your Item</CardTitle>
-        </CardHeader>
+      <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav">
+        {/* Mobile Back Button */}
+        <div className="md:hidden mb-4 flex items-center gap-2">
+          <BackButton fallbackPath="/" />
+          <h1 className="text-xl font-bold">List Your Item</h1>
+        </div>
+        
+        <Card>
+          <CardHeader className="hidden md:block">
+            <CardTitle>List Your Item</CardTitle>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

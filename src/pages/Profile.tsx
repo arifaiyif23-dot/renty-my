@@ -74,7 +74,7 @@ export default function Profile() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-4xl">
+      <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">

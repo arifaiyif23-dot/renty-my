@@ -142,7 +142,7 @@ export default function Search() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 pb-mobile-nav">
         <h1 className="text-3xl font-bold mb-6">Search Items</h1>
 
         <div className="grid md:grid-cols-5 gap-4 mb-6">

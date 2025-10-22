@@ -10,6 +10,7 @@ import { ReviewForm } from '@/components/ReviewForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import Header from '@/components/Header';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -151,8 +152,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">My Rentals</h1>
+    <>
+      <Header />
+      <div className="container mx-auto p-4 pb-mobile-nav">
+        <h1 className="text-3xl font-bold mb-6">My Rentals</h1>
       
       <Tabs defaultValue="active" className="w-full">
         <TabsList>
@@ -179,6 +182,7 @@ export default function Dashboard() {
           ))}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }

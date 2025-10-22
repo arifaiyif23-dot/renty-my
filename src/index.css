@@ -121,3 +121,25 @@ All colors MUST be HSL.
     @apply text-[20px] leading-normal;
   }
 }
+
+@layer utilities {
+  /* Safe area utilities for mobile devices with notches */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Mobile-friendly touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Bottom nav spacing to prevent content overlap */
+  .pb-mobile-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}

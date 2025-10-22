@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Gift } from 'lucide-react';
+import { Eye, EyeOff, Gift, Home } from 'lucide-react';
+import logo from "@/assets/renty-logo.png";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -74,8 +75,24 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Minimal Top Bar */}
+      <div className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="RENTY" className="h-8 w-auto" />
+          </Link>
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <Home className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+      
+      {/* Auth Form */}
+      <div className="flex-1 flex items-center justify-center p-4 pb-mobile-nav">
+        <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome to RENTY</CardTitle>
           <CardDescription>Sign in or create an account to continue</CardDescription>
@@ -223,6 +240,7 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

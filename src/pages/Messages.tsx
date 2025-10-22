@@ -153,7 +153,7 @@ export default function Messages() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 pb-mobile-nav">
         <h1 className="text-3xl font-bold mb-6">Messages</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

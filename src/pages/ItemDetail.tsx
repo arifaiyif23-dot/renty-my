@@ -15,6 +15,7 @@ import { differenceInDays } from 'date-fns';
 import { MapPin, User } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
+import BackButton from '@/components/BackButton';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -110,7 +111,12 @@ export default function ItemDetail() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 pb-mobile-nav">
+        {/* Mobile Back Button */}
+        <div className="md:hidden mb-4">
+          <BackButton fallbackPath="/search" />
+        </div>
+        
         <div className="grid md:grid-cols-2 gap-6">
         <div>
           <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center">

@@ -124,7 +124,7 @@ export default function Wallet() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-4xl">
+      <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
         <h1 className="text-3xl font-bold mb-6">My Wallet</h1>
 
         <Card className="mb-6">

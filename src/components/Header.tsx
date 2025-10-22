@@ -28,7 +28,7 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="RENTY" className="h-10 w-auto" />
+            <img src={logo} alt="RENTY" className="h-8 sm:h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -44,21 +44,27 @@ const Header = () => {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {user ? (
               <>
-                <Link to="/list-item">
-                  <Button size="sm" className="hidden sm:inline-flex">
+                {/* Desktop List Item Button */}
+                <Link to="/list-item" className="hidden md:inline-flex">
+                  <Button size="sm">
                     List Item
                   </Button>
                 </Link>
-                <Link to="/messages">
+                
+                {/* Messages - Hidden on mobile (in bottom nav) */}
+                <Link to="/messages" className="hidden md:inline-flex">
                   <Button variant="ghost" size="icon">
                     <MessageCircle className="h-4 w-4" />
                   </Button>
                 </Link>
+                
+                {/* Notifications */}
                 <NotificationBell />
                 
+                {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full">
@@ -87,12 +93,6 @@ const Header = () => {
                         Wallet
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="sm:hidden">
-                      <Link to="/list-item" className="flex items-center cursor-pointer">
-                        <Package className="h-4 w-4 mr-2" />
-                        List Item
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
                       <LogOut className="h-4 w-4 mr-2" />
@@ -104,8 +104,8 @@ const Header = () => {
             ) : (
               <Link to="/auth">
                 <Button variant="outline" size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
+                  <User className="h-4 w-4 mr-2 md:mr-2" />
+                  <span className="hidden sm:inline">Sign In</span>
                 </Button>
               </Link>
             )}
