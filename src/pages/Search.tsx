@@ -5,6 +5,8 @@ import { Item, ItemCategory } from '@/types';
 import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import EmptyState from '@/components/EmptyState';
+import SEO from '@/components/SEO';
+import { useDebounce } from '@/hooks/use-debounce';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
@@ -30,6 +32,9 @@ export default function Search() {
   const [userLocation, setUserLocation] = useState<string>('');
   const [gettingLocation, setGettingLocation] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>('newest');
+  
+  // Debounce search query for better performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   useEffect(() => {
     const startDate = searchParams.get('start_date');
@@ -83,7 +88,7 @@ export default function Search() {
 
   useEffect(() => {
     fetchItems();
-  }, [searchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy]);
+  }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy]);
 
   const fetchItems = async () => {
     try {
@@ -96,8 +101,8 @@ export default function Search() {
         `)
         .eq('is_available', true);
 
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      if (debouncedSearchQuery) {
+        query = query.or(`title.ilike.%${debouncedSearchQuery}%,description.ilike.%${debouncedSearchQuery}%`);
       }
 
       if (userLocation) {
@@ -154,6 +159,10 @@ export default function Search() {
 
   return (
     <>
+      <SEO
+        title="Search Items"
+        description="Browse and search thousands of items available for rent across Malaysia. Find vehicles, gadgets, tools, and more."
+      />
       <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">Search Items</h1>
@@ -166,6 +175,7 @@ export default function Search() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
+              aria-label="Search items"
             />
           </div>
 
@@ -175,6 +185,7 @@ export default function Search() {
               value={userLocation}
               onChange={(e) => setUserLocation(e.target.value)}
               className="pr-10"
+              aria-label="Filter by location"
             />
             <Button
               variant="ghost"

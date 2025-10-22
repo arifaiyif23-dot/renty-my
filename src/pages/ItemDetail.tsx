@@ -20,6 +20,7 @@ import EmptyState from '@/components/EmptyState';
 import ImageCarousel from '@/components/ImageCarousel';
 import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
+import SEO from '@/components/SEO';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -190,9 +191,14 @@ export default function ItemDetail() {
   };
 
   if (loading) {
-    return (
-      <>
-        <Header />
+  return (
+    <>
+      <SEO
+        title={item?.title || "Item Detail"}
+        description={item?.description || "View item details and book your rental"}
+        image={item?.images?.[0]?.image_url}
+      />
+      <Header />
         <div className="container mx-auto p-4 pb-mobile-nav">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">

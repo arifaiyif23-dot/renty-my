@@ -5,6 +5,7 @@ import SearchBar from "@/components/SearchBar";
 import ItemCard from "@/components/ItemCard";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Recycle, Shield, Clock, TrendingUp, Package } from "lucide-react";
@@ -139,6 +140,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen pb-mobile-nav">
+      <SEO
+        title="Home"
+        description="Rent what you need, when you need it. From vehicles to gadgets, rooms to tools - Malaysia's leading sustainable rental platform."
+      />
       <Header />
 
       {/* Hero Section */}
