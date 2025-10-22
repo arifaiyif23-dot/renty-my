@@ -1,1 +1,7 @@
 project_id = "rxwmzfaghsdouepbfrnr"
+
+[functions.create-toyyibpay-bill]
+verify_jwt = true
+
+[functions.toyyibpay-webhook]
+verify_jwt = false
