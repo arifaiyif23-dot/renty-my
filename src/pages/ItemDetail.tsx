@@ -12,10 +12,11 @@ import { ReviewsList } from '@/components/ReviewsList';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User } from 'lucide-react';
+import { MapPin, User, Package } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
+import EmptyState from '@/components/EmptyState';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -66,12 +67,42 @@ export default function ItemDetail() {
       return;
     }
 
+    if (item?.owner_id === user.id) {
+      toast.error("You can't book your own item");
+      return;
+    }
+
     setIsBooking(true);
     try {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       const totalPrice = days * (item?.price_per_day || 0);
 
-      const { error } = await supabase
+      // Check user's wallet balance
+      const { data: walletData, error: walletError } = await supabase
+        .from('wallets')
+        .select('id, balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (walletError) throw new Error('Failed to check wallet balance');
+
+      const currentBalance = Number(walletData.balance);
+
+      if (currentBalance < totalPrice) {
+        toast.error(
+          `Insufficient balance. You need RM ${totalPrice.toFixed(2)} but have RM ${currentBalance.toFixed(2)}`,
+          { 
+            action: {
+              label: 'Top Up',
+              onClick: () => navigate('/wallet')
+            }
+          }
+        );
+        return;
+      }
+
+      // Create rental and deduct from wallet in a transaction
+      const { data: rentalData, error: rentalError } = await supabase
         .from('rentals')
         .insert({
           item_id: item?.id,
@@ -80,11 +111,36 @@ export default function ItemDetail() {
           start_date: dateRange.from.toISOString().split('T')[0],
           end_date: dateRange.to.toISOString().split('T')[0],
           total_price: totalPrice,
+          payment_status: 'pending',
+          payment_method: 'wallet',
+        })
+        .select()
+        .single();
+
+      if (rentalError) throw rentalError;
+
+      // Deduct from renter's wallet
+      const { error: deductError } = await supabase
+        .from('wallets')
+        .update({ balance: currentBalance - totalPrice })
+        .eq('user_id', user.id);
+
+      if (deductError) throw deductError;
+
+      // Create wallet transaction record
+      const { error: transactionError } = await supabase
+        .from('wallet_transactions')
+        .insert({
+          wallet_id: walletData.id,
+          amount: totalPrice,
+          type: 'rental_payment',
+          description: `Payment for ${item?.title}`,
+          reference_id: rentalData.id,
         });
 
-      if (error) throw error;
+      if (transactionError) throw transactionError;
       
-      toast.success('Rental request sent!');
+      toast.success(`Booking confirmed! RM ${totalPrice.toFixed(2)} deducted from your wallet.`);
       navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Failed to create booking');
@@ -101,11 +157,44 @@ export default function ItemDetail() {
   };
 
   if (loading) {
-    return <div className="container mx-auto p-4">Loading...</div>;
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 pb-mobile-nav">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="aspect-video bg-muted rounded-lg animate-pulse" />
+              <Card className="p-6 space-y-4">
+                <div className="h-8 bg-muted rounded w-3/4 animate-pulse" />
+                <div className="h-4 bg-muted rounded w-full animate-pulse" />
+                <div className="h-4 bg-muted rounded w-5/6 animate-pulse" />
+              </Card>
+            </div>
+            <Card className="p-6 space-y-4">
+              <div className="h-6 bg-muted rounded w-1/2 animate-pulse" />
+              <div className="h-64 bg-muted rounded animate-pulse" />
+            </Card>
+          </div>
+        </div>
+      </>
+    );
   }
 
   if (!item) {
-    return <div className="container mx-auto p-4">Item not found</div>;
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 pb-mobile-nav">
+          <EmptyState
+            icon={Package}
+            title="Item Not Found"
+            description="The item you're looking for doesn't exist or has been removed."
+            actionLabel="Browse Items"
+            onAction={() => navigate('/search')}
+          />
+        </div>
+      </>
+    );
   }
 
   return (

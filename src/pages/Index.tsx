@@ -1,89 +1,118 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import ItemCard from "@/components/ItemCard";
+import SkeletonCard from "@/components/SkeletonCard";
+import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Recycle, Shield, Clock, TrendingUp } from "lucide-react";
+import { Recycle, Shield, Clock, TrendingUp, Package } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface FeaturedItem {
+  id: string;
+  title: string;
+  image: string;
+  pricePerDay: number;
+  category: string;
+  rating: number;
+  reviewCount: number;
+  location: string;
+}
 
 const Index = () => {
-  // Mock data for featured items
-  const featuredItems = [
-    {
-      id: "1",
-      title: "Honda City 2022 - Comfortable Sedan",
-      image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80",
-      pricePerDay: 150,
-      category: "Vehicles",
-      rating: 4.8,
-      reviewCount: 24,
-      location: "Kuala Lumpur",
-      distance: "2.5 km",
-    },
-    {
-      id: "2",
-      title: "Canon EOS R6 Camera Kit",
-      image: "https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=800&q=80",
-      pricePerDay: 80,
-      category: "Gadgets",
-      rating: 5.0,
-      reviewCount: 12,
-      location: "Petaling Jaya",
-      distance: "5.2 km",
-    },
-    {
-      id: "3",
-      title: "Cozy Studio in KLCC",
-      image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80",
-      pricePerDay: 200,
-      category: "Rooms",
-      rating: 4.9,
-      reviewCount: 31,
-      location: "KLCC, KL",
-      distance: "1.8 km",
-    },
-    {
-      id: "4",
-      title: "Mountain Bike - Trek Marlin 7",
-      image: "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=800&q=80",
-      pricePerDay: 35,
-      category: "Sports",
-      rating: 4.7,
-      reviewCount: 18,
-      location: "Subang Jaya",
-      distance: "7.1 km",
-    },
-    {
-      id: "5",
-      title: "DJI Mavic Pro 3 Drone",
-      image: "https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&q=80",
-      pricePerDay: 120,
-      category: "Gadgets",
-      rating: 4.9,
-      reviewCount: 15,
-      location: "Shah Alam",
-      distance: "10.5 km",
-    },
-    {
-      id: "6",
-      title: "Yamaha Acoustic Guitar",
-      image: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=80",
-      pricePerDay: 25,
-      category: "Music",
-      rating: 4.6,
-      reviewCount: 9,
-      location: "Bangsar",
-      distance: "3.2 km",
-    },
-  ];
+  const navigate = useNavigate();
+  const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<{ name: string; icon: string; count: number }[]>([]);
 
-  const categories = [
-    { name: "Vehicles", icon: "🚗", count: "500+" },
-    { name: "Gadgets", icon: "📱", count: "350+" },
-    { name: "Rooms", icon: "🏠", count: "200+" },
-    { name: "Sports", icon: "⚽", count: "180+" },
-    { name: "Music", icon: "🎸", count: "120+" },
-    { name: "Tools", icon: "🔧", count: "150+" },
-  ];
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Fetch featured items (latest 6 available items)
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('items')
+        .select(`
+          id,
+          title,
+          price_per_day,
+          category,
+          location,
+          item_images!inner(image_url)
+        `)
+        .eq('is_available', true)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (itemsError) throw itemsError;
+
+      // Calculate review ratings for each item
+      const itemsWithReviews = await Promise.all(
+        (itemsData || []).map(async (item) => {
+          const { data: reviewsData } = await supabase
+            .from('reviews')
+            .select('rating')
+            .eq('reviewee_id', item.id);
+
+          const reviewCount = reviewsData?.length || 0;
+          const rating = reviewCount > 0
+            ? reviewsData!.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+            : 0;
+
+          return {
+            id: item.id,
+            title: item.title,
+            image: item.item_images[0]?.image_url || 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
+            pricePerDay: Number(item.price_per_day),
+            category: item.category,
+            rating: Math.round(rating * 10) / 10,
+            reviewCount,
+            location: item.location,
+          };
+        })
+      );
+
+      setFeaturedItems(itemsWithReviews);
+
+      // Fetch category counts
+      const categoryIcons: Record<string, string> = {
+        vehicles: "🚗",
+        gadgets: "📱",
+        rooms: "🏠",
+        sports: "⚽",
+        music: "🎸",
+        tools: "🔧",
+      };
+
+      const { data: categoryCounts, error: categoryError } = await supabase
+        .from('items')
+        .select('category')
+        .eq('is_available', true);
+
+      if (categoryError) throw categoryError;
+
+      const countMap = (categoryCounts || []).reduce((acc, item) => {
+        acc[item.category] = (acc[item.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const categoryData = Object.entries(countMap).map(([name, count]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        icon: categoryIcons[name.toLowerCase()] || "📦",
+        count,
+      }));
+
+      setCategories(categoryData);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const howItWorks = [
     {
@@ -135,18 +164,31 @@ const Index = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
             Browse by Category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <Card
-                key={category.name}
-                className="p-6 text-center hover:shadow-lg transition-all cursor-pointer hover:scale-105"
-              >
-                <div className="text-4xl mb-3">{category.icon}</div>
-                <h3 className="font-semibold mb-1">{category.name}</h3>
-                <p className="text-sm text-muted-foreground">{category.count}</p>
-              </Card>
-            ))}
-          </div>
+          {categories.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {categories.map((category) => (
+                <Card
+                  key={category.name}
+                  className="p-4 md:p-6 text-center hover:shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  onClick={() => navigate(`/search?category=${category.name.toLowerCase()}`)}
+                >
+                  <div className="text-3xl md:text-4xl mb-2 md:mb-3">{category.icon}</div>
+                  <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">{category.count}</p>
+                </Card>
+              ))}
+            </div>
+          ) : loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="p-4 md:p-6 text-center">
+                  <div className="h-12 w-12 bg-muted rounded-full mx-auto mb-3 animate-pulse" />
+                  <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2 animate-pulse" />
+                  <div className="h-3 bg-muted rounded w-1/2 mx-auto animate-pulse" />
+                </Card>
+              ))}
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -155,13 +197,29 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-bold">Featured Rentals</h2>
-            <Button variant="outline">View All</Button>
+            <Button variant="outline" onClick={() => navigate('/search')}>View All</Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredItems.map((item) => (
-              <ItemCard key={item.id} {...item} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {[...Array(6)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : featuredItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {featuredItems.map((item) => (
+                <ItemCard key={item.id} {...item} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Package}
+              title="No Items Available"
+              description="Be the first to list an item on RENTY and start earning!"
+              actionLabel="List Your First Item"
+              onAction={() => navigate('/list-item')}
+            />
+          )}
         </div>
       </section>
 
@@ -194,7 +252,12 @@ const Index = () => {
           <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
             List your items in minutes and start earning. Join thousands of owners already making money on RENTY.
           </p>
-          <Button size="lg" variant="secondary" className="text-lg px-8">
+          <Button 
+            size="lg" 
+            variant="secondary" 
+            className="text-lg px-6 md:px-8 min-h-[44px]"
+            onClick={() => navigate('/list-item')}
+          >
             List Your First Item
           </Button>
         </div>
