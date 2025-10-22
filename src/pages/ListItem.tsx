@@ -10,12 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { ItemCategory } from '@/types';
+import { ImageUpload } from '@/components/ImageUpload';
+import Header from '@/components/Header';
 
 export default function ListItem() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,6 +32,11 @@ export default function ListItem() {
     if (!user) {
       toast.error('Please sign in to list an item');
       navigate('/auth');
+      return;
+    }
+
+    if (imageUrls.length === 0) {
+      toast.error('Please upload at least one image');
       return;
     }
 
@@ -50,6 +58,20 @@ export default function ListItem() {
         .single();
 
       if (error) throw error;
+
+      // Insert images into item_images table
+      const imageInserts = imageUrls.map((url, index) => ({
+        item_id: data.id,
+        image_url: url,
+        is_primary: index === 0,
+        display_order: index,
+      }));
+
+      const { error: imageError } = await supabase
+        .from('item_images')
+        .insert(imageInserts);
+
+      if (imageError) throw imageError;
       
       toast.success('Item listed successfully!');
       navigate(`/items/${data.id}`);
@@ -63,27 +85,40 @@ export default function ListItem() {
 
   if (!user) {
     return (
-      <div className="container mx-auto p-4">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center mb-4">Please sign in to list an item</p>
-            <Button onClick={() => navigate('/auth')} className="w-full">
-              Sign In
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <>
+        <Header />
+        <div className="container mx-auto p-4">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-center mb-4">Please sign in to list an item</p>
+              <Button onClick={() => navigate('/auth')} className="w-full">
+                Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-2xl">
+    <>
+      <Header />
+      <div className="container mx-auto p-4 max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>List Your Item</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Item Images *</Label>
+              <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
+              <p className="text-xs text-muted-foreground">
+                Upload up to 5 images. First image will be the primary photo.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -154,6 +189,7 @@ export default function ListItem() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }
