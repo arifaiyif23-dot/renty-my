@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
+import { ReviewsList } from '@/components/ReviewsList';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import { MapPin, User } from 'lucide-react';
@@ -185,6 +187,13 @@ export default function ItemDetail() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      <Separator className="my-8" />
+
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold mb-6">Reviews</h2>
+        <ReviewsList itemId={item.id} />
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import ListItem from "./pages/ListItem";
 import ItemDetail from "./pages/ItemDetail";
 import Search from "./pages/Search";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/list-item" element={<ListItem />} />
             <Route path="/items/:id" element={<ItemDetail />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/messages" element={<Messages />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

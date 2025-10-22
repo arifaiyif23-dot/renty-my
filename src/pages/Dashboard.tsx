@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ReviewForm } from '@/components/ReviewForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -65,6 +67,8 @@ export default function Dashboard() {
 
   const RentalCard = ({ rental }: { rental: Rental }) => {
     const isOwner = rental.owner_id === user?.id;
+    const canReview = rental.status === 'completed';
+    const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
     
     return (
       <Card>
@@ -115,6 +119,27 @@ export default function Dashboard() {
             >
               Complete Rental
             </Button>
+          )}
+
+          {canReview && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">Leave a Review</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Rate your experience</DialogTitle>
+                </DialogHeader>
+                <ReviewForm 
+                  rentalId={rental.id} 
+                  revieweeId={revieweeId}
+                  onSuccess={() => {
+                    toast.success('Thank you for your review!');
+                    fetchRentals();
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
           )}
         </CardContent>
       </Card>

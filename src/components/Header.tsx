@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Menu, User, LogOut } from "lucide-react";
+import { Search, Menu, User, LogOut, MessageCircle } from "lucide-react";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -37,6 +38,12 @@ const Header = () => {
                     List Item
                   </Button>
                 </Link>
+                <Link to="/messages">
+                  <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <NotificationBell />
                 <Button 
                   variant="ghost" 
                   size="icon" 
