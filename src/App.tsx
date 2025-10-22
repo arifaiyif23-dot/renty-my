@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -28,13 +29,13 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/list-item" element={<ListItem />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
         <Route path="/items/:id" element={<ItemDetail />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/wallet" element={<Wallet />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <MobileBottomNav />

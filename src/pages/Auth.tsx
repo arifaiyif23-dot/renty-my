@@ -10,6 +10,35 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Gift, Home } from 'lucide-react';
 import logo from "@/assets/renty-logo.png";
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().trim().email('Invalid email address').toLowerCase(),
+  password: z.string().min(1, 'Password required')
+});
+
+const signUpSchema = z.object({
+  fullName: z.string()
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters')
+    .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens and apostrophes'),
+  email: z.string()
+    .trim()
+    .email('Invalid email address')
+    .max(255, 'Email too long')
+    .toLowerCase(),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password too long')
+    .regex(/[A-Z]/, 'Must contain uppercase letter')
+    .regex(/[a-z]/, 'Must contain lowercase letter')
+    .regex(/[0-9]/, 'Must contain a number'),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+});
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,15 +53,22 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const result = loginSchema.safeParse(loginData);
+    if (!result.success) {
+      const error = result.error.errors[0];
+      toast.error(error.message);
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      await signIn(loginData.email, loginData.password);
+      await signIn(result.data.email, result.data.password);
       toast.success('Welcome back!');
       navigate('/');
     } catch (error: any) {
       const errorMessage = error.message || "Failed to sign in";
       
-      // Provide specific error messages for common issues
       if (errorMessage.includes("Invalid login credentials")) {
         toast.error("Invalid email or password. Please try again.");
       } else if (errorMessage.includes("Email not confirmed")) {
@@ -47,23 +83,26 @@ export default function Auth() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (signupData.password !== signupData.confirmPassword) {
-      toast.error('Passwords do not match');
+    
+    const result = signUpSchema.safeParse(signupData);
+    if (!result.success) {
+      const error = result.error.errors[0];
+      toast.error(error.message);
       return;
     }
+    
     setIsLoading(true);
     try {
-      await signUp(signupData.email, signupData.password, signupData.fullName);
+      await signUp(result.data.email, result.data.password, result.data.fullName);
       toast.success("Account created! Welcome to RENTY!");
       navigate("/");
     } catch (error: any) {
       const errorMessage = error.message || "Failed to create account";
       
-      // Provide specific error messages for common issues
       if (errorMessage.includes("User already registered")) {
         toast.error("This email is already registered. Try logging in instead.");
       } else if (errorMessage.includes("Password")) {
-        toast.error("Password must be at least 6 characters long");
+        toast.error("Password must be at least 8 characters with uppercase, lowercase, and number");
       } else if (errorMessage.includes("Invalid email")) {
         toast.error("Please enter a valid email address");
       } else {
