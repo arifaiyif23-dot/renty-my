@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { Notification } from "@/types";
+import { soundPlayer } from "@/utils/sounds";
 
 export const NotificationBell = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -34,6 +35,14 @@ export const NotificationBell = () => {
           const newNotification = payload.new as Notification;
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
+          
+          // Play sound based on notification type
+          if (newNotification.type === 'rental_request' || newNotification.type === 'rental_approved') {
+            soundPlayer.playOrder();
+          } else {
+            soundPlayer.playNotification();
+          }
+          
           toast.info(newNotification.title);
         }
       )

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "next-themes";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -45,17 +46,19 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ErrorBoundary>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <TooltipProvider>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </TooltipProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ErrorBoundary>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <TooltipProvider>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </TooltipProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
