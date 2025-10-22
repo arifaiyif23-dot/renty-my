@@ -7,21 +7,22 @@ import SkeletonCard from '@/components/SkeletonCard';
 import EmptyState from '@/components/EmptyState';
 import SEO from '@/components/SEO';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search as SearchIcon, Calendar as CalendarIcon, X, MapPin, Loader2, ArrowUpDown, Package } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
+import MobileFilterDrawer from '@/components/MobileFilterDrawer';
 import { toast } from 'sonner';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,11 +31,16 @@ export default function Search() {
   const [maxPrice, setMaxPrice] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [userLocation, setUserLocation] = useState<string>('');
-  const [gettingLocation, setGettingLocation] = useState(false);
   const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>('newest');
   
   // Debounce search query for better performance
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Pull to refresh
+  const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
+    await fetchItems();
+    toast.success('Results refreshed');
+  }, isMobile);
 
   useEffect(() => {
     const startDate = searchParams.get('start_date');
@@ -51,40 +57,6 @@ export default function Search() {
       setUserLocation(location);
     }
   }, [searchParams]);
-
-  const getUserLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      return;
-    }
-
-    setGettingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        
-        try {
-          // Use reverse geocoding to get location name
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-          );
-          const data = await response.json();
-          const locationName = data.address.city || data.address.town || data.address.village || 'Your location';
-          setUserLocation(locationName);
-          toast.success(`Location set to ${locationName}`);
-        } catch (error) {
-          toast.error('Failed to get location name');
-        } finally {
-          setGettingLocation(false);
-        }
-      },
-      (error) => {
-        setGettingLocation(false);
-        toast.error('Unable to get your location');
-        console.error(error);
-      }
-    );
-  };
 
   useEffect(() => {
     fetchItems();
@@ -157,6 +129,15 @@ export default function Search() {
     }
   };
 
+  const activeFiltersCount = [
+    searchQuery,
+    category !== 'all',
+    minPrice,
+    maxPrice,
+    dateRange?.from,
+    userLocation,
+  ].filter(Boolean).length;
+
   return (
     <>
       <SEO
@@ -164,128 +145,137 @@ export default function Search() {
         description="Browse and search thousands of items available for rent across Malaysia. Find vehicles, gadgets, tools, and more."
       />
       <Header />
+      
+      {/* Pull to Refresh Indicator */}
+      {isMobile && pullDistance > 0 && (
+        <div 
+          className="fixed top-14 left-0 right-0 flex justify-center items-center z-40 transition-all"
+          style={{ 
+            transform: `translateY(${Math.min(pullDistance - 20, 60)}px)`,
+            opacity: Math.min(pullDistance / 80, 1)
+          }}
+        >
+          <div className="bg-card rounded-full p-2 shadow-lg border">
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto p-4 pb-mobile-nav">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">Search Items</h1>
 
-        <div className="grid md:grid-cols-5 gap-4 mb-6">
-          <div className="md:col-span-2 relative">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-              aria-label="Search items"
-            />
-          </div>
+        {/* Mobile: Search + Sort + Filter Button */}
+        {isMobile ? (
+          <div className="space-y-3 mb-6">
+            <div className="relative">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-12"
+                aria-label="Search items"
+              />
+            </div>
 
-          <div className="relative">
-            <Input
-              placeholder="Location"
-              value={userLocation}
-              onChange={(e) => setUserLocation(e.target.value)}
-              className="pr-10"
-              aria-label="Filter by location"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full"
-              onClick={getUserLocation}
-              disabled={gettingLocation}
-            >
-              {gettingLocation ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <MapPin className="h-4 w-4" />
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <MobileFilterDrawer
+                category={category}
+                setCategory={setCategory}
+                minPrice={minPrice}
+                setMinPrice={setMinPrice}
+                maxPrice={maxPrice}
+                setMaxPrice={setMaxPrice}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                userLocation={userLocation}
+                setUserLocation={setUserLocation}
+                activeFiltersCount={activeFiltersCount}
+              />
+              
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="flex-1 h-12">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="price_low">Price: Low to High</SelectItem>
+                  <SelectItem value="price_high">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-
-          <div>
-            <Select value={category} onValueChange={(value) => setCategory(value as ItemCategory | 'all')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="electronics">Electronics</SelectItem>
-                <SelectItem value="vehicles">Vehicles</SelectItem>
-                <SelectItem value="tools">Tools</SelectItem>
-                <SelectItem value="sports">Sports</SelectItem>
-                <SelectItem value="party">Party</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="justify-start text-left font-normal w-full">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange?.from ? (
-                dateRange.to ? (
-                  `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
-                ) : (
-                  format(dateRange.from, "MMM d")
-                )
-              ) : (
-                "Select dates"
-              )}
-              {dateRange?.from && (
-                <X
-                  className="ml-auto h-4 w-4 opacity-50 hover:opacity-100"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDateRange(undefined);
-                  }}
+        ) : (
+          /* Desktop: Full Filters */
+          <div className="space-y-4 mb-6">
+            <div className="grid md:grid-cols-4 gap-3">
+              <div className="md:col-span-2 relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  aria-label="Search items"
                 />
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={setDateRange}
-              numberOfMonths={2}
-              disabled={(date) => date < new Date()}
-              initialFocus
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </PopoverContent>
-        </Popover>
-        </div>
+              </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex gap-2 flex-1">
-            <Input
-              type="number"
-              placeholder="Min RM"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              className="flex-1"
-            />
-            <Input
-              type="number"
-              placeholder="Max RM"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              className="flex-1"
-            />
+              <Input
+                placeholder="Location"
+                value={userLocation}
+                onChange={(e) => setUserLocation(e.target.value)}
+                aria-label="Filter by location"
+              />
+
+              <Select value={category} onValueChange={(value) => setCategory(value as ItemCategory | 'all')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="electronics">Electronics</SelectItem>
+                  <SelectItem value="vehicles">Vehicles</SelectItem>
+                  <SelectItem value="tools">Tools</SelectItem>
+                  <SelectItem value="sports">Sports</SelectItem>
+                  <SelectItem value="party">Party</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex gap-2 flex-1">
+                <Input
+                  type="number"
+                  placeholder="Min RM"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  placeholder="Max RM"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="price_low">Price: Low to High</SelectItem>
+                  <SelectItem value="price_high">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="price_low">Price: Low to High</SelectItem>
-              <SelectItem value="price_high">Price: High to Low</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        )}
 
         {/* Active Filters */}
         {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (

@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, MessageCircle, Wallet, LayoutDashboard, Package } from "lucide-react";
+import { User, Menu, Search } from "lucide-react";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
-import { NotificationBell } from "@/components/NotificationBell";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileNav from "@/components/MobileNav";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,104 +17,111 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
+  const isMobile = useIsMobile();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const userInitials = profile?.full_name
-    .split(" ")
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase() || "U";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="RENTY" className="h-8 sm:h-10 w-auto" />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/search" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Browse
-            </Link>
-            {user && (
-              <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                My Rentals
-              </Link>
-            )}
-          </nav>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            {user ? (
-              <>
-                {/* Desktop List Item Button */}
-                <Link to="/list-item" className="hidden md:inline-flex">
-                  <Button size="sm">
-                    List Item
-                  </Button>
-                </Link>
-                
-                {/* Messages - Hidden on mobile (in bottom nav) */}
-                <Link to="/messages" className="hidden md:inline-flex">
-                  <Button variant="ghost" size="icon">
-                    <MessageCircle className="h-4 w-4" />
-                  </Button>
-                </Link>
-                
-                {/* Notifications */}
-                <NotificationBell />
-                
-                {/* User Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={profile?.avatar_url} />
-                        <AvatarFallback>{userInitials}</AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link to="/profile" className="flex items-center cursor-pointer">
-                        <User className="h-4 w-4 mr-2" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/dashboard" className="flex items-center cursor-pointer">
-                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/wallet" className="flex items-center cursor-pointer">
-                        <Wallet className="h-4 w-4 mr-2" />
-                        Wallet
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : (
-              <Link to="/auth">
-                <Button variant="outline" size="sm">
-                  <User className="h-4 w-4 mr-2 md:mr-2" />
-                  <span className="hidden sm:inline">Sign In</span>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 md:h-16 items-center justify-between gap-2">
+            {/* Mobile Menu Button + Logo */}
+            <div className="flex items-center gap-2">
+              {isMobile && user && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => setMobileNavOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
                 </Button>
+              )}
+              <Link to="/" className="flex items-center">
+                <img src={logo} alt="RENTY" className="h-6 md:h-8 w-auto" />
               </Link>
-            )}
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              <Link to="/search" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                Browse
+              </Link>
+              {user && (
+                <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                  My Rentals
+                </Link>
+              )}
+            </nav>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-1 sm:gap-2">
+              {user ? (
+                <>
+                  {/* Search Icon (Mobile) */}
+                  {isMobile && (
+                    <Link to="/search">
+                      <Button variant="ghost" size="icon" className="md:hidden">
+                        <Search className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  )}
+
+                  {/* Desktop List Item Button */}
+                  <Link to="/list-item" className="hidden md:inline-flex">
+                    <Button size="sm">
+                      List Item
+                    </Button>
+                  </Link>
+
+                  {/* Desktop User Menu */}
+                  {!isMobile && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="rounded-full">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={profile?.avatar_url} />
+                            <AvatarFallback>{userInitials}</AvatarFallback>
+                          </Avatar>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem asChild>
+                          <Link to="/profile" className="flex items-center cursor-pointer">
+                            <User className="h-4 w-4 mr-2" />
+                            Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                          Sign Out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-0 sm:mr-2" />
+                    <span className="hidden sm:inline">Sign In</span>
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Navigation Drawer */}
+      <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+    </>
   );
 };
 
