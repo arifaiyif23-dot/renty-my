@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Menu, User, LogOut, MessageCircle, Wallet, LayoutDashboard } from "lucide-react";
+import { User, LogOut, MessageCircle, Wallet, LayoutDashboard, Package } from "lucide-react";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -44,16 +44,16 @@ const Header = () => {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {user ? (
               <>
                 <Link to="/list-item">
-                  <Button size="sm" className="hidden md:inline-flex">
+                  <Button size="sm" className="hidden sm:inline-flex">
                     List Item
                   </Button>
                 </Link>
                 <Link to="/messages">
-                  <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+                  <Button variant="ghost" size="icon">
                     <MessageCircle className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -87,6 +87,12 @@ const Header = () => {
                         Wallet
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="sm:hidden">
+                      <Link to="/list-item" className="flex items-center cursor-pointer">
+                        <Package className="h-4 w-4 mr-2" />
+                        List Item
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
                       <LogOut className="h-4 w-4 mr-2" />
@@ -97,15 +103,12 @@ const Header = () => {
               </>
             ) : (
               <Link to="/auth">
-                <Button variant="outline" size="sm" className="hidden md:inline-flex">
+                <Button variant="outline" size="sm">
                   <User className="h-4 w-4 mr-2" />
                   Sign In
                 </Button>
               </Link>
             )}
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
           </div>
         </div>
       </div>
