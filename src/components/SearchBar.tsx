@@ -4,15 +4,49 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, MapPin, Calendar } from "lucide-react";
+import { Search, MapPin, Calendar, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const SearchBar = () => {
   const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [gettingLocation, setGettingLocation] = useState(false);
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation not supported');
+      return;
+    }
+
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await response.json();
+          const locationName = data.address.city || data.address.town || data.address.village || 'Your location';
+          setLocation(locationName);
+          toast.success(`Location: ${locationName}`);
+        } catch {
+          toast.error('Failed to get location');
+        } finally {
+          setGettingLocation(false);
+        }
+      },
+      () => {
+        setGettingLocation(false);
+        toast.error('Unable to get location');
+      }
+    );
+  };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -29,7 +63,7 @@ const SearchBar = () => {
           {/* Location */}
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors">
             <MapPin className="h-5 w-5 text-primary shrink-0" />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 relative">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Location
               </label>
@@ -38,8 +72,22 @@ const SearchBar = () => {
                 placeholder="Where?"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="border-0 p-0 h-auto focus-visible:ring-0 text-sm bg-transparent"
+                className="border-0 p-0 pr-8 h-auto focus-visible:ring-0 text-sm bg-transparent"
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-6 h-5 w-5 p-0"
+                onClick={getUserLocation}
+                disabled={gettingLocation}
+              >
+                {gettingLocation ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <MapPin className="h-3 w-3" />
+                )}
+              </Button>
             </div>
           </div>
 

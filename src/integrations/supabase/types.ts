@@ -234,6 +234,45 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          current_uses: number | null
+          discount_amount: number
+          discount_type: string
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_amount: number
+          discount_type: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_amount?: number
+          discount_type?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       rentals: {
         Row: {
           created_at: string | null
@@ -387,6 +426,35 @@ export type Database = {
             columns: ["rental_id"]
             isOneToOne: false
             referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_promo_usage: {
+        Row: {
+          id: string
+          promo_code_id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          promo_code_id: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          promo_code_id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_promo_usage_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
             referencedColumns: ["id"]
           },
         ]

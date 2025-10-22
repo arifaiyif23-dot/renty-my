@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Search as SearchIcon, Calendar as CalendarIcon, X } from 'lucide-react';
+import { Search as SearchIcon, Calendar as CalendarIcon, X, MapPin, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
+import { toast } from 'sonner';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
@@ -23,21 +24,62 @@ export default function Search() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [userLocation, setUserLocation] = useState<string>('');
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   useEffect(() => {
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
+    const location = searchParams.get('location');
+    
     if (startDate && endDate) {
       setDateRange({
         from: new Date(startDate),
         to: new Date(endDate),
       });
     }
+    if (location) {
+      setUserLocation(location);
+    }
   }, [searchParams]);
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Use reverse geocoding to get location name
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await response.json();
+          const locationName = data.address.city || data.address.town || data.address.village || 'Your location';
+          setUserLocation(locationName);
+          toast.success(`Location set to ${locationName}`);
+        } catch (error) {
+          toast.error('Failed to get location name');
+        } finally {
+          setGettingLocation(false);
+        }
+      },
+      (error) => {
+        setGettingLocation(false);
+        toast.error('Unable to get your location');
+        console.error(error);
+      }
+    );
+  };
 
   useEffect(() => {
     fetchItems();
-  }, [searchQuery, category, minPrice, maxPrice, dateRange]);
+  }, [searchQuery, category, minPrice, maxPrice, dateRange, userLocation]);
 
   const fetchItems = async () => {
     try {
@@ -52,6 +94,10 @@ export default function Search() {
 
       if (searchQuery) {
         query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      if (userLocation) {
+        query = query.ilike('location', `%${userLocation}%`);
       }
 
       if (category !== 'all') {
@@ -99,37 +145,59 @@ export default function Search() {
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold mb-6">Search Items</h1>
 
-        <div className="grid md:grid-cols-4 gap-4 mb-6">
-        <div className="md:col-span-2 relative">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search items..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <div className="grid md:grid-cols-5 gap-4 mb-6">
+          <div className="md:col-span-2 relative">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-        <div>
-          <Select value={category} onValueChange={(value) => setCategory(value as ItemCategory | 'all')}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="electronics">Electronics</SelectItem>
-              <SelectItem value="vehicles">Vehicles</SelectItem>
-              <SelectItem value="tools">Tools</SelectItem>
-              <SelectItem value="sports">Sports</SelectItem>
-              <SelectItem value="party">Party</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="relative">
+            <Input
+              placeholder="Location"
+              value={userLocation}
+              onChange={(e) => setUserLocation(e.target.value)}
+              className="pr-10"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-0 h-full"
+              onClick={getUserLocation}
+              disabled={gettingLocation}
+            >
+              {gettingLocation ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MapPin className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          <div>
+            <Select value={category} onValueChange={(value) => setCategory(value as ItemCategory | 'all')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="electronics">Electronics</SelectItem>
+                <SelectItem value="vehicles">Vehicles</SelectItem>
+                <SelectItem value="tools">Tools</SelectItem>
+                <SelectItem value="sports">Sports</SelectItem>
+                <SelectItem value="party">Party</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="justify-start text-left font-normal">
+            <Button variant="outline" className="justify-start text-left font-normal w-full">
               <CalendarIcon className="mr-2 h-4 w-4" />
               {dateRange?.from ? (
                 dateRange.to ? (
@@ -163,8 +231,9 @@ export default function Search() {
             />
           </PopoverContent>
         </Popover>
+        </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-6">
           <div className="flex-1">
             <Input
               type="number"
@@ -182,7 +251,6 @@ export default function Search() {
             />
           </div>
         </div>
-      </div>
 
       {dateRange?.from && dateRange?.to && (
         <div className="mb-4 text-sm text-muted-foreground">

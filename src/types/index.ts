@@ -130,3 +130,23 @@ export interface WalletTransaction {
   reference_id?: string;
   created_at: string;
 }
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  discount_amount: number;
+  discount_type: 'percentage' | 'fixed';
+  max_uses?: number;
+  current_uses: number;
+  valid_from: string;
+  valid_until?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface UserPromoUsage {
+  id: string;
+  user_id: string;
+  promo_code_id: string;
+  used_at: string;
+}
