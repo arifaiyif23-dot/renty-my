@@ -21,6 +21,7 @@ import ImageCarousel from '@/components/ImageCarousel';
 import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import SEO from '@/components/SEO';
+import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -126,6 +127,7 @@ export default function ItemDetail() {
         toast.error(
           `Insufficient balance. You need RM ${totalPrice.toFixed(2)} but have RM ${currentBalance.toFixed(2)}`,
           { 
+            duration: 5000,
             action: {
               label: 'Top Up',
               onClick: () => navigate('/wallet')
@@ -286,44 +288,46 @@ export default function ItemDetail() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Book this item</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Select Dates</Label>
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                disabled={(date) => date < new Date()}
-                className="rounded-md border"
-              />
-            </div>
-
-            {dateRange?.from && dateRange?.to && (
-              <div className="space-y-2 p-4 bg-muted rounded-lg">
-                <div className="flex justify-between">
-                  <span>Duration:</span>
-                  <span>{differenceInDays(dateRange.to, dateRange.from) + 1} days</span>
-                </div>
-                <div className="flex justify-between font-bold">
-                  <span>Total:</span>
-                  <span>RM {calculatePrice()}</span>
-                </div>
+        <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">
+          <Card>
+            <CardHeader>
+              <CardTitle>Book this item</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Select Dates</Label>
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  disabled={(date) => date < new Date()}
+                  className="rounded-md border"
+                />
               </div>
-            )}
 
-            <Button 
-              className="w-full" 
-              onClick={handleBooking}
-              disabled={!dateRange?.from || !dateRange?.to || isBooking}
-            >
-              {isBooking ? 'Booking...' : 'Request to Book'}
-            </Button>
-          </CardContent>
-        </Card>
+              {dateRange?.from && dateRange?.to && (
+                <div className="space-y-2 p-4 bg-muted rounded-lg">
+                  <div className="flex justify-between">
+                    <span>Duration:</span>
+                    <span>{differenceInDays(dateRange.to, dateRange.from) + 1} days</span>
+                  </div>
+                  <div className="flex justify-between font-bold">
+                    <span>Total:</span>
+                    <span>RM {calculatePrice()}</span>
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                className="w-full" 
+                onClick={handleBooking}
+                disabled={!dateRange?.from || !dateRange?.to || isBooking}
+              >
+                {isBooking ? 'Booking...' : 'Request to Book'}
+              </Button>
+            </CardContent>
+          </Card>
+        </PaymentErrorBoundary>
       </div>
 
       <Separator className="my-8" />

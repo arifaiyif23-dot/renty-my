@@ -11,6 +11,7 @@ import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon, Plus } from "luci
 import { format } from "date-fns";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { PaymentErrorBoundary } from "@/components/PaymentErrorBoundary";
 
 export default function Wallet() {
   const { user } = useAuth();
@@ -79,6 +80,11 @@ export default function Wallet() {
       return;
     }
 
+    if (amount > 10000) {
+      toast.error('Maximum top up amount is RM 10,000');
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-toyyibpay-bill', {
@@ -89,7 +95,14 @@ export default function Wallet() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Payment gateway error:', error);
+        throw new Error(error.message || 'Payment gateway error');
+      }
+
+      if (!data?.paymentUrl) {
+        throw new Error('Invalid payment response. Please try again.');
+      }
 
       if (data.paymentUrl) {
         toast.success('Redirecting to payment...');
@@ -104,7 +117,16 @@ export default function Wallet() {
       }
     } catch (error: any) {
       console.error('Top up error:', error);
-      toast.error(error.message || 'Failed to create payment. Please configure ToyyibPay settings.');
+      toast.error(
+        error.message || 'Failed to create payment. Please try again or contact support.',
+        {
+          duration: 5000,
+          action: {
+            label: 'Contact Support',
+            onClick: () => window.location.href = '/profile'
+          }
+        }
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -127,63 +149,68 @@ export default function Wallet() {
       <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
         <h1 className="text-3xl font-bold mb-6">My Wallet</h1>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <WalletIcon className="h-5 w-5" />
-              Current Balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-primary">
-              RM {wallet?.balance.toFixed(2) || "0.00"}
-            </p>
-            <div className="flex gap-3 mt-4">
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Top Up via ToyyibPay
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Top Up Wallet</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Amount (RM)</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        min="10"
-                        step="0.01"
-                        placeholder="Enter amount (min RM 10)"
-                        value={topUpAmount}
-                        onChange={(e) => setTopUpAmount(e.target.value)}
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        Minimum top up: RM 10.00
-                      </p>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={handleTopUp}
-                      disabled={isProcessing || !topUpAmount}
-                    >
-                      {isProcessing ? 'Processing...' : 'Continue to Payment'}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              
-              <Button size="sm" variant="outline" disabled>
-                <ArrowUpCircle className="h-4 w-4 mr-2" />
-                Withdraw (Coming Soon)
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <PaymentErrorBoundary fallbackMessage="Unable to load wallet. Please refresh the page.">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <WalletIcon className="h-5 w-5" />
+                Current Balance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-primary">
+                RM {wallet?.balance.toFixed(2) || "0.00"}
+              </p>
+              <div className="flex gap-3 mt-4">
+                <PaymentErrorBoundary fallbackMessage="Unable to process top-up. Please try again.">
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Top Up via ToyyibPay
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Top Up Wallet</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="amount">Amount (RM)</Label>
+                          <Input
+                            id="amount"
+                            type="number"
+                            min="10"
+                            max="10000"
+                            step="0.01"
+                            placeholder="Enter amount (min RM 10)"
+                            value={topUpAmount}
+                            onChange={(e) => setTopUpAmount(e.target.value)}
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Minimum: RM 10.00 • Maximum: RM 10,000.00
+                          </p>
+                        </div>
+                        <Button 
+                          className="w-full" 
+                          onClick={handleTopUp}
+                          disabled={isProcessing || !topUpAmount}
+                        >
+                          {isProcessing ? 'Processing...' : 'Continue to Payment'}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </PaymentErrorBoundary>
+                
+                <Button size="sm" variant="outline" disabled>
+                  <ArrowUpCircle className="h-4 w-4 mr-2" />
+                  Withdraw (Coming Soon)
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </PaymentErrorBoundary>
 
         <Card>
           <CardHeader>

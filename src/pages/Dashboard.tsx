@@ -54,7 +54,28 @@ export default function Dashboard() {
         .eq('id', rentalId);
 
       if (error) throw error;
-      toast.success(`Rental ${status}`);
+
+      // If rental is completed, trigger payment to owner
+      if (status === 'completed') {
+        try {
+          const { error: paymentError } = await supabase.functions.invoke('process-rental-payment', {
+            body: { rentalId }
+          });
+
+          if (paymentError) {
+            console.error('Payment processing error:', paymentError);
+            toast.error('Rental completed but payment processing failed. Please contact support.');
+          } else {
+            toast.success('Rental completed and payment processed!');
+          }
+        } catch (paymentError) {
+          console.error('Payment processing failed:', paymentError);
+          toast.error('Rental completed but payment processing failed. Please contact support.');
+        }
+      } else {
+        toast.success(`Rental ${status}`);
+      }
+      
       fetchRentals();
     } catch (error: any) {
       toast.error('Failed to update rental');

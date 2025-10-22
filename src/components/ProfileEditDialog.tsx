@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,6 +23,16 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+
+  // Sync state when dialog opens or profile changes
+  useEffect(() => {
+    if (open && profile) {
+      setFullName(profile.full_name || "");
+      setLocation(profile.location || "");
+      setPhone(profile.phone || "");
+      setAvatarUrl(profile.avatar_url || "");
+    }
+  }, [open, profile]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
