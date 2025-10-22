@@ -1,23 +1,43 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Item, ItemCategory } from '@/types';
 import ItemCard from '@/components/ItemCard';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Search as SearchIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Search as SearchIcon, Calendar as CalendarIcon, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
+import Header from '@/components/Header';
 
 export default function Search() {
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState<ItemCategory | 'all'>('all');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  useEffect(() => {
+    const startDate = searchParams.get('start_date');
+    const endDate = searchParams.get('end_date');
+    if (startDate && endDate) {
+      setDateRange({
+        from: new Date(startDate),
+        to: new Date(endDate),
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchItems();
-  }, [searchQuery, category, minPrice, maxPrice]);
+  }, [searchQuery, category, minPrice, maxPrice, dateRange]);
 
   const fetchItems = async () => {
     try {
@@ -49,7 +69,23 @@ export default function Search() {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      setItems(data || []);
+
+      let filteredItems = data || [];
+
+      // Filter by date availability
+      if (dateRange?.from && dateRange?.to) {
+        const { data: bookedRentals } = await supabase
+          .from('rentals')
+          .select('item_id')
+          .in('status', ['approved', 'active'])
+          .lte('start_date', format(dateRange.to, 'yyyy-MM-dd'))
+          .gte('end_date', format(dateRange.from, 'yyyy-MM-dd'));
+
+        const bookedItemIds = bookedRentals?.map(r => r.item_id) || [];
+        filteredItems = filteredItems.filter(item => !bookedItemIds.includes(item.id));
+      }
+
+      setItems(filteredItems);
     } catch (error: any) {
       console.error('Error fetching items:', error);
     } finally {
@@ -58,10 +94,12 @@ export default function Search() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Search Items</h1>
+    <>
+      <Header />
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold mb-6">Search Items</h1>
 
-      <div className="grid md:grid-cols-4 gap-4 mb-6">
+        <div className="grid md:grid-cols-4 gap-4 mb-6">
         <div className="md:col-span-2 relative">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
@@ -89,6 +127,43 @@ export default function Search() {
           </Select>
         </div>
 
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="justify-start text-left font-normal">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
+                ) : (
+                  format(dateRange.from, "MMM d")
+                )
+              ) : (
+                "Select dates"
+              )}
+              {dateRange?.from && (
+                <X
+                  className="ml-auto h-4 w-4 opacity-50 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDateRange(undefined);
+                  }}
+                />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={setDateRange}
+              numberOfMonths={2}
+              disabled={(date) => date < new Date()}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+
         <div className="flex gap-2">
           <div className="flex-1">
             <Input
@@ -108,6 +183,12 @@ export default function Search() {
           </div>
         </div>
       </div>
+
+      {dateRange?.from && dateRange?.to && (
+        <div className="mb-4 text-sm text-muted-foreground">
+          Showing items available from {format(dateRange.from, "MMM d, yyyy")} to {format(dateRange.to, "MMM d, yyyy")}
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-8">Loading...</div>
@@ -130,6 +211,7 @@ export default function Search() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

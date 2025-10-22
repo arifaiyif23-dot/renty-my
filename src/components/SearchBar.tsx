@@ -1,11 +1,26 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, MapPin, Calendar } from "lucide-react";
+import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
 
 const SearchBar = () => {
+  const navigate = useNavigate();
   const [location, setLocation] = useState("");
-  const [dates, setDates] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (location) params.set("location", location);
+    if (dateRange?.from) params.set("start_date", format(dateRange.from, "yyyy-MM-dd"));
+    if (dateRange?.to) params.set("end_date", format(dateRange.to, "yyyy-MM-dd"));
+    navigate(`/search?${params.toString()}`);
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -29,25 +44,44 @@ const SearchBar = () => {
           </div>
 
           {/* Dates */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors">
-            <Calendar className="h-5 w-5 text-primary shrink-0" />
-            <div className="flex-1 min-w-0">
-              <label className="block text-xs font-medium text-muted-foreground mb-1">
-                Dates
-              </label>
-              <Input
-                type="text"
-                placeholder="When?"
-                value={dates}
-                onChange={(e) => setDates(e.target.value)}
-                className="border-0 p-0 h-auto focus-visible:ring-0 text-sm bg-transparent"
+          <Popover>
+            <PopoverTrigger asChild>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors cursor-pointer">
+                <Calendar className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">
+                    Dates
+                  </label>
+                  <p className="text-sm">
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
+                      ) : (
+                        format(dateRange.from, "MMM d")
+                      )
+                    ) : (
+                      "When?"
+                    )}
+                  </p>
+                </div>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                disabled={(date) => date < new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
               />
-            </div>
-          </div>
+            </PopoverContent>
+          </Popover>
 
           {/* Search Button */}
           <div className="flex items-center justify-center md:justify-end px-2">
-            <Button size="lg" className="w-full md:w-auto gap-2 rounded-xl">
+            <Button size="lg" onClick={handleSearch} className="w-full md:w-auto gap-2 rounded-xl">
               <Search className="h-4 w-4" />
               Search
             </Button>

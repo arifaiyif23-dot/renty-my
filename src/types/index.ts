@@ -3,6 +3,7 @@ export type RentalStatus = 'pending' | 'approved' | 'active' | 'completed' | 'ca
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'other';
 export type TransactionStatus = 'pending' | 'completed' | 'refunded' | 'failed';
 export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
+export type WalletTransactionType = 'deposit' | 'withdrawal' | 'rental_payment' | 'rental_earning' | 'refund';
 
 export interface Profile {
   id: string;
@@ -109,5 +110,23 @@ export interface Notification {
   message: string;
   link?: string;
   is_read: boolean;
+  created_at: string;
+}
+
+export interface Wallet {
+  id: string;
+  user_id: string;
+  balance: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  wallet_id: string;
+  type: WalletTransactionType;
+  amount: number;
+  description: string;
+  reference_id?: string;
   created_at: string;
 }

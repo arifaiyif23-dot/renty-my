@@ -12,6 +12,8 @@ import ListItem from "./pages/ListItem";
 import ItemDetail from "./pages/ItemDetail";
 import Search from "./pages/Search";
 import Messages from "./pages/Messages";
+import Wallet from "./pages/Wallet";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/items/:id" element={<ItemDetail />} />
             <Route path="/search" element={<Search />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
