@@ -61,10 +61,53 @@ export default function Wallet() {
   };
 
   const getTransactionAmount = (type: string, amount: number) => {
-    if (type === 'deposit' || type === 'rental_earning' || type === 'refund') {
+    if (type === 'deposit' || type === 'rental_earning' || type === 'refund' || type === 'top_up') {
       return `+RM ${amount.toFixed(2)}`;
     }
     return `-RM ${amount.toFixed(2)}`;
+  };
+
+  const handleTopUp = async () => {
+    if (!user || !topUpAmount) {
+      toast.error('Please enter an amount');
+      return;
+    }
+
+    const amount = parseFloat(topUpAmount);
+    if (amount < 10) {
+      toast.error('Minimum top up amount is RM 10');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-toyyibpay-bill', {
+        body: {
+          amount,
+          description: `Wallet Top Up - RM ${amount}`,
+          userId: user.id,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.paymentUrl) {
+        toast.success('Redirecting to payment...');
+        window.open(data.paymentUrl, '_blank');
+        setDialogOpen(false);
+        setTopUpAmount("");
+        
+        // Refresh wallet data after a short delay
+        setTimeout(() => {
+          fetchWalletData();
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error('Top up error:', error);
+      toast.error(error.message || 'Failed to create payment. Please configure ToyyibPay settings.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (loading) {
