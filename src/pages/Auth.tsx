@@ -24,7 +24,16 @@ export default function Auth() {
       toast.success('Welcome back!');
       navigate('/');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      const errorMessage = error.message || "Failed to sign in";
+      
+      // Provide specific error messages for common issues
+      if (errorMessage.includes("Invalid login credentials")) {
+        toast.error("Invalid email or password. Please try again.");
+      } else if (errorMessage.includes("Email not confirmed")) {
+        toast.error("Please check your email to confirm your account");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -39,10 +48,21 @@ export default function Auth() {
     setIsLoading(true);
     try {
       await signUp(signupData.email, signupData.password, signupData.fullName);
-      toast.success('Account created! Please check your email.');
-      navigate('/');
+      toast.success("Account created! Welcome to RENTY!");
+      navigate("/");
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign up');
+      const errorMessage = error.message || "Failed to create account";
+      
+      // Provide specific error messages for common issues
+      if (errorMessage.includes("User already registered")) {
+        toast.error("This email is already registered. Try logging in instead.");
+      } else if (errorMessage.includes("Password")) {
+        toast.error("Password must be at least 6 characters long");
+      } else if (errorMessage.includes("Invalid email")) {
+        toast.error("Please enter a valid email address");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
