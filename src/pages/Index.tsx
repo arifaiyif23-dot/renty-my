@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Header from "@/components/Header";
+import heroBanner from "@/assets/hero-banner.jpg";
 import SearchBar from "@/components/SearchBar";
 import { AnimatedCategoryIcon } from "@/components/AnimatedCategoryIcon";
 import { AnimatedStepCard } from "@/components/AnimatedStepCard";
@@ -197,7 +198,8 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-16 md:py-24 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-16 md:py-24 overflow-hidden" style={{ backgroundImage: `url(${heroBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
         <FloatingParticles />
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -208,9 +210,9 @@ const Index = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
-              Your Neighbor's Camera.{" "}
-              <span className="block mt-2">Your Weekend Car.</span>
-              <span className="text-primary block mt-2">Your Next Adventure.</span>
+              Own Less. Share More.{" "}
+              <span className="block mt-2">Protect Our Planet.</span>
+              <span className="text-primary block mt-2">The Future of Ownership is Shared.</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-4">
               Borrow what you need. Share what you own. Build community.
