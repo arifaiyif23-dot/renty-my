@@ -11,11 +11,10 @@ const MobileBottomNav = () => {
   
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Search, label: "Explore", path: "/search" },
+    { icon: Heart, label: "Saved", path: "/wishlist" },
   ];
 
   const rightNavItems = [
-    { icon: Heart, label: "Saved", path: "/wishlist" },
     { icon: MessageCircle, label: "Messages", path: "/messages" },
     { icon: User, label: "Profile", path: user ? "/profile" : "/auth" },
   ];

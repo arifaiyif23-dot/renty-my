@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
-import ItemCard from "@/components/ItemCard";
+import { AnimatedCategoryIcon } from "@/components/AnimatedCategoryIcon";
+import { AnimatedStepCard } from "@/components/AnimatedStepCard";
+import { TrustBadges } from "@/components/TrustBadges";
+import { SocialProofSection } from "@/components/SocialProofSection";
+import { EnhancedItemCard } from "@/components/EnhancedItemCard";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Recycle, Shield, Clock, TrendingUp, Package } from "lucide-react";
+import { Recycle, Shield, Clock, TrendingUp, Package, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface FeaturedItem {
@@ -20,13 +26,27 @@ interface FeaturedItem {
   rating: number;
   reviewCount: number;
   location: string;
+  isOwnerVerified?: boolean;
+  badge?: "trending" | "just-listed" | "available";
+}
+
+interface Category {
+  name: string;
+  icon: string;
+  count: number;
+  minPrice?: number;
 }
 
 const Index = () => {
   const navigate = useNavigate();
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<{ name: string; icon: string; count: number }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  
+  const { ref: featuredRef, inView: featuredInView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
 
   useEffect(() => {
     fetchData();
@@ -34,7 +54,7 @@ const Index = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch featured items (latest 6 available items)
+      // Fetch featured items
       const { data: itemsData, error: itemsError } = await supabase
         .from('items')
         .select(`
@@ -43,7 +63,10 @@ const Index = () => {
           price_per_day,
           category,
           location,
-          item_images!inner(image_url)
+          created_at,
+          owner_id,
+          item_images!inner(image_url),
+          profiles!items_owner_id_fkey(is_verified)
         `)
         .eq('is_available', true)
         .order('created_at', { ascending: false })
@@ -51,9 +74,9 @@ const Index = () => {
 
       if (itemsError) throw itemsError;
 
-      // Calculate review ratings for each item
+      // Calculate review ratings and add badges
       const itemsWithReviews = await Promise.all(
-        (itemsData || []).map(async (item) => {
+        (itemsData || []).map(async (item, index) => {
           const { data: reviewsData } = await supabase
             .from('reviews')
             .select('rating')
@@ -64,6 +87,19 @@ const Index = () => {
             ? reviewsData!.reduce((sum, r) => sum + r.rating, 0) / reviewCount
             : 0;
 
+          // Determine badge
+          const createdAt = new Date(item.created_at);
+          const daysSinceCreated = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+          let badge: "trending" | "just-listed" | "available" | undefined;
+          
+          if (daysSinceCreated < 7) {
+            badge = "just-listed";
+          } else if (index < 2) {
+            badge = "trending";
+          } else {
+            badge = "available";
+          }
+
           return {
             id: item.id,
             title: item.title,
@@ -73,13 +109,15 @@ const Index = () => {
             rating: Math.round(rating * 10) / 10,
             reviewCount,
             location: item.location,
+            isOwnerVerified: item.profiles?.is_verified || false,
+            badge,
           };
         })
       );
 
       setFeaturedItems(itemsWithReviews);
 
-      // Fetch category counts
+      // Fetch categories with counts and min prices
       const categoryIcons: Record<string, string> = {
         vehicles: "🚗",
         gadgets: "📱",
@@ -91,21 +129,33 @@ const Index = () => {
 
       const { data: categoryCounts, error: categoryError } = await supabase
         .from('items')
-        .select('category')
+        .select('category, price_per_day')
         .eq('is_available', true);
 
       if (categoryError) throw categoryError;
 
-      const countMap = (categoryCounts || []).reduce((acc, item) => {
-        acc[item.category] = (acc[item.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const categoryMap = new Map<string, { count: number; minPrice: number }>();
+      
+      (categoryCounts || []).forEach((item) => {
+        const existing = categoryMap.get(item.category);
+        const price = Number(item.price_per_day);
+        
+        if (existing) {
+          existing.count++;
+          existing.minPrice = Math.min(existing.minPrice, price);
+        } else {
+          categoryMap.set(item.category, { count: 1, minPrice: price });
+        }
+      });
 
-      const categoryData = Object.entries(countMap).map(([name, count]) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1),
-        icon: categoryIcons[name.toLowerCase()] || "📦",
-        count,
-      }));
+      const categoryData: Category[] = Array.from(categoryMap.entries()).map(
+        ([name, data]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          icon: categoryIcons[name.toLowerCase()] || "📦",
+          count: data.count,
+          minPrice: Math.round(data.minPrice),
+        })
+      );
 
       setCategories(categoryData);
     } catch (error) {
@@ -115,26 +165,26 @@ const Index = () => {
     }
   };
 
-  const howItWorks = [
+  const howItWorksSteps = [
     {
-      icon: <Recycle className="h-8 w-8 text-primary" />,
-      title: "Browse & Choose",
-      description: "Explore thousands of items across multiple categories",
+      icon: <Recycle className="h-10 w-10 text-primary" />,
+      title: "Find What You Need",
+      description: "Browse 10K+ verified items. From cameras to cars, we've got you covered. Search by location, price, or category.",
     },
     {
-      icon: <Shield className="h-8 w-8 text-primary" />,
-      title: "Book Securely",
-      description: "Verified owners, secure payments, and deposit protection",
+      icon: <Shield className="h-10 w-10 text-primary" />,
+      title: "Book Instantly",
+      description: "Secure payment. Instant confirmation. Insurance included. Zero hassle. Your rental is protected every step of the way.",
     },
     {
-      icon: <Clock className="h-8 w-8 text-primary" />,
-      title: "Use & Return",
-      description: "Enjoy your rental and return it on time",
+      icon: <Clock className="h-10 w-10 text-primary" />,
+      title: "Pick Up & Enjoy",
+      description: "Meet locally or get it delivered. Use it. Love it. Make memories. Return it whenever you're done.",
     },
     {
-      icon: <TrendingUp className="h-8 w-8 text-primary" />,
-      title: "Review & Earn Trust",
-      description: "Build your reputation in our community",
+      icon: <TrendingUp className="h-10 w-10 text-primary" />,
+      title: "Return & Review",
+      description: "Drop it off. Rate your experience. Build trust in our community. Help others make informed decisions.",
     },
   ];
 
@@ -147,50 +197,78 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-16 md:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
-              Rent Smart, Live{" "}
-              <span className="text-primary">Sustainably</span>
+      <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-16 md:py-24 overflow-hidden">
+        <FloatingParticles />
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            className="max-w-4xl mx-auto text-center mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
+              Your Neighbor's Camera.{" "}
+              <span className="block mt-2">Your Weekend Car.</span>
+              <span className="text-primary block mt-2">Your Next Adventure.</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8">
-              From vehicles to gadgets, rooms to tools — rent what you need, when you need it. 
-              Join Malaysia's leading platform for sustainable rentals.
+            <p className="text-lg md:text-xl text-muted-foreground mb-4">
+              Borrow what you need. Share what you own. Build community.
+              <span className="block mt-2 font-medium">
+                Malaysia's most trusted rental marketplace.
+              </span>
             </p>
-          </div>
-          <SearchBar />
+            
+            <TrustBadges />
+          </motion.div>
+          
+          {/* Enhanced Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="max-w-3xl mx-auto"
+          >
+            <div className="glass-card p-2 rounded-2xl shadow-2xl">
+              <SearchBar />
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Categories */}
       <section className="py-12 md:py-16 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+          <motion.h2
+            className="font-heading text-3xl md:text-4xl font-bold text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
             Browse by Category
-          </h2>
+          </motion.h2>
+          
           {categories.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
               {categories.map((category) => (
-                <Card
+                <AnimatedCategoryIcon
                   key={category.name}
-                  className="p-4 md:p-6 text-center hover:shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  icon={category.icon}
+                  name={category.name}
+                  count={category.count}
+                  minPrice={category.minPrice}
                   onClick={() => navigate(`/search?category=${category.name.toLowerCase()}`)}
-                >
-                  <div className="text-3xl md:text-4xl mb-2 md:mb-3">{category.icon}</div>
-                  <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
-                  <p className="text-xs md:text-sm text-muted-foreground">{category.count}</p>
-                </Card>
+                />
               ))}
             </div>
           ) : loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <Card key={i} className="p-4 md:p-6 text-center">
-                  <div className="h-12 w-12 bg-muted rounded-full mx-auto mb-3 animate-pulse" />
-                  <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2 animate-pulse" />
-                  <div className="h-3 bg-muted rounded w-1/2 mx-auto animate-pulse" />
-                </Card>
+                <div key={i} className="glass-card p-6 text-center animate-pulse">
+                  <div className="h-16 w-16 bg-muted rounded-full mx-auto mb-3" />
+                  <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2" />
+                  <div className="h-3 bg-muted rounded w-1/2 mx-auto" />
+                </div>
               ))}
             </div>
           ) : null}
@@ -198,22 +276,30 @@ const Index = () => {
       </section>
 
       {/* Featured Items */}
-      <section className="py-12 md:py-16">
+      <section className="py-12 md:py-16" ref={featuredRef}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold">Featured Rentals</h2>
-            <Button variant="outline" onClick={() => navigate('/search')}>View All</Button>
+            <div>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mb-2">
+                Featured Rentals
+              </h2>
+              <p className="text-muted-foreground">Handpicked items just for you</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate('/search')}>
+              View All
+            </Button>
           </div>
+          
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
           ) : featuredItems.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredItems.map((item) => (
-                <ItemCard key={item.id} {...item} />
+                <EnhancedItemCard key={item.id} {...item} />
               ))}
             </div>
           ) : (
@@ -231,40 +317,101 @@ const Index = () => {
       {/* How It Works */}
       <section className="py-12 md:py-16 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
+          <motion.h2
+            className="font-heading text-3xl md:text-4xl font-bold text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
             How RENTY Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {howItWorks.map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                  {step.icon}
-                </div>
-                <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
-              </div>
+          </motion.h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+            {howItWorksSteps.map((step, index) => (
+              <AnimatedStepCard
+                key={index}
+                icon={step.icon}
+                title={step.title}
+                description={step.description}
+                step={index + 1}
+                isLast={index === howItWorksSteps.length - 1}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-primary to-secondary">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Start Earning from Your Unused Items
-          </h2>
-          <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-            List your items in minutes and start earning. Join thousands of owners already making money on RENTY.
-          </p>
-          <Button 
-            size="lg" 
-            variant="secondary" 
-            className="text-lg px-6 md:px-8 min-h-[44px]"
-            onClick={() => navigate('/list-item')}
+      {/* Social Proof Section */}
+      <section className="bg-gradient-to-br from-primary/5 to-accent/5">
+        <SocialProofSection />
+      </section>
+
+      {/* Dual CTA Section */}
+      <section className="relative py-16 md:py-24 bg-gradient-to-br from-primary to-secondary overflow-hidden">
+        <FloatingParticles />
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
-            List Your First Item
-          </Button>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">
+              Ready to Get Started?
+            </h2>
+            <p className="text-lg text-white/90 max-w-2xl mx-auto">
+              Whether you want to rent or earn, RENTY makes it easy
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* For Renters */}
+            <motion.div
+              className="glass-card p-8 text-center rounded-2xl"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="font-heading text-2xl font-bold mb-3">Looking to Rent?</h3>
+              <p className="text-muted-foreground mb-6">
+                Access thousands of items without buying. Save money and space.
+              </p>
+              <Button
+                size="lg"
+                variant="default"
+                className="w-full"
+                onClick={() => navigate('/search')}
+              >
+                Browse Items
+              </Button>
+            </motion.div>
+
+            {/* For Owners */}
+            <motion.div
+              className="glass-card p-8 text-center rounded-2xl"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <TrendingUp className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="font-heading text-2xl font-bold mb-3">Want to Earn?</h3>
+              <p className="text-muted-foreground mb-6">
+                Turn your unused items into income. Start earning today.
+              </p>
+              <Button
+                size="lg"
+                variant="secondary"
+                className="w-full"
+                onClick={() => navigate('/list-item')}
+              >
+                List Your Item
+              </Button>
+            </motion.div>
+          </div>
         </div>
       </section>
 
