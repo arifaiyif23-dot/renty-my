@@ -69,7 +69,7 @@ const SearchBar = () => {
               </label>
               <Input
                 type="text"
-                placeholder="Where?"
+                placeholder="City or area"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="border-0 p-0 pr-8 h-auto focus-visible:ring-0 text-sm bg-transparent"
@@ -108,7 +108,7 @@ const SearchBar = () => {
                         format(dateRange.from, "MMM d")
                       )
                     ) : (
-                      "When?"
+                      "Select dates"
                     )}
                   </p>
                 </div>

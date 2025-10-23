@@ -15,8 +15,18 @@ import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Recycle, Shield, Clock, TrendingUp, Package, Sparkles } from "lucide-react";
+import { 
+  Recycle, Shield, Clock, TrendingUp, Package, Sparkles,
+  Car, Smartphone, Home, Dumbbell, Music, Wrench
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface FeaturedItem {
   id: string;
@@ -33,7 +43,7 @@ interface FeaturedItem {
 
 interface Category {
   name: string;
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
   count: number;
   minPrice?: number;
 }
@@ -43,6 +53,7 @@ const Index = () => {
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [footerDialog, setFooterDialog] = useState<string | null>(null);
   
   const { ref: featuredRef, inView: featuredInView } = useInView({
     triggerOnce: true,
@@ -119,13 +130,13 @@ const Index = () => {
       setFeaturedItems(itemsWithReviews);
 
       // Fetch categories with counts and min prices
-      const categoryIcons: Record<string, string> = {
-        vehicles: "🚗",
-        gadgets: "📱",
-        rooms: "🏠",
-        sports: "⚽",
-        music: "🎸",
-        tools: "🔧",
+      const categoryConfig: Record<string, { icon: any; displayName: string }> = {
+        vehicles: { icon: Car, displayName: "Vehicles" },
+        gadgets: { icon: Smartphone, displayName: "Gadgets" },
+        rooms: { icon: Home, displayName: "Rooms" },
+        sports: { icon: Dumbbell, displayName: "Sports" },
+        music: { icon: Music, displayName: "Music" },
+        tools: { icon: Wrench, displayName: "Tools" },
       };
 
       const { data: categoryCounts, error: categoryError } = await supabase
@@ -150,12 +161,15 @@ const Index = () => {
       });
 
       const categoryData: Category[] = Array.from(categoryMap.entries()).map(
-        ([name, data]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          icon: categoryIcons[name.toLowerCase()] || "📦",
-          count: data.count,
-          minPrice: Math.round(data.minPrice),
-        })
+        ([name, data]) => {
+          const config = categoryConfig[name.toLowerCase()] || { icon: Package, displayName: name };
+          return {
+            name: config.displayName,
+            icon: config.icon,
+            count: data.count,
+            minPrice: Math.round(data.minPrice),
+          };
+        }
       );
 
       setCategories(categoryData);
@@ -424,33 +438,33 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">About</h4>
               <ul className="space-y-2 text-sm text-background/80">
-                <li>About Us</li>
-                <li>How It Works</li>
-                <li>Careers</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('about')}>About Us</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('how-it-works')}>How It Works</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('careers')}>Careers</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-sm text-background/80">
-                <li>Help Center</li>
-                <li>Safety</li>
-                <li>Contact Us</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('help')}>Help Center</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('safety')}>Safety</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('contact')}>Contact Us</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-background/80">
-                <li>Terms of Service</li>
-                <li>Privacy Policy</li>
-                <li>Insurance</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('terms')}>Terms of Service</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('privacy')}>Privacy Policy</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('insurance')}>Insurance</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Community</h4>
               <ul className="space-y-2 text-sm text-background/80">
-                <li>Blog</li>
-                <li>Trust & Safety</li>
-                <li>Refer a Friend</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('blog')}>Blog</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('trust')}>Trust & Safety</li>
+                <li className="cursor-pointer hover:text-background transition-colors" onClick={() => setFooterDialog('refer')}>Refer a Friend</li>
               </ul>
             </div>
           </div>
@@ -459,6 +473,69 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Footer Dialogs */}
+      <Dialog open={!!footerDialog} onOpenChange={() => setFooterDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {footerDialog === 'about' && 'About RENTY'}
+              {footerDialog === 'how-it-works' && 'How It Works'}
+              {footerDialog === 'careers' && 'Careers'}
+              {footerDialog === 'help' && 'Help Center'}
+              {footerDialog === 'safety' && 'Safety Guidelines'}
+              {footerDialog === 'contact' && 'Contact Us'}
+              {footerDialog === 'terms' && 'Terms of Service'}
+              {footerDialog === 'privacy' && 'Privacy Policy'}
+              {footerDialog === 'insurance' && 'Insurance Information'}
+              {footerDialog === 'blog' && 'Blog'}
+              {footerDialog === 'trust' && 'Trust & Safety'}
+              {footerDialog === 'refer' && 'Refer a Friend'}
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="space-y-4 py-4">
+            {footerDialog === 'about' && (
+              <>
+                <p>RENTY is Malaysia's leading sustainable rental marketplace, connecting people who need items with those who have them.</p>
+                <p>Our mission is to reduce waste, save money, and build stronger communities through the sharing economy.</p>
+              </>
+            )}
+            {footerDialog === 'how-it-works' && (
+              <>
+                <p><strong>1. Browse:</strong> Search thousands of items available for rent in your area.</p>
+                <p><strong>2. Book:</strong> Select dates, confirm payment, and receive instant confirmation.</p>
+                <p><strong>3. Enjoy:</strong> Pick up or get delivery, use the item, and return when done.</p>
+                <p><strong>4. Review:</strong> Rate your experience and help build trust in our community.</p>
+              </>
+            )}
+            {footerDialog === 'safety' && (
+              <>
+                <p>Your safety is our priority. All users are verified, and every rental is protected by our comprehensive insurance.</p>
+                <p>We have a dedicated trust & safety team available 24/7 to assist with any concerns.</p>
+              </>
+            )}
+            {footerDialog === 'contact' && (
+              <>
+                <p><strong>Email:</strong> support@renty.my</p>
+                <p><strong>Phone:</strong> +60 3-xxxx-xxxx</p>
+                <p><strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM (MYT)</p>
+              </>
+            )}
+            {footerDialog === 'terms' && (
+              <p>Our Terms of Service outline the rules and regulations for using RENTY. By using our platform, you agree to these terms. Full terms available at renty.my/terms</p>
+            )}
+            {footerDialog === 'privacy' && (
+              <p>We take your privacy seriously. Your personal data is encrypted and never shared without your consent. Read our full privacy policy at renty.my/privacy</p>
+            )}
+            {footerDialog === 'insurance' && (
+              <p>All rentals are covered by comprehensive insurance up to RM 50,000. This includes damage protection, theft coverage, and liability insurance for peace of mind.</p>
+            )}
+            {!footerDialog || !['about', 'how-it-works', 'safety', 'contact', 'terms', 'privacy', 'insurance'].includes(footerDialog) && (
+              <p>This feature is coming soon! Stay tuned for updates.</p>
+            )}
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

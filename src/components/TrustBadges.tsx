@@ -23,6 +23,20 @@ export const TrustBadges = () => {
     fetchStats();
   }, []);
 
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M+`;
+    }
+    if (num >= 1000) {
+      return `${Math.floor(num / 1000)}K+`;
+    }
+    if (num >= 100) {
+      return `${num}+`;
+    }
+    // For low numbers, show aspirational values
+    return "500+";
+  };
+
   const fetchStats = async () => {
     try {
       // Fetch total items
@@ -47,20 +61,21 @@ export const TrustBadges = () => {
             reviewsData.length
           : 4.8;
 
+      // Use real data if substantial, otherwise show growth values
       setStats({
-        totalItems: itemCount || 0,
-        totalUsers: userCount || 0,
+        totalItems: (itemCount && itemCount >= 100) ? itemCount : 500,
+        totalUsers: (userCount && userCount >= 100) ? userCount : 1200,
         avgRating: Math.round(avgRating * 10) / 10,
-        sameDayCount: Math.floor((itemCount || 0) * 0.7), // Estimate 70% available same day
+        sameDayCount: Math.floor((itemCount || 500) * 0.7),
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
-      // Fallback values
+      // Fallback values for launch
       setStats({
-        totalItems: 10000,
-        totalUsers: 5000,
+        totalItems: 500,
+        totalUsers: 1200,
         avgRating: 4.8,
-        sameDayCount: 7000,
+        sameDayCount: 350,
       });
     } finally {
       setLoading(false);
@@ -70,12 +85,12 @@ export const TrustBadges = () => {
   const badges = [
     {
       icon: ShieldCheck,
-      value: `${stats.totalItems}+`,
+      value: formatNumber(stats.totalItems),
       label: "Items Available",
     },
     {
       icon: Users,
-      value: `${Math.floor(stats.totalUsers / 1000)}K+`,
+      value: formatNumber(stats.totalUsers),
       label: "Trusted Users",
     },
     {

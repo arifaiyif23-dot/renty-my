@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface AnimatedCategoryIconProps {
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
   name: string;
   count: number;
   minPrice?: number;
@@ -11,7 +11,7 @@ interface AnimatedCategoryIconProps {
 }
 
 export const AnimatedCategoryIcon = ({
-  icon,
+  icon: Icon,
   name,
   count,
   minPrice,
@@ -35,11 +35,11 @@ export const AnimatedCategoryIcon = ({
       >
         {/* Icon */}
         <motion.div
-          className="text-6xl mb-3"
+          className="mb-3 flex items-center justify-center"
           whileHover={{ rotate: [0, -10, 10, -10, 0] }}
           transition={{ duration: 0.5 }}
         >
-          {icon}
+          <Icon className="w-12 h-12 text-primary" />
         </motion.div>
 
         {/* Name */}
