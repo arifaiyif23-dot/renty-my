@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Star, Package, ShoppingBag, Edit } from "lucide-react";
+import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert } from "lucide-react";
 import { format } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 
 export default function Profile() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     itemsListed: 0,
     rentalsAsRenter: 0,
@@ -22,12 +23,32 @@ export default function Profile() {
   });
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
       fetchStats();
+      fetchVerificationStatus();
     }
   }, [user]);
+
+  const fetchVerificationStatus = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('verification_requests')
+        .select('status, created_at, overall_confidence_score')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        setVerificationStatus(data);
+      }
+    } catch (error) {
+      console.error("Error fetching verification status:", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -77,6 +98,45 @@ export default function Profile() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
+        {/* Verification Status Banner */}
+        {!profile.is_verified && !verificationStatus && (
+          <Card className="mb-6 border-primary">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <ShieldAlert className="h-8 w-8 text-primary flex-shrink-0" />
+                <div className="flex-1">
+                  <CardTitle>Verify Your Identity</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Get verified to unlock premium rentals, build trust with the community, and increase your visibility.
+                  </p>
+                  <Button onClick={() => navigate('/verification')} className="mt-4">
+                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    Start Verification
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        )}
+
+        {verificationStatus && verificationStatus.status === 'pending' && (
+          <Card className="mb-6 border-yellow-500">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <div className="h-8 w-8 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <ShieldAlert className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle>Verification Under Review</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Your verification is being reviewed by our team. We'll notify you within 24-48 hours.
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        )}
+
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -90,8 +150,8 @@ export default function Profile() {
                   <h1 className="text-2xl font-bold">{profile.full_name}</h1>
                   {profile.is_verified && (
                     <Badge variant="secondary" className="gap-1">
-                      <Star className="h-3 w-3 fill-current" />
-                      Verified
+                      <ShieldCheck className="h-4 w-4 text-green-500" />
+                      ID Verified
                     </Badge>
                   )}
                 </div>

@@ -20,6 +20,8 @@ import Messages from "./pages/Messages";
 import Wallet from "./pages/Wallet";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
+import Verification from "./pages/Verification";
+import AdminVerification from "./pages/AdminVerification";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,8 @@ function AppRoutes() {
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+        <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
+        <Route path="/admin/verifications" element={<ProtectedRoute><AdminVerification /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <MobileBottomNav />

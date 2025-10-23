@@ -1,0 +1,438 @@
+import { useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Camera, Upload, CheckCircle, XCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, FileText, User } from "lucide-react";
+import Header from "@/components/Header";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type DocumentType = "mykad" | "passport" | "driving_license";
+
+type Step = 1 | 2 | 3 | 4 | 5;
+
+export default function Verification() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState<Step>(1);
+  const [documentType, setDocumentType] = useState<DocumentType>("mykad");
+  const [documentFront, setDocumentFront] = useState<File | null>(null);
+  const [documentBack, setDocumentBack] = useState<File | null>(null);
+  const [selfie, setSelfie] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+  
+  const frontInputRef = useRef<HTMLInputElement>(null);
+  const backInputRef = useRef<HTMLInputElement>(null);
+  const selfieInputRef = useRef<HTMLInputElement>(null);
+
+  const progress = (currentStep / 5) * 100;
+
+  const handleFileSelect = (file: File | null, type: 'front' | 'back' | 'selfie') => {
+    if (!file) return;
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    if (type === 'front') setDocumentFront(file);
+    if (type === 'back') setDocumentBack(file);
+    if (type === 'selfie') setSelfie(file);
+    
+    toast.success("Image uploaded successfully");
+  };
+
+  const uploadToStorage = async (file: File, path: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${path}-${Date.now()}.${fileExt}`;
+    const filePath = `${user?.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('verification-documents')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('verification-documents')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const handleSubmit = async () => {
+    if (!documentFront || !selfie) {
+      toast.error("Please upload all required documents");
+      return;
+    }
+
+    if (documentType === "mykad" && !documentBack) {
+      toast.error("Please upload back of MyKad");
+      return;
+    }
+
+    setLoading(true);
+    setCurrentStep(5);
+
+    try {
+      // Upload images to storage
+      toast.info("Uploading documents...");
+      const [frontUrl, backUrl, selfieUrl] = await Promise.all([
+        uploadToStorage(documentFront, 'document-front'),
+        documentType === "mykad" && documentBack ? uploadToStorage(documentBack, 'document-back') : Promise.resolve(null),
+        uploadToStorage(selfie, 'selfie')
+      ]);
+
+      // Create verification request
+      const { data: verification, error: createError } = await (supabase as any)
+        .from('verification_requests')
+        .insert({
+          user_id: user?.id,
+          document_type: documentType,
+          document_front_url: frontUrl,
+          document_back_url: backUrl,
+          selfie_url: selfieUrl,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      setVerificationId(verification.id);
+
+      // Submit for AI verification
+      toast.info("AI is analyzing your documents...");
+      const { data: submitResult, error: submitError } = await supabase.functions.invoke('submit-verification', {
+        body: { verificationId: verification.id }
+      });
+
+      if (submitError) throw submitError;
+
+      if (!submitResult.success) {
+        throw new Error(submitResult.error || "Verification failed");
+      }
+
+      setResult(submitResult);
+      
+      if (submitResult.autoApproved) {
+        toast.success("Verification approved! Your identity has been verified.");
+      } else {
+        toast.info("Your verification is under review by our team.");
+      }
+
+    } catch (error: any) {
+      console.error("Verification error:", error);
+      toast.error(error.message || "Failed to submit verification");
+      setCurrentStep(4);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const nextStep = () => {
+    if (currentStep === 1 && !documentType) {
+      toast.error("Please select a document type");
+      return;
+    }
+    if (currentStep === 2 && !documentFront) {
+      toast.error("Please upload document front");
+      return;
+    }
+    if (currentStep === 3 && documentType === "mykad" && !documentBack) {
+      toast.error("Please upload document back");
+      return;
+    }
+    if (currentStep === 4 && !selfie) {
+      toast.error("Please upload a selfie");
+      return;
+    }
+
+    if (currentStep === 3 && documentType !== "mykad") {
+      setCurrentStep(4 as Step);
+    } else if (currentStep < 5) {
+      setCurrentStep((currentStep + 1) as Step);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep === 4 && documentType !== "mykad") {
+      setCurrentStep(2 as Step);
+    } else if (currentStep > 1) {
+      setCurrentStep((currentStep - 1) as Step);
+    }
+  };
+
+  return (
+    <>
+      <Header />
+      <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+        <div className="mb-6">
+          <Button variant="ghost" onClick={() => navigate('/profile')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Profile
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3 mb-4">
+              <ShieldCheck className="h-8 w-8 text-primary" />
+              <div>
+                <CardTitle>Identity Verification</CardTitle>
+                <CardDescription>Verify your identity to unlock premium features</CardDescription>
+              </div>
+            </div>
+            <Progress value={progress} className="h-2" />
+            <p className="text-sm text-muted-foreground mt-2">Step {currentStep} of 5</p>
+          </CardHeader>
+
+          <CardContent>
+            {/* Step 1: Document Type Selection */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Select Document Type</h3>
+                <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentType)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mykad">Malaysian IC (MyKad)</SelectItem>
+                    <SelectItem value="passport">Passport</SelectItem>
+                    <SelectItem value="driving_license">Driving License</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Requirements:</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Clear, well-lit photo</li>
+                    <li>• All text must be readable</li>
+                    <li>• No glare or shadows</li>
+                    <li>• Document must be valid</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Upload Front */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">Upload Document Front</h3>
+                </div>
+                <input
+                  ref={frontInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null, 'front')}
+                />
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  {documentFront ? (
+                    <div className="space-y-4">
+                      <img 
+                        src={URL.createObjectURL(documentFront)} 
+                        alt="Document front" 
+                        className="max-h-64 mx-auto rounded"
+                      />
+                      <Button variant="outline" onClick={() => frontInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Replace Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Camera className="h-12 w-12 mx-auto text-muted-foreground" />
+                      <div>
+                        <Button onClick={() => frontInputRef.current?.click()}>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Photo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Upload Back (MyKad only) */}
+            {currentStep === 3 && documentType === "mykad" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">Upload Document Back</h3>
+                </div>
+                <input
+                  ref={backInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null, 'back')}
+                />
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  {documentBack ? (
+                    <div className="space-y-4">
+                      <img 
+                        src={URL.createObjectURL(documentBack)} 
+                        alt="Document back" 
+                        className="max-h-64 mx-auto rounded"
+                      />
+                      <Button variant="outline" onClick={() => backInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Replace Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Camera className="h-12 w-12 mx-auto text-muted-foreground" />
+                      <div>
+                        <Button onClick={() => backInputRef.current?.click()}>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Photo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Upload Selfie */}
+            {currentStep === 4 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">Take a Selfie</h3>
+                </div>
+                <input
+                  ref={selfieInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null, 'selfie')}
+                />
+                <div className="bg-muted p-4 rounded-lg mb-4">
+                  <h4 className="font-medium mb-2">Tips for a good selfie:</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Face the camera directly</li>
+                    <li>• Ensure good lighting</li>
+                    <li>• Remove glasses if possible</li>
+                    <li>• Keep a neutral expression</li>
+                  </ul>
+                </div>
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  {selfie ? (
+                    <div className="space-y-4">
+                      <img 
+                        src={URL.createObjectURL(selfie)} 
+                        alt="Selfie" 
+                        className="max-h-64 mx-auto rounded"
+                      />
+                      <Button variant="outline" onClick={() => selfieInputRef.current?.click()}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Retake Selfie
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <Camera className="h-12 w-12 mx-auto text-muted-foreground" />
+                      <div>
+                        <Button onClick={() => selfieInputRef.current?.click()}>
+                          <Camera className="h-4 w-4 mr-2" />
+                          Take Selfie
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: Processing/Results */}
+            {currentStep === 5 && (
+              <div className="space-y-6 text-center py-8">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-16 w-16 mx-auto animate-spin text-primary" />
+                    <h3 className="text-lg font-semibold">Verifying Your Identity</h3>
+                    <p className="text-muted-foreground">AI is analyzing your documents... This may take up to 30 seconds.</p>
+                  </>
+                ) : result ? (
+                  <>
+                    {result.autoApproved ? (
+                      <>
+                        <CheckCircle className="h-16 w-16 mx-auto text-green-500" />
+                        <h3 className="text-lg font-semibold text-green-500">Verification Approved!</h3>
+                        <p className="text-muted-foreground">Your identity has been successfully verified.</p>
+                        <Badge variant="secondary" className="text-lg py-2 px-4">
+                          Confidence Score: {result.confidence}%
+                        </Badge>
+                        <Button onClick={() => navigate('/profile')} className="mt-4">
+                          Return to Profile
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="h-16 w-16 mx-auto bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                          <Loader2 className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold">Under Review</h3>
+                        <p className="text-muted-foreground">Your verification requires manual review by our team. We'll notify you within 24-48 hours.</p>
+                        <Badge variant="secondary" className="text-lg py-2 px-4">
+                          Confidence Score: {result.confidence}%
+                        </Badge>
+                        <Button onClick={() => navigate('/profile')} className="mt-4">
+                          Return to Profile
+                        </Button>
+                      </>
+                    )}
+                  </>
+                ) : null}
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            {currentStep < 5 && (
+              <div className="flex gap-4 mt-6">
+                {currentStep > 1 && (
+                  <Button variant="outline" onClick={prevStep} disabled={loading}>
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Previous
+                  </Button>
+                )}
+                {currentStep < 4 ? (
+                  <Button onClick={nextStep} disabled={loading} className="ml-auto">
+                    Next
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button onClick={handleSubmit} disabled={loading} className="ml-auto">
+                    {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                    Submit Verification
+                  </Button>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}

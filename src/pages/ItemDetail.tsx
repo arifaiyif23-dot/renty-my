@@ -104,6 +104,26 @@ export default function ItemDetail() {
       return;
     }
 
+    // Check if item requires verification for high-value items
+    if (item && item.price_per_day > 500) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('is_verified')
+        .eq('id', user.id)
+        .single();
+      
+      if (!profileData?.is_verified) {
+        toast.error('This item requires ID verification', {
+          description: 'High-value items require verified users',
+          action: {
+            label: 'Verify Now',
+            onClick: () => navigate('/verification')
+          }
+        });
+        return;
+      }
+    }
+
     if (!dateRange?.from || !dateRange?.to) {
       toast.error('Please select dates');
       return;
