@@ -80,46 +80,85 @@ export type Database = {
       }
       items: {
         Row: {
+          auto_approve_bookings: boolean | null
+          booking_count: number | null
+          cancellation_policy: string | null
           category: Database["public"]["Enums"]["item_category"]
           created_at: string | null
+          deposit_amount: number | null
           description: string
+          featured: boolean | null
           id: string
+          instant_book_enabled: boolean | null
           is_available: boolean | null
+          item_condition: string | null
+          last_edited_at: string | null
           latitude: number | null
+          listing_status: string | null
           location: string
           longitude: number | null
+          maximum_rental_days: number | null
+          minimum_rental_days: number | null
           owner_id: string
           price_per_day: number
+          tags: string[] | null
           title: string
           updated_at: string | null
+          view_count: number | null
         }
         Insert: {
+          auto_approve_bookings?: boolean | null
+          booking_count?: number | null
+          cancellation_policy?: string | null
           category: Database["public"]["Enums"]["item_category"]
           created_at?: string | null
+          deposit_amount?: number | null
           description: string
+          featured?: boolean | null
           id?: string
+          instant_book_enabled?: boolean | null
           is_available?: boolean | null
+          item_condition?: string | null
+          last_edited_at?: string | null
           latitude?: number | null
+          listing_status?: string | null
           location: string
           longitude?: number | null
+          maximum_rental_days?: number | null
+          minimum_rental_days?: number | null
           owner_id: string
           price_per_day: number
+          tags?: string[] | null
           title: string
           updated_at?: string | null
+          view_count?: number | null
         }
         Update: {
+          auto_approve_bookings?: boolean | null
+          booking_count?: number | null
+          cancellation_policy?: string | null
           category?: Database["public"]["Enums"]["item_category"]
           created_at?: string | null
+          deposit_amount?: number | null
           description?: string
+          featured?: boolean | null
           id?: string
+          instant_book_enabled?: boolean | null
           is_available?: boolean | null
+          item_condition?: string | null
+          last_edited_at?: string | null
           latitude?: number | null
+          listing_status?: string | null
           location?: string
           longitude?: number | null
+          maximum_rental_days?: number | null
+          minimum_rental_days?: number | null
           owner_id?: string
           price_per_day?: number
+          tags?: string[] | null
           title?: string
           updated_at?: string | null
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -127,6 +166,98 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_analytics: {
+        Row: {
+          booking_requests: number | null
+          bookings_confirmed: number | null
+          clicks: number | null
+          created_at: string | null
+          date: string
+          id: string
+          item_id: string
+          revenue: number | null
+          views: number | null
+        }
+        Insert: {
+          booking_requests?: number | null
+          bookings_confirmed?: number | null
+          clicks?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          item_id: string
+          revenue?: number | null
+          views?: number | null
+        }
+        Update: {
+          booking_requests?: number | null
+          bookings_confirmed?: number | null
+          clicks?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          item_id?: string
+          revenue?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_analytics_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_edit_history: {
+        Row: {
+          created_at: string | null
+          edit_type: string | null
+          edited_by: string
+          field_name: string
+          id: string
+          item_id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          edit_type?: string | null
+          edited_by: string
+          field_name: string
+          id?: string
+          item_id: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          edit_type?: string | null
+          edited_by?: string
+          field_name?: string
+          id?: string
+          item_id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_edit_history_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_edit_history_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
             referencedColumns: ["id"]
           },
         ]
@@ -547,6 +678,135 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          performed_by: string | null
+          verification_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          performed_by?: string | null
+          verification_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          performed_by?: string | null
+          verification_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_audit_log_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_audit_log_verification_id_fkey"
+            columns: ["verification_id"]
+            isOneToOne: false
+            referencedRelation: "verification_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_requests: {
+        Row: {
+          admin_notes: string | null
+          ai_analysis_result: Json | null
+          created_at: string | null
+          date_of_birth: string | null
+          document_back_url: string | null
+          document_front_url: string
+          document_quality_score: number | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          face_match_score: number | null
+          full_name_on_document: string
+          ic_number: string | null
+          id: string
+          liveness_score: number | null
+          overall_confidence_score: number | null
+          rejection_reason: string | null
+          selfie_url: string
+          status: Database["public"]["Enums"]["verification_status"]
+          updated_at: string | null
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          ai_analysis_result?: Json | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          document_back_url?: string | null
+          document_front_url: string
+          document_quality_score?: number | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          face_match_score?: number | null
+          full_name_on_document: string
+          ic_number?: string | null
+          id?: string
+          liveness_score?: number | null
+          overall_confidence_score?: number | null
+          rejection_reason?: string | null
+          selfie_url: string
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string | null
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          ai_analysis_result?: Json | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          document_back_url?: string | null
+          document_front_url?: string
+          document_quality_score?: number | null
+          document_type?: Database["public"]["Enums"]["document_type"]
+          face_match_score?: number | null
+          full_name_on_document?: string
+          ic_number?: string | null
+          id?: string
+          liveness_score?: number | null
+          overall_confidence_score?: number | null
+          rejection_reason?: string | null
+          selfie_url?: string
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string | null
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_requests_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -617,6 +877,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_verification_confidence: {
+        Args: { doc_quality: number; face_match: number; liveness: number }
+        Returns: number
+      }
+      get_listing_conversion_rate: {
+        Args: { item_id_param: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -624,9 +892,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_item_views: {
+        Args: { item_id_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      document_type: "mykad" | "passport" | "driving_license"
       item_category:
         | "electronics"
         | "vehicles"
@@ -649,6 +922,12 @@ export type Database = {
         | "cancelled"
         | "rejected"
       transaction_status: "pending" | "completed" | "refunded" | "failed"
+      verification_status:
+        | "pending"
+        | "processing"
+        | "approved"
+        | "rejected"
+        | "resubmit_required"
       wallet_transaction_type:
         | "deposit"
         | "withdrawal"
@@ -783,6 +1062,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      document_type: ["mykad", "passport", "driving_license"],
       item_category: [
         "electronics",
         "vehicles",
@@ -808,6 +1088,13 @@ export const Constants = {
         "rejected",
       ],
       transaction_status: ["pending", "completed", "refunded", "failed"],
+      verification_status: [
+        "pending",
+        "processing",
+        "approved",
+        "rejected",
+        "resubmit_required",
+      ],
       wallet_transaction_type: [
         "deposit",
         "withdrawal",
