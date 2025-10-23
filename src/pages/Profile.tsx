@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert } from "lucide-react";
+import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks } from "lucide-react";
 import { format } from "date-fns";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 
 export default function Profile() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     itemsListed: 0,
     rentalsAsRenter: 0,
@@ -171,7 +174,11 @@ export default function Profile() {
                 <div className="flex gap-2 mt-4 flex-wrap">
                   <Button size="sm" onClick={() => setEditDialogOpen(true)}>
                     <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
+                    {t('profile.editProfile')}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/my-listings')}>
+                    <ListChecks className="h-4 w-4 mr-2" />
+                    {t('profile.manageListing')}
                   </Button>
                   <Link to="/dashboard">
                     <Button size="sm" variant="outline">Dashboard</Button>

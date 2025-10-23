@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Item } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import { ReviewsList } from '@/components/ReviewsList';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2 } from 'lucide-react';
+import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -34,6 +35,7 @@ export default function ItemDetail() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -296,6 +298,12 @@ export default function ItemDetail() {
                   <SocialProof itemId={item.id} />
                 </div>
                 <div className="flex gap-2">
+                  {user?.id === item.owner_id && (
+                    <Button variant="outline" size="sm" onClick={() => navigate('/my-listings')}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      {t('common.edit')}
+                    </Button>
+                  )}
                   <SaveItemButton itemId={item.id} />
                   <Button variant="ghost" size="icon" onClick={() => {
                     navigator.share?.({ 

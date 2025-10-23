@@ -4,10 +4,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from 'react-i18next';
 
 const MobileBottomNav = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
   
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
