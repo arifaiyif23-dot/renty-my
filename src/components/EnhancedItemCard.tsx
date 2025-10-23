@@ -55,7 +55,7 @@ export const EnhancedItemCard = ({
       whileHover={{ y: -8, transition: { duration: 0.2 } }}
       transition={{ duration: 0.3 }}
     >
-      <Link to={`/item/${id}`}>
+      <Link to={`/items/${id}`}>
         <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group">
           <div className="relative">
             {/* Image */}
