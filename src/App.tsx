@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
 import Verification from "./pages/Verification";
 import AdminVerification from "./pages/AdminVerification";
+import MyListings from "./pages/MyListings";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function AppRoutes() {
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+        <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
         <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
         <Route path="/admin/verifications" element={<ProtectedRoute><AdminVerification /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
