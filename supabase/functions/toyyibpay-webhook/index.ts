@@ -14,17 +14,11 @@ serve(async (req) => {
   try {
     const formData = await req.formData();
     const billCode = formData.get('billcode') || formData.get('billCode');
-    const status = formData.get('status_id') || formData.get('statusId'); // 1 = successful, 3 = failed
-    const amount = formData.get('amount');
+    const status = formData.get('status_id') || formData.get('statusId'); // 1 = success, 2 = pending, 3 = failed
+    const amount = Number(formData.get('amount')) || 0;
     const transactionId = formData.get('transaction_id') || formData.get('transactionId');
 
-    console.log('ToyyibPay webhook received (raw):', Object.fromEntries(formData));
-    console.log('ToyyibPay webhook parsed:', {
-      billCode,
-      status,
-      amount,
-      transactionId
-    });
+    console.log('ToyyibPay webhook received:', Object.fromEntries(formData));
 
     if (!billCode || !status) {
       throw new Error('Missing required webhook data');
@@ -35,68 +29,57 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Find the wallet transaction
-    const { data: transaction } = await supabaseClient
+    // Find the related wallet transaction
+    const { data: transaction, error: txError } = await supabaseClient
       .from('wallet_transactions')
-      .select('*, wallet:wallets(user_id, balance)')
+      .select('id, amount, status, wallet_id, toyyibpay_transaction_id, wallets(user_id, balance)')
       .eq('toyyibpay_transaction_id', billCode)
       .single();
 
-    if (!transaction) {
+    if (txError || !transaction) {
       console.error('Transaction not found for bill code:', billCode);
-      return new Response('OK', { status: 200 }); // Still return OK to avoid retries
+      return new Response('OK', { status: 200 });
     }
 
-    // Payment successful
+    const userId = transaction.wallets.user_id;
+    const currentBalance = Number(transaction.wallets.balance) || 0;
+
     if (status === '1') {
-      // Update wallet balance
-      const newBalance = Number(transaction.wallet.balance) + Number(transaction.amount);
-      
-      await supabaseClient
-        .from('wallets')
-        .update({ balance: newBalance })
-        .eq('user_id', transaction.wallet.user_id);
+      // Successful payment
+      const newBalance = currentBalance + Number(transaction.amount);
 
-      // Create notification
-      await supabaseClient
-        .from('notifications')
-        .insert({
-          user_id: transaction.wallet.user_id,
-          type: 'payment',
-          title: 'Payment Successful',
-          message: `Your wallet has been topped up with RM ${transaction.amount}`,
-          link: '/wallet'
-        });
+      await supabaseClient.from('wallets').update({ balance: newBalance }).eq('user_id', userId);
+      await supabaseClient.from('wallet_transactions').update({ status: 'completed' }).eq('id', transaction.id);
 
-      console.log('Wallet topped up successfully:', {
-        userId: transaction.wallet.user_id,
-        amount: transaction.amount,
-        newBalance
+      await supabaseClient.from('notifications').insert({
+        user_id: userId,
+        type: 'payment',
+        title: 'Top-up Successful',
+        message: `RM${transaction.amount.toFixed(2)} has been added to your wallet.`,
+        link: '/wallet',
       });
-    } else {
-      // Payment failed
-      await supabaseClient
-        .from('notifications')
-        .insert({
-          user_id: transaction.wallet.user_id,
-          type: 'payment',
-          title: 'Payment Failed',
-          message: 'Your payment could not be processed. Please try again.',
-          link: '/wallet'
-        });
+
+      console.log('Wallet top-up successful:', { userId, newBalance, billCode });
+    } else if (status === '3') {
+      // Failed payment
+      await supabaseClient.from('wallet_transactions').update({ status: 'failed' }).eq('id', transaction.id);
+
+      await supabaseClient.from('notifications').insert({
+        user_id: userId,
+        type: 'payment',
+        title: 'Payment Failed',
+        message: 'Your payment could not be processed. Please try again.',
+        link: '/wallet',
+      });
 
       console.log('Payment failed for bill code:', billCode);
+    } else {
+      console.log('Unhandled payment status:', status);
     }
 
-    return new Response('OK', { 
-      headers: corsHeaders,
-      status: 200 
-    });
-  } catch (error: any) {
-    console.error('Error processing ToyyibPay webhook:', error);
-    return new Response('OK', { 
-      headers: corsHeaders,
-      status: 200 
-    }); // Return OK to avoid retries
+    return new Response('OK', { headers: corsHeaders, status: 200 });
+  } catch (error) {
+    console.error('Error in ToyyibPay webhook:', error);
+    return new Response('OK', { headers: corsHeaders, status: 200 }); // Always return OK to prevent retries
   }
 });

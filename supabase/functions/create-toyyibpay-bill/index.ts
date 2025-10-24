@@ -23,17 +23,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user profile and auth data for contact info
     const { data: profile } = await supabaseClient
       .from('profiles')
       .select('full_name, phone')
       .eq('id', userId)
       .single();
 
-    // Get user email from auth
     const { data: { user: authUser } } = await supabaseClient.auth.admin.getUserById(userId);
 
-    // Create ToyyibPay bill
     const toyyibpaySecretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY');
     const toyyibpayCategoryCode = Deno.env.get('TOYYIBPAY_CATEGORY_CODE');
     
@@ -41,9 +38,8 @@ serve(async (req) => {
       throw new Error('ToyyibPay credentials not configured');
     }
 
-    // Get proper return URL
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const projectId = supabaseUrl.match(/https:\/\/(.+?)\.supabase\.co/)?.[1] || '';
+    const projectId = supabaseUrl.match(/https:\/\/(.+?)\.supabase\.co/)?[1] || '';
     const returnUrl = `https://${projectId}.lovableproject.com/wallet`;
     const callbackUrl = `${supabaseUrl}/functions/v1/toyyibpay-webhook`;
 
@@ -54,7 +50,7 @@ serve(async (req) => {
       billDescription: description || 'Wallet Top Up',
       billPriceSetting: '1',
       billPayorInfo: '1',
-      billAmount: (amount * 100).toString(), // Convert to sen
+      billAmount: (amount * 100).toString(),
       billReturnUrl: returnUrl,
       billCallbackUrl: callbackUrl,
       billExternalReferenceNo: userId,
@@ -87,7 +83,6 @@ serve(async (req) => {
       const billCode = result[0].BillCode;
       const paymentUrl = `https://dev.toyyibpay.com/${billCode}`;
 
-      // Create wallet transaction record
       const { data: wallet } = await supabaseClient
         .from('wallets')
         .select('id')
@@ -120,7 +115,7 @@ serve(async (req) => {
     } else {
       throw new Error(result[0]?.msg || 'Failed to create bill');
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating ToyyibPay bill:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
