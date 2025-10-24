@@ -13,12 +13,13 @@ serve(async (req) => {
 
   try {
     const formData = await req.formData();
-    const billCode = formData.get('billcode');
-    const status = formData.get('status_id'); // 1 = successful, 3 = failed
+    const billCode = formData.get('billcode') || formData.get('billCode');
+    const status = formData.get('status_id') || formData.get('statusId'); // 1 = successful, 3 = failed
     const amount = formData.get('amount');
-    const transactionId = formData.get('transaction_id');
+    const transactionId = formData.get('transaction_id') || formData.get('transactionId');
 
-    console.log('ToyyibPay webhook received:', {
+    console.log('ToyyibPay webhook received (raw):', Object.fromEntries(formData));
+    console.log('ToyyibPay webhook parsed:', {
       billCode,
       status,
       amount,

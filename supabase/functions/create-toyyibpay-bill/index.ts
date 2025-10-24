@@ -23,12 +23,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get user profile for contact info
+    // Get user profile and auth data for contact info
     const { data: profile } = await supabaseClient
       .from('profiles')
       .select('full_name, phone')
       .eq('id', userId)
       .single();
+
+    // Get user email from auth
+    const { data: { user: authUser } } = await supabaseClient.auth.admin.getUserById(userId);
 
     // Create ToyyibPay bill
     const toyyibpaySecretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY');
@@ -38,6 +41,12 @@ serve(async (req) => {
       throw new Error('ToyyibPay credentials not configured');
     }
 
+    // Get proper return URL
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const projectId = supabaseUrl.match(/https:\/\/(.+?)\.supabase\.co/)?.[1] || '';
+    const returnUrl = `https://${projectId}.lovableproject.com/wallet`;
+    const callbackUrl = `${supabaseUrl}/functions/v1/toyyibpay-webhook`;
+
     const billData = new URLSearchParams({
       userSecretKey: toyyibpaySecretKey,
       categoryCode: toyyibpayCategoryCode,
@@ -46,18 +55,21 @@ serve(async (req) => {
       billPriceSetting: '1',
       billPayorInfo: '1',
       billAmount: (amount * 100).toString(), // Convert to sen
-      billReturnUrl: `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovable.app')}/wallet`,
-      billCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/toyyibpay-webhook`,
+      billReturnUrl: returnUrl,
+      billCallbackUrl: callbackUrl,
       billExternalReferenceNo: userId,
       billTo: profile?.full_name || 'User',
-      billEmail: 'user@example.com', // Should get from auth
+      billEmail: authUser?.email || 'user@renty.com',
       billPhone: profile?.phone || '0123456789',
     });
 
     console.log('Creating ToyyibPay bill:', {
       amount,
       userId,
-      categoryCode: toyyibpayCategoryCode
+      categoryCode: toyyibpayCategoryCode,
+      returnUrl,
+      callbackUrl,
+      email: authUser?.email
     });
 
     const response = await fetch('https://dev.toyyibpay.com/index.php/api/createBill', {
