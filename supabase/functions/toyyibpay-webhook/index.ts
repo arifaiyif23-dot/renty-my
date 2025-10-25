@@ -35,10 +35,11 @@ serve(async (req) => {
     const secretKey = Deno.env.get("TOYYIBPAY_SECRET_KEY");
     if (signature && secretKey) {
       const crypto = await import("https://deno.land/std@0.168.0/node/crypto.ts");
-      const expectedSignature = crypto.createHmac("sha256", secretKey)
+      const expectedSignature = crypto
+        .createHmac("sha256", secretKey)
         .update(`${billCode}${amount}${status}`)
         .digest("hex");
-      
+
       if (signature !== expectedSignature) {
         console.error("Invalid webhook signature");
         return new Response("Unauthorized", { status: 401, headers: corsHeaders });
@@ -46,10 +47,7 @@ serve(async (req) => {
       console.log("✓ Webhook signature verified");
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("PRIVATE_SUPABASE_KEY!") ?? "");
 
     // Check if already processed using status column
     const { data: completedTx } = await supabase
@@ -101,11 +99,10 @@ serve(async (req) => {
 
     if (status === "1") {
       // ✅ Successful payment - use atomic update
-      const { data: newBalance, error: updateError } = await supabase
-        .rpc("increment_wallet_balance", {
-          p_user_id: userId,
-          p_amount: Number(transaction.amount),
-        });
+      const { data: newBalance, error: updateError } = await supabase.rpc("increment_wallet_balance", {
+        p_user_id: userId,
+        p_amount: Number(transaction.amount),
+      });
 
       if (updateError) {
         console.error("Failed to update wallet:", updateError);
