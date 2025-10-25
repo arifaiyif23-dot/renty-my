@@ -12,6 +12,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from '@/components/ImageUpload';
-import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { BookingCalendar } from '@/components/BookingCalendar';
 import { GripVertical, X, Star } from 'lucide-react';
 
 const formSchema = z.object({
@@ -146,12 +147,13 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>{t('listings.editListing')}</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="basic" className="w-full">
+        <ScrollArea className="flex-1 px-6">
+          <Tabs defaultValue="basic" className="w-full pb-6">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="basic">{t('listingEdit.basicInfo')}</TabsTrigger>
             <TabsTrigger value="pricing">{t('listingEdit.pricing')}</TabsTrigger>
@@ -369,7 +371,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
               </TabsContent>
 
               <TabsContent value="availability">
-                <AvailabilityCalendar itemId={listing.id} />
+                <BookingCalendar itemId={listing.id} mode="view" />
               </TabsContent>
 
               <TabsContent value="details" className="space-y-4">
@@ -438,6 +440,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
             </form>
           </Form>
         </Tabs>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

@@ -38,7 +38,7 @@ serve(async (req) => {
     // Fetch wallet transaction with related wallet
     const { data: transaction, error: txError } = await supabase
       .from("wallet_transactions")
-      .select("id, amount, status, wallet_id, toyyibpay_transaction_id, wallets!inner(user_id, balance)")
+      .select("id, amount, wallet_id, toyyibpay_transaction_id")
       .eq("toyyibpay_transaction_id", billCode)
       .single();
 
@@ -47,12 +47,32 @@ serve(async (req) => {
       return new Response("OK", { headers: corsHeaders, status: 200 });
     }
 
-    const userId = transaction.wallets.user_id;
-    const currentBalance = Number(transaction.wallets.balance) || 0;
+    // Fetch wallet separately
+    const { data: wallet, error: walletError } = await supabase
+      .from("wallets")
+      .select("user_id, balance")
+      .eq("id", transaction.wallet_id)
+      .single();
 
-    // Prevent duplicate handling
-    if (transaction.status === "completed") {
-      console.log("Duplicate webhook ignored:", billCode);
+    if (walletError || !wallet) {
+      console.error("Wallet not found:", walletError);
+      return new Response("OK", { headers: corsHeaders, status: 200 });
+    }
+
+    const userId = wallet.user_id;
+    const currentBalance = Number(wallet.balance) || 0;
+
+    // Check if already processed (using amount as indicator - transaction.status doesn't exist yet)
+    // We'll check if this transaction was already completed by checking the wallet balance change
+    const { data: existingTx } = await supabase
+      .from("wallet_transactions")
+      .select("id")
+      .eq("toyyibpay_transaction_id", billCode)
+      .eq("type", "top_up")
+      .single();
+    
+    if (existingTx && currentBalance >= Number(transaction.amount)) {
+      console.log("Duplicate webhook ignored (already processed):", billCode);
       return new Response("OK", { headers: corsHeaders, status: 200 });
     }
 

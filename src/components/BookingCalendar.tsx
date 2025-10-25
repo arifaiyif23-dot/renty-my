@@ -3,12 +3,22 @@ import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
 
-interface AvailabilityCalendarProps {
+interface BookingCalendarProps {
   itemId: string;
+  mode?: "view" | "select";
+  onDateSelect?: (range: DateRange | undefined) => void;
+  selectedRange?: DateRange;
 }
 
-export const AvailabilityCalendar = ({ itemId }: AvailabilityCalendarProps) => {
+export const BookingCalendar = ({ 
+  itemId, 
+  mode = "view",
+  onDateSelect,
+  selectedRange 
+}: BookingCalendarProps) => {
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,7 +67,7 @@ export const AvailabilityCalendar = ({ itemId }: AvailabilityCalendarProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          Availability
+          {mode === "select" ? "Select Dates" : "Availability"}
           <Badge variant="secondary">Live</Badge>
         </CardTitle>
       </CardHeader>
@@ -66,17 +76,34 @@ export const AvailabilityCalendar = ({ itemId }: AvailabilityCalendarProps) => {
           <div className="h-64 bg-muted rounded-lg animate-pulse" />
         ) : (
           <>
-            <Calendar
-              mode="single"
-              disabled={(date) => date < new Date() || isDateBooked(date)}
-              modifiers={{
-                booked: bookedDates,
-              }}
-              modifiersClassNames={{
-                booked: 'bg-destructive/20 text-destructive line-through',
-              }}
-              className="rounded-md border"
-            />
+            {mode === "select" ? (
+              <Calendar
+                mode="range"
+                selected={selectedRange}
+                onSelect={onDateSelect}
+                disabled={(date) => date < new Date() || isDateBooked(date)}
+                modifiers={{
+                  booked: bookedDates,
+                }}
+                modifiersClassNames={{
+                  booked: 'bg-destructive/20 text-destructive line-through',
+                }}
+                className="rounded-md border"
+                numberOfMonths={2}
+              />
+            ) : (
+              <Calendar
+                mode="single"
+                disabled={(date) => date < new Date() || isDateBooked(date)}
+                modifiers={{
+                  booked: bookedDates,
+                }}
+                modifiersClassNames={{
+                  booked: 'bg-destructive/20 text-destructive line-through',
+                }}
+                className="rounded-md border"
+              />
+            )}
             <div className="flex gap-4 mt-4 text-sm">
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-primary" />
@@ -86,6 +113,12 @@ export const AvailabilityCalendar = ({ itemId }: AvailabilityCalendarProps) => {
                 <div className="h-3 w-3 rounded-full bg-destructive/20" />
                 <span>Booked</span>
               </div>
+              {mode === "select" && selectedRange && (
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-primary/60" />
+                  <span>Your Selection</span>
+                </div>
+              )}
             </div>
           </>
         )}

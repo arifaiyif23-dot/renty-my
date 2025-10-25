@@ -28,7 +28,7 @@ import SEO from '@/components/SEO';
 import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { SaveItemButton } from '@/components/SaveItemButton';
-import { AvailabilityCalendar } from '@/components/AvailabilityCalendar';
+import { BookingCalendar } from '@/components/BookingCalendar';
 import { SocialProof } from '@/components/SocialProof';
 
 export default function ItemDetail() {
@@ -345,7 +345,7 @@ export default function ItemDetail() {
             </CardContent>
           </Card>
           
-          <AvailabilityCalendar itemId={item.id} />
+          <BookingCalendar itemId={item.id} mode="view" />
         </div>
 
         <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">

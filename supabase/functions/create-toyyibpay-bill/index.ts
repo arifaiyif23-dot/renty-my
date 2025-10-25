@@ -128,7 +128,10 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error creating ToyyibPay bill:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error instanceof Error ? error.message : "Failed to create bill" 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
