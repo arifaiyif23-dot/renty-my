@@ -1,9 +1,11 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 
 const NotFound = () => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   useEffect(() => {
@@ -13,12 +15,12 @@ const NotFound = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background pb-mobile-nav">
       <div className="text-center px-4">
-        <h1 className="mb-4 text-6xl font-bold text-foreground">404</h1>
-        <p className="mb-8 text-xl text-muted-foreground">Oops! Page not found</p>
+        <h1 className="mb-4 text-6xl font-bold text-foreground">{t('notFound.title')}</h1>
+        <p className="mb-8 text-xl text-muted-foreground">{t('notFound.message')}</p>
         <Link to="/">
           <Button size="lg">
             <Home className="mr-2 h-4 w-4" />
-            Return to Home
+            {t('notFound.button')}
           </Button>
         </Link>
       </div>

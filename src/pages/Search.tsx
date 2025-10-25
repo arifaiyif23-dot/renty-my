@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Item, ItemCategory } from '@/types';
 import ItemCard from '@/components/ItemCard';
@@ -21,6 +22,7 @@ import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 export default function Search() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const [items, setItems] = useState<Item[]>([]);

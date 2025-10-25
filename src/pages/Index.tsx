@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import Header from "@/components/Header";
@@ -49,6 +50,7 @@ interface Category {
 }
 
 const Index = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);

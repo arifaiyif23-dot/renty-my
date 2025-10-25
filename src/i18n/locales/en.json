@@ -29,7 +29,8 @@
     "description": "Description",
     "title": "Title",
     "images": "Images",
-    "per_day": "per day"
+    "per_day": "per day",
+    "error": "An error occurred"
   },
   "nav": {
     "home": "Home",
@@ -43,6 +44,131 @@
     "signOut": "Sign Out",
     "myRentals": "My Rentals",
     "saved": "Saved"
+  },
+  "home": {
+    "hero": {
+      "title1": "Own Less. Share More.",
+      "title2": "Protect Our Planet.",
+      "title3": "The Future of Ownership is Shared.",
+      "subtitle1": "Borrow what you need. Share what you own. Build community.",
+      "subtitle2": "Malaysia's most trusted rental marketplace."
+    },
+    "categories": {
+      "title": "Browse by Category",
+      "vehicles": "Vehicles",
+      "gadgets": "Gadgets",
+      "rooms": "Rooms",
+      "sports": "Sports",
+      "music": "Music",
+      "tools": "Tools",
+      "electronics": "Electronics",
+      "party": "Party",
+      "other": "Other"
+    },
+    "featured": {
+      "title": "Featured Rentals",
+      "subtitle": "Handpicked items just for you",
+      "viewAll": "View All"
+    },
+    "howItWorks": {
+      "title": "How RENTY Works",
+      "step1": {
+        "title": "Find What You Need",
+        "description": "Browse 10K+ verified items. From cameras to cars, we've got you covered. Search by location, price, or category."
+      },
+      "step2": {
+        "title": "Book Instantly",
+        "description": "Secure payment. Instant confirmation. Insurance included. Zero hassle. Your rental is protected every step of the way."
+      },
+      "step3": {
+        "title": "Pick Up & Enjoy",
+        "description": "Meet locally or get it delivered. Use it. Love it. Make memories. Return it whenever you're done."
+      },
+      "step4": {
+        "title": "Return & Review",
+        "description": "Drop it off. Rate your experience. Build trust in our community. Help others make informed decisions."
+      }
+    },
+    "cta": {
+      "title": "Ready to Get Started?",
+      "subtitle": "Whether you want to rent or earn, RENTY makes it easy",
+      "renters": {
+        "title": "Looking to Rent?",
+        "description": "Access thousands of items without buying. Save money and space.",
+        "button": "Browse Items"
+      },
+      "owners": {
+        "title": "Want to Earn?",
+        "description": "Turn your unused items into income. Start earning today.",
+        "button": "List Your Item"
+      }
+    },
+    "footer": {
+      "about": "About",
+      "aboutUs": "About Us",
+      "howItWorks": "How It Works",
+      "careers": "Careers",
+      "support": "Support",
+      "helpCenter": "Help Center",
+      "safety": "Safety",
+      "contactUs": "Contact Us",
+      "legal": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "community": "Community Guidelines",
+      "copyright": "© 2024 RENTY. All rights reserved.",
+      "sustainable": "A sustainable way to consume"
+    }
+  },
+  "search": {
+    "title": "Search Items",
+    "placeholder": "Search items...",
+    "locationPlaceholder": "Location",
+    "categoryAll": "All Categories",
+    "minPrice": "Min RM",
+    "maxPrice": "Max RM",
+    "sortNewest": "Newest First",
+    "sortPriceLow": "Price: Low to High",
+    "sortPriceHigh": "Price: High to Low",
+    "filterSearch": "Search: {{query}}",
+    "filterCategory": "Category: {{category}}",
+    "filterMin": "Min: RM {{price}}",
+    "filterMax": "Max: RM {{price}}",
+    "filterLocation": "Location: {{location}}",
+    "filterDates": "Dates: {{dates}}",
+    "clearAll": "Clear All",
+    "searching": "Searching...",
+    "itemsFound": "{{count}} items found",
+    "noItems": "No Items Found",
+    "noItemsDesc": "Try adjusting your filters or search terms to find what you're looking for.",
+    "clearFilters": "Clear Filters"
+  },
+  "listItem": {
+    "title": "List Your Item",
+    "signInPrompt": "Please sign in to list an item",
+    "itemImages": "Item Images",
+    "uploadHelper": "Upload up to 5 images. First image will be the primary photo.",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g., Canon EOS R5 Camera",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe your item in detail...",
+    "categoryLabel": "Category",
+    "priceLabel": "Price per Day (RM)",
+    "pricePlaceholder": "0.00",
+    "locationLabel": "Location",
+    "locationPlaceholder": "City, State",
+    "submitButton": "List Item",
+    "submitting": "Listing...",
+    "success": "Item listed successfully!",
+    "error": "Failed to list item",
+    "uploadImage": "Please upload at least one image",
+    "required": "*"
+  },
+  "wishlist": {
+    "title": "My Wishlist",
+    "noItems": "No Saved Items",
+    "noItemsDesc": "Start adding items to your wishlist to see them here",
+    "browseItems": "Browse Items"
   },
   "listings": {
     "myListings": "My Listings",
@@ -80,7 +206,7 @@
     "exportData": "Export Data",
     "itemsSelected": "items selected",
     "confirmDelete": "Are you sure you want to delete this listing?",
-    "confirmBulkDelete": "Are you sure you want to delete {count} listings?",
+    "confirmBulkDelete": "Are you sure you want to delete {{count}} listings?",
     "deleteSuccess": "Listing deleted successfully",
     "updateSuccess": "Listing updated successfully",
     "views": "Views",
@@ -105,70 +231,6 @@
     "moderate": "Moderate",
     "strict": "Strict"
   },
-  "listingEdit": {
-    "basicInfo": "Basic Info",
-    "pricing": "Pricing & Availability",
-    "images": "Images",
-    "availability": "Availability",
-    "details": "Details",
-    "analytics": "Analytics",
-    "titlePlaceholder": "Enter item title",
-    "descriptionPlaceholder": "Describe your item in detail...",
-    "pricePerDay": "Price per Day",
-    "depositAmount": "Deposit Amount",
-    "minimumRentalDays": "Minimum Rental Days",
-    "maximumRentalDays": "Maximum Rental Days",
-    "instantBooking": "Enable Instant Booking",
-    "autoApproveBookings": "Auto Approve Bookings",
-    "primaryImage": "Primary Image",
-    "reorderImages": "Drag to reorder images",
-    "addImages": "Add Images",
-    "removeImage": "Remove Image",
-    "imageAlt": "Image description",
-    "dynamicPricing": "Dynamic Pricing",
-    "weekendSurcharge": "Weekend Surcharge",
-    "longTermDiscount": "Long-term Discount",
-    "peakSeasonPricing": "Peak Season Pricing",
-    "blockDates": "Block Dates",
-    "recurringUnavailable": "Recurring Unavailable Days",
-    "itemCondition": "Item Condition",
-    "includedAccessories": "Included Accessories",
-    "usageInstructions": "Usage Instructions",
-    "safetyGuidelines": "Safety Guidelines",
-    "pickupDelivery": "Pickup/Delivery Options",
-    "saveChanges": "Save Changes",
-    "saveDraft": "Save as Draft",
-    "publish": "Publish",
-    "unsavedChanges": "You have unsaved changes",
-    "performance": "Performance",
-    "insights": "Insights",
-    "recommendations": "Recommendations"
-  },
-  "analytics": {
-    "overview": "Overview",
-    "totalViews": "Total Views",
-    "uniqueViewers": "Unique Viewers",
-    "clickThroughRate": "Click-through Rate",
-    "bookingRequests": "Booking Requests",
-    "confirmedBookings": "Confirmed Bookings",
-    "cancellations": "Cancellations",
-    "totalRevenue": "Total Revenue",
-    "avgRentalDuration": "Average Rental Duration",
-    "viewsOverTime": "Views Over Time",
-    "bookingsByMonth": "Bookings by Month",
-    "revenueTrend": "Revenue Trend",
-    "popularDays": "Popular Days",
-    "rentalDurations": "Rental Durations",
-    "last30Days": "Last 30 Days",
-    "last7Days": "Last 7 Days",
-    "last24Hours": "Last 24 Hours",
-    "allTime": "All Time",
-    "days": "days",
-    "performanceTip": "Your listing performs {percent}% better than similar items",
-    "mobileTrafficTip": "Most views come from mobile users ({percent}%)",
-    "pricingTip": "Consider adjusting price by RM{amount} to increase bookings",
-    "responseTimeTip": "Your response time is slower than average"
-  },
   "profile": {
     "myProfile": "My Profile",
     "editProfile": "Edit Profile",
@@ -180,8 +242,16 @@
   "language": {
     "language": "Language",
     "english": "English",
-    "malay": "Bahasa Melayu",
-    "chinese": "中文",
-    "tamil": "தமிழ்"
+    "malay": "Bahasa Melayu"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "Oops! Page not found",
+    "button": "Return to Home"
+  },
+  "emptyState": {
+    "noItems": "No Items Available",
+    "noItemsDesc": "Be the first to list an item on RENTY and start earning!",
+    "listItem": "List Your First Item"
   }
 }

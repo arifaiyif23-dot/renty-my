@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Menu, Search, Heart } from "lucide-react";
 import logo from "@/assets/renty-logo.png";
@@ -16,8 +17,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const Header = () => {
+  const { t } = useTranslation();
   const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -53,15 +56,15 @@ const Header = () => {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <Link to="/search" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                Browse
+                {t('nav.browse')}
               </Link>
               {user && (
                 <>
                   <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                    My Rentals
+                    {t('nav.myRentals')}
                   </Link>
                   <Link to="/wishlist" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                    Wishlist
+                    {t('nav.wishlist')}
                   </Link>
                 </>
               )}
@@ -69,6 +72,7 @@ const Header = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-2">
+              <LanguageSwitcher />
               <ThemeToggle />
               {user ? (
                 <>
@@ -86,7 +90,7 @@ const Header = () => {
                   {/* Desktop List Item Button */}
                   <Link to="/list-item" className="hidden md:inline-flex">
                     <Button size="sm">
-                      List Item
+                      {t('listItem.title')}
                     </Button>
                   </Link>
 
@@ -105,18 +109,18 @@ const Header = () => {
                         <DropdownMenuItem asChild>
                           <Link to="/profile" className="flex items-center cursor-pointer">
                             <User className="h-4 w-4 mr-2" />
-                            Profile
+                            {t('nav.profile')}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/wishlist" className="flex items-center cursor-pointer">
                             <Heart className="h-4 w-4 mr-2" />
-                            Wishlist
+                            {t('nav.wishlist')}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
-                          Sign Out
+                          {t('nav.signOut')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -126,7 +130,7 @@ const Header = () => {
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
                     <User className="h-4 w-4 mr-0 sm:mr-2" />
-                    <span className="hidden sm:inline">Sign In</span>
+                    <span className="hidden sm:inline">{t('nav.signIn')}</span>
                   </Button>
                 </Link>
               )}

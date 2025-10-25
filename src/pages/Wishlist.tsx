@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -10,6 +11,7 @@ import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Wishlist() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
