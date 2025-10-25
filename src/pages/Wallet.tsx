@@ -91,7 +91,7 @@ export default function Wallet() {
         body: {
           amount,
           description: `Wallet Top Up - RM ${amount}`,
-          userId: user.id,
+          // userId determined server-side from JWT
         },
       });
 

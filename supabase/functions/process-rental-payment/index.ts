@@ -12,6 +12,29 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      throw new Error("Missing authorization header");
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+    if (authError || !user) {
+      console.error("Authentication failed:", authError);
+      throw new Error("Unauthorized - invalid token");
+    }
+
     const { rentalId } = await req.json();
 
     if (!rentalId) {
@@ -20,13 +43,13 @@ serve(async (req) => {
 
     console.log('Processing rental payment completion for:', rentalId);
 
-    const supabaseClient = createClient(
+    const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Get rental details
-    const { data: rental, error: rentalError } = await supabaseClient
+    const { data: rental, error: rentalError } = await supabaseServiceClient
       .from('rentals')
       .select('*, item:items(title, owner_id)')
       .eq('id', rentalId)
@@ -36,7 +59,13 @@ serve(async (req) => {
       throw new Error('Rental not found');
     }
 
-    // Check if rental is already completed
+    // Verify user is authorized (owner or renter)
+    if (user.id !== rental.owner_id && user.id !== rental.renter_id) {
+      console.error("Unauthorized access attempt:", { userId: user.id, rental });
+      throw new Error("Unauthorized to complete this rental");
+    }
+
+    // Idempotency check
     if (rental.status === 'completed') {
       console.log('Rental already completed:', rentalId);
       return new Response(
@@ -46,7 +75,7 @@ serve(async (req) => {
     }
 
     // Get owner's wallet
-    const { data: ownerWallet, error: walletError } = await supabaseClient
+    const { data: ownerWallet, error: walletError } = await supabaseServiceClient
       .from('wallets')
       .select('id, balance')
       .eq('user_id', rental.item.owner_id)
@@ -58,22 +87,24 @@ serve(async (req) => {
 
     // Calculate platform fee (10%)
     const platformFeeRate = 0.10;
-    const platformFee = Number(rental.total_price) * platformFeeRate;
-    const ownerAmount = Number(rental.total_price) - platformFee;
+    const totalPrice = Number(rental.total_price);
+    const platformFee = totalPrice * platformFeeRate;
+    const ownerAmount = totalPrice - platformFee;
 
-    // Update owner's wallet balance
-    const newBalance = Number(ownerWallet.balance) + ownerAmount;
-    const { error: updateError } = await supabaseClient
-      .from('wallets')
-      .update({ balance: newBalance })
-      .eq('id', ownerWallet.id);
+    // Update owner's wallet balance atomically
+    const { data: newBalance, error: updateError } = await supabaseServiceClient
+      .rpc("increment_wallet_balance", {
+        p_user_id: rental.item.owner_id,
+        p_amount: ownerAmount,
+      });
 
     if (updateError) {
-      throw new Error('Failed to update owner wallet');
+      console.error("Failed to update owner wallet:", updateError);
+      throw new Error("Failed to update owner wallet");
     }
 
     // Record transaction for owner
-    await supabaseClient
+    await supabaseServiceClient
       .from('wallet_transactions')
       .insert({
         wallet_id: ownerWallet.id,
@@ -84,7 +115,7 @@ serve(async (req) => {
       });
 
     // Update rental status to completed
-    await supabaseClient
+    await supabaseServiceClient
       .from('rentals')
       .update({ 
         status: 'completed',
@@ -93,7 +124,7 @@ serve(async (req) => {
       .eq('id', rentalId);
 
     // Send notification to owner
-    await supabaseClient
+    await supabaseServiceClient
       .from('notifications')
       .insert({
         user_id: rental.item.owner_id,
@@ -104,7 +135,7 @@ serve(async (req) => {
       });
 
     // Send notification to renter
-    await supabaseClient
+    await supabaseServiceClient
       .from('notifications')
       .insert({
         user_id: rental.renter_id,

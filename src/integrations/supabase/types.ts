@@ -814,6 +814,7 @@ export type Database = {
           description: string
           id: string
           reference_id: string | null
+          status: string | null
           toyyibpay_transaction_id: string | null
           type: Database["public"]["Enums"]["wallet_transaction_type"]
           wallet_id: string
@@ -824,6 +825,7 @@ export type Database = {
           description: string
           id?: string
           reference_id?: string | null
+          status?: string | null
           toyyibpay_transaction_id?: string | null
           type: Database["public"]["Enums"]["wallet_transaction_type"]
           wallet_id: string
@@ -834,6 +836,7 @@ export type Database = {
           description?: string
           id?: string
           reference_id?: string | null
+          status?: string | null
           toyyibpay_transaction_id?: string | null
           type?: Database["public"]["Enums"]["wallet_transaction_type"]
           wallet_id?: string
@@ -895,6 +898,10 @@ export type Database = {
       increment_item_views: {
         Args: { item_id_param: string }
         Returns: undefined
+      }
+      increment_wallet_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: number
       }
     }
     Enums: {

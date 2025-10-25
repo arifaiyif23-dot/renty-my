@@ -18,6 +18,7 @@ serve(async (req) => {
     const status = formData.get("status_id") || formData.get("statusId"); // 1=success, 2=pending, 3=failed
     const amount = Number(formData.get("amount")) || 0;
     const transactionId = formData.get("transaction_id") || formData.get("transactionId");
+    const signature = formData.get("signature") || formData.get("hash");
 
     console.log("ToyyibPay webhook received:", {
       billCode,
@@ -30,12 +31,40 @@ serve(async (req) => {
       throw new Error("Missing required webhook data (billCode/status)");
     }
 
+    // SECURITY: Verify webhook signature
+    const secretKey = Deno.env.get("TOYYIBPAY_SECRET_KEY");
+    if (signature && secretKey) {
+      const crypto = await import("https://deno.land/std@0.168.0/node/crypto.ts");
+      const expectedSignature = crypto.createHmac("sha256", secretKey)
+        .update(`${billCode}${amount}${status}`)
+        .digest("hex");
+      
+      if (signature !== expectedSignature) {
+        console.error("Invalid webhook signature");
+        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+      }
+      console.log("✓ Webhook signature verified");
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Fetch wallet transaction with related wallet
+    // Check if already processed using status column
+    const { data: completedTx } = await supabase
+      .from("wallet_transactions")
+      .select("id, status")
+      .eq("toyyibpay_transaction_id", billCode)
+      .eq("status", "completed")
+      .single();
+
+    if (completedTx) {
+      console.log("Duplicate webhook ignored (already completed):", billCode);
+      return new Response("OK", { headers: corsHeaders, status: 200 });
+    }
+
+    // Fetch wallet transaction
     const { data: transaction, error: txError } = await supabase
       .from("wallet_transactions")
       .select("id, amount, wallet_id, toyyibpay_transaction_id")
@@ -47,10 +76,19 @@ serve(async (req) => {
       return new Response("OK", { headers: corsHeaders, status: 200 });
     }
 
+    // Verify amount matches
+    if (amount > 0 && Number(transaction.amount) !== amount) {
+      console.error("Amount mismatch:", {
+        expected: transaction.amount,
+        received: amount,
+      });
+      return new Response("Bad Request", { status: 400, headers: corsHeaders });
+    }
+
     // Fetch wallet separately
     const { data: wallet, error: walletError } = await supabase
       .from("wallets")
-      .select("user_id, balance")
+      .select("user_id")
       .eq("id", transaction.wallet_id)
       .single();
 
@@ -60,34 +98,32 @@ serve(async (req) => {
     }
 
     const userId = wallet.user_id;
-    const currentBalance = Number(wallet.balance) || 0;
-
-    // Check if already processed (using amount as indicator - transaction.status doesn't exist yet)
-    // We'll check if this transaction was already completed by checking the wallet balance change
-    const { data: existingTx } = await supabase
-      .from("wallet_transactions")
-      .select("id")
-      .eq("toyyibpay_transaction_id", billCode)
-      .eq("type", "top_up")
-      .single();
-    
-    if (existingTx && currentBalance >= Number(transaction.amount)) {
-      console.log("Duplicate webhook ignored (already processed):", billCode);
-      return new Response("OK", { headers: corsHeaders, status: 200 });
-    }
 
     if (status === "1") {
-      // ✅ Successful payment
-      const newBalance = currentBalance + Number(transaction.amount);
+      // ✅ Successful payment - use atomic update
+      const { data: newBalance, error: updateError } = await supabase
+        .rpc("increment_wallet_balance", {
+          p_user_id: userId,
+          p_amount: Number(transaction.amount),
+        });
 
-      await supabase.from("wallets").update({ balance: newBalance }).eq("user_id", userId);
-      await supabase.from("wallet_transactions").update({ status: "completed" }).eq("id", transaction.id);
+      if (updateError) {
+        console.error("Failed to update wallet:", updateError);
+        throw updateError;
+      }
+
+      // Update transaction status
+      await supabase
+        .from("wallet_transactions")
+        .update({ status: "completed" })
+        .eq("id", transaction.id)
+        .eq("status", "pending"); // Only update if still pending
 
       await supabase.from("notifications").insert({
         user_id: userId,
         type: "payment",
         title: "Top-up Successful",
-        message: `RM${transaction.amount.toFixed(2)} has been added to your wallet.`,
+        message: `RM${Number(transaction.amount).toFixed(2)} has been added to your wallet.`,
         link: "/wallet",
       });
 

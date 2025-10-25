@@ -12,26 +12,70 @@ serve(async (req) => {
   }
 
   try {
-    const { amount, description, userId } = await req.json();
-
-    if (!amount || !userId) {
-      throw new Error("Amount and userId are required");
+    // Extract user from JWT token, not request body
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      throw new Error("Missing authorization header");
     }
 
-    // Setup Supabase client
     const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+    if (authError || !user) {
+      console.error("Authentication failed:", authError);
+      throw new Error("Unauthorized - invalid token");
+    }
+
+    const userId = user.id; // Always use authenticated user's ID
+
+    // Only accept amount and description from request
+    const { amount, description } = await req.json();
+
+    if (!amount) {
+      throw new Error("Amount is required");
+    }
+
+    // SERVER-SIDE VALIDATION
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || !isFinite(numAmount)) {
+      throw new Error("Invalid amount format");
+    }
+    if (numAmount < 10) {
+      throw new Error("Minimum top up amount is RM 10");
+    }
+    if (numAmount > 10000) {
+      throw new Error("Maximum top up amount is RM 10,000");
+    }
+    if (numAmount <= 0) {
+      throw new Error("Amount must be positive");
+    }
+    if (!Number.isInteger(numAmount * 100)) {
+      throw new Error("Amount must have at most 2 decimal places");
+    }
+
+    // Use service role for database operations
+    const supabaseServiceClient = createClient(
       Deno.env.get("SUPABASE_URL")?.trim() ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ?? ""
     );
 
     // Get user details
-    const { data: profile } = await supabaseClient
+    const { data: profile } = await supabaseServiceClient
       .from("profiles")
       .select("full_name, phone")
       .eq("id", userId)
       .single();
 
-    const { data: { user: authUser } } = await supabaseClient.auth.admin.getUserById(userId);
+    const { data: { user: authUser } } = await supabaseServiceClient.auth.admin.getUserById(userId);
 
     // ToyyibPay credentials
     const toyyibpaySecretKey = Deno.env.get("TOYYIBPAY_SECRET_KEY")?.trim();
@@ -98,14 +142,14 @@ serve(async (req) => {
       const paymentUrl = `https://toyyibpay.com/${billCode}`;
 
       // Save transaction
-      const { data: wallet } = await supabaseClient
+      const { data: wallet } = await supabaseServiceClient
         .from("wallets")
         .select("id")
         .eq("user_id", userId)
         .single();
 
       if (wallet) {
-        await supabaseClient.from("wallet_transactions").insert({
+        await supabaseServiceClient.from("wallet_transactions").insert({
           wallet_id: wallet.id,
           type: "top_up",
           amount: amount,
