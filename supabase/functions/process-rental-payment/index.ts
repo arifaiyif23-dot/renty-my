@@ -32,7 +32,7 @@ serve(async (req) => {
 
     const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('PRIVATE_SUPABASE_KEY') ?? '' // ✅ guna key yang berjaya tadi
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Get rental details
@@ -74,14 +74,94 @@ serve(async (req) => {
     const platformFee = totalPrice * platformFeeRate;
     const ownerAmount = totalPrice - platformFee;
 
-    // Update owner's wallet balance
+    console.log('Payment breakdown:', { totalPrice, platformFee, ownerAmount });
+
+    // Update owner's wallet balance atomically
     const { error: updateError } = await supabaseServiceClient.rpc("increment_wallet_balance", {
       p_user_id: rental.item.owner_id,
       p_amount: ownerAmount,
     });
 
-    if (updateError) throw new Error("Failed to update owner wallet");
+    if (updateError) {
+      console.error('Failed to update owner wallet:', updateError);
+      throw new Error("Failed to update owner wallet");
+    }
 
-    // Record transaction
-    await supabaseServiceClient
+    // Record transaction for owner
+    const { error: txError } = await supabaseServiceClient
       .from('wallet_transactions')
+      .insert({
+        wallet_id: ownerWallet.id,
+        type: 'rental_earning',
+        amount: ownerAmount,
+        description: `Rental payment for ${rental.item.title} (10% platform fee deducted)`,
+        reference_id: rentalId,
+        status: 'completed',
+      });
+
+    if (txError) {
+      console.error('Failed to record transaction:', txError);
+      throw new Error('Failed to record transaction');
+    }
+
+    // Update rental status
+    const { error: rentalUpdateError } = await supabaseServiceClient
+      .from('rentals')
+      .update({ 
+        status: 'confirmed',
+        payment_status: 'paid',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', rentalId);
+
+    if (rentalUpdateError) {
+      console.error('Failed to update rental:', rentalUpdateError);
+      throw new Error('Failed to update rental status');
+    }
+
+    // Create notifications
+    await supabaseServiceClient
+      .from('notifications')
+      .insert([
+        {
+          user_id: rental.owner_id,
+          type: 'rental_confirmed',
+          title: 'Rental Payment Received',
+          message: `You've received RM ${ownerAmount.toFixed(2)} for ${rental.item.title}`,
+          link: `/dashboard`,
+        },
+        {
+          user_id: rental.renter_id,
+          type: 'rental_confirmed',
+          title: 'Booking Confirmed',
+          message: `Your booking for ${rental.item.title} is confirmed`,
+          link: `/dashboard`,
+        }
+      ]);
+
+    console.log('Rental payment processed successfully:', rentalId);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Payment processed successfully',
+        ownerAmount,
+        platformFee
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error processing rental payment:', error);
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      }
+    );
+  }
+});

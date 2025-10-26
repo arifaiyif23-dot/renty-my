@@ -110,10 +110,34 @@ export default function Wallet() {
         setDialogOpen(false);
         setTopUpAmount("");
         
-        // Refresh wallet data after a short delay
-        setTimeout(() => {
-          fetchWalletData();
-        }, 2000);
+        // Poll for payment completion
+        const billCode = data.billCode;
+        let pollCount = 0;
+        const maxPolls = 60; // 5 minutes
+        
+        const pollInterval = setInterval(async () => {
+          pollCount++;
+          
+          if (pollCount > maxPolls) {
+            clearInterval(pollInterval);
+            toast.info('Taking longer than expected. Please check your wallet in a few minutes.');
+            return;
+          }
+          
+          try {
+            const { data: statusData } = await supabase.functions.invoke('check-payment-status', {
+              body: { billCode }
+            });
+            
+            if (statusData?.status === 'completed') {
+              clearInterval(pollInterval);
+              toast.success('Payment confirmed! Wallet updated.');
+              fetchWalletData();
+            }
+          } catch (error) {
+            console.error('Polling error:', error);
+          }
+        }, 5000); // Check every 5 seconds
       }
     } catch (error: any) {
       console.error('Top up error:', error);

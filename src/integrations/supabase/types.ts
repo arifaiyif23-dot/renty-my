@@ -810,6 +810,7 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
+          completed_at: string | null
           created_at: string | null
           description: string
           id: string
@@ -821,6 +822,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          completed_at?: string | null
           created_at?: string | null
           description: string
           id?: string
@@ -832,6 +834,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          completed_at?: string | null
           created_at?: string | null
           description?: string
           id?: string
