@@ -184,11 +184,11 @@ export default function ItemDetail() {
 
       if (rentalError) throw rentalError;
 
-      // Deduct from renter's wallet
-      const { error: deductError } = await supabase
-        .from('wallets')
-        .update({ balance: currentBalance - totalPrice })
-        .eq('user_id', user.id);
+      // Deduct from renter's wallet using RPC function
+      const { error: deductError } = await supabase.rpc('increment_wallet_balance', {
+        p_user_id: user.id,
+        p_amount: -totalPrice
+      });
 
       if (deductError) throw deductError;
 
@@ -197,10 +197,11 @@ export default function ItemDetail() {
         .from('wallet_transactions')
         .insert({
           wallet_id: walletData.id,
-          amount: -totalPrice,
+          amount: totalPrice,
           type: 'rental_payment',
           description: `Payment for ${item?.title}`,
           reference_id: rentalData.id,
+          status: 'completed',
         });
 
       if (transactionError) throw transactionError;
@@ -356,7 +357,7 @@ export default function ItemDetail() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Select Dates</Label>
-                <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} />
+                <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} itemId={item.id} />
               </div>
 
               {dateRange?.from && dateRange?.to && (

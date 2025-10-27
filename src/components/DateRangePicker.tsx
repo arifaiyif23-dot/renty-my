@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -6,16 +7,58 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DateRangePickerProps {
   dateRange: DateRange | undefined;
   setDateRange: (range: DateRange | undefined) => void;
+  itemId?: string;
 }
 
-export function DateRangePicker({ dateRange, setDateRange }: DateRangePickerProps) {
+export function DateRangePicker({ dateRange, setDateRange, itemId }: DateRangePickerProps) {
   const isMobile = useIsMobile();
   const today = new Date();
   const tomorrow = addDays(today, 1);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
+
+  useEffect(() => {
+    if (itemId) {
+      fetchBookedDates();
+    }
+  }, [itemId]);
+
+  const fetchBookedDates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rentals')
+        .select('start_date, end_date')
+        .eq('item_id', itemId)
+        .in('status', ['pending', 'approved', 'active']);
+
+      if (error) throw error;
+
+      const dates: Date[] = [];
+      data?.forEach((rental) => {
+        const start = new Date(rental.start_date);
+        const end = new Date(rental.end_date);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          dates.push(new Date(d));
+        }
+      });
+      setBookedDates(dates);
+    } catch (error) {
+      console.error('Failed to fetch booked dates:', error);
+    }
+  };
+
+  const isDateBooked = (date: Date) => {
+    return bookedDates.some(
+      (bookedDate) =>
+        bookedDate.getFullYear() === date.getFullYear() &&
+        bookedDate.getMonth() === date.getMonth() &&
+        bookedDate.getDate() === date.getDate()
+    );
+  };
 
   return (
     <Popover modal={isMobile}>
@@ -76,8 +119,14 @@ export function DateRangePicker({ dateRange, setDateRange }: DateRangePickerProp
           selected={dateRange}
           onSelect={setDateRange}
           numberOfMonths={isMobile ? 1 : 2}
-          disabled={(date) => date < new Date()}
+          disabled={(date) => date < new Date() || isDateBooked(date)}
           className="rounded-md"
+          modifiers={{
+            booked: bookedDates
+          }}
+          modifiersClassNames={{
+            booked: "line-through opacity-50"
+          }}
         />
       </PopoverContent>
     </Popover>
