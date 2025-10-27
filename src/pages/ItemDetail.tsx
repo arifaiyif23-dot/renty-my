@@ -100,14 +100,20 @@ export default function ItemDetail() {
   };
 
   const handleBooking = async () => {
+    console.log('🚀 Booking started');
+    
     if (!user) {
+      console.log('❌ No user logged in');
       toast.error('Please sign in to book');
       navigate('/auth');
       return;
     }
 
+    console.log('✅ User authenticated:', user.id);
+
     // Check if item requires verification for high-value items
     if (item && item.price_per_day > 500) {
+      console.log('🔒 High-value item, checking verification');
       const { data: profileData } = await supabase
         .from('profiles')
         .select('is_verified')
@@ -115,6 +121,7 @@ export default function ItemDetail() {
         .single();
       
       if (!profileData?.is_verified) {
+        console.log('❌ User not verified');
         toast.error('This item requires ID verification', {
           description: 'High-value items require verified users',
           action: {
@@ -124,35 +131,49 @@ export default function ItemDetail() {
         });
         return;
       }
+      console.log('✅ User verified');
     }
 
     if (!dateRange?.from || !dateRange?.to) {
+      console.log('❌ No dates selected');
       toast.error('Please select dates');
       return;
     }
 
+    console.log('✅ Dates selected:', dateRange.from, dateRange.to);
+
     if (item?.owner_id === user.id) {
+      console.log('❌ User trying to book own item');
       toast.error("You can't book your own item");
       return;
     }
+
+    console.log('✅ Item owner check passed');
 
     setIsBooking(true);
     try {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       const totalPrice = days * (item?.price_per_day || 0);
+      console.log('💰 Total price calculated:', totalPrice, 'for', days, 'days');
 
       // Check user's wallet balance
+      console.log('🔍 Checking wallet balance...');
       const { data: walletData, error: walletError } = await supabase
         .from('wallets')
         .select('id, balance')
         .eq('user_id', user.id)
         .single();
 
-      if (walletError) throw new Error('Failed to check wallet balance');
+      if (walletError) {
+        console.error('❌ Wallet error:', walletError);
+        throw new Error('Failed to check wallet balance');
+      }
 
       const currentBalance = Number(walletData.balance);
+      console.log('💵 Current balance:', currentBalance);
 
       if (currentBalance < totalPrice) {
+        console.log('❌ Insufficient balance');
         toast.error(
           `Insufficient balance. You need RM ${totalPrice.toFixed(2)} but have RM ${currentBalance.toFixed(2)}`,
           { 
@@ -166,7 +187,9 @@ export default function ItemDetail() {
         return;
       }
 
-      // Create rental and deduct from wallet in a transaction
+      console.log('✅ Sufficient balance, creating rental...');
+
+      // Create rental
       const { data: rentalData, error: rentalError } = await supabase
         .from('rentals')
         .insert({
@@ -182,17 +205,29 @@ export default function ItemDetail() {
         .select()
         .single();
 
-      if (rentalError) throw rentalError;
+      if (rentalError) {
+        console.error('❌ Rental creation error:', rentalError);
+        throw rentalError;
+      }
+
+      console.log('✅ Rental created:', rentalData.id);
 
       // Deduct from renter's wallet using RPC function
+      console.log('💸 Deducting from wallet...');
       const { error: deductError } = await supabase.rpc('increment_wallet_balance', {
         p_user_id: user.id,
         p_amount: -totalPrice
       });
 
-      if (deductError) throw deductError;
+      if (deductError) {
+        console.error('❌ Wallet deduction error:', deductError);
+        throw deductError;
+      }
+
+      console.log('✅ Wallet deducted');
 
       // Create wallet transaction record
+      console.log('📝 Creating transaction record...');
       const { error: transactionError } = await supabase
         .from('wallet_transactions')
         .insert({
@@ -204,21 +239,34 @@ export default function ItemDetail() {
           status: 'completed',
         });
 
-      if (transactionError) throw transactionError;
+      if (transactionError) {
+        console.error('❌ Transaction record error:', transactionError);
+        throw transactionError;
+      }
 
-      // Process payment to owner immediately (rental starts now)
+      console.log('✅ Transaction recorded');
+
+      // Process payment to owner immediately
+      console.log('🔄 Processing payment to owner...');
       try {
-        await supabase.functions.invoke('process-rental-payment', {
+        const { data: paymentResult, error: paymentError } = await supabase.functions.invoke('process-rental-payment', {
           body: { rentalId: rentalData.id }
         });
+        
+        if (paymentError) {
+          console.error('⚠️ Payment processing error:', paymentError);
+        } else {
+          console.log('✅ Payment processed:', paymentResult);
+        }
       } catch (paymentError) {
-        console.error('Failed to process rental payment:', paymentError);
-        // Continue - payment will be processed later
+        console.error('⚠️ Payment processing exception:', paymentError);
       }
       
+      console.log('🎉 Booking complete!');
       toast.success(`Booking confirmed! RM ${totalPrice.toFixed(2)} deducted from your wallet.`);
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('💥 Booking failed:', error);
       toast.error(error.message || 'Failed to create booking');
       console.error(error);
     } finally {
