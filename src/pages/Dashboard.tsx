@@ -43,31 +43,64 @@ export default function Dashboard() {
 
   const updateRentalStatus = async (rentalId: string, status: Rental['status']) => {
     try {
-      const { error } = await supabase
-        .from('rentals')
-        .update({ status })
-        .eq('id', rentalId);
+      const rental = rentals.find(r => r.id === rentalId);
+      if (!rental) throw new Error('Rental not found');
 
-      if (error) throw error;
-
-      // If rental is completed, trigger payment to owner
+      // Handle completion confirmation
       if (status === 'completed') {
-        try {
-          const { error: paymentError } = await supabase.functions.invoke('process-rental-payment', {
-            body: { rentalId }
-          });
+        const isOwner = rental.owner_id === user?.id;
+        const confirmField = isOwner ? 'owner_confirmed_completion' : 'renter_confirmed_completion';
+        const otherConfirmed = isOwner ? rental.renter_confirmed_completion : rental.owner_confirmed_completion;
+        const alreadyConfirmed = isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion;
 
-          if (paymentError) {
-            console.error('Payment processing error:', paymentError);
+        if (alreadyConfirmed) {
+          toast.info('You have already confirmed completion');
+          return;
+        }
+
+        // Update confirmation status
+        const updateData: any = { [confirmField]: true };
+        
+        // If other party has already confirmed, mark as completed
+        if (otherConfirmed) {
+          updateData.status = 'completed';
+        }
+
+        const { error } = await supabase
+          .from('rentals')
+          .update(updateData)
+          .eq('id', rentalId);
+
+        if (error) throw error;
+
+        // Only process payment if both parties confirmed
+        if (otherConfirmed) {
+          try {
+            const { error: paymentError } = await supabase.functions.invoke('process-rental-payment', {
+              body: { rentalId }
+            });
+
+            if (paymentError) {
+              console.error('Payment processing error:', paymentError);
+              toast.error('Rental completed but payment processing failed. Please contact support.');
+            } else {
+              toast.success('Rental completed and payment processed!');
+            }
+          } catch (paymentError) {
+            console.error('Payment processing failed:', paymentError);
             toast.error('Rental completed but payment processing failed. Please contact support.');
-          } else {
-            toast.success('Rental completed and payment processed!');
           }
-        } catch (paymentError) {
-          console.error('Payment processing failed:', paymentError);
-          toast.error('Rental completed but payment processing failed. Please contact support.');
+        } else {
+          toast.success('Completion confirmed. Waiting for the other party.');
         }
       } else {
+        // Regular status update
+        const { error } = await supabase
+          .from('rentals')
+          .update({ status })
+          .eq('id', rentalId);
+
+        if (error) throw error;
         toast.success(`Rental ${status}`);
       }
       

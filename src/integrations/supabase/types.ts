@@ -439,9 +439,11 @@ export type Database = {
           end_date: string
           id: string
           item_id: string
+          owner_confirmed_completion: boolean | null
           owner_id: string
           payment_method: string | null
           payment_status: string | null
+          renter_confirmed_completion: boolean | null
           renter_id: string
           start_date: string
           status: Database["public"]["Enums"]["rental_status"] | null
@@ -454,9 +456,11 @@ export type Database = {
           end_date: string
           id?: string
           item_id: string
+          owner_confirmed_completion?: boolean | null
           owner_id: string
           payment_method?: string | null
           payment_status?: string | null
+          renter_confirmed_completion?: boolean | null
           renter_id: string
           start_date: string
           status?: Database["public"]["Enums"]["rental_status"] | null
@@ -469,9 +473,11 @@ export type Database = {
           end_date?: string
           id?: string
           item_id?: string
+          owner_confirmed_completion?: boolean | null
           owner_id?: string
           payment_method?: string | null
           payment_status?: string | null
+          renter_confirmed_completion?: boolean | null
           renter_id?: string
           start_date?: string
           status?: Database["public"]["Enums"]["rental_status"] | null

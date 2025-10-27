@@ -60,6 +60,11 @@ export interface Rental {
   end_date: string;
   total_price: number;
   status: RentalStatus;
+  payment_status: string;
+  payment_method?: string;
+  toyyibpay_bill_code?: string;
+  owner_confirmed_completion?: boolean;
+  renter_confirmed_completion?: boolean;
   created_at: string;
   updated_at: string;
   item?: Item;

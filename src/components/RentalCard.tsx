@@ -100,10 +100,16 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
           confirmText: 'Mark Active',
         };
       case 'complete':
+        const alreadyConfirmed = isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion;
+        const otherConfirmed = isOwner ? rental.renter_confirmed_completion : rental.owner_confirmed_completion;
         return {
           title: 'Complete Rental',
-          description: `Complete this rental? Payment will be processed to the owner's wallet.`,
-          confirmText: 'Complete',
+          description: alreadyConfirmed 
+            ? 'You have already confirmed completion. Waiting for the other party.'
+            : otherConfirmed 
+              ? 'The other party has confirmed. Once you confirm, payment will be processed.'
+              : 'Confirm rental completion? Both parties must confirm before payment is processed.',
+          confirmText: alreadyConfirmed ? 'Already Confirmed' : 'Confirm Completion',
         };
       default:
         return { title: '', description: '', confirmText: '' };
@@ -182,7 +188,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 </>
               )}
               
-              {rental.status === 'approved' && (
+              {isOwner && rental.status === 'approved' && (
                 <Button 
                   className="w-full h-12"
                   onClick={() => setConfirmDialog({ open: true, action: 'active' })}
@@ -196,9 +202,12 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <Button 
                   className="w-full h-12"
                   onClick={() => setConfirmDialog({ open: true, action: 'complete' })}
-                  disabled={isUpdating}
+                  disabled={isUpdating || (isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion)}
                 >
-                  Complete Rental
+                  {isOwner 
+                    ? (rental.owner_confirmed_completion ? '✓ Waiting for Renter' : 'Complete Rental')
+                    : (rental.renter_confirmed_completion ? '✓ Waiting for Owner' : 'Complete Rental')
+                  }
                 </Button>
               )}
 
@@ -253,7 +262,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               </div>
             )}
             
-            {rental.status === 'approved' && (
+            {isOwner && rental.status === 'approved' && (
               <Button 
                 size="sm" 
                 onClick={() => setConfirmDialog({ open: true, action: 'active' })}
@@ -267,9 +276,12 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <Button 
                 size="sm" 
                 onClick={() => setConfirmDialog({ open: true, action: 'complete' })}
-                disabled={isUpdating}
+                disabled={isUpdating || (isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion)}
               >
-                Complete Rental
+                {isOwner 
+                  ? (rental.owner_confirmed_completion ? '✓ Waiting for Renter' : 'Complete Rental')
+                  : (rental.renter_confirmed_completion ? '✓ Waiting for Owner' : 'Complete Rental')
+                }
               </Button>
             )}
 
@@ -297,7 +309,10 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             <Button variant="outline" onClick={() => setConfirmDialog({ open: false, action: null })}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmAction} disabled={isUpdating}>
+            <Button 
+              onClick={handleConfirmAction} 
+              disabled={isUpdating || (confirmDialog.action === 'complete' && (isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion))}
+            >
               {isUpdating ? 'Processing...' : dialogContent.confirmText}
             </Button>
           </DialogFooter>
