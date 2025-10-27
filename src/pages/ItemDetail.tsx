@@ -199,7 +199,7 @@ export default function ItemDetail() {
           start_date: dateRange.from.toISOString().split('T')[0],
           end_date: dateRange.to.toISOString().split('T')[0],
           total_price: totalPrice,
-          payment_status: 'pending',
+          payment_status: 'unpaid',
           payment_method: 'wallet',
         })
         .select()
