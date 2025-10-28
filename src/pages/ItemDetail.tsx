@@ -110,28 +110,26 @@ export default function ItemDetail() {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Check if item requires verification for high-value items
-    if (item && item.price_per_day > 500) {
-      console.log('🔒 High-value item, checking verification');
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('is_verified')
-        .eq('id', user.id)
-        .single();
-      
-      if (!profileData?.is_verified) {
-        console.log('❌ User not verified');
-        toast.error('This item requires ID verification', {
-          description: 'High-value items require verified users',
-          action: {
-            label: 'Verify Now',
-            onClick: () => navigate('/verification')
-          }
-        });
-        return;
-      }
-      console.log('✅ User verified');
+    // Check user verification status - now required for all bookings
+    console.log('🔒 Checking verification status');
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('is_verified')
+      .eq('id', user.id)
+      .single();
+    
+    if (!profileData?.is_verified) {
+      console.log('❌ User not verified');
+      toast.error('Verification required to book items', {
+        description: 'Complete ID verification to start renting',
+        action: {
+          label: 'Verify Now',
+          onClick: () => navigate('/verification')
+        }
+      });
+      return;
     }
+    console.log('✅ User verified');
 
     if (!dateRange?.from || !dateRange?.to) {
       console.log('❌ No dates selected');
@@ -206,6 +204,18 @@ export default function ItemDetail() {
 
       if (rentalError) {
         console.error('❌ Rental creation error:', rentalError);
+        // Handle verification error from database
+        if (rentalError.message?.includes('violates row-level security policy') || 
+            rentalError.message?.includes('is_verified')) {
+          toast.error('Verification required to book items', {
+            description: 'Complete ID verification to start renting',
+            action: {
+              label: 'Verify Now',
+              onClick: () => navigate('/verification')
+            }
+          });
+          return;
+        }
         throw rentalError;
       }
 

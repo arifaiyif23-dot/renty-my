@@ -43,6 +43,18 @@ export default function ListItem() {
       return;
     }
 
+    // Check if user is verified
+    if (!profile?.is_verified) {
+      toast.error('Verification required to list items', {
+        description: 'Please complete ID verification to start listing',
+        action: {
+          label: 'Verify Now',
+          onClick: () => navigate('/verification')
+        }
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -60,7 +72,21 @@ export default function ListItem() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle verification error from database
+        if (error.message?.includes('violates row-level security policy') || 
+            error.message?.includes('is_verified')) {
+          toast.error('Verification required to list items', {
+            description: 'Please complete ID verification to start listing',
+            action: {
+              label: 'Verify Now',
+              onClick: () => navigate('/verification')
+            }
+          });
+          return;
+        }
+        throw error;
+      }
 
       // Insert images into item_images table
       const imageInserts = imageUrls.map((url, index) => ({
