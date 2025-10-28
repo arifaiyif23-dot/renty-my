@@ -26,9 +26,8 @@ import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import SEO from '@/components/SEO';
 import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
-import { DateRangePicker } from '@/components/DateRangePicker';
+import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { SaveItemButton } from '@/components/SaveItemButton';
-import { BookingCalendar } from '@/components/BookingCalendar';
 import { SocialProof } from '@/components/SocialProof';
 
 export default function ItemDetail() {
@@ -394,7 +393,7 @@ export default function ItemDetail() {
             </CardContent>
           </Card>
           
-          <BookingCalendar itemId={item.id} mode="view" />
+          <UnifiedCalendar itemId={item.id} mode="view" />
         </div>
 
         <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">
@@ -405,7 +404,12 @@ export default function ItemDetail() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Select Dates</Label>
-                <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} itemId={item.id} />
+                <UnifiedCalendar 
+                  itemId={item.id} 
+                  mode="select" 
+                  dateRange={dateRange} 
+                  setDateRange={setDateRange} 
+                />
               </div>
 
               {dateRange?.from && dateRange?.to && (

@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from '@/components/ImageUpload';
-import { BookingCalendar } from '@/components/BookingCalendar';
+import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { GripVertical, X, Star } from 'lucide-react';
 
 const formSchema = z.object({
@@ -371,7 +371,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
               </TabsContent>
 
               <TabsContent value="availability">
-                <BookingCalendar itemId={listing.id} mode="view" />
+                <UnifiedCalendar itemId={listing.id} mode="view" />
               </TabsContent>
 
               <TabsContent value="details" className="space-y-4">

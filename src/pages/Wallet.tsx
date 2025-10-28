@@ -160,7 +160,7 @@ export default function Wallet() {
     return (
       <>
         <Header />
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto p-4 pb-mobile-nav">
           <div className="text-center py-8">Loading...</div>
         </div>
       </>
@@ -170,72 +170,73 @@ export default function Wallet() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
-        <h1 className="text-3xl font-bold mb-6">My Wallet</h1>
+      <div className="min-h-screen bg-background pb-20 md:pb-0">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-card border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold">My Wallet</h1>
+            <PaymentErrorBoundary fallbackMessage="Unable to process top-up.">
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Top Up
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Top Up Wallet</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Amount (RM)</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        min="10"
+                        max="10000"
+                        step="0.01"
+                        placeholder="Enter amount (min RM 10)"
+                        value={topUpAmount}
+                        onChange={(e) => setTopUpAmount(e.target.value)}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Minimum: RM 10.00 • Maximum: RM 10,000.00
+                      </p>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleTopUp}
+                      disabled={isProcessing || !topUpAmount}
+                    >
+                      {isProcessing ? 'Processing...' : 'Continue to Payment'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </PaymentErrorBoundary>
+          </div>
 
-        <PaymentErrorBoundary fallbackMessage="Unable to load wallet. Please refresh the page.">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <WalletIcon className="h-5 w-5" />
-                Current Balance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold text-primary">
-                RM {wallet?.balance.toFixed(2) || "0.00"}
-              </p>
-              <div className="flex gap-3 mt-4">
-                <PaymentErrorBoundary fallbackMessage="Unable to process top-up. Please try again.">
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Top Up via ToyyibPay
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Top Up Wallet</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="amount">Amount (RM)</Label>
-                          <Input
-                            id="amount"
-                            type="number"
-                            min="10"
-                            max="10000"
-                            step="0.01"
-                            placeholder="Enter amount (min RM 10)"
-                            value={topUpAmount}
-                            onChange={(e) => setTopUpAmount(e.target.value)}
-                          />
-                          <p className="text-sm text-muted-foreground">
-                            Minimum: RM 10.00 • Maximum: RM 10,000.00
-                          </p>
-                        </div>
-                        <Button 
-                          className="w-full" 
-                          onClick={handleTopUp}
-                          disabled={isProcessing || !topUpAmount}
-                        >
-                          {isProcessing ? 'Processing...' : 'Continue to Payment'}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </PaymentErrorBoundary>
-                
-                <Button size="sm" variant="outline" disabled>
-                  <ArrowUpCircle className="h-4 w-4 mr-2" />
-                  Withdraw (Coming Soon)
-                </Button>
+          {/* Balance Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <WalletIcon className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Balance</p>
+                  <p className="text-2xl font-bold text-primary">
+                    RM {wallet?.balance.toFixed(2) || "0.00"}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </PaymentErrorBoundary>
+        </div>
+      </div>
 
+      {/* Content */}
+      <div className="container mx-auto px-4 py-6">
         <Card>
           <CardHeader>
             <CardTitle>Transaction History</CardTitle>
@@ -275,6 +276,7 @@ export default function Wallet() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </>
   );
 }
