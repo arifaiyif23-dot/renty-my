@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Menu, Search, Heart } from "lucide-react";
-import logo from "@/assets/renty-logo.png";
+import logo from "@/assets/renty-new-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNav from "@/components/MobileNav";
@@ -48,7 +48,7 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center">
-                <img src={logo} alt="RENTY" className="h-6 md:h-8 w-auto" />
+                <img src={logo} alt="RENTY" className="h-8 md:h-10 w-auto" />
               </Link>
             </div>
 

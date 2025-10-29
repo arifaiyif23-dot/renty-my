@@ -201,8 +201,8 @@ export default function MyListings() {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-card border-b">
-        <div className="container mx-auto px-4 py-4">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
             <Button onClick={() => navigate('/list-item')}>
@@ -213,48 +213,48 @@ export default function MyListings() {
 
           {/* Stats */}
           {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <Card>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <Card className="border-border/50">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <List className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('listings.totalListings')}</p>
-                      <p className="text-2xl font-bold">{stats.totalListings}</p>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <List className="h-4 w-4" />
+                      <p className="text-xs font-medium">{t('listings.totalListings')}</p>
                     </div>
+                    <p className="text-2xl font-bold">{stats.totalListings}</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-border/50">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('listings.activeRentals')}</p>
-                      <p className="text-2xl font-bold">{stats.activeRentals}</p>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <p className="text-xs font-medium">{t('listings.activeRentals')}</p>
                     </div>
+                    <p className="text-2xl font-bold">{stats.activeRentals}</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-border/50">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('listings.totalRevenue')}</p>
-                      <p className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</p>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <DollarSign className="h-4 w-4" />
+                      <p className="text-xs font-medium">{t('listings.totalRevenue')}</p>
                     </div>
+                    <p className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="border-border/50">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('listings.totalViews')}</p>
-                      <p className="text-2xl font-bold">{stats.totalViews}</p>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <p className="text-xs font-medium">{t('listings.totalViews')}</p>
                     </div>
+                    <p className="text-2xl font-bold">{stats.totalViews}</p>
                   </div>
                 </CardContent>
               </Card>

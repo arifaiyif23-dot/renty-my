@@ -402,8 +402,6 @@ export default function ItemDetail() {
               </div>
             </CardContent>
           </Card>
-          
-          <UnifiedCalendar itemId={item.id} mode="view" />
         </div>
 
         <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">
