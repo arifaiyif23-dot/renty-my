@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { getSignedUrl } from "@/utils/signedUrls";
 
 interface VerificationRequest {
   id: string;
@@ -297,14 +298,24 @@ export default function AdminVerification() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
+                      onClick={async () => {
                         setSelectedVerification(verification);
-                        // Open images in new tabs for review
-                        window.open(verification.document_front_url, '_blank');
-                        if (verification.document_back_url) {
-                          window.open(verification.document_back_url, '_blank');
+                        try {
+                          // Generate signed URLs and open in new tabs
+                          const frontUrl = await getSignedUrl(verification.document_front_url);
+                          window.open(frontUrl, '_blank');
+                          
+                          if (verification.document_back_url) {
+                            const backUrl = await getSignedUrl(verification.document_back_url);
+                            window.open(backUrl, '_blank');
+                          }
+                          
+                          const selfieUrl = await getSignedUrl(verification.selfie_url);
+                          window.open(selfieUrl, '_blank');
+                        } catch (error) {
+                          toast.error("Failed to load documents");
+                          console.error(error);
                         }
-                        window.open(verification.selfie_url, '_blank');
                       }}
                     >
                       <Eye className="h-4 w-4 mr-2" />

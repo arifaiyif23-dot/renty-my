@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.submit-verification]
 verify_jwt = true
+
+[functions.generate-signed-url]
+verify_jwt = true

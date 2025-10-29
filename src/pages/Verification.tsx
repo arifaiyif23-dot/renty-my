@@ -66,11 +66,8 @@ export default function Verification() {
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('verification-documents')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
+    // Return the storage path instead of public URL (will be accessed via signed URLs)
+    return `verification-documents/${filePath}`;
   };
 
   const handleSubmit = async () => {

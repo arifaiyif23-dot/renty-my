@@ -302,6 +302,13 @@ export type Database = {
             foreignKeyName: "messages_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -542,6 +549,13 @@ export type Database = {
             foreignKeyName: "reviews_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -629,6 +643,13 @@ export type Database = {
             foreignKeyName: "transactions_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -659,6 +680,13 @@ export type Database = {
             columns: ["promo_code_id"]
             isOneToOne: false
             referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_promo_usage_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes_public"
             referencedColumns: ["id"]
           },
         ]
@@ -886,7 +914,79 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      promo_codes_public: {
+        Row: {
+          code: string | null
+          discount_amount: number | null
+          discount_type: string | null
+          id: string | null
+          is_active: boolean | null
+        }
+        Insert: {
+          code?: string | null
+          discount_amount?: number | null
+          discount_type?: string | null
+          id?: string | null
+          is_active?: boolean | null
+        }
+        Update: {
+          code?: string | null
+          discount_amount?: number | null
+          discount_type?: string | null
+          id?: string | null
+          is_active?: boolean | null
+        }
+        Relationships: []
+      }
+      rental_payment_status: {
+        Row: {
+          id: string | null
+          item_id: string | null
+          owner_id: string | null
+          payment_status: string | null
+          renter_id: string | null
+          status: Database["public"]["Enums"]["rental_status"] | null
+        }
+        Insert: {
+          id?: string | null
+          item_id?: string | null
+          owner_id?: string | null
+          payment_status?: string | null
+          renter_id?: string | null
+          status?: Database["public"]["Enums"]["rental_status"] | null
+        }
+        Update: {
+          id?: string | null
+          item_id?: string | null
+          owner_id?: string | null
+          payment_status?: string | null
+          renter_id?: string | null
+          status?: Database["public"]["Enums"]["rental_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_verification_confidence: {
