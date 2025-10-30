@@ -264,28 +264,40 @@ export type Database = {
       }
       messages: {
         Row: {
+          attachment_type: string | null
+          attachment_url: string | null
           content: string
           created_at: string | null
+          delivered_at: string | null
           id: string
           is_read: boolean | null
+          read_at: string | null
           recipient_id: string
           rental_id: string | null
           sender_id: string
         }
         Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           content: string
           created_at?: string | null
+          delivered_at?: string | null
           id?: string
           is_read?: boolean | null
+          read_at?: string | null
           recipient_id: string
           rental_id?: string | null
           sender_id: string
         }
         Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
           content?: string
           created_at?: string | null
+          delivered_at?: string | null
           id?: string
           is_read?: boolean | null
+          read_at?: string | null
           recipient_id?: string
           rental_id?: string | null
           sender_id?: string
@@ -439,6 +451,72 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: []
+      }
+      rental_modifications: {
+        Row: {
+          created_at: string
+          id: string
+          new_end_date: string
+          original_end_date: string
+          price_adjustment: number
+          reason: string | null
+          rental_id: string
+          requested_at: string
+          requested_by: string
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_end_date: string
+          original_end_date: string
+          price_adjustment: number
+          reason?: string | null
+          rental_id: string
+          requested_at?: string
+          requested_by: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_end_date?: string
+          original_end_date?: string
+          price_adjustment?: number
+          reason?: string | null
+          rental_id?: string
+          requested_at?: string
+          requested_by?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_modifications_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_modifications_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rentals: {
         Row: {
@@ -604,6 +682,48 @@ export type Database = {
           },
         ]
       }
+      saved_searches: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          instant_book_only: boolean | null
+          location: string | null
+          max_price: number | null
+          min_price: number | null
+          name: string
+          notify_on_new: boolean | null
+          user_id: string
+          verified_only: boolean | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          instant_book_only?: boolean | null
+          location?: string | null
+          max_price?: number | null
+          min_price?: number | null
+          name: string
+          notify_on_new?: boolean | null
+          user_id: string
+          verified_only?: boolean | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          instant_book_only?: boolean | null
+          location?: string | null
+          max_price?: number | null
+          min_price?: number | null
+          name?: string
+          notify_on_new?: boolean | null
+          user_id?: string
+          verified_only?: boolean | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -711,6 +831,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_views: {
+        Row: {
+          id: string
+          item_id: string
+          user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_views_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verification_audit_log: {
         Row: {

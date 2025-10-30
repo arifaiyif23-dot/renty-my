@@ -45,8 +45,26 @@ export default function ItemDetail() {
   useEffect(() => {
     if (id) {
       fetchItem();
+      trackView();
     }
   }, [id]);
+
+  const trackView = async () => {
+    if (!id) return;
+    
+    try {
+      await supabase.from('user_views').insert({
+        user_id: user?.id || null,
+        item_id: id,
+      });
+
+      // Increment view count
+      await supabase.rpc('increment_item_views', { item_id_param: id });
+    } catch (error) {
+      // Silently fail - view tracking is not critical
+      console.error('View tracking error:', error);
+    }
+  };
 
   const fetchItem = async () => {
     try {

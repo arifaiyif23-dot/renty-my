@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ArrowLeft } from "lucide-react";
+import { Send, ArrowLeft, FileImage, File as FileIcon } from "lucide-react";
+import { FileAttachment } from "@/components/FileAttachment";
 import { toast } from "sonner";
 import type { Message, Profile } from "@/types";
 import Header from "@/components/Header";
@@ -28,6 +29,8 @@ export default function Messages() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [showThread, setShowThread] = useState(false);
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [attachmentType, setAttachmentType] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -126,14 +129,17 @@ export default function Messages() {
   };
 
   const sendMessage = async () => {
-    if (!user || !selectedUserId || !newMessage.trim()) return;
+    if (!user || !selectedUserId || (!newMessage.trim() && !attachmentUrl)) return;
 
     const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
         recipient_id: selectedUserId,
-        content: newMessage.trim(),
+        content: newMessage.trim() || '📎 Attachment',
+        attachment_url: attachmentUrl || null,
+        attachment_type: attachmentType || null,
+        delivered_at: new Date().toISOString(),
       });
 
     if (error) {
@@ -142,6 +148,8 @@ export default function Messages() {
     }
 
     setNewMessage("");
+    setAttachmentUrl("");
+    setAttachmentType("");
   };
 
   if (!user) {
@@ -255,12 +263,38 @@ export default function Messages() {
                               : 'bg-muted rounded-bl-sm'
                           }`}
                         >
+                          {msg.attachment_url && (
+                            <div className="mb-2">
+                              {msg.attachment_type === 'image' ? (
+                                <img 
+                                  src={msg.attachment_url} 
+                                  alt="Attachment" 
+                                  className="rounded-lg max-w-full h-auto"
+                                />
+                              ) : (
+                                <a 
+                                  href={msg.attachment_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 text-sm underline"
+                                >
+                                  <FileIcon className="h-4 w-4" />
+                                  View Document
+                                </a>
+                              )}
+                            </div>
+                          )}
                           <div className="text-base break-words">{msg.content}</div>
-                          <div className="text-xs opacity-70 mt-1">
-                            {new Date(msg.created_at).toLocaleTimeString('en-MY', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
+                          <div className="text-xs opacity-70 mt-1 flex items-center gap-1">
+                            <span>
+                              {new Date(msg.created_at).toLocaleTimeString('en-MY', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              })}
+                            </span>
+                            {msg.sender_id === user.id && msg.read_at && (
+                              <span className="ml-1">✓✓</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -270,22 +304,31 @@ export default function Messages() {
 
                 {/* Input Bar - Sticky at bottom */}
                 <div className="sticky bottom-0 bg-card border-t p-4">
-                  <div className="flex gap-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type a message..."
-                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                      className="h-12 text-base"
+                  <div className="space-y-2">
+                    <FileAttachment 
+                      onFileSelect={(url, type) => {
+                        setAttachmentUrl(url);
+                        setAttachmentType(type);
+                      }}
+                      disabled={false}
                     />
-                    <Button 
-                      onClick={sendMessage} 
-                      size="icon"
-                      disabled={!newMessage.trim()}
-                      className="h-12 w-12 flex-shrink-0"
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type a message..."
+                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                        className="h-12 text-base"
+                      />
+                      <Button 
+                        onClick={sendMessage} 
+                        size="icon"
+                        disabled={!newMessage.trim() && !attachmentUrl}
+                        className="h-12 w-12 flex-shrink-0"
+                      >
+                        <Send className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -376,22 +419,31 @@ export default function Messages() {
                         </div>
                       </ScrollArea>
 
-                      <div className="flex gap-2">
-                        <Input
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          placeholder="Type a message..."
-                          onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                          className="min-h-[44px]"
+                      <div className="space-y-2">
+                        <FileAttachment 
+                          onFileSelect={(url, type) => {
+                            setAttachmentUrl(url);
+                            setAttachmentType(type);
+                          }}
+                          disabled={false}
                         />
-                        <Button 
-                          onClick={sendMessage} 
-                          size="icon"
-                          disabled={!newMessage.trim()}
-                          className="min-h-[44px] min-w-[44px]"
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type a message..."
+                            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                            className="min-h-[44px]"
+                          />
+                          <Button 
+                            onClick={sendMessage} 
+                            size="icon"
+                            disabled={!newMessage.trim() && !attachmentUrl}
+                            className="min-h-[44px] min-w-[44px]"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </>
                   ) : (

@@ -10,6 +10,8 @@ import { AnimatedCategoryIcon } from "@/components/AnimatedCategoryIcon";
 import { AnimatedStepCard } from "@/components/AnimatedStepCard";
 import { TrustBadges } from "@/components/TrustBadges";
 import { SocialProofSection } from "@/components/SocialProofSection";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
+import { FooterDialog } from "@/components/FooterContent";
 import { EnhancedItemCard } from "@/components/EnhancedItemCard";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import SkeletonCard from "@/components/SkeletonCard";

@@ -13,11 +13,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import MobileFilterDrawer from '@/components/MobileFilterDrawer';
+import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
 import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
@@ -34,6 +36,11 @@ export default function Search() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [userLocation, setUserLocation] = useState<string>('');
   const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>('newest');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [instantBookOnly, setInstantBookOnly] = useState(false);
+  const [itemCondition, setItemCondition] = useState<string>('all');
+  const [maxDistance, setMaxDistance] = useState(50);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   // Debounce search query for better performance
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -62,7 +69,7 @@ export default function Search() {
 
   useEffect(() => {
     fetchItems();
-  }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy]);
+  }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition]);
 
   const fetchItems = async () => {
     try {
@@ -93,6 +100,18 @@ export default function Search() {
 
       if (maxPrice) {
         query = query.lte('price_per_day', parseFloat(maxPrice));
+      }
+
+      if (verifiedOnly) {
+        query = query.eq('owner.is_verified', true);
+      }
+
+      if (instantBookOnly) {
+        query = query.eq('instant_book_enabled', true);
+      }
+
+      if (itemCondition !== 'all') {
+        query = query.eq('item_condition', itemCondition);
       }
 
       // Apply sorting
@@ -194,6 +213,28 @@ export default function Search() {
                 setUserLocation={setUserLocation}
                 activeFiltersCount={activeFiltersCount}
               />
+
+              <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="flex-1 h-12">
+                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    Advanced
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="start">
+                  <AdvancedSearchFilters
+                    verifiedOnly={verifiedOnly}
+                    setVerifiedOnly={setVerifiedOnly}
+                    instantBookOnly={instantBookOnly}
+                    setInstantBookOnly={setInstantBookOnly}
+                    itemCondition={itemCondition}
+                    setItemCondition={setItemCondition}
+                    maxDistance={maxDistance}
+                    setMaxDistance={setMaxDistance}
+                    showDistanceFilter={!!userLocation}
+                  />
+                </PopoverContent>
+              </Popover>
               
               <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
                 <SelectTrigger className="flex-1 h-12">
@@ -263,6 +304,28 @@ export default function Search() {
                   className="flex-1"
                 />
               </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">
+                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    Advanced
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="start">
+                  <AdvancedSearchFilters
+                    verifiedOnly={verifiedOnly}
+                    setVerifiedOnly={setVerifiedOnly}
+                    instantBookOnly={instantBookOnly}
+                    setInstantBookOnly={setInstantBookOnly}
+                    itemCondition={itemCondition}
+                    setItemCondition={setItemCondition}
+                    maxDistance={maxDistance}
+                    setMaxDistance={setMaxDistance}
+                    showDistanceFilter={!!userLocation}
+                  />
+                </PopoverContent>
+              </Popover>
               
               <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
                 <SelectTrigger className="w-[180px]">

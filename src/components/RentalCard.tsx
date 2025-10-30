@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ReviewForm } from "@/components/ReviewForm";
+import { RentalModificationDialog } from "@/components/RentalModificationDialog";
 import { format } from "date-fns";
-import { Clock, CheckCircle, XCircle, Calendar, DollarSign } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw } from "lucide-react";
 import { Rental } from "@/types";
 import { toast } from "sonner";
 
@@ -23,6 +24,10 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
   }>({ open: false, action: null });
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [modificationDialog, setModificationDialog] = useState<{
+    open: boolean;
+    type: 'extension' | 'early_return' | null;
+  }>({ open: false, type: null });
 
   const canReview = rental.status === 'completed';
   const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
@@ -211,6 +216,27 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 </Button>
               )}
 
+              {!isOwner && rental.status === 'active' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    variant="outline"
+                    className="h-12"
+                    onClick={() => setModificationDialog({ open: true, type: 'extension' })}
+                  >
+                    <Clock3 className="h-4 w-4 mr-2" />
+                    Extend
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="h-12"
+                    onClick={() => setModificationDialog({ open: true, type: 'early_return' })}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Return Early
+                  </Button>
+                </div>
+              )}
+
               {canReview && (
                 <Button 
                   variant="outline" 
@@ -285,6 +311,27 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               </Button>
             )}
 
+            {!isOwner && rental.status === 'active' && (
+              <div className="flex gap-2">
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setModificationDialog({ open: true, type: 'extension' })}
+                >
+                  <Clock3 className="h-4 w-4 mr-2" />
+                  Extend
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setModificationDialog({ open: true, type: 'early_return' })}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Return Early
+                </Button>
+              </div>
+            )}
+
             {canReview && (
               <Button 
                 size="sm" 
@@ -336,6 +383,17 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
           />
         </DialogContent>
       </Dialog>
+
+      {/* Rental Modification Dialog */}
+      {modificationDialog.type && (
+        <RentalModificationDialog
+          rental={rental}
+          type={modificationDialog.type}
+          open={modificationDialog.open}
+          onOpenChange={(open) => setModificationDialog({ open, type: null })}
+          onSuccess={onReviewSuccess}
+        />
+      )}
     </>
   );
 }
