@@ -479,67 +479,11 @@ const Index = () => {
       </footer>
 
       {/* Footer Dialogs */}
-      <Dialog open={!!footerDialog} onOpenChange={() => setFooterDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {footerDialog === 'about' && 'About RENTY'}
-              {footerDialog === 'how-it-works' && 'How It Works'}
-              {footerDialog === 'careers' && 'Careers'}
-              {footerDialog === 'help' && 'Help Center'}
-              {footerDialog === 'safety' && 'Safety Guidelines'}
-              {footerDialog === 'contact' && 'Contact Us'}
-              {footerDialog === 'terms' && 'Terms of Service'}
-              {footerDialog === 'privacy' && 'Privacy Policy'}
-              {footerDialog === 'insurance' && 'Insurance Information'}
-              {footerDialog === 'blog' && 'Blog'}
-              {footerDialog === 'trust' && 'Trust & Safety'}
-              {footerDialog === 'refer' && 'Refer a Friend'}
-            </DialogTitle>
-          </DialogHeader>
-          <DialogDescription className="space-y-4 py-4">
-            {footerDialog === 'about' && (
-              <>
-                <p>RENTY is Malaysia's leading sustainable rental marketplace, connecting people who need items with those who have them.</p>
-                <p>Our mission is to reduce waste, save money, and build stronger communities through the sharing economy.</p>
-              </>
-            )}
-            {footerDialog === 'how-it-works' && (
-              <>
-                <p><strong>1. Browse:</strong> Search thousands of items available for rent in your area.</p>
-                <p><strong>2. Book:</strong> Select dates, confirm payment, and receive instant confirmation.</p>
-                <p><strong>3. Enjoy:</strong> Pick up or get delivery, use the item, and return when done.</p>
-                <p><strong>4. Review:</strong> Rate your experience and help build trust in our community.</p>
-              </>
-            )}
-            {footerDialog === 'safety' && (
-              <>
-                <p>Your safety is our priority. All users are verified, and every rental is protected by our comprehensive insurance.</p>
-                <p>We have a dedicated trust & safety team available 24/7 to assist with any concerns.</p>
-              </>
-            )}
-            {footerDialog === 'contact' && (
-              <>
-                <p><strong>Email:</strong> support@renty.my</p>
-                <p><strong>Phone:</strong> +60 3-xxxx-xxxx</p>
-                <p><strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM (MYT)</p>
-              </>
-            )}
-            {footerDialog === 'terms' && (
-              <p>Our Terms of Service outline the rules and regulations for using RENTY. By using our platform, you agree to these terms. Full terms available at renty.my/terms</p>
-            )}
-            {footerDialog === 'privacy' && (
-              <p>We take your privacy seriously. Your personal data is encrypted and never shared without your consent. Read our full privacy policy at renty.my/privacy</p>
-            )}
-            {footerDialog === 'insurance' && (
-              <p>All rentals are covered by comprehensive insurance up to RM 50,000. This includes damage protection, theft coverage, and liability insurance for peace of mind.</p>
-            )}
-            {!footerDialog || !['about', 'how-it-works', 'safety', 'contact', 'terms', 'privacy', 'insurance'].includes(footerDialog) && (
-              <p>This feature is coming soon! Stay tuned for updates.</p>
-            )}
-          </DialogDescription>
-        </DialogContent>
-      </Dialog>
+      <FooterDialog 
+        open={!!footerDialog} 
+        onOpenChange={() => setFooterDialog(null)}
+        type={footerDialog as 'about' | 'help' | 'contact' | 'terms' | 'privacy' | 'safety'}
+      />
     </div>
   );
 };
