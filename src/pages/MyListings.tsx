@@ -200,8 +200,8 @@ export default function MyListings() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      {/* Header - Non-sticky */}
+      <div className="border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
@@ -213,7 +213,7 @@ export default function MyListings() {
 
           {/* Stats */}
           {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Card className="border-border/50">
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-1">
@@ -260,7 +260,12 @@ export default function MyListings() {
               </Card>
             </div>
           )}
+        </div>
+      </div>
 
+      {/* Sticky Filters Bar */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto px-4 py-4">
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -310,11 +315,11 @@ export default function MyListings() {
 
           {/* Bulk Actions */}
           {selectedItems.length > 0 && (
-            <div className="mt-4 p-4 bg-muted rounded-lg flex items-center justify-between">
+            <div className="mt-4 p-3 bg-muted rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
               <span className="text-sm font-medium">
                 {selectedItems.length} {t('listings.itemsSelected')}
               </span>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleBulkAction('activate')}>
                   <Play className="h-4 w-4 mr-2" />
                   {t('listings.activateAll')}
