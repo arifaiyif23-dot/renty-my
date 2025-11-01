@@ -594,11 +594,75 @@ export type Database = {
           },
         ]
       }
+      review_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          review_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          review_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_images_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_votes: {
+        Row: {
+          created_at: string
+          id: string
+          is_helpful: boolean
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_helpful: boolean
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_helpful?: boolean
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string | null
           created_at: string | null
+          helpful_count: number | null
           id: string
+          owner_response: string | null
+          owner_response_at: string | null
           rating: number
           rental_id: string
           reviewee_id: string
@@ -607,7 +671,10 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string | null
+          helpful_count?: number | null
           id?: string
+          owner_response?: string | null
+          owner_response_at?: string | null
           rating: number
           rental_id: string
           reviewee_id: string
@@ -616,7 +683,10 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string | null
+          helpful_count?: number | null
           id?: string
+          owner_response?: string | null
+          owner_response_at?: string | null
           rating?: number
           rental_id?: string
           reviewee_id?: string
@@ -1063,6 +1133,26 @@ export type Database = {
       }
     }
     Views: {
+      listing_analytics_summary: {
+        Row: {
+          conversion_rate: number | null
+          item_id: string | null
+          total_bookings: number | null
+          total_clicks: number | null
+          total_requests: number | null
+          total_revenue: number | null
+          total_views: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_analytics_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promo_codes_public: {
         Row: {
           code: string | null

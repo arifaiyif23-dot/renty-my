@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon, Plus, Filter, Download } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -17,16 +18,60 @@ export default function Wallet() {
   const { user } = useAuth();
   const [wallet, setWallet] = useState<WalletType | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [filterType, setFilterType] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (user) {
       fetchWalletData();
     }
   }, [user]);
+
+  useEffect(() => {
+    filterTransactions();
+  }, [transactions, filterType, searchTerm]);
+
+  const filterTransactions = () => {
+    let filtered = [...transactions];
+
+    if (filterType !== "all") {
+      filtered = filtered.filter(t => t.type === filterType);
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter(t => 
+        t.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredTransactions(filtered);
+  };
+
+  const exportTransactions = () => {
+    const csv = [
+      ['Date', 'Type', 'Description', 'Amount'].join(','),
+      ...filteredTransactions.map(t => [
+        format(new Date(t.created_at), 'yyyy-MM-dd HH:mm'),
+        t.type,
+        `"${t.description}"`,
+        t.amount
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wallet-transactions-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Transactions exported');
+  };
 
   const fetchWalletData = async () => {
     try {
@@ -239,16 +284,46 @@ export default function Wallet() {
       <div className="container mx-auto px-4 py-6">
         <Card>
           <CardHeader>
-            <CardTitle>Transaction History</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Transaction History</CardTitle>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={exportTransactions}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row gap-3 mt-4">
+              <Input
+                placeholder="Search transactions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="md:w-[300px]"
+              />
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="md:w-[200px]">
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="deposit">Deposits</SelectItem>
+                  <SelectItem value="rental_earning">Earnings</SelectItem>
+                  <SelectItem value="rental_payment">Payments</SelectItem>
+                  <SelectItem value="withdrawal">Withdrawals</SelectItem>
+                  <SelectItem value="refund">Refunds</SelectItem>
+                  <SelectItem value="top_up">Top Ups</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
-            {transactions.length === 0 ? (
+            {filteredTransactions.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
-                No transactions yet
+                {transactions.length === 0 ? 'No transactions yet' : 'No transactions match your filters'}
               </p>
             ) : (
               <div className="space-y-3">
-                {transactions.map((transaction) => (
+                {filteredTransactions.map((transaction) => (
                   <div
                     key={transaction.id}
                     className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/5 transition-colors"

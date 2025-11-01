@@ -1,116 +1,138 @@
-import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Eye, Users, MousePointerClick, Calendar, CheckCircle, XCircle, DollarSign, Clock } from 'lucide-react';
+import { TrendingUp, Eye, Calendar, DollarSign, MousePointerClick } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
 
 interface ListingAnalyticsProps {
   itemId: string;
 }
 
 export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
-  const { t } = useTranslation();
+  const [analytics, setAnalytics] = useState<any[]>([]);
+  const [summary, setSummary] = useState({
+    totalViews: 0,
+    totalClicks: 0,
+    totalBookings: 0,
+    totalRevenue: 0,
+    conversionRate: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  const { data: analytics } = useQuery({
-    queryKey: ['listing-analytics', itemId],
-    queryFn: async () => {
+  useEffect(() => {
+    fetchAnalytics();
+  }, [itemId]);
+
+  const fetchAnalytics = async () => {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
       const { data, error } = await supabase
         .from('listing_analytics')
         .select('*')
         .eq('item_id', itemId)
+        .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
         .order('date', { ascending: true });
-      
+
       if (error) throw error;
-      return data;
-    },
-  });
 
-  const stats = analytics?.reduce(
-    (acc, curr) => ({
-      totalViews: acc.totalViews + (curr.views || 0),
-      totalClicks: acc.totalClicks + (curr.clicks || 0),
-      totalBookingRequests: acc.totalBookingRequests + (curr.booking_requests || 0),
-      totalBookingsConfirmed: acc.totalBookingsConfirmed + (curr.bookings_confirmed || 0),
-      totalRevenue: acc.totalRevenue + (parseFloat(curr.revenue?.toString() || '0')),
-    }),
-    { totalViews: 0, totalClicks: 0, totalBookingRequests: 0, totalBookingsConfirmed: 0, totalRevenue: 0 }
-  ) || { totalViews: 0, totalClicks: 0, totalBookingRequests: 0, totalBookingsConfirmed: 0, totalRevenue: 0 };
+      setAnalytics(data || []);
 
-  const conversionRate = stats.totalViews > 0 ? ((stats.totalBookingsConfirmed / stats.totalViews) * 100).toFixed(1) : '0';
-  const clickThroughRate = stats.totalViews > 0 ? ((stats.totalClicks / stats.totalViews) * 100).toFixed(1) : '0';
+      const total = (data || []).reduce((acc, day) => ({
+        views: acc.views + (day.views || 0),
+        clicks: acc.clicks + (day.clicks || 0),
+        bookings: acc.bookings + (day.bookings_confirmed || 0),
+        revenue: acc.revenue + (day.revenue || 0),
+      }), { views: 0, clicks: 0, bookings: 0, revenue: 0 });
 
-  const chartData = analytics?.slice(-30).map((item) => ({
-    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    views: item.views || 0,
-    bookings: item.bookings_confirmed || 0,
-    revenue: parseFloat(item.revenue?.toString() || '0'),
-  })) || [];
+      setSummary({
+        totalViews: total.views,
+        totalClicks: total.clicks,
+        totalBookings: total.bookings,
+        totalRevenue: total.revenue,
+        conversionRate: total.views > 0 ? (total.bookings / total.views) * 100 : 0,
+      });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+  if (loading) {
+    return <div className="text-center py-8">Loading analytics...</div>;
+  }
+
+  const chartData = analytics.map(day => ({
+    date: format(new Date(day.date), 'MMM dd'),
+    views: day.views || 0,
+    clicks: day.clicks || 0,
+    bookings: day.bookings_confirmed || 0,
+  }));
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('analytics.totalViews')}</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalViews}</div>
-            <p className="text-xs text-muted-foreground">{t('analytics.last30Days')}</p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <Eye className="h-4 w-4" />
+              <p className="text-xs">Total Views</p>
+            </div>
+            <p className="text-2xl font-bold">{summary.totalViews}</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('analytics.clickThroughRate')}</CardTitle>
-            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{clickThroughRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalClicks} {t('listings.bookings')}
-            </p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <MousePointerClick className="h-4 w-4" />
+              <p className="text-xs">Total Clicks</p>
+            </div>
+            <p className="text-2xl font-bold">{summary.totalClicks}</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('analytics.confirmedBookings')}</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalBookingsConfirmed}</div>
-            <p className="text-xs text-muted-foreground">{conversionRate}% {t('listings.conversionRate')}</p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <Calendar className="h-4 w-4" />
+              <p className="text-xs">Bookings</p>
+            </div>
+            <p className="text-2xl font-bold">{summary.totalBookings}</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('analytics.totalRevenue')}</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">RM {stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">{t('analytics.last30Days')}</p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <DollarSign className="h-4 w-4" />
+              <p className="text-xs">Revenue</p>
+            </div>
+            <p className="text-2xl font-bold">RM{summary.totalRevenue.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <TrendingUp className="h-4 w-4" />
+              <p className="text-xs">Conversion</p>
+            </div>
+            <p className="text-2xl font-bold">{summary.conversionRate.toFixed(1)}%</p>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="views" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="views">{t('analytics.viewsOverTime')}</TabsTrigger>
-          <TabsTrigger value="bookings">{t('analytics.bookingsByMonth')}</TabsTrigger>
-          <TabsTrigger value="revenue">{t('analytics.revenueTrend')}</TabsTrigger>
+          <TabsTrigger value="views">Views</TabsTrigger>
+          <TabsTrigger value="engagement">Engagement</TabsTrigger>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="views">
+        <TabsContent value="views" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('analytics.viewsOverTime')}</CardTitle>
+              <CardTitle>Views Over Time (Last 30 Days)</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -119,18 +141,16 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Legend />
                   <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="bookings">
+        <TabsContent value="engagement" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('analytics.bookingsByMonth')}</CardTitle>
+              <CardTitle>Clicks Over Time (Last 30 Days)</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -139,54 +159,31 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Legend />
-                  <Bar dataKey="bookings" fill="hsl(var(--primary))" />
+                  <Bar dataKey="clicks" fill="hsl(var(--primary))" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="revenue">
+        <TabsContent value="bookings" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t('analytics.revenueTrend')}</CardTitle>
+              <CardTitle>Bookings Over Time (Last 30 Days)</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="hsl(var(--secondary))" strokeWidth={2} />
-                </LineChart>
+                  <Bar dataKey="bookings" fill="hsl(var(--success))" />
+                </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('analytics.insights')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/10">
-            <div className="text-primary">💡</div>
-            <div className="text-sm">
-              <p className="font-medium">{t('analytics.performanceTip', { percent: 23 })}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/10">
-            <div className="text-secondary">📱</div>
-            <div className="text-sm">
-              <p className="font-medium">{t('analytics.mobileTrafficTip', { percent: 67 })}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

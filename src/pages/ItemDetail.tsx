@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
 import { ReviewsList } from '@/components/ReviewsList';
+import { ListingAnalytics } from '@/components/ListingAnalytics';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil } from 'lucide-react';
@@ -466,8 +468,25 @@ export default function ItemDetail() {
       <Separator className="my-8" />
 
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6">Reviews</h2>
-          <ReviewsList itemId={item.id} />
+          {user?.id === item.owner_id ? (
+            <Tabs defaultValue="reviews" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
+              <TabsContent value="reviews" className="space-y-4">
+                <ReviewsList itemId={item.id} />
+              </TabsContent>
+              <TabsContent value="analytics" className="space-y-4">
+                <ListingAnalytics itemId={item.id} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold mb-6">Reviews</h2>
+              <ReviewsList itemId={item.id} />
+            </>
+          )}
         </div>
 
         {/* Similar Items */}
