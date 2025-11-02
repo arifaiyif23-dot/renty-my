@@ -14,13 +14,16 @@ import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { FooterDialog } from "@/components/FooterContent";
 import { EnhancedItemCard } from "@/components/EnhancedItemCard";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import { OnboardingGuide } from "@/components/OnboardingGuide";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 import SEO from "@/components/SEO";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Recycle, Shield, Clock, TrendingUp, Package, Sparkles,
-  Car, Smartphone, Home, Dumbbell, Music, Wrench
+  Car, Smartphone, Home, Dumbbell, Music, Wrench, 
+  FileCheck, Lock, CreditCard, HeadphonesIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -210,8 +213,8 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-mobile-nav">
       <SEO
-        title="Home"
-        description="Rent what you need, when you need it. From vehicles to gadgets, rooms to tools - Malaysia's leading sustainable rental platform."
+        title="Rent Anything, Earn from Anything"
+        description="Malaysia's trusted P2P rental marketplace. Access 500+ verified items from cameras to cars. Rent what you need or earn from what you own. Insured & verified."
       />
       <Header />
 
@@ -222,22 +225,48 @@ const Index = () => {
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
-            className="max-w-4xl mx-auto text-center mb-12"
+            className="max-w-4xl mx-auto text-center mb-8"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
+            {/* Brand Clarity */}
+            <div className="inline-block mb-4">
+              <Badge variant="outline" className="px-4 py-2 text-sm font-medium border-primary/50">
+                🇲🇾 Malaysia's P2P Rental Marketplace
+              </Badge>
+            </div>
+            
             <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
-              Own Less. Share More.{" "}
-              <span className="block mt-2">Protect Our Planet.</span>
-              <span className="text-primary block mt-2">The Future of Ownership is Shared.</span>
+              Rent Anything.{" "}
+              <span className="block mt-2">Earn from Anything.</span>
+              <span className="text-primary block mt-2">From Cameras to Cars.</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-4">
-              Borrow what you need. Share what you own. Build community.
-              <span className="block mt-2 font-medium">
-                Malaysia's most trusted rental marketplace.
-              </span>
+            
+            <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Malaysia's trusted peer-to-peer rental platform. Access thousands of items without buying, or earn from what you already own.
             </p>
+            
+            {/* Primary CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-6 shadow-lg hover:shadow-xl"
+                onClick={() => navigate('/search')}
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Browse Items
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="text-lg px-8 py-6 shadow-lg hover:shadow-xl"
+                onClick={() => navigate('/list-item')}
+              >
+                <TrendingUp className="w-5 h-5 mr-2" />
+                List Your Item
+              </Button>
+            </div>
             
             <TrustBadges />
           </motion.div>
@@ -252,6 +281,9 @@ const Index = () => {
             <div className="glass-card p-2 rounded-2xl shadow-2xl">
               <SearchBar />
             </div>
+            <p className="text-center text-sm text-muted-foreground mt-3">
+              🔍 Popular: Cameras • Cars • Tools • Drones • Party Equipment
+            </p>
           </motion.div>
         </div>
       </section>
@@ -361,10 +393,106 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Trust & Safety Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
+              Safe, Secure, Insured
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Your peace of mind is our priority. Every rental is protected.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Insurance Coverage</h3>
+                <p className="text-sm text-muted-foreground">
+                  All rentals protected up to RM 50,000 against damage or loss
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileCheck className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">ID Verification</h3>
+                <p className="text-sm text-muted-foreground">
+                  AI-powered MyKad verification for all users
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Secure Payments</h3>
+                <p className="text-sm text-muted-foreground">
+                  Encrypted payments via toyyibPay. Your money is safe.
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="text-center"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <HeadphonesIcon className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">24/7 Support</h3>
+                <p className="text-sm text-muted-foreground">
+                  Dispute resolution and customer support anytime
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof Section */}
-      <section className="bg-gradient-to-br from-primary/5 to-accent/5">
+      <section className="bg-background">
         <SocialProofSection />
       </section>
+
+      {/* Onboarding Guide */}
+      <OnboardingGuide />
 
       {/* Dual CTA Section */}
       <section className="relative py-16 md:py-24 bg-gradient-to-br from-primary to-secondary overflow-hidden">
