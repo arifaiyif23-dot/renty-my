@@ -9,18 +9,31 @@ export const OnboardingGuide = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const renterSteps = [
-    { step: 1, title: "Create Account", description: "Sign up in 30 seconds", completed: !!user },
-    { step: 2, title: "Verify ID", description: "Upload MyKad for trust", completed: false },
-    { step: 3, title: "Browse Items", description: "Find what you need", completed: false },
-    { step: 4, title: "Book & Pay", description: "Instant confirmation", completed: false },
-  ];
-
-  const ownerSteps = [
-    { step: 1, title: "Create Account", description: "Join the platform", completed: !!user },
-    { step: 2, title: "Verify ID", description: "Build trust with renters", completed: false },
-    { step: 3, title: "List Item", description: "Add photos & details", completed: false },
-    { step: 4, title: "Start Earning", description: "Get paid automatically", completed: false },
+  const steps = [
+    { 
+      step: 1, 
+      title: "Create Account", 
+      description: "Sign up in 30 seconds. One account for everything.", 
+      completed: !!user 
+    },
+    { 
+      step: 2, 
+      title: "Verify Your ID", 
+      description: "Upload MyKad to build trust in the community", 
+      completed: false 
+    },
+    { 
+      step: 3, 
+      title: "Browse & List", 
+      description: "Rent what you need or list items to earn", 
+      completed: false 
+    },
+    { 
+      step: 4, 
+      title: "Start Using RENTY", 
+      description: "Book instantly, earn automatically, all in one platform", 
+      completed: false 
+    },
   ];
 
   return (
@@ -36,86 +49,90 @@ export const OnboardingGuide = () => {
             Get Started in Minutes
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Simple onboarding for renters and owners
+            One account to rent items and earn from what you own
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* For Renters */}
+        <div className="max-w-3xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Card className="glass-card p-8 h-full">
-              <h3 className="font-heading text-2xl font-bold mb-6 text-primary">
-                👤 For Renters
-              </h3>
-              <div className="space-y-4 mb-6">
-                {renterSteps.map((item) => (
-                  <div key={item.step} className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${item.completed ? 'bg-primary' : 'bg-muted'}`}>
+            <Card className="glass-card p-8 md:p-12">
+              {/* Steps */}
+              <div className="space-y-6 mb-8">
+                {steps.map((item, index) => (
+                  <div key={item.step} className="flex items-start gap-4">
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${item.completed ? 'bg-primary' : 'bg-muted'}`}>
                       {item.completed ? (
-                        <CheckCircle2 className="w-4 h-4 text-white" />
+                        <CheckCircle2 className="w-5 h-5 text-white" />
                       ) : (
-                        <span className="text-xs font-bold text-muted-foreground">{item.step}</span>
+                        <span className="text-sm font-bold text-muted-foreground">{item.step}</span>
                       )}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                      <h4 className="font-semibold text-base mb-1">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <Button 
-                className="w-full" 
-                onClick={() => user ? navigate('/search') : navigate('/auth')}
-              >
-                {user ? 'Start Browsing' : 'Sign Up as Renter'}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Card>
-          </motion.div>
 
-          {/* For Owners */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <Card className="glass-card p-8 h-full border-primary/50">
-              <h3 className="font-heading text-2xl font-bold mb-6 text-primary">
-                💰 For Owners
-              </h3>
-              <div className="space-y-4 mb-6">
-                {ownerSteps.map((item) => (
-                  <div key={item.step} className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${item.completed ? 'bg-primary' : 'bg-muted'}`}>
-                      {item.completed ? (
-                        <CheckCircle2 className="w-4 h-4 text-white" />
-                      ) : (
-                        <span className="text-xs font-bold text-muted-foreground">{item.step}</span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
-                    </div>
+              {/* CTAs */}
+              <div className="space-y-4">
+                {!user ? (
+                  <div className="space-y-3">
+                    <Button 
+                      size="lg"
+                      className="w-full" 
+                      onClick={() => navigate('/auth')}
+                    >
+                      Get Started Now
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Join 1,200+ users on Malaysia's trusted rental platform
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate('/search')}
+                    >
+                      Browse Items
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                    <Button 
+                      size="lg"
+                      variant="secondary"
+                      onClick={() => navigate('/list-item')}
+                    >
+                      List an Item
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </div>
+                )}
               </div>
-              <Button 
-                variant="secondary" 
-                className="w-full"
-                onClick={() => user ? navigate('/list-item') : navigate('/auth')}
-              >
-                {user ? 'List Your First Item' : 'Sign Up as Owner'}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <p className="text-xs text-center text-muted-foreground mt-3">
-                💡 Average owners earn RM 500/month
-              </p>
+
+              {/* Benefits */}
+              <div className="mt-8 pt-8 border-t border-border">
+                <div className="grid md:grid-cols-3 gap-6 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">👤</div>
+                    <p className="text-xs text-muted-foreground">One account for both renting & listing</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">🛡️</div>
+                    <p className="text-xs text-muted-foreground">Fully insured & verified users</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">💰</div>
+                    <p className="text-xs text-muted-foreground">Avg. users earn RM 500/month</p>
+                  </div>
+                </div>
+              </div>
             </Card>
           </motion.div>
         </div>
