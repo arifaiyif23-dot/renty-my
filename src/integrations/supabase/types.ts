@@ -452,6 +452,159 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          first_rental_completed: boolean | null
+          id: string
+          referee_id: string | null
+          referee_reward: number | null
+          referral_code: string
+          referrer_id: string
+          referrer_reward: number | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          first_rental_completed?: boolean | null
+          id?: string
+          referee_id?: string | null
+          referee_reward?: number | null
+          referral_code: string
+          referrer_id: string
+          referrer_reward?: number | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          first_rental_completed?: boolean | null
+          id?: string
+          referee_id?: string | null
+          referee_reward?: number | null
+          referral_code?: string
+          referrer_id?: string
+          referrer_reward?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
+      rental_delivery: {
+        Row: {
+          created_at: string
+          delivery_fee: number
+          delivery_instructions: string | null
+          delivery_method: string
+          delivery_provider: string | null
+          id: string
+          pickup_address: string | null
+          pickup_completed_at: string | null
+          pickup_scheduled_at: string | null
+          rental_id: string
+          return_address: string | null
+          return_completed_at: string | null
+          return_scheduled_at: string | null
+          status: string
+          tracking_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_fee?: number
+          delivery_instructions?: string | null
+          delivery_method: string
+          delivery_provider?: string | null
+          id?: string
+          pickup_address?: string | null
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          rental_id: string
+          return_address?: string | null
+          return_completed_at?: string | null
+          return_scheduled_at?: string | null
+          status?: string
+          tracking_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_fee?: number
+          delivery_instructions?: string | null
+          delivery_method?: string
+          delivery_provider?: string | null
+          id?: string
+          pickup_address?: string | null
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          rental_id?: string
+          return_address?: string | null
+          return_completed_at?: string | null
+          return_scheduled_at?: string | null
+          status?: string
+          tracking_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_delivery_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_delivery_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_insurance: {
+        Row: {
+          coverage_amount: number
+          created_at: string
+          id: string
+          plan_type: string
+          premium_cost: number
+          rental_id: string
+        }
+        Insert: {
+          coverage_amount: number
+          created_at?: string
+          id?: string
+          plan_type: string
+          premium_cost?: number
+          rental_id: string
+        }
+        Update: {
+          coverage_amount?: number
+          created_at?: string
+          id?: string
+          plan_type?: string
+          premium_cost?: number
+          rental_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_insurance_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rental_insurance_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rental_modifications: {
         Row: {
           created_at: string
@@ -1232,6 +1385,7 @@ export type Database = {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
       }
+      generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }
         Returns: number

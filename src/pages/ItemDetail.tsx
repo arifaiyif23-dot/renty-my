@@ -31,6 +31,9 @@ import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
 import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { SaveItemButton } from '@/components/SaveItemButton';
 import { SocialProof } from '@/components/SocialProof';
+import { PromoCodeRedemption } from '@/components/PromoCodeRedemption';
+import { InsurancePlans } from '@/components/InsurancePlans';
+import { DeliveryScheduler, DeliveryDetails } from '@/components/DeliveryScheduler';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -43,6 +46,9 @@ export default function ItemDetail() {
   const [isBooking, setIsBooking] = useState(false);
   const [similarItems, setSimilarItems] = useState<any[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
+  const [promoDiscount, setPromoDiscount] = useState<{ type: string; amount: number; code: string; id: string }>({ type: '', amount: 0, code: '', id: '' });
+  const [insurancePlan, setInsurancePlan] = useState<{ type: string; coverage: number; price: number }>({ type: 'basic', coverage: 5000, price: 0 });
+  const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails>({ method: 'self_pickup', fee: 0 });
 
   useEffect(() => {
     if (id) {
@@ -170,8 +176,8 @@ export default function ItemDetail() {
     setIsBooking(true);
     try {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-      const totalPrice = days * (item?.price_per_day || 0);
-      console.log('💰 Total price calculated:', totalPrice, 'for', days, 'days');
+      const finalPrice = calculatePrice();
+      console.log('💰 Final price calculated:', finalPrice, 'for', days, 'days');
 
       // Check user's wallet balance
       console.log('🔍 Checking wallet balance...');
@@ -189,10 +195,10 @@ export default function ItemDetail() {
       const currentBalance = Number(walletData.balance);
       console.log('💵 Current balance:', currentBalance);
 
-      if (currentBalance < totalPrice) {
+      if (currentBalance < finalPrice) {
         console.log('❌ Insufficient balance');
         toast.error(
-          `Insufficient balance. You need RM ${totalPrice.toFixed(2)} but have RM ${currentBalance.toFixed(2)}`,
+          `Insufficient balance. You need RM ${finalPrice.toFixed(2)} but have RM ${currentBalance.toFixed(2)}`,
           { 
             duration: 5000,
             action: {
@@ -215,7 +221,7 @@ export default function ItemDetail() {
           owner_id: item?.owner_id,
           start_date: dateRange.from.toISOString().split('T')[0],
           end_date: dateRange.to.toISOString().split('T')[0],
-          total_price: totalPrice,
+          total_price: finalPrice,
           payment_status: 'unpaid',
           payment_method: 'wallet',
         })
@@ -241,11 +247,49 @@ export default function ItemDetail() {
 
       console.log('✅ Rental created:', rentalData.id);
 
+      // Save insurance details
+      if (insurancePlan.type) {
+        await supabase.from('rental_insurance').insert({
+          rental_id: rentalData.id,
+          plan_type: insurancePlan.type,
+          coverage_amount: insurancePlan.coverage,
+          premium_cost: insurancePlan.price * days,
+        });
+      }
+
+      // Save delivery details
+      if (deliveryDetails.method) {
+        await supabase.from('rental_delivery').insert({
+          rental_id: rentalData.id,
+          delivery_method: deliveryDetails.method,
+          delivery_provider: deliveryDetails.provider,
+          delivery_fee: deliveryDetails.fee,
+          pickup_address: deliveryDetails.pickupAddress,
+          pickup_scheduled_at: deliveryDetails.pickupTime,
+          return_scheduled_at: deliveryDetails.returnTime,
+          delivery_instructions: deliveryDetails.instructions,
+        });
+      }
+
+      // Track promo code usage
+      if (promoDiscount.id) {
+        await supabase.from('user_promo_usage').insert({
+          user_id: user.id,
+          promo_code_id: promoDiscount.id,
+        });
+
+        // Increment promo code usage count
+        await supabase.rpc('increment_wallet_balance', {
+          p_user_id: user.id,
+          p_amount: 0 // Just to trigger the update
+        });
+      }
+
       // Deduct from renter's wallet using RPC function
       console.log('💸 Deducting from wallet...');
       const { error: deductError } = await supabase.rpc('increment_wallet_balance', {
         p_user_id: user.id,
-        p_amount: -totalPrice
+        p_amount: -finalPrice
       });
 
       if (deductError) {
@@ -261,7 +305,7 @@ export default function ItemDetail() {
         .from('wallet_transactions')
         .insert({
           wallet_id: walletData.id,
-          amount: totalPrice,
+          amount: finalPrice,
           type: 'rental_payment',
           description: `Payment for ${item?.title}`,
           reference_id: rentalData.id,
@@ -292,7 +336,7 @@ export default function ItemDetail() {
       }
       
       console.log('🎉 Booking complete!');
-      toast.success(`Booking confirmed! RM ${totalPrice.toFixed(2)} deducted from your wallet.`);
+      toast.success(`Booking confirmed! RM ${finalPrice.toFixed(2)} deducted from your wallet.`);
       navigate('/dashboard');
     } catch (error: any) {
       console.error('💥 Booking failed:', error);
@@ -306,7 +350,52 @@ export default function ItemDetail() {
   const calculatePrice = () => {
     if (!dateRange?.from || !dateRange?.to || !item) return 0;
     const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-    return days * item.price_per_day;
+    let total = days * item.price_per_day;
+    
+    // Add insurance
+    total += insurancePlan.price * days;
+    
+    // Add delivery
+    total += deliveryDetails.fee;
+    
+    // Apply promo discount
+    if (promoDiscount.amount > 0) {
+      if (promoDiscount.type === 'percentage') {
+        total = total - (total * promoDiscount.amount) / 100;
+      } else {
+        total = total - promoDiscount.amount;
+      }
+    }
+    
+    return Math.max(0, total);
+  };
+
+  const calculateBreakdown = () => {
+    if (!dateRange?.from || !dateRange?.to || !item) return null;
+    const days = differenceInDays(dateRange.to, dateRange.from) + 1;
+    const basePrice = days * item.price_per_day;
+    const insuranceCost = insurancePlan.price * days;
+    const deliveryCost = deliveryDetails.fee;
+    const subtotal = basePrice + insuranceCost + deliveryCost;
+    
+    let discountAmount = 0;
+    if (promoDiscount.amount > 0) {
+      if (promoDiscount.type === 'percentage') {
+        discountAmount = (subtotal * promoDiscount.amount) / 100;
+      } else {
+        discountAmount = promoDiscount.amount;
+      }
+    }
+    
+    return {
+      days,
+      basePrice,
+      insuranceCost,
+      deliveryCost,
+      subtotal,
+      discountAmount,
+      total: Math.max(0, subtotal - discountAmount),
+    };
   };
 
   if (loading) {
@@ -440,18 +529,77 @@ export default function ItemDetail() {
                 />
               </div>
 
+              {/* Insurance Plans */}
               {dateRange?.from && dateRange?.to && (
-                <div className="space-y-2 p-4 bg-muted rounded-lg">
-                  <div className="flex justify-between">
-                    <span>Duration:</span>
-                    <span>{differenceInDays(dateRange.to, dateRange.from) + 1} days</span>
-                  </div>
-                  <div className="flex justify-between font-bold">
-                    <span>Total:</span>
-                    <span>RM {calculatePrice()}</span>
-                  </div>
-                </div>
+                <>
+                  <Separator />
+                  <InsurancePlans
+                    onPlanSelect={setInsurancePlan}
+                    selectedPlan={insurancePlan.type}
+                    rentalDays={differenceInDays(dateRange.to, dateRange.from) + 1}
+                  />
+                </>
               )}
+
+              {/* Delivery Options */}
+              {dateRange?.from && dateRange?.to && (
+                <>
+                  <Separator />
+                  <DeliveryScheduler
+                    itemLocation={item.location}
+                    onDeliverySelect={setDeliveryDetails}
+                  />
+                </>
+              )}
+
+              {/* Promo Code */}
+              {dateRange?.from && dateRange?.to && (
+                <>
+                  <Separator />
+                  <PromoCodeRedemption
+                    onPromoApplied={setPromoDiscount}
+                    originalPrice={calculatePrice()}
+                  />
+                </>
+              )}
+
+              {/* Price Breakdown */}
+              {dateRange?.from && dateRange?.to && (() => {
+                const breakdown = calculateBreakdown();
+                if (!breakdown) return null;
+                
+                return (
+                  <div className="space-y-2 p-4 bg-muted rounded-lg">
+                    <div className="flex justify-between text-sm">
+                      <span>Base rent ({breakdown.days} days):</span>
+                      <span>RM {breakdown.basePrice.toFixed(2)}</span>
+                    </div>
+                    {breakdown.insuranceCost > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Insurance ({insurancePlan.type}):</span>
+                        <span>RM {breakdown.insuranceCost.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {breakdown.deliveryCost > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Delivery fee:</span>
+                        <span>RM {breakdown.deliveryCost.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {breakdown.discountAmount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount ({promoDiscount.code}):</span>
+                        <span>-RM {breakdown.discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <Separator />
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>RM {breakdown.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <Button 
                 className="w-full" 

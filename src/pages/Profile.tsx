@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { ReferralSystem } from "@/components/ReferralSystem";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 
@@ -192,7 +193,7 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card className="min-h-[140px]">
             <CardContent className="p-6 flex items-center justify-between">
               <div>
@@ -250,6 +251,9 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Referral System Section */}
+        <ReferralSystem />
 
         {/* Edit Profile Dialog */}
         <ProfileEditDialog
