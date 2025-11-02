@@ -374,6 +374,72 @@ export type Database = {
           },
         ]
       }
+      payment_holds: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          held_at: string
+          held_by: string | null
+          hold_reason: string
+          id: string
+          owner_payout: number
+          platform_fee: number
+          rental_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          held_at?: string
+          held_by?: string | null
+          hold_reason: string
+          id?: string
+          owner_payout: number
+          platform_fee?: number
+          rental_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          held_at?: string
+          held_by?: string | null
+          hold_reason?: string
+          id?: string
+          owner_payout?: number
+          platform_fee?: number
+          rental_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_holds_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_payment_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_holds_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1280,6 +1346,51 @@ export type Database = {
           created_at?: string | null
           id?: string
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          account_holder_name: string | null
+          account_number: string | null
+          amount: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          amount: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

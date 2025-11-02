@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
 import Verification from "./pages/Verification";
 import AdminVerification from "./pages/AdminVerification";
+import AdminPayments from "./pages/AdminPayments";
 import MyListings from "./pages/MyListings";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
         <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
         <Route path="/admin/verifications" element={<ProtectedRoute><AdminVerification /></ProtectedRoute>} />
+        <Route path="/admin/payments" element={<ProtectedRoute><AdminPayments /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <MobileBottomNav />
