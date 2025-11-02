@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
@@ -123,6 +124,7 @@ const Header = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-2">
+              <ThemeSwitcher />
               <LanguageSwitcher />
               {user ? (
                 <>

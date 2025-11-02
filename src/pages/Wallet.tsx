@@ -8,11 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon, Plus, Filter, Download } from "lucide-react";
+import { ArrowUpCircle, ArrowDownCircle, Wallet as WalletIcon, Plus, Filter, Download, ArrowDownToLine } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { PaymentErrorBoundary } from "@/components/PaymentErrorBoundary";
+import { WithdrawalRequest } from "@/components/WithdrawalRequest";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 
 export default function Wallet() {
   const { user } = useAuth();
@@ -25,6 +27,8 @@ export default function Wallet() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { isRefreshing, pullDistance } = usePullToRefresh(fetchWalletData);
 
   useEffect(() => {
     if (user) {
@@ -216,19 +220,35 @@ export default function Wallet() {
     <>
       <Header />
       <div className="min-h-screen bg-background pb-20 md:pb-0">
+      {/* Pull to refresh indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-2 transition-opacity"
+          style={{ opacity: Math.min(pullDistance / 80, 1) }}
+        >
+          <div className="glass-card p-2 rounded-full">
+            <ArrowDownToLine className="h-5 w-5 text-primary animate-bounce" />
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="sticky top-0 z-10 bg-card border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl md:text-3xl font-bold">My Wallet</h1>
-            <PaymentErrorBoundary fallbackMessage="Unable to process top-up.">
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Top Up
-                  </Button>
-                </DialogTrigger>
+            <div className="flex gap-2">
+              <WithdrawalRequest 
+                availableBalance={wallet?.balance || 0} 
+                onSuccess={fetchWalletData} 
+              />
+              <PaymentErrorBoundary fallbackMessage="Unable to process top-up.">
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="gradient">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Top Up
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Top Up Wallet</DialogTitle>
@@ -264,13 +284,15 @@ export default function Wallet() {
           </div>
 
           {/* Balance Card */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <WalletIcon className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Balance</p>
-                  <p className="text-2xl font-bold text-primary">
+          <Card className="glass-balance-card border-0 card-3d-hover overflow-hidden">
+            <CardContent className="p-6 relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <WalletIcon className="h-5 w-5 text-white/90 float-animation" />
+                    <p className="text-sm text-white/80 font-medium">Available Balance</p>
+                  </div>
+                  <p className="text-4xl font-bold text-white balance-shimmer">
                     RM {wallet?.balance.toFixed(2) || "0.00"}
                   </p>
                 </div>

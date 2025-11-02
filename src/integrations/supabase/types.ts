@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown
+          resource_id: string | null
+          resource_type: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string | null
+          resource_type: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string | null
+          resource_type?: string
+        }
+        Relationships: []
+      }
       item_images: {
         Row: {
           created_at: string | null
@@ -314,13 +347,6 @@ export type Database = {
             foreignKeyName: "messages_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_payment_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -428,14 +454,45 @@ export type Database = {
             foreignKeyName: "payment_holds_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_payment_status"
+            referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      payment_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          payment_hold_id: string
+          review_notes: string | null
+          review_status: string
+          reviewed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_hold_id: string
+          review_notes?: string | null
+          review_status: string
+          reviewed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_hold_id?: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "payment_holds_rental_id_fkey"
-            columns: ["rental_id"]
+            foreignKeyName: "payment_reviews_payment_hold_id_fkey"
+            columns: ["payment_hold_id"]
             isOneToOne: false
-            referencedRelation: "rentals"
+            referencedRelation: "payment_holds"
             referencedColumns: ["id"]
           },
         ]
@@ -617,13 +674,6 @@ export type Database = {
             foreignKeyName: "rental_delivery_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_payment_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rental_delivery_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -655,13 +705,6 @@ export type Database = {
           rental_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "rental_insurance_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_payment_status"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "rental_insurance_rental_id_fkey"
             columns: ["rental_id"]
@@ -721,13 +764,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "rental_modifications_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_payment_status"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "rental_modifications_rental_id_fkey"
             columns: ["rental_id"]
@@ -916,13 +952,6 @@ export type Database = {
             foreignKeyName: "reviews_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_payment_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1052,13 +1081,6 @@ export type Database = {
             foreignKeyName: "transactions_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_payment_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1089,13 +1111,6 @@ export type Database = {
             columns: ["promo_code_id"]
             isOneToOne: false
             referencedRelation: "promo_codes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_promo_usage_promo_code_id_fkey"
-            columns: ["promo_code_id"]
-            isOneToOne: false
-            referencedRelation: "promo_codes_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1285,7 +1300,9 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           description: string
+          expires_at: string | null
           id: string
+          idempotency_key: string | null
           reference_id: string | null
           status: string | null
           toyyibpay_transaction_id: string | null
@@ -1297,7 +1314,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           description: string
+          expires_at?: string | null
           id?: string
+          idempotency_key?: string | null
           reference_id?: string | null
           status?: string | null
           toyyibpay_transaction_id?: string | null
@@ -1309,7 +1328,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           description?: string
+          expires_at?: string | null
           id?: string
+          idempotency_key?: string | null
           reference_id?: string | null
           status?: string | null
           toyyibpay_transaction_id?: string | null
@@ -1397,99 +1418,7 @@ export type Database = {
       }
     }
     Views: {
-      listing_analytics_summary: {
-        Row: {
-          conversion_rate: number | null
-          item_id: string | null
-          total_bookings: number | null
-          total_clicks: number | null
-          total_requests: number | null
-          total_revenue: number | null
-          total_views: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "listing_analytics_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      promo_codes_public: {
-        Row: {
-          code: string | null
-          discount_amount: number | null
-          discount_type: string | null
-          id: string | null
-          is_active: boolean | null
-        }
-        Insert: {
-          code?: string | null
-          discount_amount?: number | null
-          discount_type?: string | null
-          id?: string | null
-          is_active?: boolean | null
-        }
-        Update: {
-          code?: string | null
-          discount_amount?: number | null
-          discount_type?: string | null
-          id?: string | null
-          is_active?: boolean | null
-        }
-        Relationships: []
-      }
-      rental_payment_status: {
-        Row: {
-          id: string | null
-          item_id: string | null
-          owner_id: string | null
-          payment_status: string | null
-          renter_id: string | null
-          status: Database["public"]["Enums"]["rental_status"] | null
-        }
-        Insert: {
-          id?: string | null
-          item_id?: string | null
-          owner_id?: string | null
-          payment_status?: string | null
-          renter_id?: string | null
-          status?: Database["public"]["Enums"]["rental_status"] | null
-        }
-        Update: {
-          id?: string | null
-          item_id?: string | null
-          owner_id?: string | null
-          payment_status?: string | null
-          renter_id?: string | null
-          status?: Database["public"]["Enums"]["rental_status"] | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rentals_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentals_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentals_renter_id_fkey"
-            columns: ["renter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_verification_confidence: {
