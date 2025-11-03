@@ -621,6 +621,33 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_attempt_log: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: unknown
+          promo_code: string
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          promo_code: string
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          promo_code?: string
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       promo_codes: {
         Row: {
           code: string
@@ -1514,7 +1541,16 @@ export type Database = {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
       }
+      check_promo_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
       cleanup_expired_payment_locks: { Args: never; Returns: undefined }
+      deduct_wallet_balance: {
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }
@@ -1533,6 +1569,10 @@ export type Database = {
       }
       increment_wallet_balance: {
         Args: { p_amount: number; p_user_id: string }
+        Returns: number
+      }
+      refund_wallet_balance: {
+        Args: { p_amount: number; p_reason: string; p_user_id: string }
         Returns: number
       }
       release_payment_lock: {

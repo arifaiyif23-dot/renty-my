@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useWalletRealtime } from "@/hooks/use-wallet-realtime";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Wallet as WalletType, WalletTransaction } from "@/types";
@@ -29,6 +30,9 @@ export default function Wallet() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Use realtime wallet updates
+  const { balance: realtimeBalance, connectionState } = useWalletRealtime();
 
   const fetchWalletData = async () => {
     try {
@@ -63,6 +67,13 @@ export default function Wallet() {
       fetchWalletData();
     }
   }, [user]);
+
+  // Update wallet balance from realtime when it changes
+  useEffect(() => {
+    if (realtimeBalance !== null && wallet) {
+      setWallet({ ...wallet, balance: realtimeBalance });
+    }
+  }, [realtimeBalance]);
 
   useEffect(() => {
     filterTransactions();
