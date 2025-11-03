@@ -14,6 +14,7 @@ import { ItemCategory } from '@/types';
 import { ImageUpload } from '@/components/ImageUpload';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
+import { validateUserInput } from '@/utils/sanitize';
 
 export default function ListItem() {
   const { t } = useTranslation();
@@ -57,15 +58,20 @@ export default function ListItem() {
 
     setIsLoading(true);
     try {
+      // Validate and sanitize all user inputs
+      const sanitizedTitle = validateUserInput(formData.title, 200);
+      const sanitizedDescription = validateUserInput(formData.description, 5000);
+      const sanitizedLocation = validateUserInput(formData.location, 200);
+
       const { data, error } = await supabase
         .from('items')
         .insert({
           owner_id: user.id,
-          title: formData.title,
-          description: formData.description,
+          title: sanitizedTitle,
+          description: sanitizedDescription,
           category: formData.category,
           price_per_day: parseFloat(formData.price_per_day),
-          location: formData.location,
+          location: sanitizedLocation,
           latitude: profile?.latitude,
           longitude: profile?.longitude,
         })

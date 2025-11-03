@@ -40,8 +40,6 @@ export default function AdminPayments() {
 
   useEffect(() => {
     checkAdminAccess();
-    fetchPayments();
-    fetchStats();
   }, [user]);
 
   const checkAdminAccess = async () => {
@@ -50,17 +48,18 @@ export default function AdminPayments() {
       return;
     }
 
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .single();
+    // Use server-side admin verification
+    const { data, error } = await supabase.functions.invoke('verify-admin');
 
-    if (!roleData) {
+    if (error || !data?.isAdmin) {
       toast.error("Access denied. Admin privileges required.");
       navigate("/");
+      return;
     }
+
+    // Only fetch data after admin verification succeeds
+    fetchPayments();
+    fetchStats();
   };
 
   const fetchPayments = async () => {

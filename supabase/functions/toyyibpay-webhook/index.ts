@@ -6,6 +6,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Constant-time string comparison to prevent timing attacks
+async function constantTimeCompare(a: string, b: string): Promise<boolean> {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  
+  let result = 0;
+  for (let i = 0; i < aBytes.length; i++) {
+    result |= aBytes[i] ^ bBytes[i];
+  }
+  
+  return result === 0;
+}
+
 // ToyyibPay webhook: handles payment confirmation
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -91,9 +108,15 @@ serve(async (req) => {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
 
-      if (signature !== expectedSignature) {
-        console.error("Invalid webhook signature");
-        return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+      // Use constant-time comparison to prevent timing attacks
+      const signatureValid = await constantTimeCompare(
+        signature?.toString() || '', 
+        expectedSignature
+      );
+      
+      if (!signatureValid) {
+        console.error("Invalid webhook signature - potential security breach");
+        return new Response("OK", { status: 200, headers: corsHeaders }); // Return OK to prevent retry
       }
       console.log("✓ Webhook signature verified");
     }

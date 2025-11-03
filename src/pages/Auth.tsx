@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, Gift, Home } from 'lucide-react';
 import logo from "@/assets/renty-logo.png";
 import { z } from 'zod';
+import { sanitizeText } from '@/utils/sanitize';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Invalid email address').toLowerCase(),
@@ -22,7 +23,8 @@ const signUpSchema = z.object({
     .trim()
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be less than 100 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens and apostrophes'),
+    .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens and apostrophes')
+    .transform(val => sanitizeText(val)), // Sanitize to prevent XSS
   email: z.string()
     .trim()
     .email('Invalid email address')

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { Message, Profile } from "@/types";
 import Header from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { sanitizeMessage } from "@/utils/sanitize";
 
 interface Conversation {
   userId: string;
@@ -131,12 +132,17 @@ export default function Messages() {
   const sendMessage = async () => {
     if (!user || !selectedUserId || (!newMessage.trim() && !attachmentUrl)) return;
 
+    // Sanitize message content to prevent XSS
+    const sanitizedContent = newMessage.trim() 
+      ? sanitizeMessage(newMessage.trim()) 
+      : '📎 Attachment';
+
     const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
         recipient_id: selectedUserId,
-        content: newMessage.trim() || '📎 Attachment',
+        content: sanitizedContent,
         attachment_url: attachmentUrl || null,
         attachment_type: attachmentType || null,
         delivered_at: new Date().toISOString(),

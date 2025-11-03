@@ -400,6 +400,53 @@ export type Database = {
           },
         ]
       }
+      payment_audit_log: {
+        Row: {
+          action: string
+          amount: number | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown
+          rental_id: string
+          status: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          amount?: number | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          rental_id: string
+          status: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          amount?: number | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown
+          rental_id?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_audit_log_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_holds: {
         Row: {
           admin_notes: string | null
@@ -454,6 +501,44 @@ export type Database = {
             foreignKeyName: "payment_holds_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_locks: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          locked_at: string
+          locked_by: string
+          rental_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          locked_at?: string
+          locked_by: string
+          rental_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          locked_at?: string
+          locked_by?: string
+          rental_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_locks_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1421,10 +1506,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_payment_lock: {
+        Args: { p_rental_id: string; p_user_id: string }
+        Returns: boolean
+      }
       calculate_verification_confidence: {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
       }
+      cleanup_expired_payment_locks: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }
@@ -1444,6 +1534,10 @@ export type Database = {
       increment_wallet_balance: {
         Args: { p_amount: number; p_user_id: string }
         Returns: number
+      }
+      release_payment_lock: {
+        Args: { p_rental_id: string }
+        Returns: undefined
       }
     }
     Enums: {

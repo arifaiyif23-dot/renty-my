@@ -30,12 +30,41 @@ serve(async (req) => {
 
     console.log('Processing rental payment completion for:', rentalId);
 
+    // Log audit entry
+    const logAudit = async (action: string, status: string, details: any) => {
+      await supabaseServiceClient.from('payment_audit_log').insert({
+        rental_id: rentalId,
+        user_id: user.id,
+        action,
+        status,
+        details,
+        created_at: new Date().toISOString()
+      });
+    };
+
     const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get rental details
+    // Acquire payment lock to prevent race conditions
+    const { data: lockAcquired } = await supabaseServiceClient
+      .rpc('acquire_payment_lock', { 
+        p_rental_id: rentalId, 
+        p_user_id: user.id 
+      });
+
+    if (!lockAcquired) {
+      console.log('Payment already being processed:', rentalId);
+      await logAudit('payment_attempt', 'failed', { reason: 'lock_acquisition_failed' });
+      throw new Error('Payment is already being processed');
+    }
+
+    console.log('Payment lock acquired for:', rentalId);
+    await logAudit('lock_acquired', 'success', { user_id: user.id });
+
+    try {
+      // Get rental details
     const { data: rental, error: rentalError } = await supabaseServiceClient
       .from('rentals')
       .select('*, item:items(title, owner_id)')
@@ -140,6 +169,10 @@ serve(async (req) => {
       ]);
 
     console.log('Rental payment processed successfully:', rentalId);
+    await logAudit('payment_completed', 'success', { ownerAmount, platformFee });
+
+    // Release payment lock
+    await supabaseServiceClient.rpc('release_payment_lock', { p_rental_id: rentalId });
 
     return new Response(
       JSON.stringify({ 
@@ -151,8 +184,31 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
+    } catch (innerError) {
+      // Release lock on error
+      await supabaseServiceClient.rpc('release_payment_lock', { p_rental_id: rentalId });
+      throw innerError;
+    }
+
   } catch (error) {
     console.error('Error processing rental payment:', error);
+    
+    // Log failed attempt
+    try {
+      const supabaseServiceClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      await supabaseServiceClient.from('payment_audit_log').insert({
+        rental_id: await req.json().then(body => body.rentalId).catch(() => null),
+        action: 'payment_failed',
+        status: 'error',
+        details: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
+    } catch (auditError) {
+      console.error('Failed to log audit:', auditError);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: false, 
