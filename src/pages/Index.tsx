@@ -375,6 +375,13 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Onboarding Guide */}
+      <section className="py-12 md:py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <OnboardingGuide />
+        </div>
+      </section>
+
       {/* How It Works */}
       <section className="py-12 md:py-16 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

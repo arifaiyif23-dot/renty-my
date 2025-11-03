@@ -13,6 +13,7 @@ import { ReviewsList } from '@/components/ReviewsList';
 import { ListingAnalytics } from '@/components/ListingAnalytics';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil } from 'lucide-react';
@@ -487,17 +488,25 @@ export default function ItemDetail() {
               </div>
               <Badge className="w-fit">{item.category}</Badge>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">{item.description}</p>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="w-4 h-4" />
-                <span>{item.location}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <User className="w-4 h-4" />
-                <span>{item.owner?.full_name}</span>
+            <CardContent>
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="insurance">Insurance</TabsTrigger>
+                  <TabsTrigger value="delivery">Delivery</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-4 pt-4">
+                  <p className="text-muted-foreground">{item.description}</p>
+                  
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4" />
+                    <span>{item.location}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4" />
+                    <span>{item.owner?.full_name}</span>
                 {item.owner?.is_verified && (
                   <Badge variant="secondary" className="gap-1">
                     <ShieldCheck className="h-3 w-3" />
@@ -508,9 +517,61 @@ export default function ItemDetail() {
               
               <div className="text-2xl font-bold">
                 RM {item.price_per_day}/day
-              </div>
+                  </div>
+                  
+                  {user?.id === item.owner_id && <ListingAnalytics itemId={item.id} />}
+                </TabsContent>
+
+                <TabsContent value="insurance" className="pt-4">
+                  {dateRange?.from && dateRange?.to && (
+                    <InsurancePlans
+                      selectedPlan={insurancePlan.type}
+                      onPlanSelect={(plan) => setInsurancePlan(plan)}
+                      rentalDays={differenceInDays(dateRange.to, dateRange.from) + 1}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="delivery" className="pt-4">
+                  {dateRange?.from && dateRange?.to && (
+                    <DeliveryScheduler
+                      itemLocation={item.location}
+                      onDeliverySelect={(delivery) => setDeliveryDetails(delivery)}
+                    />
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
+          
+          {/* Similar Items */}
+          {similarItems.length > 0 && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Similar Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="w-full">
+                  <div className="flex gap-4 pb-4">
+                    {similarItems.map((similar) => (
+                      <div key={similar.id} className="min-w-[250px]">
+                        <ItemCard
+                          id={similar.id}
+                          title={similar.title}
+                          image={similar.images?.[0]?.image_url || ''}
+                          pricePerDay={similar.price_per_day}
+                          category={similar.category}
+                          rating={0}
+                          reviewCount={0}
+                          location={similar.location}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">
@@ -534,8 +595,8 @@ export default function ItemDetail() {
                 <>
                   <Separator />
                   <InsurancePlans
-                    onPlanSelect={setInsurancePlan}
                     selectedPlan={insurancePlan.type}
+                    onPlanSelect={(plan) => setInsurancePlan(plan)}
                     rentalDays={differenceInDays(dateRange.to, dateRange.from) + 1}
                   />
                 </>
@@ -547,7 +608,7 @@ export default function ItemDetail() {
                   <Separator />
                   <DeliveryScheduler
                     itemLocation={item.location}
-                    onDeliverySelect={setDeliveryDetails}
+                    onDeliverySelect={(delivery) => setDeliveryDetails(delivery)}
                   />
                 </>
               )}

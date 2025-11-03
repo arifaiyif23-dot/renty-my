@@ -3,9 +3,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Rental } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { RentalCard } from '@/components/RentalCard';
+import { StatusBadge } from '@/components/StatusBadge';
+import { CountdownTimer } from '@/components/CountdownTimer';
+import { Clock, CheckCircle, XCircle } from 'lucide-react';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -119,11 +123,26 @@ export default function Dashboard() {
     return <div className="container mx-auto p-4">Loading...</div>;
   }
 
+  const activeCount = filterRentals(['approved', 'active']).length;
+  const pendingCount = filterRentals(['pending']).length;
+  const pastCount = filterRentals(['completed', 'cancelled', 'rejected']).length;
+
   return (
     <>
       <Header />
       <div className="container mx-auto p-4 pb-20 md:pb-4">
-        <h1 className="text-3xl font-bold mb-6 text-foreground">My Rentals</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-foreground">My Rentals</h1>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="gap-1">
+              <Clock className="h-3 w-3" />
+              {activeCount} Active
+            </Badge>
+            <Badge variant="secondary" className="gap-1">
+              {pendingCount} Pending
+            </Badge>
+          </div>
+        </div>
       
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="bg-muted/20">

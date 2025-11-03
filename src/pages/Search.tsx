@@ -10,6 +10,7 @@ import SEO from '@/components/SEO';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
+import { AutocompleteSearch } from '@/components/AutocompleteSearch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -222,16 +223,11 @@ export default function Search() {
         {/* Mobile: Search + Sort + Filter Button */}
         {isMobile ? (
           <div className="space-y-3 mb-6">
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12"
-                aria-label="Search items"
-              />
-            </div>
+            <AutocompleteSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSelect={(value) => saveSearch(value)}
+            />
 
             <div className="flex gap-2">
               <MobileFilterDrawer
@@ -287,14 +283,11 @@ export default function Search() {
           /* Desktop: Full Filters */
           <div className="space-y-4 mb-6">
             <div className="grid md:grid-cols-4 gap-3">
-              <div className="md:col-span-2 relative">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search items..."
+              <div className="md:col-span-2">
+                <AutocompleteSearch
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  aria-label="Search items"
+                  onChange={setSearchQuery}
+                  onSelect={(value) => saveSearch(value)}
                 />
               </div>
 

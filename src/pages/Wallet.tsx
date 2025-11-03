@@ -18,6 +18,9 @@ import { WithdrawalRequest } from "@/components/WithdrawalRequest";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { WalletSkeleton } from "@/components/WalletSkeleton";
 import { haptics } from "@/utils/haptics";
+import { WalletInsights } from "@/components/WalletInsights";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 export default function Wallet() {
   const { user } = useAuth();
@@ -323,6 +326,9 @@ export default function Wallet() {
 
         {/* Content */}
         <div className="container mx-auto px-4 py-6">
+          {/* Wallet Insights */}
+          <WalletInsights transactions={transactions} balance={wallet?.balance || 0} />
+
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -363,30 +369,50 @@ export default function Wallet() {
                   {transactions.length === 0 ? 'No transactions yet' : 'No transactions match your filters'}
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {filteredTransactions.map((transaction, index) => (
-                    <div
-                      key={transaction.id}
-                      className="stagger-item flex items-center justify-between p-3 border rounded-lg hover:bg-accent/5 transition-all card-3d-hover"
-                      style={{ animationDelay: `${index * 0.05}s` }}
-                    >
-                      <div className="flex items-center gap-3">
-                        {getTransactionIcon(transaction.type)}
-                        <div>
-                          <p className="font-medium">{transaction.description}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(transaction.created_at), "MMM d, yyyy 'at' h:mm a")}
-                          </p>
+                <div className="space-y-2">
+                  {/* Group by month */}
+                  {Object.entries(
+                    filteredTransactions.reduce((acc, t) => {
+                      const month = format(new Date(t.created_at), 'MMMM yyyy');
+                      if (!acc[month]) acc[month] = [];
+                      acc[month].push(t);
+                      return acc;
+                    }, {} as Record<string, typeof filteredTransactions>)
+                  ).map(([month, monthTransactions]) => (
+                    <Collapsible key={month} defaultOpen={true}>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted/50 rounded-lg">
+                        <span className="font-semibold">{month}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            {monthTransactions.length} transactions
+                          </span>
+                          <ChevronDown className="h-4 w-4" />
                         </div>
-                      </div>
-                      <p className={`font-semibold ${
-                        transaction.type === 'deposit' || transaction.type === 'rental_earning' || transaction.type === 'refund' || transaction.type === 'top_up'
-                          ? 'text-success'
-                          : 'text-destructive'
-                      }`}>
-                        {getTransactionAmount(transaction.type, transaction.amount)}
-                      </p>
-                    </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-2 mt-2">
+                        {monthTransactions.map((transaction) => (
+                          <div
+                            key={transaction.id}
+                            className="flex justify-between items-center p-3 bg-muted/50 rounded-lg"
+                          >
+                            <div>
+                              <p className="font-medium">{transaction.description}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(transaction.created_at), 'MMM d, h:mm a')}
+                              </p>
+                            </div>
+                            <div className={`font-semibold ${
+                              transaction.type === 'rental_earning' || transaction.type === 'top_up' || transaction.type === 'deposit' || transaction.type === 'refund'
+                                ? 'text-green-600 dark:text-green-400' 
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {['rental_earning', 'top_up', 'deposit', 'refund'].includes(transaction.type) ? '+' : '-'}
+                              RM {transaction.amount.toFixed(2)}
+                            </div>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
                 </div>
               )}
