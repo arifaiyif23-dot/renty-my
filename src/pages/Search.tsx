@@ -41,6 +41,19 @@ export default function Search() {
   const [itemCondition, setItemCondition] = useState<string>('all');
   const [maxDistance, setMaxDistance] = useState(50);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('recentSearches');
+    if (saved) setRecentSearches(JSON.parse(saved));
+  }, []);
+
+  const saveSearch = (query: string) => {
+    if (!query.trim()) return;
+    const updated = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
   
   // Debounce search query for better performance
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -184,6 +197,27 @@ export default function Search() {
 
       <div className="container mx-auto p-4 pb-mobile-nav">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">Search Items</h1>
+
+        {/* Recent Searches */}
+        {recentSearches.length > 0 && !loading && (
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground mb-2">Recent searches:</p>
+            <div className="flex flex-wrap gap-2">
+              {recentSearches.map((search, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { 
+                    setSearchQuery(search);
+                    saveSearch(search);
+                  }}
+                  className="px-3 py-1 text-sm rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                >
+                  {search}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mobile: Search + Sort + Filter Button */}
         {isMobile ? (

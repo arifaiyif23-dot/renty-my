@@ -93,18 +93,28 @@ const Index = () => {
 
       if (itemsError) throw itemsError;
 
-      // Calculate review ratings and add badges
-      const itemsWithReviews = await Promise.all(
-        (itemsData || []).map(async (item, index) => {
-          const { data: reviewsData } = await supabase
-            .from('reviews')
-            .select('rating')
-            .eq('reviewee_id', item.id);
+      // Optimized: Fetch all reviews in one query
+      const itemIds = itemsData?.map(i => i.id) || [];
+      const { data: allReviews } = await supabase
+        .from('rentals')
+        .select('item_id, reviews(rating)')
+        .in('item_id', itemIds);
 
-          const reviewCount = reviewsData?.length || 0;
-          const rating = reviewCount > 0
-            ? reviewsData!.reduce((sum, r) => sum + r.rating, 0) / reviewCount
-            : 0;
+      const reviewsByItem = new Map<string, number[]>();
+      allReviews?.forEach((rental: any) => {
+        if (rental.reviews && rental.reviews.length > 0) {
+          const existing = reviewsByItem.get(rental.item_id) || [];
+          reviewsByItem.set(rental.item_id, [...existing, ...rental.reviews.map((r: any) => r.rating)]);
+        }
+      });
+
+      // Calculate review ratings and add badges
+      const itemsWithReviews = (itemsData || []).map((item, index) => {
+        const ratings = reviewsByItem.get(item.id) || [];
+        const reviewCount = ratings.length;
+        const rating = reviewCount > 0
+          ? ratings.reduce((sum, r) => sum + r, 0) / reviewCount
+          : 0;
 
           // Determine badge
           const createdAt = new Date(item.created_at);
@@ -128,11 +138,10 @@ const Index = () => {
             rating: Math.round(rating * 10) / 10,
             reviewCount,
             location: item.location,
-            isOwnerVerified: item.profiles?.is_verified || false,
-            badge,
-          };
-        })
-      );
+          isOwnerVerified: item.profiles?.is_verified || false,
+          badge,
+        };
+      });
 
       setFeaturedItems(itemsWithReviews);
 

@@ -1,5 +1,11 @@
 project_id = "rxwmzfaghsdouepbfrnr"
 
+[functions.gemini-analyze-item]
+verify_jwt = false
+
+[functions.gemini-support-chat]
+verify_jwt = false
+
 [functions.create-toyyibpay-bill]
 verify_jwt = true
 

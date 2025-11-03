@@ -73,11 +73,23 @@ serve(async (req) => {
     // SECURITY: Verify webhook signature
     const secretKey = Deno.env.get("TOYYIBPAY_SECRET_KEY");
     if (signature && secretKey) {
-      const crypto = await import("https://deno.land/std@0.168.0/node/crypto.ts");
-      const expectedSignature = crypto
-        .createHmac("sha256", secretKey)
-        .update(`${billCode}${amount}${status}`)
-        .digest("hex");
+      const dataToSign = `${billCode}${amount}${status}`;
+      const encoder = new TextEncoder();
+      const keyData = encoder.encode(secretKey);
+      const messageData = encoder.encode(dataToSign);
+      
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyData,
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+      
+      const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+      const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 
       if (signature !== expectedSignature) {
         console.error("Invalid webhook signature");

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { haptics } from "@/utils/haptics";
 
 interface SaveItemButtonProps {
   itemId: string;
@@ -63,6 +64,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
 
         if (error) throw error;
         setIsSaved(false);
+        haptics.light();
         toast.success('Removed from wishlist');
       } else {
         const { error } = await supabase
@@ -71,6 +73,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
 
         if (error) throw error;
         setIsSaved(true);
+        haptics.success();
         toast.success('Added to wishlist');
       }
     } catch (error: any) {
