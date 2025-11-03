@@ -447,7 +447,7 @@ export default function ItemDetail() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 pb-mobile-nav">
+      <div className="container mx-auto p-4 pb-20 md:pb-4">
         {/* Mobile Back Button */}
         <div className="md:hidden mb-4">
           <BackButton fallbackPath="/search" />

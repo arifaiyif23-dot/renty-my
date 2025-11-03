@@ -143,6 +143,23 @@ All colors MUST be HSL.
   .pb-mobile-nav {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom));
   }
+  
+  @media (min-width: 768px) {
+    .pb-mobile-nav {
+      padding-bottom: 0;
+    }
+  }
+  
+  /* Margin bottom for mobile nav */
+  .mb-mobile-nav {
+    margin-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+  
+  @media (min-width: 768px) {
+    .mb-mobile-nav {
+      margin-bottom: 0;
+    }
+  }
 
   /* Improved focus styles for accessibility */
   *:focus-visible {

@@ -122,7 +122,7 @@ export default function Dashboard() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 pb-mobile-nav">
+      <div className="container mx-auto p-4 pb-20 md:pb-4">
         <h1 className="text-3xl font-bold mb-6 text-foreground">My Rentals</h1>
       
       <Tabs defaultValue="active" className="w-full">

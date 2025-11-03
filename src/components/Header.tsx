@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Menu, Search, Heart, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logo from "@/assets/renty-new-logo.png";
+import logo from "@/assets/renty-main-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNav from "@/components/MobileNav";
@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+
 import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
@@ -124,7 +124,6 @@ const Header = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-2">
-              <ThemeSwitcher />
               <LanguageSwitcher />
               {user ? (
                 <>

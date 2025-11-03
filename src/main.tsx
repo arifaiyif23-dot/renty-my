@@ -8,7 +8,7 @@ import "./i18n/config";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
       <HelmetProvider>
         <App />
       </HelmetProvider>

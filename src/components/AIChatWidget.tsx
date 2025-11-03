@@ -109,7 +109,7 @@ export const AIChatWidget = () => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-4 z-50 w-80 md:w-96"
+            className="fixed bottom-28 md:bottom-24 left-4 md:left-auto md:right-4 z-40 w-[calc(100vw-2rem)] max-w-sm md:w-96"
           >
             <Card className="shadow-2xl border-2">
               <div className="bg-primary text-primary-foreground p-4 rounded-t-lg flex items-center justify-between">
@@ -182,7 +182,7 @@ export const AIChatWidget = () => {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         size="lg"
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-2xl"
+        className="fixed bottom-20 md:bottom-6 left-4 md:left-auto md:right-6 z-40 h-14 w-14 rounded-full shadow-2xl"
       >
         <MessageSquare className="h-6 w-6" />
       </Button>
