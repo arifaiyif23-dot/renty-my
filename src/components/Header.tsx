@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search, Heart, MessageSquare } from "lucide-react";
+import { User, Menu, Search, Heart, MessageSquare, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/renty-main-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,12 +27,31 @@ const Header = () => {
   const isMobile = useIsMobile();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const userInitials = profile?.full_name
     ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase() || "U";
+
+  // Check admin status
+  useEffect(() => {
+    if (!user) return;
+
+    const checkAdminStatus = async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      setIsAdmin(!!data);
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   // Fetch unread message count
   useEffect(() => {
@@ -169,6 +188,23 @@ const Header = () => {
                             {t('nav.wishlist')}
                           </Link>
                         </DropdownMenuItem>
+                        {isAdmin && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/verifications" className="flex items-center cursor-pointer">
+                                <Shield className="h-4 w-4 mr-2" />
+                                Admin: Verifications
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/payments" className="flex items-center cursor-pointer">
+                                <Shield className="h-4 w-4 mr-2" />
+                                Admin: Payments
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
                           {t('nav.signOut')}
