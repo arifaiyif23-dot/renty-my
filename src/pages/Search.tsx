@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw, SlidersHorizontal, Mic, MicOff } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
@@ -23,6 +23,7 @@ import MobileFilterDrawer from '@/components/MobileFilterDrawer';
 import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
 import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import { useVoiceSearch } from '@/hooks/use-voice-search';
 
 export default function Search() {
   const { t } = useTranslation();
@@ -43,11 +44,19 @@ export default function Search() {
   const [maxDistance, setMaxDistance] = useState(50);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const { isListening, transcript, startListening, stopListening, isSupported } = useVoiceSearch();
 
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches');
     if (saved) setRecentSearches(JSON.parse(saved));
   }, []);
+
+  useEffect(() => {
+    if (transcript && !isListening) {
+      setSearchQuery(transcript);
+      saveSearch(transcript);
+    }
+  }, [transcript, isListening]);
 
   const saveSearch = (query: string) => {
     if (!query.trim()) return;
@@ -223,11 +232,23 @@ export default function Search() {
         {/* Mobile: Search + Sort + Filter Button */}
         {isMobile ? (
           <div className="space-y-3 mb-6">
-            <AutocompleteSearch
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onSelect={(value) => saveSearch(value)}
-            />
+            <div className="relative">
+              <AutocompleteSearch
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSelect={(value) => saveSearch(value)}
+              />
+              {isSupported && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 ${isListening ? 'text-primary animate-pulse' : ''}`}
+                  onClick={isListening ? stopListening : startListening}
+                >
+                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                </Button>
+              )}
+            </div>
 
             <div className="flex gap-2">
               <MobileFilterDrawer

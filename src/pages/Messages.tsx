@@ -8,11 +8,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, ArrowLeft, FileImage, File as FileIcon } from "lucide-react";
 import { FileAttachment } from "@/components/FileAttachment";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
 import type { Message, Profile } from "@/types";
 import Header from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { sanitizeMessage } from "@/utils/sanitize";
+import { useTypingIndicator } from "@/hooks/use-typing-indicator";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Conversation {
   userId: string;
@@ -32,6 +35,10 @@ export default function Messages() {
   const [showThread, setShowThread] = useState(false);
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [attachmentType, setAttachmentType] = useState("");
+  
+  const conversationId = selectedUserId ? `${user?.id}_${selectedUserId}` : '';
+  const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId, user?.id || '');
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -42,6 +49,18 @@ export default function Messages() {
   useEffect(() => {
     if (selectedUserId && user) {
       fetchMessages(selectedUserId);
+      
+      // Mark messages as read
+      const markMessagesRead = async () => {
+        await supabase
+          .from('messages')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('sender_id', selectedUserId)
+          .eq('recipient_id', user.id)
+          .is('read_at', null);
+      };
+
+      markMessagesRead();
       
       const channel = supabase
         .channel('messages')
@@ -132,6 +151,10 @@ export default function Messages() {
   const sendMessage = async () => {
     if (!user || !selectedUserId || (!newMessage.trim() && !attachmentUrl)) return;
 
+    // Stop typing indicator
+    stopTyping();
+    if (typingTimeout) clearTimeout(typingTimeout);
+
     // Sanitize message content to prevent XSS
     const sanitizedContent = newMessage.trim() 
       ? sanitizeMessage(newMessage.trim()) 
@@ -156,6 +179,22 @@ export default function Messages() {
     setNewMessage("");
     setAttachmentUrl("");
     setAttachmentType("");
+  };
+
+  const handleTyping = () => {
+    startTyping();
+    
+    // Clear existing timeout
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    // Set new timeout to stop typing after 2 seconds of inactivity
+    const timeout = setTimeout(() => {
+      stopTyping();
+    }, 2000);
+    
+    setTypingTimeout(timeout);
   };
 
   if (!user) {
@@ -258,8 +297,10 @@ export default function Messages() {
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-4">
                     {messages.map((msg) => (
-                      <div
+                      <motion.div
                         key={msg.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                         className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
@@ -298,13 +339,35 @@ export default function Messages() {
                                 minute: '2-digit' 
                               })}
                             </span>
-                            {msg.sender_id === user.id && msg.read_at && (
-                              <span className="ml-1">✓✓</span>
+                            {msg.sender_id === user.id && (
+                              <span className="ml-1">
+                                {msg.read_at ? '✓✓' : '✓'}
+                              </span>
                             )}
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
+                    
+                    {/* Typing Indicator */}
+                    <AnimatePresence>
+                      {typingUsers.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="flex justify-start"
+                        >
+                          <div className="bg-muted rounded-2xl px-4 py-3 rounded-bl-sm">
+                            <div className="flex gap-1">
+                              <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                              <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                              <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </ScrollArea>
 
@@ -321,11 +384,15 @@ export default function Messages() {
                     <div className="flex gap-2">
                       <Input
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e) => {
+                          setNewMessage(e.target.value);
+                          handleTyping();
+                        }}
                         placeholder="Type a message..."
                         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                        className="h-12 text-base"
+                        className="h-12 text-base flex-1"
                       />
+                      <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
                       <Button 
                         onClick={sendMessage} 
                         size="icon"

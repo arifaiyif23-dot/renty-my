@@ -25,6 +25,7 @@ import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
 import EmptyState from '@/components/EmptyState';
 import ImageCarousel from '@/components/ImageCarousel';
+import { PinchToZoom } from '@/components/PinchToZoom';
 import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import SEO from '@/components/SEO';

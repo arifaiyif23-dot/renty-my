@@ -7,8 +7,12 @@ import ItemCard from "@/components/ItemCard";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 import SEO from "@/components/SEO";
-import { Heart } from "lucide-react";
+import { Heart, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSwipeToDelete } from "@/hooks/use-swipe-to-delete";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Wishlist() {
   const { t } = useTranslation();
@@ -24,6 +28,8 @@ export default function Wishlist() {
       navigate('/auth');
     }
   }, [user]);
+
+  const isMobile = useIsMobile();
 
   const fetchSavedItems = async () => {
     try {
@@ -70,6 +76,24 @@ export default function Wishlist() {
     }
   };
 
+  const removeFromWishlist = async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from('saved_items')
+        .delete()
+        .eq('user_id', user?.id)
+        .eq('item_id', itemId);
+
+      if (error) throw error;
+      
+      setItems(prev => prev.filter(item => item.id !== itemId));
+      toast.success('Removed from wishlist');
+    } catch (error) {
+      console.error('Error removing item:', error);
+      toast.error('Failed to remove item');
+    }
+  };
+
   return (
     <>
       <SEO
@@ -89,7 +113,12 @@ export default function Wishlist() {
         ) : items.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {items.map((item) => (
-              <ItemCard key={item.id} {...item} />
+              <SwipeableWishlistItem
+                key={item.id}
+                item={item}
+                onDelete={() => removeFromWishlist(item.id)}
+                isMobile={isMobile}
+              />
             ))}
           </div>
         ) : (
@@ -103,5 +132,45 @@ export default function Wishlist() {
         )}
       </div>
     </>
+  );
+}
+
+function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDelete: () => void; isMobile: boolean }) {
+  const {
+    swipeDistance,
+    isDeleting,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  } = useSwipeToDelete({ onDelete, threshold: 120 });
+
+  if (!isMobile) {
+    return <ItemCard {...item} />;
+  }
+
+  return (
+    <motion.div
+      className="relative overflow-hidden"
+      style={{ x: -swipeDistance }}
+      animate={{ opacity: isDeleting ? 0 : 1 }}
+    >
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="relative"
+      >
+        <ItemCard {...item} />
+      </div>
+      
+      {swipeDistance > 0 && (
+        <div
+          className="absolute right-0 top-0 h-full flex items-center justify-center px-6 bg-destructive text-destructive-foreground"
+          style={{ width: `${swipeDistance}px` }}
+        >
+          <Trash2 className="h-6 w-6" />
+        </div>
+      )}
+    </motion.div>
   );
 }
