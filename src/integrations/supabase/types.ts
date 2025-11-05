@@ -47,6 +47,75 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          escalated_to_human: boolean | null
+          id: string
+          messages: Json[]
+          resolved: boolean | null
+          sentiment: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          escalated_to_human?: boolean | null
+          id?: string
+          messages?: Json[]
+          resolved?: boolean | null
+          sentiment?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          escalated_to_human?: boolean | null
+          id?: string
+          messages?: Json[]
+          resolved?: boolean | null
+          sentiment?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fraud_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          risk_score: number
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_score: number
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_score?: number
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       item_images: {
         Row: {
           created_at: string | null
@@ -113,6 +182,12 @@ export type Database = {
       }
       items: {
         Row: {
+          ai_authenticity_score: number | null
+          ai_brand_detected: string | null
+          ai_category_suggested: string | null
+          ai_damage_assessment: Json | null
+          ai_market_price_estimate: number | null
+          ai_seo_keywords: string[] | null
           auto_approve_bookings: boolean | null
           booking_count: number | null
           cancellation_policy: string | null
@@ -140,6 +215,12 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          ai_authenticity_score?: number | null
+          ai_brand_detected?: string | null
+          ai_category_suggested?: string | null
+          ai_damage_assessment?: Json | null
+          ai_market_price_estimate?: number | null
+          ai_seo_keywords?: string[] | null
           auto_approve_bookings?: boolean | null
           booking_count?: number | null
           cancellation_policy?: string | null
@@ -167,6 +248,12 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          ai_authenticity_score?: number | null
+          ai_brand_detected?: string | null
+          ai_category_suggested?: string | null
+          ai_damage_assessment?: Json | null
+          ai_market_price_estimate?: number | null
+          ai_seo_keywords?: string[] | null
           auto_approve_bookings?: boolean | null
           booking_count?: number | null
           cancellation_policy?: string | null
@@ -1391,19 +1478,25 @@ export type Database = {
       }
       verification_requests: {
         Row: {
+          additional_documents: Json | null
           admin_notes: string | null
           ai_analysis_result: Json | null
+          ai_processing_time_ms: number | null
           created_at: string | null
           date_of_birth: string | null
+          document_back_analyzed: boolean | null
           document_back_url: string | null
           document_front_url: string
           document_quality_score: number | null
           document_type: Database["public"]["Enums"]["document_type"]
           face_match_score: number | null
+          fraud_risk_score: number | null
           full_name_on_document: string
           ic_number: string | null
           id: string
           liveness_score: number | null
+          liveness_video_frames: string[] | null
+          openai_model: string | null
           overall_confidence_score: number | null
           rejection_reason: string | null
           selfie_url: string
@@ -1412,21 +1505,28 @@ export type Database = {
           user_id: string
           verified_at: string | null
           verified_by: string | null
+          video_liveness_url: string | null
         }
         Insert: {
+          additional_documents?: Json | null
           admin_notes?: string | null
           ai_analysis_result?: Json | null
+          ai_processing_time_ms?: number | null
           created_at?: string | null
           date_of_birth?: string | null
+          document_back_analyzed?: boolean | null
           document_back_url?: string | null
           document_front_url: string
           document_quality_score?: number | null
           document_type: Database["public"]["Enums"]["document_type"]
           face_match_score?: number | null
+          fraud_risk_score?: number | null
           full_name_on_document: string
           ic_number?: string | null
           id?: string
           liveness_score?: number | null
+          liveness_video_frames?: string[] | null
+          openai_model?: string | null
           overall_confidence_score?: number | null
           rejection_reason?: string | null
           selfie_url: string
@@ -1435,21 +1535,28 @@ export type Database = {
           user_id: string
           verified_at?: string | null
           verified_by?: string | null
+          video_liveness_url?: string | null
         }
         Update: {
+          additional_documents?: Json | null
           admin_notes?: string | null
           ai_analysis_result?: Json | null
+          ai_processing_time_ms?: number | null
           created_at?: string | null
           date_of_birth?: string | null
+          document_back_analyzed?: boolean | null
           document_back_url?: string | null
           document_front_url?: string
           document_quality_score?: number | null
           document_type?: Database["public"]["Enums"]["document_type"]
           face_match_score?: number | null
+          fraud_risk_score?: number | null
           full_name_on_document?: string
           ic_number?: string | null
           id?: string
           liveness_score?: number | null
+          liveness_video_frames?: string[] | null
+          openai_model?: string | null
           overall_confidence_score?: number | null
           rejection_reason?: string | null
           selfie_url?: string
@@ -1458,6 +1565,7 @@ export type Database = {
           user_id?: string
           verified_at?: string | null
           verified_by?: string | null
+          video_liveness_url?: string | null
         }
         Relationships: [
           {

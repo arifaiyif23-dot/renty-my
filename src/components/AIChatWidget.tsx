@@ -39,15 +39,19 @@ export const AIChatWidget = () => {
     setIsLoading(true);
 
     try {
+      // Use OpenAI-powered support chat
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gemini-support-chat`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-support-chat`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ messages: [...messages, userMessage] }),
+          body: JSON.stringify({ 
+            messages: [...messages, userMessage],
+            userId: (await supabase.auth.getUser()).data.user?.id
+          }),
         }
       );
 
@@ -61,20 +65,29 @@ export const AIChatWidget = () => {
 
       setMessages(prev => [...prev, { role: "assistant", content: "" }]);
 
+      let buffer = "";
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        
+        // Keep the last partial line in the buffer
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+            
             try {
-              const data = JSON.parse(line.slice(6));
-              const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (text) {
-                assistantContent += text;
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              
+              if (delta) {
+                assistantContent += delta;
                 setMessages(prev => {
                   const newMessages = [...prev];
                   newMessages[newMessages.length - 1].content = assistantContent;

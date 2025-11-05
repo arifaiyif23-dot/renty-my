@@ -10,10 +10,11 @@ import { toast } from "sonner";
 import { Camera, Upload, CheckCircle, XCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, FileText, User } from "lucide-react";
 import Header from "@/components/Header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VideoLivenessCapture } from "@/components/VideoLivenessCapture";
 
 type DocumentType = "mykad" | "passport" | "driving_license";
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 export default function Verification() {
   const { user } = useAuth();
@@ -23,6 +24,9 @@ export default function Verification() {
   const [documentFront, setDocumentFront] = useState<File | null>(null);
   const [documentBack, setDocumentBack] = useState<File | null>(null);
   const [selfie, setSelfie] = useState<File | null>(null);
+  const [livenessVideo, setLivenessVideo] = useState<Blob | null>(null);
+  const [livenessFrames, setLivenessFrames] = useState<Blob[]>([]);
+  const [useVideoLiveness, setUseVideoLiveness] = useState(true);
   const [loading, setLoading] = useState(false);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
