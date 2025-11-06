@@ -28,13 +28,32 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchStats();
       fetchVerificationStatus();
+      checkAdminRole();
     }
   }, [user]);
+
+  const checkAdminRole = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!error && data) {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      console.error("Error checking admin role:", error);
+    }
+  };
 
   const fetchVerificationStatus = async () => {
     try {
@@ -181,6 +200,14 @@ export default function Profile() {
                     <ListChecks className="h-4 w-4 mr-2" />
                     {t('profile.manageListing')}
                   </Button>
+                  {isAdmin && (
+                    <Link to="/admin">
+                      <Button size="sm" variant="secondary" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </Button>
+                    </Link>
+                  )}
                   <Link to="/dashboard">
                     <Button size="sm" variant="outline">Dashboard</Button>
                   </Link>
