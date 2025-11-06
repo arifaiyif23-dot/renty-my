@@ -59,8 +59,8 @@ export default function Verification() {
     toast.success("Image uploaded successfully");
   };
 
-  const uploadToStorage = async (file: File, path: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
+  const uploadToStorage = async (file: File | Blob, path: string): Promise<string> => {
+    const fileExt = file instanceof File ? file.name.split('.').pop() : 'webm';
     const fileName = `${path}-${Date.now()}.${fileExt}`;
     const filePath = `${user?.id}/${fileName}`;
 
@@ -70,8 +70,13 @@ export default function Verification() {
 
     if (uploadError) throw uploadError;
 
-    // Return the storage path instead of public URL (will be accessed via signed URLs)
     return `verification-documents/${filePath}`;
+  };
+
+  const handleVideoCapture = (videoBlob: Blob, frames: Blob[]) => {
+    setLivenessVideo(videoBlob);
+    setLivenessFrames(frames);
+    toast.success("Video liveness check completed!");
   };
 
   const handleSubmit = async () => {
@@ -89,13 +94,45 @@ export default function Verification() {
     setCurrentStep(5);
 
     try {
-      // Upload images to storage
+      // Upload all documents
       toast.info("Uploading documents...");
-      const [frontUrl, backUrl, selfieUrl] = await Promise.all([
+      
+      const uploadPromises = [
         uploadToStorage(documentFront, 'document-front'),
-        documentType === "mykad" && documentBack ? uploadToStorage(documentBack, 'document-back') : Promise.resolve(null),
         uploadToStorage(selfie, 'selfie')
-      ]);
+      ];
+
+      if (documentType === "mykad" && documentBack) {
+        uploadPromises.push(uploadToStorage(documentBack, 'document-back'));
+      }
+
+      // Upload video and frames if available
+      if (livenessVideo) {
+        uploadPromises.push(uploadToStorage(livenessVideo, 'liveness-video'));
+      }
+      if (livenessFrames.length > 0) {
+        livenessFrames.forEach((frame, idx) => {
+          uploadPromises.push(uploadToStorage(frame, `liveness-frame-${idx}`));
+        });
+      }
+
+      const uploadResults = await Promise.all(uploadPromises);
+      const frontUrl = uploadResults[0];
+      const selfieUrl = uploadResults[1];
+      let backUrl = null;
+      let videoUrl = null;
+      let frameUrls: string[] = [];
+
+      let resultIndex = 2;
+      if (documentType === "mykad" && documentBack) {
+        backUrl = uploadResults[resultIndex++];
+      }
+      if (livenessVideo) {
+        videoUrl = uploadResults[resultIndex++];
+      }
+      if (livenessFrames.length > 0) {
+        frameUrls = uploadResults.slice(resultIndex);
+      }
 
       // Create verification request
       const { data: verification, error: createError } = await (supabase as any)
@@ -106,7 +143,10 @@ export default function Verification() {
           document_front_url: frontUrl,
           document_back_url: backUrl,
           selfie_url: selfieUrl,
-          status: 'pending'
+          video_liveness_url: videoUrl,
+          liveness_video_frames: frameUrls.length > 0 ? frameUrls : null,
+          status: 'pending',
+          full_name_on_document: 'Pending Extraction'
         })
         .select()
         .single();
@@ -115,21 +155,58 @@ export default function Verification() {
 
       setVerificationId(verification.id);
 
-      // Submit for AI verification
-      toast.info("AI is analyzing your documents...");
-      const { data: submitResult, error: submitError } = await supabase.functions.invoke('submit-verification', {
-        body: { verificationId: verification.id }
+      // Call OpenAI verification directly
+      toast.info("Advanced AI is analyzing your documents...");
+      const { data: aiResult, error: aiError } = await supabase.functions.invoke('openai-verify-document', {
+        body: { 
+          verificationId: verification.id
+        }
       });
 
-      if (submitError) throw submitError;
+      if (aiError) throw aiError;
 
-      if (!submitResult.success) {
-        throw new Error(submitResult.error || "Verification failed");
+      if (!aiResult.success) {
+        throw new Error(aiResult.error || "Verification failed");
       }
 
-      setResult(submitResult);
+      // Update verification with AI results
+      const { error: updateError } = await (supabase as any)
+        .from('verification_requests')
+        .update({
+          document_quality_score: aiResult.extractedInfo?.qualityScore,
+          face_match_score: aiResult.faceMatchResult?.faceMatchScore,
+          liveness_score: aiResult.faceMatchResult?.livenessScore,
+          overall_confidence_score: aiResult.overallConfidence,
+          fraud_risk_score: aiResult.fraudRiskScore,
+          ai_analysis_result: {
+            extracted: aiResult.extractedInfo,
+            faceMatch: aiResult.faceMatchResult
+          },
+          openai_model: aiResult.openaiModel,
+          ai_processing_time_ms: aiResult.processingTimeMs,
+          status: aiResult.autoApprove ? 'approved' : 'pending',
+          full_name_on_document: aiResult.extractedInfo?.extractedData?.fullName || 'Unknown'
+        })
+        .eq('id', verification.id);
+
+      if (updateError) throw updateError;
+
+      // If auto-approved, update profile
+      if (aiResult.autoApprove) {
+        await (supabase as any)
+          .from('profiles')
+          .update({ is_verified: true })
+          .eq('id', user?.id);
+      }
+
+      setResult({
+        success: true,
+        autoApproved: aiResult.autoApprove,
+        confidence: aiResult.overallConfidence,
+        details: aiResult
+      });
       
-      if (submitResult.autoApproved) {
+      if (aiResult.autoApprove) {
         toast.success("Verification approved! Your identity has been verified.");
       } else {
         toast.info("Your verification is under review by our team.");
@@ -157,8 +234,8 @@ export default function Verification() {
       toast.error("Please upload document back");
       return;
     }
-    if (currentStep === 4 && !selfie) {
-      toast.error("Please upload a selfie");
+    if (currentStep === 4 && !selfie && !livenessVideo) {
+      toast.error("Please complete selfie or video liveness check");
       return;
     }
 
@@ -314,55 +391,68 @@ export default function Verification() {
               </div>
             )}
 
-            {/* Step 4: Upload Selfie */}
+            {/* Step 4: Video Liveness or Selfie */}
             {currentStep === 4 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  <h3 className="text-lg font-semibold">Take a Selfie</h3>
+                  <h3 className="text-lg font-semibold">Identity Verification</h3>
                 </div>
-                <input
-                  ref={selfieInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="user"
-                  className="hidden"
-                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null, 'selfie')}
-                />
-                <div className="bg-muted p-4 rounded-lg mb-4">
-                  <h4 className="font-medium mb-2">Tips for a good selfie:</h4>
-                  <ul className="text-sm space-y-1 text-muted-foreground">
-                    <li>• Face the camera directly</li>
-                    <li>• Ensure good lighting</li>
-                    <li>• Remove glasses if possible</li>
-                    <li>• Keep a neutral expression</li>
-                  </ul>
-                </div>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  {selfie ? (
-                    <div className="space-y-4">
-                      <img 
-                        src={URL.createObjectURL(selfie)} 
-                        alt="Selfie" 
-                        className="max-h-64 mx-auto rounded"
-                      />
-                      <Button variant="outline" onClick={() => selfieInputRef.current?.click()}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Retake Selfie
-                      </Button>
+                
+                {useVideoLiveness ? (
+                  <VideoLivenessCapture 
+                    onCapture={handleVideoCapture}
+                    onSkip={() => setUseVideoLiveness(false)}
+                  />
+                ) : (
+                  <>
+                    <input
+                      ref={selfieInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      className="hidden"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0] || null, 'selfie')}
+                    />
+                    <div className="bg-muted p-4 rounded-lg mb-4">
+                      <h4 className="font-medium mb-2">Tips for a good selfie:</h4>
+                      <ul className="text-sm space-y-1 text-muted-foreground">
+                        <li>• Face the camera directly</li>
+                        <li>• Ensure good lighting</li>
+                        <li>• Remove glasses if possible</li>
+                        <li>• Keep a neutral expression</li>
+                      </ul>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <Camera className="h-12 w-12 mx-auto text-muted-foreground" />
-                      <div>
-                        <Button onClick={() => selfieInputRef.current?.click()}>
-                          <Camera className="h-4 w-4 mr-2" />
-                          Take Selfie
-                        </Button>
-                      </div>
+                    <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                      {selfie ? (
+                        <div className="space-y-4">
+                          <img 
+                            src={URL.createObjectURL(selfie)} 
+                            alt="Selfie" 
+                            className="max-h-64 mx-auto rounded"
+                          />
+                          <Button variant="outline" onClick={() => selfieInputRef.current?.click()}>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Retake Selfie
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <Camera className="h-12 w-12 mx-auto text-muted-foreground" />
+                          <div>
+                            <Button onClick={() => selfieInputRef.current?.click()}>
+                              <Camera className="h-4 w-4 mr-2" />
+                              Take Selfie
+                            </Button>
+                          </div>
+                          <Button variant="link" onClick={() => setUseVideoLiveness(true)}>
+                            Use Video Liveness Instead (More Secure)
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             )}
 
