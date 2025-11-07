@@ -137,7 +137,7 @@ serve(async (req) => {
     const { error: rentalUpdateError } = await supabaseServiceClient
       .from('rentals')
       .update({ 
-        status: 'confirmed',
+        status: 'completed',
         payment_status: 'paid',
         updated_at: new Date().toISOString()
       })

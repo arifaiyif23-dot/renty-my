@@ -809,6 +809,30 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           completed_at: string | null
@@ -1757,7 +1781,18 @@ export type Database = {
         Returns: number
       }
       check_promo_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
+      check_rate_limit: {
+        Args: {
+          p_action: string
+          p_ip_address: unknown
+          p_max_attempts: number
+          p_user_id: string
+          p_window_seconds: number
+        }
+        Returns: boolean
+      }
       cleanup_expired_payment_locks: { Args: never; Returns: undefined }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       deduct_wallet_balance: {
         Args: {
           p_amount: number

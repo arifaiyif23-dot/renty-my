@@ -1,11 +1,5 @@
 project_id = "rxwmzfaghsdouepbfrnr"
 
-[functions.gemini-analyze-item]
-verify_jwt = false
-
-[functions.gemini-support-chat]
-verify_jwt = false
-
 [functions.openai-verify-document]
 verify_jwt = true
 
@@ -29,9 +23,6 @@ verify_jwt = true
 
 [functions.check-payment-status]
 verify_jwt = true
-
-[functions.verify-document-ai]
-verify_jwt = false
 
 [functions.submit-verification]
 verify_jwt = true
