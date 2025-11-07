@@ -50,14 +50,14 @@ export const DisputeCenter = ({ rentalId }: DisputeCenterProps) => {
     // Upload evidence files if any
     const evidenceUrls: string[] = [];
     for (const file of evidence) {
-      const fileName = `${rentalId}/${Date.now()}-${file.name}`;
+      const fileName = `disputes/${rentalId}/${Date.now()}-${file.name}`;
       const { data, error: uploadError } = await supabase.storage
-        .from("verification-documents")
+        .from("item-images")
         .upload(fileName, file);
 
       if (!uploadError && data) {
         const { data: urlData } = supabase.storage
-          .from("verification-documents")
+          .from("item-images")
           .getPublicUrl(data.path);
         evidenceUrls.push(urlData.publicUrl);
       }

@@ -35,19 +35,21 @@ const Header = () => {
     .join("")
     .toUpperCase() || "U";
 
-  // Check admin status
+  // Check admin status using server-side verification
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
 
     const checkAdminStatus = async () => {
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      setIsAdmin(!!data);
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-admin');
+        setIsAdmin(!error && data?.isAdmin === true);
+      } catch (error) {
+        console.error('Admin verification error:', error);
+        setIsAdmin(false);
+      }
     };
 
     checkAdminStatus();

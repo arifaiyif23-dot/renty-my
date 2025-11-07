@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { AIChatWidget } from "@/components/AIChatWidget";
 import Index from "./pages/Index";
@@ -47,9 +48,9 @@ function AppRoutes() {
         <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
         <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
         <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/verifications" element={<ProtectedRoute><AdminVerification /></ProtectedRoute>} />
-        <Route path="/admin/payments" element={<ProtectedRoute><AdminPayments /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <MobileBottomNav />

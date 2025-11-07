@@ -40,18 +40,11 @@ export default function Profile() {
 
   const checkAdminRole = async () => {
     try {
-      const { data, error } = await (supabase as any)
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (!error && data) {
-        setIsAdmin(true);
-      }
+      const { data, error } = await supabase.functions.invoke('verify-admin');
+      setIsAdmin(!error && data?.isAdmin === true);
     } catch (error) {
       console.error("Error checking admin role:", error);
+      setIsAdmin(false);
     }
   };
 
