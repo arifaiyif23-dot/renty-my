@@ -53,9 +53,19 @@ serve(async (req) => {
 
     const downloadedImages = await Promise.all(downloadPromises);
 
-    // Convert to base64
-    const toBase64 = (buffer: ArrayBuffer) => 
-      btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    // Convert to base64 (chunked to avoid stack overflow)
+    const toBase64 = (buffer: ArrayBuffer): string => {
+      const bytes = new Uint8Array(buffer);
+      const CHUNK_SIZE = 8192;
+      let binary = '';
+      
+      for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+        const chunk = bytes.slice(i, i + CHUNK_SIZE);
+        binary += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      
+      return btoa(binary);
+    };
 
     let imageIndex = 0;
     const frontBase64 = toBase64(downloadedImages[imageIndex++]);

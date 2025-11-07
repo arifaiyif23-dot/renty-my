@@ -170,64 +170,82 @@ export default function Verification() {
       const frameSignedUrls = frameUrls.length > 0 ? signedUrls.slice(urlIndex).map(r => r.data?.signedUrl).filter(Boolean) : [];
 
       // Call OpenAI verification with actual URLs
-      toast.info("Advanced AI is analyzing your documents...");
-      const { data: aiResult, error: aiError } = await supabase.functions.invoke('openai-verify-document', {
-        body: { 
-          documentFrontUrl: frontSignedUrl,
-          documentBackUrl: backSignedUrl,
-          selfieUrl: selfieSignedUrl,
-          livenessVideoFrames: frameSignedUrls,
-          documentType: documentType
-        }
-      });
-
-      if (aiError) throw aiError;
-
-      if (!aiResult.success) {
-        throw new Error(aiResult.error || "Verification failed");
-      }
-
-      // Update verification with AI results
-      const { error: updateError } = await (supabase as any)
-        .from('verification_requests')
-        .update({
-          document_quality_score: aiResult.extractedInfo?.qualityScore,
-          face_match_score: aiResult.faceMatchResult?.faceMatchScore,
-          liveness_score: aiResult.faceMatchResult?.livenessScore,
-          overall_confidence_score: aiResult.overallConfidence,
-          fraud_risk_score: aiResult.fraudRiskScore,
-          ai_analysis_result: {
-            extracted: aiResult.extractedInfo,
-            faceMatch: aiResult.faceMatchResult
-          },
-          openai_model: aiResult.openaiModel,
-          ai_processing_time_ms: aiResult.processingTimeMs,
-          status: aiResult.autoApprove ? 'approved' : 'pending',
-          full_name_on_document: aiResult.extractedInfo?.extractedData?.fullName || 'Unknown'
-        })
-        .eq('id', verification.id);
-
-      if (updateError) throw updateError;
-
-      // If auto-approved, update profile
-      if (aiResult.autoApprove) {
-        await (supabase as any)
-          .from('profiles')
-          .update({ is_verified: true })
-          .eq('id', user?.id);
-      }
-
-      setResult({
-        success: true,
-        autoApproved: aiResult.autoApprove,
-        confidence: aiResult.overallConfidence,
-        details: aiResult
-      });
+      let aiResult = null;
+      let aiError = null;
       
-      if (aiResult.autoApprove) {
-        toast.success("Verification approved! Your identity has been verified.");
+      try {
+        toast.info("Advanced AI is analyzing your documents...");
+        const response = await supabase.functions.invoke('openai-verify-document', {
+          body: { 
+            documentFrontUrl: frontSignedUrl,
+            documentBackUrl: backSignedUrl,
+            selfieUrl: selfieSignedUrl,
+            livenessVideoFrames: frameSignedUrls,
+            documentType: documentType
+          }
+        });
+        aiResult = response.data;
+        aiError = response.error;
+      } catch (error) {
+        console.error('AI verification failed, will proceed with manual review:', error);
+        aiError = error;
+      }
+
+      // Update verification based on AI results or set for manual review
+      if (!aiError && aiResult?.success) {
+        // AI verification successful
+        const { error: updateError } = await (supabase as any)
+          .from('verification_requests')
+          .update({
+            document_quality_score: aiResult.extractedInfo?.qualityScore,
+            face_match_score: aiResult.faceMatchResult?.faceMatchScore,
+            liveness_score: aiResult.faceMatchResult?.livenessScore,
+            overall_confidence_score: aiResult.overallConfidence,
+            fraud_risk_score: aiResult.fraudRiskScore,
+            ai_analysis_result: {
+              extracted: aiResult.extractedInfo,
+              faceMatch: aiResult.faceMatchResult
+            },
+            openai_model: aiResult.openaiModel,
+            ai_processing_time_ms: aiResult.processingTimeMs,
+            status: aiResult.autoApprove ? 'approved' : 'pending',
+            full_name_on_document: aiResult.extractedInfo?.extractedData?.fullName || 'Pending Review'
+          })
+          .eq('id', verification.id);
+
+        if (updateError) throw updateError;
+
+        // If auto-approved, update profile
+        if (aiResult.autoApprove) {
+          await (supabase as any)
+            .from('profiles')
+            .update({ is_verified: true })
+            .eq('id', user?.id);
+        }
+
+        setResult({
+          success: true,
+          autoApproved: aiResult.autoApprove,
+          confidence: aiResult.overallConfidence,
+          details: aiResult
+        });
+        
+        if (aiResult.autoApprove) {
+          toast.success("Verification approved! Your identity has been verified.");
+        } else {
+          toast.info("Your verification is under review by our team.");
+        }
       } else {
-        toast.info("Your verification is under review by our team.");
+        // AI failed - verification already created, just notify for manual review
+        console.log('AI verification skipped, proceeding with manual review');
+        toast.info("Your documents have been submitted for manual review by our admin team.");
+        
+        setResult({
+          success: true,
+          autoApproved: false,
+          confidence: 0,
+          details: { message: "Submitted for manual admin review" }
+        });
       }
 
     } catch (error: any) {
