@@ -155,11 +155,29 @@ export default function Verification() {
 
       setVerificationId(verification.id);
 
-      // Call OpenAI verification directly
+      // Get signed URLs for the edge function to access
+      const signedUrls = await Promise.all([
+        supabase.storage.from('verification-documents').createSignedUrl(frontUrl.replace('verification-documents/', ''), 3600),
+        supabase.storage.from('verification-documents').createSignedUrl(selfieUrl.replace('verification-documents/', ''), 3600),
+        ...(backUrl ? [supabase.storage.from('verification-documents').createSignedUrl(backUrl.replace('verification-documents/', ''), 3600)] : []),
+        ...(frameUrls.map(url => supabase.storage.from('verification-documents').createSignedUrl(url.replace('verification-documents/', ''), 3600)))
+      ]);
+
+      let urlIndex = 0;
+      const frontSignedUrl = signedUrls[urlIndex++].data?.signedUrl;
+      const selfieSignedUrl = signedUrls[urlIndex++].data?.signedUrl;
+      const backSignedUrl = backUrl ? signedUrls[urlIndex++].data?.signedUrl : null;
+      const frameSignedUrls = frameUrls.length > 0 ? signedUrls.slice(urlIndex).map(r => r.data?.signedUrl).filter(Boolean) : [];
+
+      // Call OpenAI verification with actual URLs
       toast.info("Advanced AI is analyzing your documents...");
       const { data: aiResult, error: aiError } = await supabase.functions.invoke('openai-verify-document', {
         body: { 
-          verificationId: verification.id
+          documentFrontUrl: frontSignedUrl,
+          documentBackUrl: backSignedUrl,
+          selfieUrl: selfieSignedUrl,
+          livenessVideoFrames: frameSignedUrls,
+          documentType: documentType
         }
       });
 
