@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Loader2, Eye, Search, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, CheckSquare, Square, Calendar } from "lucide-react";
 import Header from "@/components/Header";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { getSignedUrl } from "@/utils/signedUrls";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface VerificationRequest {
   id: string;
@@ -29,6 +31,7 @@ interface VerificationRequest {
   face_match_score: number | null;
   liveness_score: number | null;
   overall_confidence_score: number | null;
+  fraud_risk_score: number | null;
   ai_analysis_result: any;
   created_at: string;
   profiles: {
@@ -36,9 +39,32 @@ interface VerificationRequest {
   };
 }
 
+interface FraudAlert {
+  id: string;
+  user_id: string;
+  alert_type: string;
+  risk_score: number;
+  status: string;
+  details: any;
+  created_at: string;
+  profiles: {
+    full_name: string;
+  };
+}
+
+interface DashboardStats {
+  pendingCount: number;
+  approvedToday: number;
+  rejectedToday: number;
+  highRiskCount: number;
+  avgConfidenceScore: number;
+}
+
 export default function AdminVerification() {
   const { user } = useAuth();
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
+  const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedVerification, setSelectedVerification] = useState<VerificationRequest | null>(null);
   const [showDialog, setShowDialog] = useState(false);
@@ -46,16 +72,21 @@ export default function AdminVerification() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterDocType, setFilterDocType] = useState("all");
+  const [filterRiskLevel, setFilterRiskLevel] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState("verifications");
 
   useEffect(() => {
-    fetchVerifications();
-  }, [filterStatus]);
+    fetchData();
+  }, [filterStatus, filterDocType, filterRiskLevel]);
 
-  const fetchVerifications = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      // Fetch verifications
+      const { data: verificationsData, error: verError } = await (supabase as any)
         .from('verification_requests')
         .select(`
           *,
@@ -63,15 +94,65 @@ export default function AdminVerification() {
         `)
         .order('created_at', { ascending: false });
 
-      let filtered = data || [];
+      if (verError) throw verError;
+
+      // Fetch fraud alerts
+      const { data: fraudData, error: fraudError } = await (supabase as any)
+        .from('fraud_alerts')
+        .select(`
+          *,
+          profiles(full_name)
+        `)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (fraudError) throw fraudError;
+
+      // Calculate stats
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      const pending = verificationsData?.filter((v: any) => v.status === 'pending').length || 0;
+      const approvedToday = verificationsData?.filter((v: any) => 
+        v.status === 'approved' && new Date(v.verified_at) >= today
+      ).length || 0;
+      const rejectedToday = verificationsData?.filter((v: any) => 
+        v.status === 'rejected' && new Date(v.verified_at) >= today
+      ).length || 0;
+      const highRisk = verificationsData?.filter((v: any) => 
+        v.fraud_risk_score && v.fraud_risk_score > 50
+      ).length || 0;
+      const avgScore = verificationsData?.reduce((acc: number, v: any) => 
+        acc + (v.overall_confidence_score || 0), 0
+      ) / (verificationsData?.length || 1);
+
+      setStats({
+        pendingCount: pending,
+        approvedToday,
+        rejectedToday,
+        highRiskCount: highRisk,
+        avgConfidenceScore: Math.round(avgScore)
+      });
+
+      // Apply filters
+      let filtered = verificationsData || [];
       if (filterStatus !== "all") {
         filtered = filtered.filter((v: any) => v.status === filterStatus);
       }
+      if (filterDocType !== "all") {
+        filtered = filtered.filter((v: any) => v.document_type === filterDocType);
+      }
+      if (filterRiskLevel === "high") {
+        filtered = filtered.filter((v: any) => v.fraud_risk_score && v.fraud_risk_score > 50);
+      } else if (filterRiskLevel === "low") {
+        filtered = filtered.filter((v: any) => !v.fraud_risk_score || v.fraud_risk_score <= 50);
+      }
 
       setVerifications(filtered);
+      setFraudAlerts(fraudData || []);
     } catch (error) {
-      console.error("Error fetching verifications:", error);
-      toast.error("Failed to load verifications");
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -137,12 +218,76 @@ export default function AdminVerification() {
       setActionType(null);
       setRejectionReason("");
       setAdminNotes("");
-      fetchVerifications();
+      fetchData();
     } catch (error) {
       console.error("Error processing verification:", error);
       toast.error("Failed to process verification");
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleBatchApprove = async () => {
+    if (selectedIds.size === 0) {
+      toast.error("Please select verifications to approve");
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const updates = Array.from(selectedIds).map(id => 
+        (supabase as any)
+          .from('verification_requests')
+          .update({
+            status: 'approved',
+            verified_by: user?.id,
+            verified_at: new Date().toISOString()
+          })
+          .eq('id', id)
+      );
+
+      await Promise.all(updates);
+
+      // Create notifications
+      const notifications = Array.from(selectedIds).map(id => {
+        const verification = verifications.find(v => v.id === id);
+        return (supabase as any).from('notifications').insert({
+          user_id: verification?.user_id,
+          type: 'verification_approved',
+          title: 'Verification Approved!',
+          message: 'Your identity has been verified successfully.',
+          link: '/profile'
+        });
+      });
+
+      await Promise.all(notifications);
+
+      toast.success(`${selectedIds.size} verifications approved successfully`);
+      setSelectedIds(new Set());
+      fetchData();
+    } catch (error) {
+      console.error("Batch approval error:", error);
+      toast.error("Failed to approve verifications");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredVerifications.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredVerifications.map(v => v.id)));
     }
   };
 
@@ -195,64 +340,192 @@ export default function AdminVerification() {
       <Header />
       <div className="container mx-auto p-4 max-w-7xl pb-mobile-nav">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Verification Management</h1>
-          <p className="text-muted-foreground">Review and manage user verification requests</p>
+          <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
+          <p className="text-muted-foreground">Review verifications, manage fraud alerts, and approve users</p>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by name or IC number..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Verifications List */}
-        <div className="grid gap-4">
-          {filteredVerifications.length === 0 ? (
+        {/* Stats Dashboard */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                No verification requests found
+              <CardHeader className="pb-3">
+                <CardDescription>Pending Review</CardDescription>
+                <CardTitle className="text-3xl">{stats.pendingCount}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Approved Today</CardDescription>
+                <CardTitle className="text-3xl text-green-600">{stats.approvedToday}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Rejected Today</CardDescription>
+                <CardTitle className="text-3xl text-red-600">{stats.rejectedToday}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>High Risk</CardDescription>
+                <CardTitle className="text-3xl text-orange-600">{stats.highRiskCount}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Avg Confidence</CardDescription>
+                <CardTitle className="text-3xl">{stats.avgConfidenceScore}%</CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+        )}
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="verifications">
+              Verifications ({stats?.pendingCount || 0})
+            </TabsTrigger>
+            <TabsTrigger value="fraud">
+              Fraud Alerts ({fraudAlerts.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="verifications">
+            {/* Filters */}
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="md:col-span-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by name or IC number..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger>
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterDocType} onValueChange={setFilterDocType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Document Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="mykad">MyKad</SelectItem>
+                      <SelectItem value="passport">Passport</SelectItem>
+                      <SelectItem value="driving_license">Driving License</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Select value={filterRiskLevel} onValueChange={setFilterRiskLevel}>
+                    <SelectTrigger className="w-[200px]">
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Risk Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Risk Levels</SelectItem>
+                      <SelectItem value="low">Low Risk</SelectItem>
+                      <SelectItem value="high">High Risk</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {selectedIds.size > 0 && (
+                    <div className="flex gap-2">
+                      <Badge variant="secondary">{selectedIds.size} selected</Badge>
+                      <Button
+                        size="sm"
+                        onClick={handleBatchApprove}
+                        disabled={processing}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {processing ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                        )}
+                        Batch Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedIds(new Set())}
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-          ) : (
-            filteredVerifications.map((verification) => (
-              <Card key={verification.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{verification.full_name_on_document}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        User: {verification.profiles?.full_name} | Submitted: {format(new Date(verification.created_at), "MMM dd, yyyy HH:mm")}
-                      </p>
-                    </div>
-                    {getStatusBadge(verification.status)}
-                  </div>
-                </CardHeader>
+
+            {/* Verifications List */}
+            {filteredVerifications.length > 0 && (
+              <div className="mb-4 flex items-center gap-2">
+                <Checkbox
+                  checked={selectedIds.size === filteredVerifications.length && filteredVerifications.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                  id="select-all"
+                />
+                <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                  Select All
+                </label>
+              </div>
+            )}
+            
+            <div className="grid gap-4">
+              {filteredVerifications.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No verification requests found
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredVerifications.map((verification) => (
+                  <Card key={verification.id} className={verification.fraud_risk_score && verification.fraud_risk_score > 50 ? 'border-orange-500' : ''}>
+                    <CardHeader>
+                      <div className="flex items-start gap-4">
+                        {verification.status === 'pending' && (
+                          <Checkbox
+                            checked={selectedIds.has(verification.id)}
+                            onCheckedChange={() => toggleSelection(verification.id)}
+                            className="mt-1"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                {verification.full_name_on_document}
+                                {verification.fraud_risk_score && verification.fraud_risk_score > 50 && (
+                                  <Badge variant="destructive" className="ml-2">
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    High Risk
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                User: {verification.profiles?.full_name} | Submitted: {format(new Date(verification.created_at), "MMM dd, yyyy HH:mm")}
+                              </p>
+                            </div>
+                            {getStatusBadge(verification.status)}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
@@ -342,11 +615,90 @@ export default function AdminVerification() {
                       </>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                  </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="fraud">
+            <div className="grid gap-4">
+              {fraudAlerts.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No pending fraud alerts
+                  </CardContent>
+                </Card>
+              ) : (
+                fraudAlerts.map((alert) => (
+                  <Card key={alert.id} className="border-red-500">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <ShieldAlert className="h-5 w-5 text-red-500" />
+                            {alert.alert_type.replace(/_/g, ' ').toUpperCase()}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            User: {alert.profiles?.full_name} | {format(new Date(alert.created_at), "MMM dd, yyyy HH:mm")}
+                          </p>
+                        </div>
+                        <Badge variant="destructive">Risk: {alert.risk_score}%</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-red-50 dark:bg-red-950 p-4 rounded-lg mb-4">
+                        <p className="text-sm font-medium mb-2">Alert Details:</p>
+                        <pre className="text-xs overflow-auto">
+                          {JSON.stringify(alert.details, null, 2)}
+                        </pre>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            try {
+                              await (supabase as any)
+                                .from('fraud_alerts')
+                                .update({ status: 'reviewed', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+                                .eq('id', alert.id);
+                              toast.success("Alert marked as reviewed");
+                              fetchData();
+                            } catch (error) {
+                              toast.error("Failed to update alert");
+                            }
+                          }}
+                        >
+                          Mark as Reviewed
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={async () => {
+                            try {
+                              await (supabase as any)
+                                .from('fraud_alerts')
+                                .update({ status: 'escalated', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
+                                .eq('id', alert.id);
+                              toast.success("Alert escalated");
+                              fetchData();
+                            } catch (error) {
+                              toast.error("Failed to escalate alert");
+                            }
+                          }}
+                        >
+                          Escalate
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Action Dialog */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
