@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, CheckSquare, Square, Calendar } from "lucide-react";
 import Header from "@/components/Header";
 import { format } from "date-fns";
@@ -62,6 +63,7 @@ interface DashboardStats {
 
 export default function AdminVerification() {
   const { user } = useAuth();
+  const { stats: realtimeStats, connectionState, resetStats } = useAdminRealtime();
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
   const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -81,6 +83,8 @@ export default function AdminVerification() {
 
   useEffect(() => {
     fetchData();
+    // Reset notification counters when viewing the page
+    resetStats();
   }, [filterStatus, filterDocType, filterRiskLevel]);
 
   const fetchData = async () => {
@@ -339,9 +343,17 @@ export default function AdminVerification() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-7xl pb-mobile-nav">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
-          <p className="text-muted-foreground">Review verifications, manage fraud alerts, and approve users</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
+            <p className="text-muted-foreground">Review verifications, manage fraud alerts, and approve users</p>
+          </div>
+          {connectionState === 'connected' && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <span>Live Updates Active</span>
+            </div>
+          )}
         </div>
 
         {/* Stats Dashboard */}
