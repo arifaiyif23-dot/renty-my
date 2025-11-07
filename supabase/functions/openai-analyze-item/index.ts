@@ -1,9 +1,47 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Input validation schema
+const validateInput = (input: any) => {
+  if (!input.imageUrls || !Array.isArray(input.imageUrls)) {
+    throw new Error('imageUrls must be an array');
+  }
+  if (input.imageUrls.length < 1 || input.imageUrls.length > 10) {
+    throw new Error('imageUrls must contain 1-10 URLs');
+  }
+  
+  const title = String(input.title || '').trim().slice(0, 200);
+  const description = String(input.description || '').trim().slice(0, 2000);
+  const category = String(input.category || '').trim().slice(0, 100);
+  
+  // Block prompt injection patterns
+  const suspiciousPatterns = [
+    /ignore.*(previous|above|system).*(instruction|prompt|rule)/gi,
+    /repeat.*(prompt|instruction|system)/gi,
+    /you are now/gi,
+    /DAN mode/gi,
+    /forget.*instead/gi,
+  ];
+  
+  const textToCheck = `${title} ${description}`;
+  for (const pattern of suspiciousPatterns) {
+    if (pattern.test(textToCheck)) {
+      throw new Error('Invalid input detected');
+    }
+  }
+  
+  return { 
+    imageUrls: input.imageUrls,
+    title, 
+    description, 
+    category 
+  };
 };
 
 serve(async (req) => {
@@ -12,12 +50,51 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrls, title, description, category } = await req.json();
+    // Authenticate user
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Invalid authentication');
+    }
+
+    // Rate limiting: 5 analyses per hour
+    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const { data: allowed } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_ip_address: ipAddress,
+      p_action: 'ai_item_analysis',
+      p_max_attempts: 5,
+      p_window_seconds: 3600
+    });
+
+    if (allowed === false) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Rate limit exceeded. Maximum 5 analyses per hour.' 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate and sanitize input
+    const rawInput = await req.json();
+    const { imageUrls, title, description, category } = validateInput(rawInput);
 
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     
     if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY not configured");
+      throw new Error("Service configuration error");
     }
 
     // Download and convert images to base64
@@ -148,12 +225,12 @@ Return ONLY valid JSON (no markdown, no extra text):
       console.error("OpenAI analysis failed:", response.status, errorText);
       
       if (response.status === 429) {
-        throw new Error("Rate limit exceeded. Please try again later.");
+        throw new Error("RATE_LIMIT");
       }
       if (response.status === 402) {
-        throw new Error("OpenAI credits exhausted. Please contact support.");
+        throw new Error("CREDITS_EXHAUSTED");
       }
-      throw new Error("OpenAI analysis failed");
+      throw new Error("SERVICE_ERROR");
     }
 
     const data = await response.json();
@@ -173,14 +250,31 @@ Return ONLY valid JSON (no markdown, no extra text):
 
   } catch (error) {
     console.error("Item analysis error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    
+    // Generic error messages for security
+    let userMessage = "An error occurred processing your request.";
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message === 'RATE_LIMIT' || error.message === 'CREDITS_EXHAUSTED') {
+        userMessage = "Service temporarily unavailable. Please try again later.";
+        statusCode = 503;
+      } else if (error.message.includes('Authentication') || error.message.includes('Rate limit')) {
+        userMessage = error.message;
+        statusCode = error.message.includes('Rate limit') ? 429 : 401;
+      } else if (error.message.includes('Invalid input')) {
+        userMessage = "Invalid input provided.";
+        statusCode = 400;
+      }
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: errorMessage
+        error: userMessage
       }),
       { 
-        status: 500, 
+        status: statusCode, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
       }
     );

@@ -10,10 +10,10 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.openai-analyze-item]
-verify_jwt = false
+verify_jwt = true
 
 [functions.openai-support-chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.openai-fraud-detection]
 verify_jwt = true

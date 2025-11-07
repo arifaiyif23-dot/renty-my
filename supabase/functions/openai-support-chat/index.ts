@@ -7,64 +7,123 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation
+const validateInput = (messages: any[]) => {
+  if (!Array.isArray(messages)) {
+    throw new Error('Messages must be an array');
+  }
+  
+  const suspiciousPatterns = [
+    /ignore.*(previous|above|system).*(instruction|prompt|rule)/gi,
+    /repeat.*(prompt|instruction|system)/gi,
+    /you are now/gi,
+    /forget.*instead/gi,
+  ];
+  
+  return messages.map(msg => {
+    const content = String(msg.content || '').slice(0, 2000);
+    
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(content)) {
+        throw new Error('Invalid input detected');
+      }
+    }
+    
+    return {
+      role: msg.role,
+      content
+    };
+  });
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, sessionId, userId } = await req.json();
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    // Authenticate user
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Invalid authentication');
+    }
+
+    // Rate limiting: 20 messages per hour
+    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const { data: allowed } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: user.id,
+      p_ip_address: ipAddress,
+      p_action: 'ai_support_chat',
+      p_max_attempts: 20,
+      p_window_seconds: 3600
+    });
+
+    if (allowed === false) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Rate limit exceeded. Maximum 20 messages per hour.' 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { messages: rawMessages, sessionId } = await req.json();
+    const messages = validateInput(rawMessages);
+
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    
+    if (!OPENAI_API_KEY) {
+      throw new Error('Service configuration error');
+    }
 
     // Fetch user context for personalized support
-    let userContext: any = {};
-    if (userId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, is_verified')
-        .eq('id', userId)
-        .single();
-      
-      const { data: wallet } = await supabase
-        .from('wallets')
-        .select('balance')
-        .eq('user_id', userId)
-        .single();
-      
-      const { data: activeRentals } = await supabase
-        .from('rentals')
-        .select('id, status, total_price')
-        .or(`renter_id.eq.${userId},owner_id.eq.${userId}`)
-        .in('status', ['pending', 'approved', 'active'])
-        .order('created_at', { ascending: false })
-        .limit(5);
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('full_name, is_verified')
+      .eq('id', user.id)
+      .single();
+    
+    const { data: wallet } = await supabaseClient
+      .from('wallets')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single();
+    
+    const { data: activeRentals } = await supabaseClient
+      .from('rentals')
+      .select('id, status, total_price')
+      .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
+      .in('status', ['pending', 'approved', 'active'])
+      .order('created_at', { ascending: false })
+      .limit(5);
 
-      userContext = {
-        userName: profile?.full_name || 'User',
-        isVerified: profile?.is_verified || false,
-        walletBalance: wallet?.balance || 0,
-        activeRentalsCount: activeRentals?.length || 0,
-        hasActiveBookings: (activeRentals?.length || 0) > 0
-      };
-    }
+    const userContext = {
+      userName: profile?.full_name || 'User',
+      isVerified: profile?.is_verified || false,
+      walletBalance: wallet?.balance || 0,
+      activeRentalsCount: activeRentals?.length || 0,
+      hasActiveBookings: (activeRentals?.length || 0) > 0
+    };
 
     const systemPrompt = `You are RENTY AI Assistant, an advanced support agent for the RENTY peer-to-peer rental marketplace in Malaysia.
 
 USER CONTEXT:
-${userId ? `
 - Name: ${userContext.userName}
 - Verified: ${userContext.isVerified ? 'Yes' : 'No'}
 - Wallet Balance: RM ${userContext.walletBalance}
 - Active Bookings: ${userContext.activeRentalsCount}
-` : 'Not logged in'}
 
 YOUR CAPABILITIES:
 1. **Information**: Explain features, policies, how-to guides
@@ -171,16 +230,15 @@ If you need to check user data or perform actions, use the provided functions.`;
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI chat failed:", response.status, errorText);
+      console.error("OpenAI chat failed:", response.status);
       
       if (response.status === 429) {
-        throw new Error("Rate limit exceeded. Please try again later.");
+        throw new Error("RATE_LIMIT");
       }
       if (response.status === 402) {
-        throw new Error("OpenAI credits exhausted. Please contact support.");
+        throw new Error("CREDITS_EXHAUSTED");
       }
-      throw new Error("OpenAI chat failed");
+      throw new Error("SERVICE_ERROR");
     }
 
     // Stream the response back to client
@@ -190,9 +248,33 @@ If you need to check user data or perform actions, use the provided functions.`;
 
   } catch (error) {
     console.error('Error in openai-support-chat:', error);
+    
+    // Generic error messages for security
+    let userMessage = "An error occurred. Please try again.";
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message === 'RATE_LIMIT' || error.message === 'CREDITS_EXHAUSTED') {
+        userMessage = "Service temporarily unavailable. Please try again later.";
+        statusCode = 503;
+      } else if (error.message.includes('Authentication') || error.message.includes('Rate limit')) {
+        userMessage = error.message;
+        statusCode = error.message.includes('Rate limit') ? 429 : 401;
+      } else if (error.message.includes('Invalid input')) {
+        userMessage = "Invalid input provided.";
+        statusCode = 400;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: false, 
+        error: userMessage
+      }),
+      { 
+        status: statusCode, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     );
   }
 });
