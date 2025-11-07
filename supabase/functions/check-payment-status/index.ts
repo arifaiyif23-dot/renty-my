@@ -12,136 +12,71 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) throw new Error("Missing authorization header");
-
+    // Toyyibpay callback takkan hantar authorization header, jadi kita bypass auth di sini
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const formData = await req.formData();
+    const body = Object.fromEntries(formData.entries());
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) throw new Error("Unauthorized");
+    console.log('Toyyibpay Callback Data:', body);
 
-    const { billCode } = await req.json();
-    if (!billCode) throw new Error("Bill code required");
+    const billCode = body.billcode;
+    const status = body.status;
+    const amount = Number(body.amount);
+    const order_id = body.order_id;
 
-    console.log('Checking payment status for bill:', billCode);
+    if (!billCode) throw new Error("Missing billCode in callback");
 
-    // Get transaction
+    // Cari transaksi dalam DB berdasarkan billcode
     const { data: transaction, error: txError } = await supabase
       .from("wallet_transactions")
       .select("*, wallet:wallets(user_id)")
       .eq("toyyibpay_transaction_id", billCode)
-      .eq("wallet.user_id", user.id)
       .single();
 
     if (txError || !transaction) {
-      throw new Error("Transaction not found");
+      console.error('Transaction not found:', txError);
+      return new Response(JSON.stringify({ success: false, message: 'Transaction not found' }), { headers: corsHeaders });
     }
 
-    // If already completed, return success
-    if (transaction.status === 'completed') {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          status: 'completed',
-          message: 'Payment already processed'
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    if (status === '1') {
+      console.log('✅ Payment success for', billCode);
 
-    // Query ToyyibPay API for bill status
-    const toyyibpaySecretKey = Deno.env.get("TOYYIBPAY_SECRET_KEY");
-    const params = new URLSearchParams({
-      billCode: billCode,
-    });
-
-    const response = await fetch(
-      `https://toyyibpay.com/index.php/api/getBillTransactions?${params}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${toyyibpaySecretKey}`,
-        }
-      }
-    );
-
-    const billStatus = await response.json();
-    console.log('Bill status from ToyyibPay:', billStatus);
-
-    // Check if payment was successful
-    if (Array.isArray(billStatus) && billStatus.length > 0) {
-      const latestTransaction = billStatus[0];
-      
-      if (latestTransaction.billpaymentStatus === '1') {
-        // Payment successful but webhook might have failed
-        console.log('Payment successful, processing manually');
-
-        // Credit wallet atomically
-        const { error: walletError } = await supabase.rpc(
-          "increment_wallet_balance",
-          {
-            p_user_id: transaction.wallet.user_id,
-            p_amount: Number(transaction.amount),
-          }
-        );
+      // Elak duplicate credit
+      if (transaction.status !== 'completed') {
+        const { error: walletError } = await supabase.rpc("increment_wallet_balance", {
+          p_user_id: transaction.wallet.user_id,
+          p_amount: amount,
+        });
 
         if (walletError) throw walletError;
 
-        // Update transaction
         await supabase
           .from("wallet_transactions")
-          .update({ status: "completed" })
+          .update({ status: 'completed' })
           .eq("id", transaction.id);
 
-        // Create notification
         await supabase.from("notifications").insert({
           user_id: transaction.wallet.user_id,
           type: "payment_success",
           title: "Top Up Successful",
-          message: `Your wallet has been topped up with RM ${transaction.amount}`,
+          message: `Your wallet has been topped up with RM ${amount}`,
           link: "/wallet",
         });
 
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            status: 'completed',
-            message: 'Payment processed successfully'
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ success: true, message: 'Payment processed successfully' }), { headers: corsHeaders });
       }
+
+      return new Response(JSON.stringify({ success: true, message: 'Already completed' }), { headers: corsHeaders });
     }
 
-    // Still pending
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        status: 'pending',
-        message: 'Payment is still pending'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    console.log('⚠️ Payment not completed yet:', status);
+    return new Response(JSON.stringify({ success: true, message: 'Pending or failed payment' }), { headers: corsHeaders });
   } catch (error) {
-    console.error('Error checking payment status:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
-      }
-    );
+    console.error('Callback Error:', error);
+    return new Response(JSON.stringify({ success: false, error: error.message }), { headers: corsHeaders, status: 400 });
   }
 });
