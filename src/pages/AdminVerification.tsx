@@ -89,46 +89,77 @@ export default function AdminVerification() {
 
   const fetchData = async () => {
     try {
-      // Fetch verifications
-      const { data: verificationsData, error: verError } = await (supabase as any)
+      setLoading(true);
+      
+      // Fetch verifications without profile join
+      const { data: verificationsData, error: verError } = await supabase
         .from('verification_requests')
-        .select(`
-          *,
-          profiles!inner(full_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (verError) throw verError;
+      if (verError) {
+        console.error("Verification fetch error:", verError);
+        throw verError;
+      }
 
-      // Fetch fraud alerts
-      const { data: fraudData, error: fraudError } = await (supabase as any)
+      // Fetch fraud alerts without profile join
+      const { data: fraudData, error: fraudError } = await supabase
         .from('fraud_alerts')
-        .select(`
-          *,
-          profiles(full_name)
-        `)
+        .select('*')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (fraudError) throw fraudError;
+      if (fraudError) {
+        console.error("Fraud alert fetch error:", fraudError);
+        throw fraudError;
+      }
+
+      // Fetch all unique user profiles
+      const userIds = [
+        ...(verificationsData?.map(v => v.user_id) || []),
+        ...(fraudData?.map(f => f.user_id) || [])
+      ].filter((id): id is string => id !== null);
+      
+      const uniqueUserIds = [...new Set(userIds)];
+
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', uniqueUserIds);
+
+      const profileMap = new Map(
+        profilesData?.map(p => [p.id, p.full_name]) || []
+      );
+
+      // Map verifications with profile names
+      const verificationsWithProfiles = verificationsData?.map(v => ({
+        ...v,
+        profiles: { full_name: profileMap.get(v.user_id) || 'Unknown User' }
+      })) || [];
+
+      // Map fraud alerts with profile names
+      const fraudWithProfiles = fraudData?.map(f => ({
+        ...f,
+        profiles: { full_name: profileMap.get(f.user_id || '') || 'Unknown User' }
+      })) || [];
 
       // Calculate stats
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
-      const pending = verificationsData?.filter((v: any) => v.status === 'pending').length || 0;
-      const approvedToday = verificationsData?.filter((v: any) => 
-        v.status === 'approved' && new Date(v.verified_at) >= today
+      const pending = verificationsWithProfiles?.filter(v => v.status === 'pending').length || 0;
+      const approvedToday = verificationsWithProfiles?.filter(v => 
+        v.status === 'approved' && new Date(v.verified_at || '') >= today
       ).length || 0;
-      const rejectedToday = verificationsData?.filter((v: any) => 
-        v.status === 'rejected' && new Date(v.verified_at) >= today
+      const rejectedToday = verificationsWithProfiles?.filter(v => 
+        v.status === 'rejected' && new Date(v.verified_at || '') >= today
       ).length || 0;
-      const highRisk = verificationsData?.filter((v: any) => 
+      const highRisk = verificationsWithProfiles?.filter(v => 
         v.fraud_risk_score && v.fraud_risk_score > 50
       ).length || 0;
-      const avgScore = verificationsData?.reduce((acc: number, v: any) => 
+      const avgScore = verificationsWithProfiles?.reduce((acc, v) => 
         acc + (v.overall_confidence_score || 0), 0
-      ) / (verificationsData?.length || 1);
+      ) / (verificationsWithProfiles?.length || 1);
 
       setStats({
         pendingCount: pending,
@@ -139,21 +170,21 @@ export default function AdminVerification() {
       });
 
       // Apply filters
-      let filtered = verificationsData || [];
+      let filtered = verificationsWithProfiles || [];
       if (filterStatus !== "all") {
-        filtered = filtered.filter((v: any) => v.status === filterStatus);
+        filtered = filtered.filter(v => v.status === filterStatus);
       }
       if (filterDocType !== "all") {
-        filtered = filtered.filter((v: any) => v.document_type === filterDocType);
+        filtered = filtered.filter(v => v.document_type === filterDocType);
       }
       if (filterRiskLevel === "high") {
-        filtered = filtered.filter((v: any) => v.fraud_risk_score && v.fraud_risk_score > 50);
+        filtered = filtered.filter(v => v.fraud_risk_score && v.fraud_risk_score > 50);
       } else if (filterRiskLevel === "low") {
-        filtered = filtered.filter((v: any) => !v.fraud_risk_score || v.fraud_risk_score <= 50);
+        filtered = filtered.filter(v => !v.fraud_risk_score || v.fraud_risk_score <= 50);
       }
 
       setVerifications(filtered);
-      setFraudAlerts(fraudData || []);
+      setFraudAlerts(fraudWithProfiles);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load data");
