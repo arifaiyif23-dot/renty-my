@@ -107,18 +107,6 @@ export default function ListItem() {
         .insert(imageInserts);
 
       if (imageError) throw imageError;
-
-      // Trigger AI analysis in background (don't wait for it)
-      toast.info('Analyzing your item with AI...');
-      supabase.functions.invoke('openai-analyze-item', {
-        body: { itemId: data.id }
-      }).then(({ data: aiData, error: aiError }) => {
-        if (!aiError && aiData?.success) {
-          toast.success('AI analysis complete! Enhanced listing with smart tags and pricing.');
-        }
-      }).catch(err => {
-        console.error('AI analysis error:', err);
-      });
       
       toast.success('Item listed successfully!');
       navigate(`/items/${data.id}`);

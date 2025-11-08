@@ -89,7 +89,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim() || "";
     const projectId = supabaseUrl.match(/https:\/\/(.+?)\.supabase\.co/)?.[1] || "";
     const returnUrl = `https://${projectId}.lovableproject.com/wallet`;
-    const callbackUrl = `${supabaseUrl}/functions/v1/toyyibpay-webhook`;
+    const callbackUrl = `${supabaseUrl}/functions/v1/check-payment-status`;
 
     // Prepare form data for ToyyibPay API
     const billData = new URLSearchParams({

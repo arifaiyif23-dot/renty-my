@@ -10,7 +10,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
-import { AIChatWidget } from "@/components/AIChatWidget";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -68,7 +67,6 @@ const App = () => (
           <TooltipProvider>
             <AuthProvider>
               <AppRoutes />
-              <AIChatWidget />
             </AuthProvider>
           </TooltipProvider>
         </BrowserRouter>
