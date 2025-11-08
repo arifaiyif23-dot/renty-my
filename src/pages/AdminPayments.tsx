@@ -17,6 +17,7 @@ import {
   Package
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PaymentReconciliation } from "@/components/PaymentReconciliation";
 
 interface PaymentData {
   rental: any;
@@ -250,8 +251,11 @@ export default function AdminPayments() {
           </Card>
         </div>
 
+        {/* Payment Reconciliation Tool */}
+        <PaymentReconciliation />
+
         {/* Payment List */}
-        <Card>
+        <Card className="mt-8">
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="w-full justify-start rounded-none border-b">
               <TabsTrigger value="all">All Payments</TabsTrigger>
