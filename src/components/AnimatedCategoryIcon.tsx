@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -18,13 +17,7 @@ export const AnimatedCategoryIcon = ({
   onClick,
 }: AnimatedCategoryIconProps) => {
   return (
-    <motion.div
-      whileHover={{ scale: 1.05, rotateY: 5 }}
-      whileTap={{ scale: 0.95 }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-    >
+    <div className="hover:scale-105 active:scale-95 transition-transform duration-300 animate-fade-in">
       <Card
         className={cn(
           "relative p-6 text-center cursor-pointer overflow-hidden",
@@ -34,13 +27,9 @@ export const AnimatedCategoryIcon = ({
         onClick={onClick}
       >
         {/* Icon */}
-        <motion.div
-          className="mb-3 flex items-center justify-center"
-          whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-          transition={{ duration: 0.5 }}
-        >
-          <Icon className="w-12 h-12 text-primary" />
-        </motion.div>
+        <div className="mb-3 flex items-center justify-center">
+          <Icon className="w-12 h-12 text-primary group-hover:animate-pulse" />
+        </div>
 
         {/* Name */}
         <h3 className="font-semibold text-base mb-1">{name}</h3>
@@ -50,18 +39,14 @@ export const AnimatedCategoryIcon = ({
 
         {/* Price on hover */}
         {minPrice && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            whileHover={{ opacity: 1, height: "auto" }}
-            className="text-xs text-primary font-medium"
-          >
+          <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 h-0 group-hover:h-auto overflow-hidden">
             From RM {minPrice}/day
-          </motion.div>
+          </div>
         )}
 
         {/* Glow effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </Card>
-    </motion.div>
+    </div>
   );
 };

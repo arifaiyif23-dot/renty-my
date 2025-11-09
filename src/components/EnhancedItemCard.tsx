@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, ShieldCheck } from "lucide-react";
@@ -49,31 +48,22 @@ export const EnhancedItemCard = ({
   const badgeConfig = getBadgeConfig();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -8, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="animate-fade-in">
       <Link to={`/items/${id}`}>
-        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+        <Card className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
           <div className="relative">
             {/* Image */}
-            <motion.div
-              className="relative h-56 overflow-hidden"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-            >
+            <div className="relative h-56 overflow-hidden">
               <img
                 src={image}
                 alt={title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
               
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            </motion.div>
+            </div>
 
             {/* Top badges */}
             <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
@@ -89,9 +79,9 @@ export const EnhancedItemCard = ({
               </div>
               
               {/* Save button */}
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <div className="hover:scale-110 active:scale-90 transition-transform duration-200">
                 <SaveItemButton itemId={id} />
-              </motion.div>
+              </div>
             </div>
           </div>
 
@@ -132,17 +122,14 @@ export const EnhancedItemCard = ({
 
             {/* Price */}
             <div className="flex items-baseline gap-2 pt-3 border-t">
-              <motion.span
-                className="text-2xl font-bold text-primary"
-                whileHover={{ scale: 1.05 }}
-              >
+              <span className="text-2xl font-bold text-primary group-hover:scale-105 transition-transform duration-200 inline-block">
                 RM {pricePerDay}
-              </motion.span>
+              </span>
               <span className="text-sm text-muted-foreground">/day</span>
             </div>
           </CardContent>
         </Card>
       </Link>
-    </motion.div>
+    </div>
   );
 };

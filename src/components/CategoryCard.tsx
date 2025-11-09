@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,10 +13,7 @@ export const CategoryCard = ({ icon: Icon, name, count, color }: CategoryCardPro
   const navigate = useNavigate();
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
+    <div className="hover:scale-105 active:scale-95 transition-transform duration-200">
       <Card
         className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
         onClick={() => navigate(`/search?category=${name.toLowerCase()}`)}
@@ -32,6 +28,6 @@ export const CategoryCard = ({ icon: Icon, name, count, color }: CategoryCardPro
           </div>
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 };
