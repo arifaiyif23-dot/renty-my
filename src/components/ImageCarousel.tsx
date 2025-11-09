@@ -35,6 +35,8 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
           src={images[currentIndex].image_url}
           alt={`${title} - Image ${currentIndex + 1}`}
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
       </div>
 
@@ -85,6 +87,8 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
                 src={image.image_url}
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </button>
           ))}

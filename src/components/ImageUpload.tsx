@@ -216,6 +216,8 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
                 className={`w-full h-full object-cover rounded-lg transition-all ${
                   index === primaryIndex ? 'ring-2 ring-primary ring-offset-2' : ''
                 }`}
+                loading="lazy"
+                decoding="async"
               />
               <Button
                 variant="destructive"

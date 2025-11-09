@@ -192,13 +192,19 @@ All colors MUST be HSL.
     background-size: 1000px 100%;
   }
 
-  /* Glassmorphism effects */
+  /* Glassmorphism effects - Optimized for mobile */
   .glass-card {
     background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Only apply expensive backdrop-filter on desktop */
+  @media (min-width: 768px) {
+    .glass-card {
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
   }
 
   .dark .glass-card {
@@ -209,12 +215,17 @@ All colors MUST be HSL.
 
   .glass-balance-card {
     background: linear-gradient(135deg, rgba(85, 107, 47, 0.9), rgba(136, 176, 75, 0.9));
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 12px 40px rgba(85, 107, 47, 0.3);
     position: relative;
     overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .glass-balance-card {
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
   }
 
   .glass-balance-card::before {

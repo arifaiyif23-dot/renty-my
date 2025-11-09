@@ -1,8 +1,9 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -10,48 +11,66 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import ListItem from "./pages/ListItem";
-import ItemDetail from "./pages/ItemDetail";
-import Search from "./pages/Search";
-import Messages from "./pages/Messages";
-import Wallet from "./pages/Wallet";
-import Profile from "./pages/Profile";
-import Wishlist from "./pages/Wishlist";
-import Verification from "./pages/Verification";
-import AdminVerification from "./pages/AdminVerification";
-import AdminPayments from "./pages/AdminPayments";
-import AdminDashboard from "./pages/AdminDashboard";
-import MyListings from "./pages/MyListings";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
-const queryClient = new QueryClient();
+// Eager load critical pages
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+
+// Lazy load non-critical pages
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ListItem = lazy(() => import("./pages/ListItem"));
+const ItemDetail = lazy(() => import("./pages/ItemDetail"));
+const Search = lazy(() => import("./pages/Search"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Wallet = lazy(() => import("./pages/Wallet"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
+const Verification = lazy(() => import("./pages/Verification"));
+const AdminVerification = lazy(() => import("./pages/AdminVerification"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const MyListings = lazy(() => import("./pages/MyListings"));
+
+// Configure React Query with aggressive caching
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    },
+  },
+});
 
 function AppRoutes() {
   useScrollToTop();
   
   return (
     <div className="flex flex-col min-h-screen w-full">
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
-        <Route path="/items/:id" element={<ItemDetail />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-        <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-        <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
-        <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
-        <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
-        <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<LoadingSpinner />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
+          <Route path="/items/:id" element={<ItemDetail />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+          <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+          <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
+          <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+          <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
+          <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
       <MobileBottomNav />
     </div>
   );

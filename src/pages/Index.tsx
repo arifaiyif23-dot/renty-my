@@ -73,25 +73,33 @@ const Index = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch featured items
-      const { data: itemsData, error: itemsError } = await supabase
-        .from('items')
-        .select(`
-          id,
-          title,
-          price_per_day,
-          category,
-          location,
-          created_at,
-          owner_id,
-          item_images!inner(image_url),
-          profiles!items_owner_id_fkey(is_verified)
-        `)
-        .eq('is_available', true)
-        .order('created_at', { ascending: false })
-        .limit(6);
+      // Combine queries using Promise.all for better performance
+      const [itemsResult, categoryResult] = await Promise.all([
+        supabase
+          .from('items')
+          .select(`
+            id,
+            title,
+            price_per_day,
+            category,
+            location,
+            created_at,
+            owner_id,
+            item_images!inner(image_url),
+            profiles!items_owner_id_fkey(is_verified)
+          `)
+          .eq('is_available', true)
+          .order('created_at', { ascending: false })
+          .limit(6),
+        supabase
+          .from('items')
+          .select('category, price_per_day')
+          .eq('is_available', true)
+      ]);
 
-      if (itemsError) throw itemsError;
+      if (itemsResult.error) throw itemsResult.error;
+
+      const itemsData = itemsResult.data;
 
       // Optimized: Fetch all reviews in one query
       const itemIds = itemsData?.map(i => i.id) || [];
@@ -145,7 +153,7 @@ const Index = () => {
 
       setFeaturedItems(itemsWithReviews);
 
-      // Fetch categories with counts and min prices
+      // Process categories from already-fetched data
       const categoryConfig: Record<string, { icon: any; displayName: string }> = {
         vehicles: { icon: Car, displayName: "Vehicles" },
         gadgets: { icon: Smartphone, displayName: "Gadgets" },
@@ -155,12 +163,8 @@ const Index = () => {
         tools: { icon: Wrench, displayName: "Tools" },
       };
 
-      const { data: categoryCounts, error: categoryError } = await supabase
-        .from('items')
-        .select('category, price_per_day')
-        .eq('is_available', true);
-
-      if (categoryError) throw categoryError;
+      const categoryCounts = categoryResult.data;
+      if (categoryResult.error) throw categoryResult.error;
 
       const categoryMap = new Map<string, { count: number; minPrice: number }>();
       

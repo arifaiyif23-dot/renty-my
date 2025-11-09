@@ -19,47 +19,50 @@ export const FeaturedItems = () => {
   const fetchItems = async () => {
     setLoading(true);
 
-    // Fetch featured items
-    const { data: featured } = await supabase
-      .from("items")
-      .select(`
-        *,
-        owner:profiles!items_owner_id_fkey(id, full_name, avatar_url, is_verified),
-        item_images(image_url, is_primary, display_order)
-      `)
-      .eq("is_available", true)
-      .eq("featured", true)
-      .order("created_at", { ascending: false })
-      .limit(6);
+    try {
+      // Combine all 3 queries using Promise.all for better performance
+      const [featuredResult, trendingResult, newArrivalsResult] = await Promise.all([
+        supabase
+          .from("items")
+          .select(`
+            *,
+            owner:profiles!items_owner_id_fkey(id, full_name, avatar_url, is_verified),
+            item_images(image_url, is_primary, display_order)
+          `)
+          .eq("is_available", true)
+          .eq("featured", true)
+          .order("created_at", { ascending: false })
+          .limit(6),
+        supabase
+          .from("items")
+          .select(`
+            *,
+            owner:profiles!items_owner_id_fkey(id, full_name, avatar_url, is_verified),
+            item_images(image_url, is_primary, display_order)
+          `)
+          .eq("is_available", true)
+          .order("view_count", { ascending: false })
+          .limit(6),
+        supabase
+          .from("items")
+          .select(`
+            *,
+            owner:profiles!items_owner_id_fkey(id, full_name, avatar_url, is_verified),
+            item_images(image_url, is_primary, display_order)
+          `)
+          .eq("is_available", true)
+          .order("created_at", { ascending: false })
+          .limit(6)
+      ]);
 
-    // Fetch trending items (most viewed/booked)
-    const { data: trending } = await supabase
-      .from("items")
-      .select(`
-        *,
-        owner:profiles!items_owner_id_fkey(id, full_name, avatar_url, is_verified),
-        item_images(image_url, is_primary, display_order)
-      `)
-      .eq("is_available", true)
-      .order("view_count", { ascending: false })
-      .limit(6);
-
-    // Fetch new arrivals
-    const { data: newArrivals } = await supabase
-      .from("items")
-      .select(`
-        *,
-        owner:profiles!items_owner_id_fkey(id, full_name, avatar_url, is_verified),
-        item_images(image_url, is_primary, display_order)
-      `)
-      .eq("is_available", true)
-      .order("created_at", { ascending: false })
-      .limit(6);
-
-    setFeaturedItems(featured || []);
-    setTrendingItems(trending || []);
-    setNewItems(newArrivals || []);
-    setLoading(false);
+      setFeaturedItems(featuredResult.data || []);
+      setTrendingItems(trendingResult.data || []);
+      setNewItems(newArrivalsResult.data || []);
+    } catch (error) {
+      console.error('Error fetching featured items:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
