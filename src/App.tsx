@@ -32,6 +32,7 @@ const AdminVerification = lazy(() => import("./pages/AdminVerification"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const MyListings = lazy(() => import("./pages/MyListings"));
+const Install = lazy(() => import("./pages/Install"));
 
 // Configure React Query with aggressive caching
 const queryClient = new QueryClient({
@@ -55,6 +56,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/install" element={<Install />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
           <Route path="/items/:id" element={<ItemDetail />} />
