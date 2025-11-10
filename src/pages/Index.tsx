@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -8,13 +8,16 @@ import heroBanner from "@/assets/hero-banner.jpg";
 import SearchBar from "@/components/SearchBar";
 import { AnimatedCategoryIcon } from "@/components/AnimatedCategoryIcon";
 import { AnimatedStepCard } from "@/components/AnimatedStepCard";
-import { TrustBadges } from "@/components/TrustBadges";
-import { SocialProofSection } from "@/components/SocialProofSection";
-import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { FooterDialog } from "@/components/FooterContent";
 import { EnhancedItemCard } from "@/components/EnhancedItemCard";
-import { FloatingParticles } from "@/components/FloatingParticles";
-import { OnboardingGuide } from "@/components/OnboardingGuide";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Lazy load heavy below-the-fold components
+const FloatingParticles = lazy(() => import("@/components/FloatingParticles").then(m => ({ default: m.FloatingParticles })));
+const TrustBadges = lazy(() => import("@/components/TrustBadges").then(m => ({ default: m.TrustBadges })));
+const OnboardingGuide = lazy(() => import("@/components/OnboardingGuide").then(m => ({ default: m.OnboardingGuide })));
+const SocialProofSection = lazy(() => import("@/components/SocialProofSection").then(m => ({ default: m.SocialProofSection })));
+const RecentlyViewed = lazy(() => import("@/components/RecentlyViewed").then(m => ({ default: m.RecentlyViewed })));
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 import SEO from "@/components/SEO";
@@ -57,12 +60,28 @@ interface Category {
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [footerDialog, setFooterDialog] = useState<string | null>(null);
   
   const { ref: featuredRef, inView: featuredInView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  const { ref: onboardingRef, inView: onboardingInView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  const { ref: socialProofRef, inView: socialProofInView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+
+  const { ref: recentViewedRef, inView: recentViewedInView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
@@ -234,7 +253,11 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-16 md:py-24 overflow-hidden" style={{ backgroundImage: `url(${heroBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-        <FloatingParticles />
+        {!isMobile && (
+          <Suspense fallback={null}>
+            <FloatingParticles />
+          </Suspense>
+        )}
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -281,7 +304,9 @@ const Index = () => {
               </Button>
             </div>
             
-            <TrustBadges />
+            <Suspense fallback={<div className="h-12" />}>
+              <TrustBadges />
+            </Suspense>
           </motion.div>
           
           {/* Enhanced Search Bar */}
@@ -380,9 +405,13 @@ const Index = () => {
       </section>
 
       {/* Onboarding Guide */}
-      <section className="py-12 md:py-16">
+      <section className="py-12 md:py-16" ref={onboardingRef}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <OnboardingGuide />
+          {onboardingInView && (
+            <Suspense fallback={<div className="h-96 animate-pulse bg-muted rounded-lg" />}>
+              <OnboardingGuide />
+            </Suspense>
+          )}
         </div>
       </section>
 
@@ -507,16 +536,30 @@ const Index = () => {
       </section>
 
       {/* Social Proof Section */}
-      <section className="bg-background">
-        <SocialProofSection />
+      <section className="bg-background" ref={socialProofRef}>
+        {socialProofInView && (
+          <Suspense fallback={<div className="h-96 animate-pulse bg-muted rounded-lg" />}>
+            <SocialProofSection />
+          </Suspense>
+        )}
       </section>
 
-      {/* Onboarding Guide */}
-      <OnboardingGuide />
+      {/* Recently Viewed */}
+      <section className="py-12" ref={recentViewedRef}>
+        {recentViewedInView && (
+          <Suspense fallback={null}>
+            <RecentlyViewed />
+          </Suspense>
+        )}
+      </section>
 
       {/* Dual CTA Section */}
       <section className="relative py-16 md:py-24 bg-gradient-to-br from-primary to-secondary overflow-hidden">
-        <FloatingParticles />
+        {!isMobile && (
+          <Suspense fallback={null}>
+            <FloatingParticles />
+          </Suspense>
+        )}
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
