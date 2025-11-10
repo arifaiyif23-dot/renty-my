@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ interface EnhancedItemCardProps {
   badge?: "trending" | "just-listed" | "available";
 }
 
-export const EnhancedItemCard = ({
+export const EnhancedItemCard = memo(({
   id,
   title,
   image,
@@ -32,7 +33,7 @@ export const EnhancedItemCard = ({
   isOwnerVerified,
   badge,
 }: EnhancedItemCardProps) => {
-  const getBadgeConfig = () => {
+  const badgeConfig = useMemo(() => {
     switch (badge) {
       case "trending":
         return { text: "🔥 Trending", variant: "destructive" as const };
@@ -43,9 +44,7 @@ export const EnhancedItemCard = ({
       default:
         return null;
     }
-  };
-
-  const badgeConfig = getBadgeConfig();
+  }, [badge]);
 
   return (
     <div className="animate-fade-in">
@@ -132,4 +131,6 @@ export const EnhancedItemCard = ({
       </Link>
     </div>
   );
-};
+});
+
+EnhancedItemCard.displayName = "EnhancedItemCard";

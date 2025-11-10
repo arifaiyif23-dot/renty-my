@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +10,7 @@ interface AnimatedCategoryIconProps {
   onClick: () => void;
 }
 
-export const AnimatedCategoryIcon = ({
+export const AnimatedCategoryIcon = memo(({
   icon: Icon,
   name,
   count,
@@ -49,4 +50,6 @@ export const AnimatedCategoryIcon = ({
       </Card>
     </div>
   );
-};
+});
+
+AnimatedCategoryIcon.displayName = "AnimatedCategoryIcon";

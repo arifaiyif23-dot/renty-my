@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { ReactNode } from "react";
@@ -12,7 +13,7 @@ interface AnimatedStepCardProps {
   isLast?: boolean;
 }
 
-export const AnimatedStepCard = ({
+export const AnimatedStepCard = memo(({
   icon,
   title,
   description,
@@ -86,4 +87,6 @@ export const AnimatedStepCard = ({
       )}
     </div>
   );
-};
+});
+
+AnimatedStepCard.displayName = "AnimatedStepCard";

@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -86,6 +86,40 @@ const Index = () => {
     threshold: 0.1,
   });
 
+  // Memoize category config to prevent recreation on every render
+  const categoryConfig = useMemo(() => ({
+    vehicles: { icon: Car, displayName: "Vehicles" },
+    gadgets: { icon: Smartphone, displayName: "Gadgets" },
+    rooms: { icon: Home, displayName: "Rooms" },
+    sports: { icon: Dumbbell, displayName: "Sports" },
+    music: { icon: Music, displayName: "Music" },
+    tools: { icon: Wrench, displayName: "Tools" },
+  }), []);
+
+  // Memoize steps array to prevent recreation on every render
+  const howItWorksSteps = useMemo(() => [
+    {
+      icon: <Recycle className="h-10 w-10 text-primary" />,
+      title: "Find What You Need",
+      description: "Browse 10K+ verified items. From cameras to cars, we've got you covered. Search by location, price, or category.",
+    },
+    {
+      icon: <Shield className="h-10 w-10 text-primary" />,
+      title: "Book Instantly",
+      description: "Secure payment. Instant confirmation. Insurance included. Zero hassle. Your rental is protected every step of the way.",
+    },
+    {
+      icon: <Clock className="h-10 w-10 text-primary" />,
+      title: "Pick Up & Enjoy",
+      description: "Meet locally or get it delivered. Use it. Love it. Make memories. Return it whenever you're done.",
+    },
+    {
+      icon: <TrendingUp className="h-10 w-10 text-primary" />,
+      title: "Return & Review",
+      description: "Drop it off. Rate your experience. Build trust in our community. Help others make informed decisions.",
+    },
+  ], []);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -135,7 +169,7 @@ const Index = () => {
         }
       });
 
-      // Calculate review ratings and add badges
+      // Calculate review ratings and add badges using useMemo for performance
       const itemsWithReviews = (itemsData || []).map((item, index) => {
         const ratings = reviewsByItem.get(item.id) || [];
         const reviewCount = ratings.length;
@@ -143,28 +177,22 @@ const Index = () => {
           ? ratings.reduce((sum, r) => sum + r, 0) / reviewCount
           : 0;
 
-          // Determine badge
-          const createdAt = new Date(item.created_at);
-          const daysSinceCreated = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-          let badge: "trending" | "just-listed" | "available" | undefined;
-          
-          if (daysSinceCreated < 7) {
-            badge = "just-listed";
-          } else if (index < 2) {
-            badge = "trending";
-          } else {
-            badge = "available";
-          }
+        // Determine badge
+        const createdAt = new Date(item.created_at);
+        const daysSinceCreated = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+        const badge: "trending" | "just-listed" | "available" | undefined = 
+          daysSinceCreated < 7 ? "just-listed" :
+          index < 2 ? "trending" : "available";
 
-          return {
-            id: item.id,
-            title: item.title,
-            image: item.item_images[0]?.image_url || 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
-            pricePerDay: Number(item.price_per_day),
-            category: item.category,
-            rating: Math.round(rating * 10) / 10,
-            reviewCount,
-            location: item.location,
+        return {
+          id: item.id,
+          title: item.title,
+          image: item.item_images[0]?.image_url || 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
+          pricePerDay: Number(item.price_per_day),
+          category: item.category,
+          rating: Math.round(rating * 10) / 10,
+          reviewCount,
+          location: item.location,
           isOwnerVerified: item.profiles?.is_verified || false,
           badge,
         };
@@ -173,15 +201,6 @@ const Index = () => {
       setFeaturedItems(itemsWithReviews);
 
       // Process categories from already-fetched data
-      const categoryConfig: Record<string, { icon: any; displayName: string }> = {
-        vehicles: { icon: Car, displayName: "Vehicles" },
-        gadgets: { icon: Smartphone, displayName: "Gadgets" },
-        rooms: { icon: Home, displayName: "Rooms" },
-        sports: { icon: Dumbbell, displayName: "Sports" },
-        music: { icon: Music, displayName: "Music" },
-        tools: { icon: Wrench, displayName: "Tools" },
-      };
-
       const categoryCounts = categoryResult.data;
       if (categoryResult.error) throw categoryResult.error;
 
@@ -218,29 +237,6 @@ const Index = () => {
       setLoading(false);
     }
   };
-
-  const howItWorksSteps = [
-    {
-      icon: <Recycle className="h-10 w-10 text-primary" />,
-      title: "Find What You Need",
-      description: "Browse 10K+ verified items. From cameras to cars, we've got you covered. Search by location, price, or category.",
-    },
-    {
-      icon: <Shield className="h-10 w-10 text-primary" />,
-      title: "Book Instantly",
-      description: "Secure payment. Instant confirmation. Insurance included. Zero hassle. Your rental is protected every step of the way.",
-    },
-    {
-      icon: <Clock className="h-10 w-10 text-primary" />,
-      title: "Pick Up & Enjoy",
-      description: "Meet locally or get it delivered. Use it. Love it. Make memories. Return it whenever you're done.",
-    },
-    {
-      icon: <TrendingUp className="h-10 w-10 text-primary" />,
-      title: "Return & Review",
-      description: "Drop it off. Rate your experience. Build trust in our community. Help others make informed decisions.",
-    },
-  ];
 
   return (
     <div className="min-h-screen pb-mobile-nav">
