@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function WalletSkeleton() {
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-20 md:pb-0" role="status" aria-live="polite" aria-label="Loading wallet information">
       {/* Header Section */}
       <div className="sticky top-0 z-10 bg-card border-b">
         <div className="container mx-auto px-4 py-4">

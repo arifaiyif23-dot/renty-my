@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SkeletonCard() {
   return (
-    <Card className="overflow-hidden rounded-xl border-border/50">
+    <Card className="overflow-hidden rounded-xl border-border/50" role="status" aria-live="polite" aria-label="Loading item information">
       {/* Image Skeleton */}
       <Skeleton className="aspect-[16/9] w-full" />
       

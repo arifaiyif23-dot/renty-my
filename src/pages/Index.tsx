@@ -1,8 +1,9 @@
 import { useEffect, useState, lazy, Suspense, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import Header from "@/components/Header";
 import heroBanner from "@/assets/hero-banner.jpg";
 import SearchBar from "@/components/SearchBar";
@@ -61,6 +62,8 @@ const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const prefersReducedMotion = useReducedMotion();
+  useKeyboardShortcuts();
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -256,11 +259,9 @@ const Index = () => {
         )}
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="max-w-4xl mx-auto text-center mb-8"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+          <div
+            className={`max-w-4xl mx-auto text-center mb-8 ${prefersReducedMotion ? '' : 'animate-fade-in'}`}
+            style={prefersReducedMotion ? {} : { animationDelay: '0ms' }}
           >
             {/* Brand Clarity */}
             <div className="inline-block mb-4">
@@ -303,14 +304,12 @@ const Index = () => {
             <Suspense fallback={<div className="h-12" />}>
               <TrustBadges />
             </Suspense>
-          </motion.div>
+          </div>
           
           {/* Enhanced Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="max-w-3xl mx-auto"
+          <div
+            className={`max-w-3xl mx-auto ${prefersReducedMotion ? '' : 'animate-fade-in'}`}
+            style={prefersReducedMotion ? {} : { animationDelay: '300ms' }}
           >
             <div className="glass-card p-2 rounded-2xl shadow-2xl">
               <SearchBar />
@@ -318,21 +317,16 @@ const Index = () => {
             <p className="text-center text-sm text-muted-foreground mt-3">
               🔍 Popular: Cameras • Cars • Tools • Drones • Party Equipment
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Categories */}
       <section className="py-12 md:py-16 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2
-            className="font-heading text-3xl md:text-4xl font-bold text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12 animate-fade-in">
             Browse by Category
-          </motion.h2>
+          </h2>
           
           {categories.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -414,14 +408,9 @@ const Index = () => {
       {/* How It Works */}
       <section className="py-12 md:py-16 bg-card">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2
-            className="font-heading text-3xl md:text-4xl font-bold text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12 animate-fade-in">
             How RENTY Works
-          </motion.h2>
+          </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {howItWorksSteps.map((step, index) => (
@@ -441,92 +430,63 @@ const Index = () => {
       {/* Trust & Safety Section */}
       <section className="py-16 md:py-20 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="text-center mb-12 animate-fade-in">
             <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
               Safe, Secure, Insured
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Your peace of mind is our priority. Every rental is protected.
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">Insurance Coverage</h3>
-                <p className="text-sm text-muted-foreground">
-                  All rentals protected up to RM 50,000 against damage or loss
-                </p>
+          <div className={`text-center ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '100ms' }}>
+            <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
-            </motion.div>
+              <h3 className="font-semibold text-lg mb-2">Insurance Coverage</h3>
+              <p className="text-sm text-muted-foreground">
+                All rentals protected up to RM 50,000 against damage or loss
+              </p>
+            </div>
+          </div>
 
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-            >
+            <div className={`text-center ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '200ms' }}>
               <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileCheck className="w-8 h-8 text-primary" />
+                  <FileCheck className="w-8 h-8 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">ID Verification</h3>
                 <p className="text-sm text-muted-foreground">
                   AI-powered MyKad verification for all users
                 </p>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-            >
+            <div className={`text-center ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '300ms' }}>
               <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CreditCard className="w-8 h-8 text-primary" />
+                  <CreditCard className="w-8 h-8 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Secure Payments</h3>
                 <p className="text-sm text-muted-foreground">
                   Encrypted payments via toyyibPay. Your money is safe.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-            >
+            <div className={`text-center ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '400ms' }}>
               <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <HeadphonesIcon className="w-8 h-8 text-primary" />
+                  <HeadphonesIcon className="w-8 h-8 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">24/7 Support</h3>
                 <p className="text-sm text-muted-foreground">
                   Dispute resolution and customer support anytime
                 </p>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -558,30 +518,19 @@ const Index = () => {
         )}
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="text-center mb-12 animate-fade-in">
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to Get Started?
             </h2>
             <p className="text-lg text-white/90 max-w-2xl mx-auto">
               Whether you want to rent or earn, RENTY makes it easy
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* For Renters */}
-            <motion.div
-              className="glass-card p-8 text-center rounded-2xl"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.02 }}
-            >
-              <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+            <div className={`glass-card p-8 text-center rounded-2xl hover-scale ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '100ms' }}>
+              <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" aria-hidden="true" />
               <h3 className="font-heading text-2xl font-bold mb-3">Looking to Rent?</h3>
               <p className="text-muted-foreground mb-6">
                 Access thousands of items without buying. Save money and space.
@@ -594,17 +543,11 @@ const Index = () => {
               >
                 Browse Items
               </Button>
-            </motion.div>
+            </div>
 
             {/* For Owners */}
-            <motion.div
-              className="glass-card p-8 text-center rounded-2xl"
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.02 }}
-            >
-              <TrendingUp className="w-12 h-12 text-primary mx-auto mb-4" />
+            <div className={`glass-card p-8 text-center rounded-2xl hover-scale ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '200ms' }}>
+              <TrendingUp className="w-12 h-12 text-primary mx-auto mb-4" aria-hidden="true" />
               <h3 className="font-heading text-2xl font-bold mb-3">Want to Earn?</h3>
               <p className="text-muted-foreground mb-6">
                 Turn your unused items into income. Start earning today.
@@ -617,7 +560,7 @@ const Index = () => {
               >
                 List Your Item
               </Button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
