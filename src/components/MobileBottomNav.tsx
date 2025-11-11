@@ -22,7 +22,11 @@ const MobileBottomNav = () => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t safe-area-bottom">
+    <nav 
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t safe-area-bottom"
+      role="navigation"
+      aria-label="Mobile bottom navigation"
+    >
       <div className="flex items-center justify-around h-16 px-1">
         {/* Left Nav Items */}
         {navItems.map((item) => {
@@ -32,11 +36,13 @@ const MobileBottomNav = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] touch-target",
+                "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px]",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
+              aria-label={`${item.label} - ${isActive ? 'current page' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <item.icon className="h-5 w-5 mb-1" />
+              <item.icon className="h-5 w-5 mb-1" aria-hidden="true" />
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
@@ -44,12 +50,13 @@ const MobileBottomNav = () => {
         
         {/* Central FAB for List Item */}
         <div className="flex-1 flex justify-center min-w-[60px]">
-          <Link to={user ? "/list-item" : "/auth"}>
+          <Link to={user ? "/list-item" : "/auth"} aria-label="List a new item">
             <Button
               size="icon"
-              className="h-14 w-14 rounded-full shadow-lg -mt-8 touch-target"
+              className="h-14 w-14 rounded-full shadow-lg -mt-8"
+              aria-label="List a new item"
             >
-              <Plus className="h-6 w-6" />
+              <Plus className="h-6 w-6" aria-hidden="true" />
             </Button>
           </Link>
         </div>
@@ -62,11 +69,13 @@ const MobileBottomNav = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] touch-target",
+                "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px]",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
+              aria-label={`${item.label} - ${isActive ? 'current page' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <item.icon className="h-5 w-5 mb-1" />
+              <item.icon className="h-5 w-5 mb-1" aria-hidden="true" />
               <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );

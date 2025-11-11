@@ -4,6 +4,7 @@ import { useInView } from "react-intersection-observer";
 import { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 interface AnimatedStepCardProps {
   icon: ReactNode;
@@ -24,13 +25,14 @@ export const AnimatedStepCard = memo(({
     triggerOnce: true,
     threshold: 0.1,
   });
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <div ref={ref} className="relative">
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
+        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 50 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{
+        transition={prefersReducedMotion ? {} : {
           duration: 0.5,
           delay: step * 0.2,
           type: "spring",
@@ -41,8 +43,9 @@ export const AnimatedStepCard = memo(({
           {/* Step number badge */}
           <motion.div
             className="absolute -top-3 -left-3 w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-lg shadow-lg"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+            transition={prefersReducedMotion ? {} : { duration: 2, repeat: Infinity }}
+            aria-label={`Step ${step}`}
           >
             {step}
           </motion.div>
@@ -50,12 +53,12 @@ export const AnimatedStepCard = memo(({
           {/* Icon with glow animation */}
           <motion.div
             className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4 relative"
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
+            whileHover={prefersReducedMotion ? {} : { rotate: 360 }}
+            transition={prefersReducedMotion ? {} : { duration: 0.6 }}
           >
             <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { opacity: [0.5, 1, 0.5] }}
+              transition={prefersReducedMotion ? {} : { duration: 2, repeat: Infinity }}
               className="absolute inset-0 rounded-full bg-primary/20 blur-md"
             />
             <div className="relative z-10">{icon}</div>
@@ -78,9 +81,10 @@ export const AnimatedStepCard = memo(({
       {!isLast && (
         <motion.div
           className="hidden lg:flex absolute top-1/2 -right-8 transform -translate-y-1/2 text-primary"
-          initial={{ opacity: 0, x: -20 }}
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -20 }}
           animate={inView ? { opacity: 1, x: 0 } : {}}
-          transition={{ delay: step * 0.2 + 0.3 }}
+          transition={prefersReducedMotion ? {} : { delay: step * 0.2 + 0.3 }}
+          aria-hidden="true"
         >
           <ArrowRight className="w-8 h-8" />
         </motion.div>

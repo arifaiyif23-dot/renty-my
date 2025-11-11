@@ -104,14 +104,15 @@ const Header = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="md:hidden min-h-[44px] min-w-[44px]"
                   onClick={() => setMobileNavOpen(true)}
+                  aria-label="Open navigation menu"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
               )}
-              <Link to="/" className="flex items-center">
-                <img src={logo} alt="RENTY" className="h-8 md:h-10 w-auto" />
+              <Link to="/" className="flex items-center" aria-label="Go to RENTY homepage">
+                <img src={logo} alt="RENTY - Malaysia's Rental Marketplace" className="h-8 md:h-10 w-auto" loading="eager" />
               </Link>
             </div>
 
@@ -153,7 +154,12 @@ const Header = () => {
                   {/* Search Icon (Mobile) */}
                   {isMobile && (
                     <Link to="/search">
-                      <Button variant="ghost" size="icon" className="md:hidden">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="md:hidden min-h-[44px] min-w-[44px]"
+                        aria-label="Search items"
+                      >
                         <Search className="h-5 w-5" />
                       </Button>
                     </Link>
@@ -170,9 +176,14 @@ const Header = () => {
                   {!isMobile && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-full min-h-[44px] min-w-[44px]"
+                          aria-label="Open user menu"
+                        >
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={profile?.avatar_url} />
+                            <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || 'User avatar'} />
                             <AvatarFallback>{userInitials}</AvatarFallback>
                           </Avatar>
                         </Button>

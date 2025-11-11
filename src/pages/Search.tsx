@@ -242,10 +242,11 @@ export default function Search() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 ${isListening ? 'text-primary animate-pulse' : ''}`}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] ${isListening ? 'text-primary animate-pulse' : ''}`}
                   onClick={isListening ? stopListening : startListening}
+                  aria-label={isListening ? "Stop voice search" : "Start voice search"}
                 >
-                  {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  {isListening ? <MicOff className="h-5 w-5" aria-hidden="true" /> : <Mic className="h-5 w-5" aria-hidden="true" />}
                 </Button>
               )}
             </div>
@@ -429,21 +430,22 @@ export default function Search() {
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setDateRange(undefined)} />
               </Badge>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearchQuery('');
-                setCategory('all');
-                setMinPrice('');
-                setMaxPrice('');
-                setUserLocation('');
-                setDateRange(undefined);
-              }}
-              className="h-7 text-xs"
-            >
-              Clear All
-            </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setCategory('all');
+                    setMinPrice('');
+                    setMaxPrice('');
+                    setUserLocation('');
+                    setDateRange(undefined);
+                  }}
+                  className="h-7 text-xs min-h-[44px]"
+                  aria-label="Clear all filters"
+                >
+                  Clear All
+                </Button>
           </div>
         )}
 

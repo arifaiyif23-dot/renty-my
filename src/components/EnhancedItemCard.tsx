@@ -48,16 +48,17 @@ export const EnhancedItemCard = memo(({
 
   return (
     <div className="animate-fade-in">
-      <Link to={`/items/${id}`}>
+      <Link to={`/items/${id}`} aria-label={`View details for ${title}`}>
         <Card className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
           <div className="relative">
             {/* Image */}
             <div className="relative h-56 overflow-hidden">
               <img
                 src={image}
-                alt={title}
+                alt={`${title} - ${category} available for rent in ${location}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
+                decoding="async"
               />
               
               {/* Gradient overlay */}

@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export const FloatingParticles = () => {
+  const prefersReducedMotion = useReducedMotion();
   const particles = [
     { size: 80, left: "10%", top: "20%", delay: 0 },
     { size: 120, left: "80%", top: "30%", delay: 2 },
@@ -21,13 +23,13 @@ export const FloatingParticles = () => {
             left: particle.left,
             top: particle.top,
           }}
-          animate={{
+          animate={prefersReducedMotion ? {} : {
             y: [0, -30, 0],
             x: [0, 15, 0],
             scale: [1, 1.1, 1],
             opacity: [0.3, 0.6, 0.3],
           }}
-          transition={{
+          transition={prefersReducedMotion ? {} : {
             duration: 8,
             delay: particle.delay,
             repeat: Infinity,

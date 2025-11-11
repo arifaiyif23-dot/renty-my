@@ -21,15 +21,24 @@ export const AnimatedCategoryIcon = memo(({
     <div className="hover:scale-105 active:scale-95 transition-transform duration-300 animate-fade-in">
       <Card
         className={cn(
-          "relative p-6 text-center cursor-pointer overflow-hidden",
+          "relative p-6 text-center cursor-pointer overflow-hidden min-h-[44px]",
           "glass-card hover:shadow-xl transition-all duration-300",
           "group"
         )}
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        aria-label={`Browse ${name} category with ${count} items${minPrice ? ` starting from RM ${minPrice} per day` : ''}`}
       >
         {/* Icon */}
         <div className="mb-3 flex items-center justify-center">
-          <Icon className="w-12 h-12 text-primary group-hover:animate-pulse" />
+          <Icon className="w-12 h-12 text-primary group-hover:animate-pulse" aria-hidden="true" />
         </div>
 
         {/* Name */}

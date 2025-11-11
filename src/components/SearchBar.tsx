@@ -73,19 +73,21 @@ const SearchBar = () => {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="border-0 p-0 pr-8 h-auto focus-visible:ring-0 text-sm bg-transparent"
+                aria-label="Enter location"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-0 top-6 h-5 w-5 p-0"
+                className="absolute right-0 top-6 min-h-[44px] min-w-[44px]"
                 onClick={getUserLocation}
                 disabled={gettingLocation}
+                aria-label={gettingLocation ? "Getting your location" : "Use current location"}
               >
                 {gettingLocation ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <MapPin className="h-3 w-3" />
+                  <MapPin className="h-4 w-4" />
                 )}
               </Button>
             </div>
@@ -129,9 +131,14 @@ const SearchBar = () => {
 
           {/* Search Button */}
           <div className="flex items-center justify-center md:justify-end px-2">
-            <Button size="lg" onClick={handleSearch} className="w-full md:w-auto gap-2 rounded-xl">
+            <Button 
+              size="lg" 
+              onClick={handleSearch} 
+              className="w-full md:w-auto gap-2 rounded-xl min-h-[44px]"
+              aria-label="Search for rental items"
+            >
               <Search className="h-4 w-4" />
-              Search
+              <span>Search</span>
             </Button>
           </div>
         </div>
