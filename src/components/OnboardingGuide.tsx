@@ -1,13 +1,14 @@
-import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useInView } from "react-intersection-observer";
 
 export const OnboardingGuide = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
 
   const steps = [
     { 
@@ -37,28 +38,19 @@ export const OnboardingGuide = () => {
   ];
 
   return (
-    <section className="py-16 md:py-20 bg-card">
+    <section ref={ref} className="py-16 md:py-20 bg-card">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+        <div className={`text-center mb-12 ${inView ? 'animate-fade-in' : 'opacity-0'}`}>
           <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
             Get Started in Minutes
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             One account to rent items and earn from what you own
           </p>
-        </motion.div>
+        </div>
 
         <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className={inView ? 'animate-fade-in' : 'opacity-0'} style={{ animationDelay: '0.2s' }}>
             <Card className="glass-card p-8 md:p-12">
               {/* Steps */}
               <div className="space-y-6 mb-8">
@@ -134,7 +126,7 @@ export const OnboardingGuide = () => {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

@@ -11,7 +11,6 @@ import { Heart, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSwipeToDelete } from "@/hooks/use-swipe-to-delete";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Wishlist() {
@@ -149,10 +148,12 @@ function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDele
   }
 
   return (
-    <motion.div
-      className="relative overflow-hidden"
-      style={{ x: -swipeDistance }}
-      animate={{ opacity: isDeleting ? 0 : 1 }}
+    <div
+      className="relative overflow-hidden transition-all duration-200"
+      style={{ 
+        transform: `translateX(-${swipeDistance}px)`,
+        opacity: isDeleting ? 0 : 1 
+      }}
     >
       <div
         onTouchStart={handleTouchStart}
@@ -171,6 +172,6 @@ function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDele
           <Trash2 className="h-6 w-6" />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

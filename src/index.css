@@ -366,6 +366,46 @@ All colors MUST be HSL.
     animation: success-pulse 2s ease-in-out infinite;
   }
 
+  /* Glow animation */
+  @keyframes glow {
+    0%, 100% {
+      opacity: 0.5;
+      filter: blur(10px);
+    }
+    50% {
+      opacity: 1;
+      filter: blur(20px);
+    }
+  }
+
+  /* Float animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.3;
+    }
+    25% {
+      transform: translate(15px, -10px) scale(1.05);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translate(0, -30px) scale(1.1);
+      opacity: 0.6;
+    }
+    75% {
+      transform: translate(-15px, -10px) scale(1.05);
+      opacity: 0.5;
+    }
+  }
+
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .rotate-360 {
+    transform: rotate(360deg);
+  }
+
   /* Accessibility - Focus Visible Styles */
   *:focus-visible {
     outline: 2px solid hsl(var(--ring));

@@ -15,7 +15,7 @@ import Header from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { sanitizeMessage } from "@/utils/sanitize";
 import { useTypingIndicator } from "@/hooks/use-typing-indicator";
-import { motion, AnimatePresence } from "framer-motion";
+
 
 interface Conversation {
   userId: string;
@@ -297,11 +297,9 @@ export default function Messages() {
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-4">
                     {messages.map((msg) => (
-                      <motion.div
+                      <div
                         key={msg.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'} animate-fade-in`}
                       >
                         <div
                           className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
@@ -346,28 +344,21 @@ export default function Messages() {
                             )}
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                     
                     {/* Typing Indicator */}
-                    <AnimatePresence>
-                      {typingUsers.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="flex justify-start"
-                        >
-                          <div className="bg-muted rounded-2xl px-4 py-3 rounded-bl-sm">
-                            <div className="flex gap-1">
-                              <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                              <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                              <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                            </div>
+                    {typingUsers.length > 0 && (
+                      <div className="flex justify-start animate-fade-in">
+                        <div className="bg-muted rounded-2xl px-4 py-3 rounded-bl-sm">
+                          <div className="flex gap-1">
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
 

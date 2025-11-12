@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export const FloatingParticles = () => {
@@ -14,26 +13,17 @@ export const FloatingParticles = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {particles.map((particle, index) => (
-        <motion.div
+        <div
           key={index}
-          className="absolute rounded-full bg-gradient-to-br from-primary/20 to-accent/20 blur-3xl"
+          className={`absolute rounded-full bg-gradient-to-br from-primary/20 to-accent/20 blur-3xl ${
+            !prefersReducedMotion ? 'animate-float' : ''
+          }`}
           style={{
             width: particle.size,
             height: particle.size,
             left: particle.left,
             top: particle.top,
-          }}
-          animate={prefersReducedMotion ? {} : {
-            y: [0, -30, 0],
-            x: [0, 15, 0],
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={prefersReducedMotion ? {} : {
-            duration: 8,
-            delay: particle.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
+            animationDelay: `${particle.delay}s`,
           }}
         />
       ))}

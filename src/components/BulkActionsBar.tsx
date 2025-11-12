@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, CheckCheck, XCircle, Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface BulkActionsBarProps {
   selectedCount: number;
@@ -21,14 +20,9 @@ export function BulkActionsBar({
   showCancel = true,
 }: BulkActionsBarProps) {
   return (
-    <AnimatePresence>
+    <>
       {selectedCount > 0 && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-20 md:bottom-4 left-4 right-4 mx-auto max-w-2xl z-50"
-        >
+        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 mx-auto max-w-2xl z-50 animate-slide-in-right">
           <div className="bg-card border shadow-lg rounded-lg p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -72,8 +66,8 @@ export function BulkActionsBar({
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

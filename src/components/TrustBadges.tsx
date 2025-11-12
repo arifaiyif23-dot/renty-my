@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { ShieldCheck, Users, Star, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -119,28 +118,20 @@ export const TrustBadges = () => {
   }
 
   return (
-    <motion.div
-      className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-    >
+    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
       {badges.map((badge, index) => (
-        <motion.div
+        <div
           key={index}
-          className="glass-card px-6 py-3 rounded-full flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: index * 0.1 + 0.4 }}
-          whileHover={{ scale: 1.05 }}
+          className="glass-card px-6 py-3 rounded-full flex items-center gap-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 animate-scale-in"
+          style={{ animationDelay: `${index * 0.1 + 0.4}s` }}
         >
           <badge.icon className="w-5 h-5 text-primary" />
           <div className="text-left">
             <div className="font-bold text-sm">{badge.value}</div>
             <div className="text-xs text-muted-foreground">{badge.label}</div>
           </div>
-        </motion.div>
+        </div>
       ))}
-    </motion.div>
+    </div>
   );
 };

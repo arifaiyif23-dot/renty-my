@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Check } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface InsurancePlan {
   type: 'basic' | 'premium' | 'platinum';
@@ -81,11 +80,7 @@ export const InsurancePlans = ({ onPlanSelect, selectedPlan = 'basic', rentalDay
 
       <div className="grid md:grid-cols-3 gap-4">
         {INSURANCE_PLANS.map((plan) => (
-          <motion.div
-            key={plan.type}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <div key={plan.type} className="transition-transform duration-200 hover:scale-102 active:scale-98">
             <Card
               className={`p-6 cursor-pointer transition-all relative ${
                 selected === plan.type
@@ -140,7 +135,7 @@ export const InsurancePlans = ({ onPlanSelect, selectedPlan = 'basic', rentalDay
                 )}
               </div>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
