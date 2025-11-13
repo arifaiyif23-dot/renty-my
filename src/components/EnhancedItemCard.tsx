@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, ShieldCheck } from "lucide-react";
 import { SaveItemButton } from "@/components/SaveItemButton";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 
 interface EnhancedItemCardProps {
   id: string;
@@ -46,6 +47,12 @@ export const EnhancedItemCard = memo(({
     }
   }, [badge]);
 
+  // Optimize image URL based on network quality
+  const optimizedImage = useMemo(
+    () => getOptimizedImageUrl(image, { width: 800, quality: 80 }),
+    [image]
+  );
+
   return (
     <div className="animate-fade-in">
       <Link to={`/items/${id}`} aria-label={`View details for ${title}`}>
@@ -54,7 +61,7 @@ export const EnhancedItemCard = memo(({
             {/* Image */}
             <div className="relative h-56 overflow-hidden">
               <img
-                src={image}
+                src={optimizedImage}
                 alt={`${title} - ${category} available for rent in ${location}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { optimizeImage } from "@/utils/imageOptimization";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -45,13 +46,19 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      // Optimize image before upload
+      toast.info("Compressing image...");
+      const optimizedBlob = await optimizeImage(file);
+      const optimizedFile = new File([optimizedBlob], `${file.name.split('.')[0]}.webp`, {
+        type: 'image/webp'
+      });
+
+      const fileName = `${user.id}-${Date.now()}.webp`;
       const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('item-images')
-        .upload(filePath, file);
+        .upload(filePath, optimizedFile);
 
       if (uploadError) throw uploadError;
 
@@ -60,7 +67,7 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
-      toast.success("Avatar uploaded successfully");
+      toast.success("Avatar uploaded and optimized!");
     } catch (error: any) {
       toast.error(error.message || "Failed to upload avatar");
     } finally {

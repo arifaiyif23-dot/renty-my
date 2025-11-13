@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { optimizeImage } from "@/utils/imageOptimization";
 
 interface ReviewFormProps {
   rentalId: string;
@@ -65,13 +66,20 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
 
       // Upload images if any
       if (images.length > 0) {
+        toast.info("Compressing and uploading images...");
+        
         for (const image of images) {
-          const fileExt = image.name.split('.').pop();
-          const fileName = `${reviewData.id}/${Math.random()}.${fileExt}`;
+          // Optimize each image before upload
+          const optimizedBlob = await optimizeImage(image);
+          const optimizedFile = new File([optimizedBlob], `${image.name.split('.')[0]}.webp`, {
+            type: 'image/webp'
+          });
           
-          const { error: uploadError, data: uploadData } = await supabase.storage
+          const fileName = `${reviewData.id}/${Math.random()}.webp`;
+          
+          const { error: uploadError } = await supabase.storage
             .from('item-images')
-            .upload(fileName, image);
+            .upload(fileName, optimizedFile);
 
           if (uploadError) throw uploadError;
 

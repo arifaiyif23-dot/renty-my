@@ -1,35 +1,70 @@
 import { useState, useCallback } from "react";
-import { Upload, X, Star } from "lucide-react";
+import { Upload, X, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast as sonnerToast } from "sonner";
+import { optimizeImage } from "@/utils/imageOptimization";
 
 interface ImageUploadProps {
   onImagesChange: (urls: string[]) => void;
   maxImages?: number;
 }
 
+interface UploadProgress {
+  fileName: string;
+  progress: number;
+  status: 'compressing' | 'uploading' | 'complete' | 'error';
+}
+
 export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps) => {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [primaryIndex, setPrimaryIndex] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const uploadImage = async (file: File, progressIndex: number): Promise<string | null> => {
     if (!user) return null;
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      // Update progress: Compressing
+      setUploadProgress(prev => {
+        const updated = [...prev];
+        updated[progressIndex] = { fileName: file.name, progress: 10, status: 'compressing' };
+        return updated;
+      });
+
+      // Optimize image (resize + WebP conversion)
+      const optimizedBlob = await optimizeImage(file);
+      const optimizedFile = new File([optimizedBlob], `${file.name.split('.')[0]}.webp`, {
+        type: 'image/webp'
+      });
+
+      // Update progress: Compression complete
+      setUploadProgress(prev => {
+        const updated = [...prev];
+        updated[progressIndex] = { fileName: file.name, progress: 40, status: 'uploading' };
+        return updated;
+      });
+
+      const fileName = `${Math.random()}.webp`;
       const filePath = `${user.id}/${fileName}`;
+
+      // Update progress during upload
+      setUploadProgress(prev => {
+        const updated = [...prev];
+        updated[progressIndex] = { fileName: file.name, progress: 70, status: 'uploading' };
+        return updated;
+      });
 
       const { error: uploadError } = await supabase.storage
         .from('item-images')
-        .upload(filePath, file, {
+        .upload(filePath, optimizedFile, {
           cacheControl: '3600',
           upsert: false
         });
@@ -40,9 +75,24 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
         .from('item-images')
         .getPublicUrl(filePath);
 
+      // Update progress: Complete
+      setUploadProgress(prev => {
+        const updated = [...prev];
+        updated[progressIndex] = { fileName: file.name, progress: 100, status: 'complete' };
+        return updated;
+      });
+
       return publicUrl;
     } catch (error: any) {
       console.error('Error uploading image:', error);
+      
+      // Update progress: Error
+      setUploadProgress(prev => {
+        const updated = [...prev];
+        updated[progressIndex] = { fileName: file.name, progress: 0, status: 'error' };
+        return updated;
+      });
+      
       toast({
         title: "Upload failed",
         description: error.message,
@@ -65,8 +115,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
     }
 
     setUploading(true);
+    setUploadProgress(files.map(f => ({ fileName: f.name, progress: 0, status: 'compressing' as const })));
     
-    const uploadPromises = files.map(file => uploadImage(file));
+    const uploadPromises = files.map((file, index) => uploadImage(file, index));
     const uploadedUrls = await Promise.all(uploadPromises);
     const validUrls = uploadedUrls.filter((url): url is string => url !== null);
     
@@ -75,15 +126,15 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
     onImagesChange(newImages);
     setUploading(false);
 
-    toast({
-      title: "Success",
-      description: `${validUrls.length} image(s) uploaded`,
-    });
+    // Clear progress after a short delay
+    setTimeout(() => setUploadProgress([]), 1000);
+
+    sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
   };
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     
     if (files.length + images.length > maxImages) {
       toast({
@@ -95,8 +146,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
     }
 
     setUploading(true);
+    setUploadProgress(files.map(f => ({ fileName: f.name, progress: 0, status: 'compressing' as const })));
     
-    const uploadPromises = files.map(file => uploadImage(file));
+    const uploadPromises = files.map((file, index) => uploadImage(file, index));
     const uploadedUrls = await Promise.all(uploadPromises);
     const validUrls = uploadedUrls.filter((url): url is string => url !== null);
     
@@ -105,10 +157,10 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
     onImagesChange(newImages);
     setUploading(false);
 
-    toast({
-      title: "Success",
-      description: `${validUrls.length} image(s) uploaded`,
-    });
+    // Clear progress after a short delay
+    setTimeout(() => setUploadProgress([]), 1000);
+
+    sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
   }, [images, maxImages, onImagesChange, toast]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -163,10 +215,34 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
           disabled={uploading || images.length >= maxImages}
         />
         
-        <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        {uploading ? (
+          <Loader2 className="h-12 w-12 mx-auto mb-4 text-primary animate-spin" />
+        ) : (
+          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        )}
         <p className="text-sm md:text-base text-muted-foreground mb-4 font-medium">
-          {uploading ? "Uploading..." : "Add photos"}
+          {uploading ? "Compressing & uploading..." : "Add photos"}
         </p>
+        
+        {/* Upload Progress */}
+        {uploadProgress.length > 0 && (
+          <div className="space-y-2 mb-4">
+            {uploadProgress.map((progress, index) => (
+              <div key={index} className="text-left">
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                  <span className="truncate max-w-[200px]">{progress.fileName}</span>
+                  <span>
+                    {progress.status === 'compressing' && '🔄 Compressing...'}
+                    {progress.status === 'uploading' && '⬆️ Uploading...'}
+                    {progress.status === 'complete' && '✓ Complete'}
+                    {progress.status === 'error' && '✗ Failed'}
+                  </span>
+                </div>
+                <Progress value={progress.progress} className="h-1" />
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className="flex gap-3 justify-center mb-4">
           <label htmlFor="camera-upload">

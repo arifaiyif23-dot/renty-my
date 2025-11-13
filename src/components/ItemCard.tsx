@@ -3,8 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, ShieldCheck } from "lucide-react";
 import { SaveItemButton } from "./SaveItemButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 
 interface ItemCardProps {
   id: string;
@@ -35,6 +36,12 @@ const ItemCard = ({
 }: ItemCardProps) => {
   const [isOwnerVerified, setIsOwnerVerified] = useState(initialIsOwnerVerified);
 
+  // Optimize image URL based on network quality
+  const optimizedImage = useMemo(
+    () => getOptimizedImageUrl(image, { width: 600, quality: 75 }),
+    [image]
+  );
+
   useEffect(() => {
     if (owner_id && !initialIsOwnerVerified) {
       const checkOwnerVerification = async () => {
@@ -59,7 +66,7 @@ const ItemCard = ({
         {/* Image */}
         <div className="relative aspect-[16/9] overflow-hidden bg-muted">
           <img
-            src={image}
+            src={optimizedImage}
             alt={title}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="lazy"
