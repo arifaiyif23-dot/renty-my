@@ -1,29 +1,44 @@
-// useRentyFlow.ts
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+// =============================
+// Fix: Button Text English Version
+// =============================
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_KEY!
-);
+export function RentyFlowUI({ step, nextStep, prevStep, confirmBooking, loading, error }: any) {
+  if (step === 1)
+    return (
+      <div className="p-4 text-center">
+        <h2 className="text-xl font-bold">Booking Details</h2>
+        <p className="text-gray-600">Need this item for a short time?</p>
+        <button onClick={nextStep} className="bg-blue-600 text-white px-4 py-2 mt-3 rounded">
+          Rent Now
+        </button>
+      </div>
+    );
 
-export function useRentyFlow() {
-  const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  if (step === 2)
+    return (
+      <div className="p-4 text-center">
+        <h3 className="text-lg font-semibold mb-2">Confirm Your Booking</h3>
+        <p className="text-gray-500 mb-3">Please make sure the details are correct before proceeding.</p>
+        {error && <p className="text-red-500">{error}</p>}
+        <div className="flex justify-center gap-3">
+          <button onClick={prevStep} className="bg-gray-400 text-white px-4 py-2 rounded">
+            Back
+          </button>
+          <button onClick={confirmBooking} disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
+            {loading ? "Processing..." : "Confirm & Pay"}
+          </button>
+        </div>
+      </div>
+    );
 
-  const nextStep = () => setStep((s) => s + 1);
-  const prevStep = () => setStep((s) => s - 1);
-
-  const confirmBooking = async (data: any) => {
-    setLoading(true);
-    const { error } = await supabase.from("bookings").insert([data]);
-    setLoading(false);
-
-    if (!error) router.push("/payment");
-    else alert("Gagal buat tempahan, cuba lagi.");
-  };
-
-  return { step, nextStep, prevStep, confirmBooking, loading };
+  if (step === 3)
+    return (
+      <div className="p-4 text-center">
+        <h2 className="text-2xl font-bold text-green-600 mb-3">Booking Successful ✅</h2>
+        <p className="text-gray-600 mb-4">We’ll notify you once the owner accepts your rental request.</p>
+        <button onClick={() => setStep(1)} className="bg-blue-600 text-white px-4 py-2 rounded">
+          Make Another Booking
+        </button>
+      </div>
+    );
 }
