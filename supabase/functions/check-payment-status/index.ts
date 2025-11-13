@@ -1,10 +1,56 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema for webhook
+const webhookSchema = z.object({
+  billcode: z.string().min(1).optional(),
+  billCode: z.string().min(1).optional(),
+  status: z.union([z.string(), z.number()]).optional(),
+  status_id: z.union([z.string(), z.number()]).optional(),
+  amount: z.union([z.string(), z.number()]).optional(),
+  transaction_id: z.string().optional(),
+  order_id: z.string().optional(),
+}).passthrough();
+
+// Verify ToyyibPay signature
+async function verifyToyyibPaySignature(body: any, signature: string | null, secretKey: string): Promise<boolean> {
+  if (!signature) {
+    console.warn('No signature provided in webhook');
+    return false;
+  }
+
+  try {
+    // ToyyibPay uses MD5 hash of concatenated values
+    const billCode = body.billcode || body.billCode || '';
+    const statusId = body.status_id || body.status || '';
+    const amount = body.amount || '';
+    const orderId = body.order_id || body.transaction_id || '';
+    
+    // Create signature string: billcode+status_id+amount+order_id+secretkey
+    const signatureString = `${billCode}${statusId}${amount}${orderId}${secretKey}`;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(signatureString);
+    const hashBuffer = await crypto.subtle.digest("MD5", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const calculatedSignature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    const isValid = calculatedSignature === signature;
+    if (!isValid) {
+      console.error('Signature mismatch');
+    }
+    return isValid;
+  } catch (error) {
+    console.error('Error verifying signature:', error);
+    return false;
+  }
+}
 
 serve(async (req) => {
   // Always return 200 OK to ToyyibPay to prevent retries
@@ -13,10 +59,6 @@ serve(async (req) => {
   }
 
   try {
-    console.log('=== TOYYIBPAY WEBHOOK RECEIVED ===');
-    console.log('Method:', req.method);
-    console.log('Headers:', Object.fromEntries(req.headers.entries()));
-
     // ToyyibPay can send either formData or JSON
     let body: any = {};
     const contentType = req.headers.get('content-type') || '';
@@ -24,14 +66,11 @@ serve(async (req) => {
     try {
       if (contentType.includes('application/json')) {
         body = await req.json();
-        console.log('Parsed as JSON:', body);
       } else {
         const formData = await req.formData();
         body = Object.fromEntries(formData.entries());
-        console.log('Parsed as FormData:', body);
       }
     } catch (parseError) {
-      console.error('Failed to parse request body:', parseError);
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'Invalid request format' 
@@ -41,22 +80,43 @@ serve(async (req) => {
       });
     }
 
+    // Validate input structure
+    const validationResult = webhookSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid payload' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify webhook signature
+    const toyyibpaySecretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY');
+    if (!toyyibpaySecretKey) {
+      return new Response(JSON.stringify({ success: false, error: 'Configuration error' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const signature = req.headers.get('x-signature') || body.signature;
+    const isValidSignature = await verifyToyyibPaySignature(body, signature, toyyibpaySecretKey);
+    
+    if (!isValidSignature) {
+      console.error('Invalid webhook signature - potential fraud attempt');
+      // Still return 200 to prevent retries, but don't process
+      return new Response(JSON.stringify({ success: false, error: 'Invalid signature' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Extract payment details (ToyyibPay uses different field names)
     const billCode = body.billcode || body.billCode || body.BillCode;
     const status = body.status || body.status_id;
     const amount = body.amount || body.billpaymentAmount;
     const transactionId = body.transaction_id || body.fpx_fpxTxnId;
-    
-    console.log('Payment Details:', {
-      billCode,
-      status,
-      amount,
-      transactionId,
-      rawBody: body
-    });
 
     if (!billCode) {
-      console.error('Missing billCode in callback');
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'Missing billCode' 
@@ -73,7 +133,6 @@ serve(async (req) => {
     );
 
     // Find transaction - ToyyibPay billCode is stored in toyyibpay_transaction_id
-    console.log('Looking up transaction with billCode:', billCode);
     const { data: transaction, error: txError } = await supabase
       .from("wallet_transactions")
       .select("*, wallet:wallets(user_id)")
@@ -81,9 +140,6 @@ serve(async (req) => {
       .single();
 
     if (txError || !transaction) {
-      console.error('Transaction not found:', txError);
-      console.log('Attempting alternate lookup with status=pending');
-      
       // Try to find by pending status and matching amount (last resort)
       const amountNum = parseFloat(amount) / 100; // ToyyibPay sends in cents
       const { data: pendingTx } = await supabase
@@ -97,7 +153,6 @@ serve(async (req) => {
         .single();
 
       if (!pendingTx) {
-        console.error('No matching transaction found for billCode:', billCode);
         return new Response(JSON.stringify({ 
           success: false, 
           message: 'Transaction not found' 
@@ -106,9 +161,6 @@ serve(async (req) => {
           status: 200
         });
       }
-      
-      // Use the found pending transaction
-      console.log('Found pending transaction:', pendingTx.id);
     }
 
     const tx = transaction || (await supabase
@@ -134,11 +186,8 @@ serve(async (req) => {
     // Handle payment status
     // ToyyibPay status: 1=success, 2=pending, 3=failed
     if (status === '1') {
-      console.log('✅ Payment successful for billCode:', billCode);
-
       // Check if already processed
       if (tx.status === 'completed') {
-        console.log('Transaction already completed, skipping');
         return new Response(JSON.stringify({ 
           success: true, 
           message: 'Already processed' 
@@ -150,12 +199,6 @@ serve(async (req) => {
 
       // Convert amount (ToyyibPay sends in cents: amount * 100)
       const amountInRM = parseFloat(amount) / 100;
-      
-      console.log('Crediting wallet:', {
-        userId: tx.wallet.user_id,
-        amount: amountInRM,
-        transactionId: tx.id
-      });
 
       // Credit wallet balance
       const { error: walletError } = await supabase.rpc("increment_wallet_balance", {
@@ -164,7 +207,6 @@ serve(async (req) => {
       });
 
       if (walletError) {
-        console.error('Failed to credit wallet:', walletError);
         throw walletError;
       }
 
@@ -186,7 +228,6 @@ serve(async (req) => {
         link: "/wallet",
       });
 
-      console.log('✅ Payment processed successfully');
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Payment processed' 
@@ -196,8 +237,6 @@ serve(async (req) => {
       });
     } else if (status === '3') {
       // Payment failed
-      console.log('❌ Payment failed for billCode:', billCode);
-      
       await supabase
         .from("wallet_transactions")
         .update({ status: 'failed' })
@@ -221,7 +260,6 @@ serve(async (req) => {
     }
 
     // Status 2 or other = pending
-    console.log('⚠️ Payment pending, status:', status);
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Payment pending' 
@@ -231,11 +269,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('❌ Webhook error:', error);
     // Always return 200 to prevent retries from ToyyibPay
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Webhook processing failed'
     }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200

@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const promoEnhancedSchema = z.object({
+  code: z.string().min(1).max(50).regex(/^[A-Z0-9-]+$/i),
+  rentalAmount: z.number().positive().finite(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,14 +41,18 @@ serve(async (req) => {
       );
     }
 
-    const { code, rentalAmount } = await req.json();
-
-    if (!code) {
+    // Parse and validate request body
+    const body = await req.json();
+    const validationResult = promoEnhancedSchema.safeParse(body);
+    
+    if (!validationResult.success) {
       return new Response(
-        JSON.stringify({ valid: false, error: "Promo code required" }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ valid: false, error: 'Invalid input parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { code, rentalAmount } = validationResult.data;
 
     const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -53,8 +64,6 @@ serve(async (req) => {
       .rpc('check_promo_rate_limit', { p_user_id: user.id });
 
     if (!canAttempt) {
-      console.log(`Rate limit exceeded for user ${user.id}`);
-      
       // Log failed attempt
       await supabaseServiceClient.from('promo_attempt_log').insert({
         user_id: user.id,
@@ -89,7 +98,6 @@ serve(async (req) => {
     });
 
     if (promoError || !promo) {
-      console.log(`Invalid promo code: ${code}`);
       return new Response(
         JSON.stringify({ valid: false, error: "Invalid promo code" }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -143,8 +151,6 @@ serve(async (req) => {
       discountAmount = Math.min(promo.discount_amount, rentalAmount);
     }
 
-    console.log(`Valid promo code: ${code}, discount: RM${discountAmount.toFixed(2)}`);
-
     return new Response(
       JSON.stringify({
         valid: true,
@@ -157,11 +163,10 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error validating promo code:', error);
     return new Response(
       JSON.stringify({ 
         valid: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: 'Validation failed'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

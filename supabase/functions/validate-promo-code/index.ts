@@ -1,9 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const promoValidationSchema = z.object({
+  code: z.string().min(1).max(50).regex(/^[A-Z0-9-]+$/i),
+  userId: z.string().uuid(),
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,14 +22,17 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { code, userId } = await req.json();
+    const body = await req.json();
+    const validationResult = promoValidationSchema.safeParse(body);
 
-    if (!code || !userId) {
+    if (!validationResult.success) {
       return new Response(
-        JSON.stringify({ error: 'Code and userId are required' }),
+        JSON.stringify({ error: 'Invalid input parameters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { code, userId } = validationResult.data;
 
     console.log('Validating promo code:', code, 'for user:', userId);
 

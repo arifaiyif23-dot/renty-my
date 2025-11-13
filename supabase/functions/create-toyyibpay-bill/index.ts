@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const topUpSchema = z.object({
+  amount: z.number().positive().min(10).max(10000).finite(),
+  description: z.string().max(500).optional(),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -31,35 +38,27 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      console.error("Authentication failed:", authError);
       throw new Error("Unauthorized - invalid token");
     }
 
     const userId = user.id; // Always use authenticated user's ID
 
-    // Only accept amount and description from request
-    const { amount, description } = await req.json();
-
-    if (!amount) {
-      throw new Error("Amount is required");
+    // Parse and validate input
+    const body = await req.json();
+    const validationResult = topUpSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid input parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    // SERVER-SIDE VALIDATION
-    const numAmount = Number(amount);
-    if (isNaN(numAmount) || !isFinite(numAmount)) {
-      throw new Error("Invalid amount format");
-    }
-    if (numAmount < 10) {
-      throw new Error("Minimum top up amount is RM 10");
-    }
-    if (numAmount > 10000) {
-      throw new Error("Maximum top up amount is RM 10,000");
-    }
-    if (numAmount <= 0) {
-      throw new Error("Amount must be positive");
-    }
-    if (!Number.isInteger(numAmount * 100)) {
-      throw new Error("Amount must have at most 2 decimal places");
+    
+    const { amount, description = 'Wallet Top-Up' } = validationResult.data;
+    
+    // Additional validation for decimal places
+    if (!Number.isInteger(amount * 100)) {
+      throw new Error('Amount must have at most 2 decimal places');
     }
 
     // Use service role for database operations
@@ -108,15 +107,6 @@ serve(async (req) => {
       billPhone: profile?.phone || "0123456789",
     });
 
-    console.log("Creating ToyyibPay bill:", {
-      amount,
-      userId,
-      categoryCode: toyyibpayCategoryCode,
-      returnUrl,
-      callbackUrl,
-      email: authUser?.email,
-    });
-
     // Make request to ToyyibPay PRODUCTION endpoint
     const response = await fetch("https://toyyibpay.com/index.php/api/createBill", {
       method: "POST",
@@ -131,11 +121,8 @@ serve(async (req) => {
     try {
       result = JSON.parse(textResult);
     } catch {
-      console.error("Invalid JSON response from ToyyibPay:", textResult);
       throw new Error("ToyyibPay API returned invalid response");
     }
-
-    console.log("ToyyibPay response:", result);
 
     if (Array.isArray(result) && result[0]?.BillCode) {
       const billCode = result[0].BillCode;
@@ -166,15 +153,13 @@ serve(async (req) => {
         }
       );
     } else {
-      console.error("ToyyibPay error:", result);
       throw new Error(result[0]?.msg || "Failed to create ToyyibPay bill");
     }
   } catch (error) {
-    console.error("Error creating ToyyibPay bill:", error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error instanceof Error ? error.message : "Failed to create bill" 
+        error: "Payment processing failed"
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
