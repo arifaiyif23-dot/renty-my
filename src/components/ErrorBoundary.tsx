@@ -29,6 +29,15 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   handleReset = () => {
     this.setState({ hasError: false, error: undefined });
+  };
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: undefined });
+    window.location.reload();
+  };
+
+  handleGoHome = () => {
+    this.setState({ hasError: false, error: undefined });
     window.location.href = '/';
   };
 
@@ -57,12 +66,12 @@ export default class ErrorBoundary extends Component<Props, State> {
                   <pre className="overflow-auto">{this.state.error.message}</pre>
                 </details>
               )}
-              <div className="flex gap-2">
-                <Button onClick={() => window.location.reload()} variant="outline" className="flex-1">
-                  Refresh Page
+              <div className="flex flex-col gap-2">
+                <Button onClick={this.handleRetry} className="w-full">
+                  Try Again
                 </Button>
-                <Button onClick={this.handleReset} className="flex-1">
-                  Go Home
+                <Button onClick={this.handleGoHome} variant="outline" className="w-full">
+                  Go to Homepage
                 </Button>
               </div>
             </CardContent>

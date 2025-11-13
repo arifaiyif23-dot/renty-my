@@ -1,0 +1,143 @@
+/**
+ * Image optimization utilities for better mobile performance
+ */
+
+import { getNetworkQuality } from './performance';
+
+// Convert image to WebP format with quality optimization
+export const convertToWebP = async (
+  file: File,
+  quality: number = 0.8
+): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      // Set canvas dimensions
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      // Draw and convert to WebP
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to convert image'));
+          }
+        },
+        'image/webp',
+        quality
+      );
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+// Resize image if it exceeds max dimensions
+export const resizeImage = async (
+  file: File,
+  maxWidth: number = 1920,
+  maxHeight: number = 1080
+): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Calculate new dimensions while maintaining aspect ratio
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = width * ratio;
+        height = height * ratio;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to resize image'));
+          }
+        },
+        file.type,
+        0.9
+      );
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+// Optimize image based on network quality
+export const optimizeImage = async (file: File): Promise<Blob> => {
+  const networkQuality = getNetworkQuality();
+  const isSlow = networkQuality === 'slow';
+
+  // Resize if needed
+  const maxWidth = isSlow ? 1280 : 1920;
+  const maxHeight = isSlow ? 720 : 1080;
+  const resized = await resizeImage(file, maxWidth, maxHeight);
+
+  // Convert to WebP for better compression
+  const quality = isSlow ? 0.6 : 0.8;
+  const webpBlob = await convertToWebP(
+    new File([resized], file.name, { type: file.type }),
+    quality
+  );
+
+  return webpBlob;
+};
+
+// Get optimized image URL from Supabase storage
+export const getOptimizedImageUrl = (
+  url: string,
+  options?: {
+    width?: number;
+    height?: number;
+    quality?: number;
+  }
+): string => {
+  if (!url) return '';
+
+  const networkQuality = getNetworkQuality();
+  const isSlow = networkQuality === 'slow';
+
+  // Default dimensions based on network quality
+  const defaultWidth = isSlow ? 800 : 1200;
+  const defaultQuality = isSlow ? 60 : 80;
+
+  const width = options?.width || defaultWidth;
+  const quality = options?.quality || defaultQuality;
+
+  // If it's a Supabase storage URL, add transformation params
+  if (url.includes('supabase.co/storage')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}width=${width}&quality=${quality}&format=webp`;
+  }
+
+  return url;
+};

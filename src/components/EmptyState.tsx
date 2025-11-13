@@ -7,6 +7,8 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   onAction?: () => void;
+  showRetry?: boolean;
+  onRetry?: () => void;
 }
 
 export default function EmptyState({
@@ -15,6 +17,8 @@ export default function EmptyState({
   description,
   actionLabel,
   onAction,
+  showRetry = false,
+  onRetry,
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -23,9 +27,16 @@ export default function EmptyState({
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-sm text-muted-foreground mb-6 max-w-sm">{description}</p>
-      {actionLabel && onAction && (
-        <Button onClick={onAction}>{actionLabel}</Button>
-      )}
+      <div className="flex flex-col gap-2 w-full max-w-xs">
+        {actionLabel && onAction && (
+          <Button onClick={onAction} className="w-full">{actionLabel}</Button>
+        )}
+        {showRetry && onRetry && (
+          <Button onClick={onRetry} variant="outline" className="w-full">
+            Try Again
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { ThemeProvider } from "next-themes";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -53,6 +54,7 @@ function AppRoutes() {
   
   return (
     <div className="flex flex-col min-h-screen w-full">
+      <OfflineIndicator />
       {/* Skip to main content for keyboard navigation */}
       <a href="#main-content" className="skip-to-main">
         Skip to main content
