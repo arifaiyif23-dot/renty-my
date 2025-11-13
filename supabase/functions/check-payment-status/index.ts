@@ -22,7 +22,6 @@ const webhookSchema = z.object({
 // Verify ToyyibPay signature
 async function verifyToyyibPaySignature(body: any, signature: string | null, secretKey: string): Promise<boolean> {
   if (!signature) {
-    console.warn('No signature provided in webhook');
     return false;
   }
 
@@ -41,13 +40,8 @@ async function verifyToyyibPaySignature(body: any, signature: string | null, sec
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const calculatedSignature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     
-    const isValid = calculatedSignature === signature;
-    if (!isValid) {
-      console.error('Signature mismatch');
-    }
-    return isValid;
+    return calculatedSignature === signature;
   } catch (error) {
-    console.error('Error verifying signature:', error);
     return false;
   }
 }
@@ -102,7 +96,6 @@ serve(async (req) => {
     const isValidSignature = await verifyToyyibPaySignature(body, signature, toyyibpaySecretKey);
     
     if (!isValidSignature) {
-      console.error('Invalid webhook signature - potential fraud attempt');
       // Still return 200 to prevent retries, but don't process
       return new Response(JSON.stringify({ success: false, error: 'Invalid signature' }), {
         status: 200,

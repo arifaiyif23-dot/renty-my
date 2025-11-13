@@ -34,8 +34,6 @@ Deno.serve(async (req) => {
 
     const { code, userId } = validationResult.data;
 
-    console.log('Validating promo code:', code, 'for user:', userId);
-
     // Fetch promo code
     const { data: promoCode, error: promoError } = await supabase
       .from('promo_codes')
@@ -45,7 +43,6 @@ Deno.serve(async (req) => {
       .single();
 
     if (promoError || !promoCode) {
-      console.error('Promo code not found:', promoError);
       return new Response(
         JSON.stringify({ error: 'Invalid promo code' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -83,8 +80,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Promo code validated successfully:', promoCode);
-
     return new Response(
       JSON.stringify({
         valid: true,
@@ -98,9 +93,8 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error validating promo code:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Validation failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

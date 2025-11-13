@@ -1622,6 +1622,30 @@ export type Database = {
           },
         ]
       }
+      wallet_rate_limits: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -1790,6 +1814,10 @@ export type Database = {
           p_window_seconds: number
         }
         Returns: boolean
+      }
+      check_wallet_operation_limit: {
+        Args: { p_amount: number; p_operation_type: string; p_user_id: string }
+        Returns: Json
       }
       cleanup_expired_payment_locks: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }

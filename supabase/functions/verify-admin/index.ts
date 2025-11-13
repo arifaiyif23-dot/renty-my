@@ -56,23 +56,20 @@ serve(async (req) => {
       .single();
 
     if (roleError || !roleData) {
-      console.log(`Access denied for user ${user.id} - not an admin`);
       return new Response(
         JSON.stringify({ isAdmin: false }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Admin verified: ${user.id}`);
     return new Response(
       JSON.stringify({ isAdmin: true, userId: user.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error verifying admin:', error);
     return new Response(
-      JSON.stringify({ isAdmin: false, error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ isAdmin: false, error: 'Verification failed' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
