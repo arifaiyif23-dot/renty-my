@@ -16,26 +16,21 @@ import ProfileEditDialog from "@/components/ProfileEditDialog";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { useProfileStatsQuery, useVerificationStatusQuery } from "@/hooks/use-profile-query";
 
 export default function Profile() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [stats, setStats] = useState({
-    itemsListed: 0,
-    rentalsAsRenter: 0,
-    rentalsAsOwner: 0,
-    averageRating: 0,
-    totalReviews: 0,
-  });
-  const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const isMobile = useIsMobile();
 
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useProfileStatsQuery(user?.id);
+  const { data: verificationStatus, refetch: refetchVerification } = useVerificationStatusQuery(user?.id);
+
   const refreshProfile = async () => {
-    await Promise.all([fetchStats(), fetchVerificationStatus()]);
+    await Promise.all([refetchStats(), refetchVerification()]);
   };
 
   const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
@@ -45,8 +40,6 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      fetchStats();
-      fetchVerificationStatus();
       checkAdminRole();
     }
   }, [user]);
@@ -61,52 +54,7 @@ export default function Profile() {
     }
   };
 
-  const fetchVerificationStatus = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from('verification_requests')
-        .select('status, created_at, overall_confidence_score')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!error && data) {
-        setVerificationStatus(data);
-      }
-    } catch (error) {
-      console.error("Error fetching verification status:", error);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const [itemsResult, renterResult, ownerResult, reviewsResult] = await Promise.all([
-        supabase.from("items").select("id", { count: "exact" }).eq("owner_id", user?.id),
-        supabase.from("rentals").select("id", { count: "exact" }).eq("renter_id", user?.id),
-        supabase.from("rentals").select("id", { count: "exact" }).eq("owner_id", user?.id),
-        supabase.from("reviews").select("rating").eq("reviewee_id", user?.id),
-      ]);
-
-      const avgRating = reviewsResult.data && reviewsResult.data.length > 0
-        ? reviewsResult.data.reduce((sum, r) => sum + r.rating, 0) / reviewsResult.data.length
-        : 0;
-
-      setStats({
-        itemsListed: itemsResult.count || 0,
-        rentalsAsRenter: renterResult.count || 0,
-        rentalsAsOwner: ownerResult.count || 0,
-        averageRating: avgRating,
-        totalReviews: reviewsResult.data?.length || 0,
-      });
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading || !profile) {
+  if (statsLoading || !profile) {
     return (
       <>
         <Header />
@@ -236,7 +184,7 @@ export default function Profile() {
             <CardContent className="p-6 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Items Listed</p>
-                <p className="text-3xl font-bold">{stats.itemsListed}</p>
+                <p className="text-3xl font-bold">{stats?.itemsListed || 0}</p>
                 <p className="text-xs text-muted-foreground mt-1">As Owner</p>
               </div>
               <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -249,7 +197,7 @@ export default function Profile() {
             <CardContent className="p-6 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Rentals Given</p>
-                <p className="text-3xl font-bold">{stats.rentalsAsOwner}</p>
+                <p className="text-3xl font-bold">{stats?.rentalsAsOwner || 0}</p>
                 <p className="text-xs text-muted-foreground mt-1">As Owner</p>
               </div>
               <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
@@ -262,7 +210,7 @@ export default function Profile() {
             <CardContent className="p-6 flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Rentals</p>
-                <p className="text-3xl font-bold">{stats.rentalsAsRenter}</p>
+                <p className="text-3xl font-bold">{stats?.rentalsAsRenter || 0}</p>
                 <p className="text-xs text-muted-foreground mt-1">As Renter</p>
               </div>
               <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
@@ -277,9 +225,9 @@ export default function Profile() {
                 <p className="text-sm text-muted-foreground mb-1">Average Rating</p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-3xl font-bold text-primary">
-                    {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "N/A"}
+                    {stats && stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "N/A"}
                   </p>
-                  <p className="text-sm text-muted-foreground">({stats.totalReviews})</p>
+                  <p className="text-sm text-muted-foreground">({stats?.totalReviews || 0})</p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Total Reviews</p>
               </div>
@@ -297,7 +245,7 @@ export default function Profile() {
         <ProfileEditDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          onSuccess={fetchStats}
+          onSuccess={refetchStats}
         />
       </div>
     </>

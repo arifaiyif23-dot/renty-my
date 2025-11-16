@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import ItemCard from "@/components/ItemCard";
 import SkeletonCard from "@/components/SkeletonCard";
@@ -13,85 +12,43 @@ import { useSwipeToDelete } from "@/hooks/use-swipe-to-delete";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { useWishlistQuery, useToggleWishlistMutation } from "@/hooks/use-items-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Wishlist() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+
+  const { data: items = [], isLoading, refetch } = useWishlistQuery(user?.id);
+  const removeItemMutation = useToggleWishlistMutation();
 
   useEffect(() => {
-    if (user) {
-      fetchSavedItems();
-    } else {
+    if (!user) {
       navigate('/auth');
     }
-  }, [user]);
-
-  const isMobile = useIsMobile();
+  }, [user, navigate]);
 
   const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
-    await fetchSavedItems();
+    await refetch();
     toast.success('Wishlist refreshed');
   }, isMobile);
-
-  const fetchSavedItems = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('saved_items')
-        .select(`
-          item_id,
-          items:item_id (
-            id,
-            title,
-            price_per_day,
-            category,
-            location,
-            owner:owner_id (
-              is_verified
-            ),
-            images:item_images (
-              image_url
-            )
-          )
-        `)
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedItems = (data || []).map((saved: any) => ({
-        id: saved.items.id,
-        title: saved.items.title,
-        image: saved.items.images?.[0]?.image_url || '/placeholder.svg',
-        pricePerDay: Number(saved.items.price_per_day),
-        category: saved.items.category,
-        location: saved.items.location,
-        rating: 0,
-        reviewCount: 0,
-        isOwnerVerified: saved.items.owner?.is_verified || false,
-      }));
-
-      setItems(formattedItems);
-    } catch (error) {
-      console.error('Error fetching saved items:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const removeFromWishlist = async (itemId: string) => {
     const previousItems = [...items];
     
-    // Optimistic update
-    setItems(prev => prev.filter(item => item.id !== itemId));
+    // Optimistic update via query cache
+    queryClient.setQueryData(['wishlist', user?.id], (old: any[]) => 
+      old?.filter(item => item.id !== itemId) || []
+    );
     
     const undoToast = toast.success('Removed from wishlist', {
       action: {
         label: 'Undo',
         onClick: () => {
-          setItems(previousItems);
+          queryClient.setQueryData(['wishlist', user?.id], previousItems);
           toast.dismiss(undoToast);
         },
       },
@@ -99,16 +56,13 @@ export default function Wishlist() {
     });
 
     try {
-      const { error } = await supabase
-        .from('saved_items')
-        .delete()
-        .eq('user_id', user?.id)
-        .eq('item_id', itemId);
-
-      if (error) throw error;
+      await removeItemMutation.mutateAsync({
+        userId: user!.id,
+        itemId,
+        isSaved: true,
+      });
     } catch (error) {
-      // Rollback on error
-      setItems(previousItems);
+      queryClient.setQueryData(['wishlist', user?.id], previousItems);
       toast.dismiss(undoToast);
       console.error('Error removing item:', error);
       toast.error('Failed to remove item');
@@ -130,7 +84,7 @@ export default function Wishlist() {
         )}
         <h1 className="text-3xl font-bold mb-6 text-foreground">My Wishlist</h1>
         
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[...Array(6)].map((_, i) => (
               <SkeletonCard key={i} />
