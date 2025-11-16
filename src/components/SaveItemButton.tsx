@@ -18,6 +18,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [optimisticState, setOptimisticState] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -53,9 +54,16 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
       return;
     }
 
-    setLoading(true);
+    const previousState = isSaved;
+    const newState = !isSaved;
+    
+    // Optimistic update
+    setOptimisticState(newState);
+    setIsSaved(newState);
+    haptics.light();
+
     try {
-      if (isSaved) {
+      if (previousState) {
         const { error } = await supabase
           .from('saved_items')
           .delete()
@@ -63,8 +71,6 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
           .eq('item_id', itemId);
 
         if (error) throw error;
-        setIsSaved(false);
-        haptics.light();
         toast.success('Removed from wishlist');
       } else {
         const { error } = await supabase
@@ -72,16 +78,21 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
           .insert({ user_id: user.id, item_id: itemId });
 
         if (error) throw error;
-        setIsSaved(true);
         haptics.success();
         toast.success('Added to wishlist');
       }
+      setOptimisticState(null);
     } catch (error: any) {
+      // Rollback on error
+      setIsSaved(previousState);
+      setOptimisticState(null);
       toast.error(error.message || 'Failed to update wishlist');
-    } finally {
-      setLoading(false);
+      setLoading(true);
+      setTimeout(() => setLoading(false), 300);
     }
   };
+
+  const displayState = optimisticState !== null ? optimisticState : isSaved;
 
   return (
     <Button
@@ -93,7 +104,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
     >
       <Heart 
         className={`h-5 w-5 transition-all ${
-          isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+          displayState ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
         }`} 
       />
     </Button>
