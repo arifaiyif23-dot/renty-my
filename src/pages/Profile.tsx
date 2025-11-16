@@ -7,12 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks } from "lucide-react";
+import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { ReferralSystem } from "@/components/ReferralSystem";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 export default function Profile() {
   const { user, profile } = useAuth();
@@ -29,6 +32,16 @@ export default function Profile() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const isMobile = useIsMobile();
+
+  const refreshProfile = async () => {
+    await Promise.all([fetchStats(), fetchVerificationStatus()]);
+  };
+
+  const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
+    await refreshProfile();
+    toast.success('Profile updated');
+  }, isMobile);
 
   useEffect(() => {
     if (user) {
@@ -114,6 +127,11 @@ export default function Profile() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
+        {pullDistance > 0 && (
+          <div className="flex justify-center py-2">
+            <RefreshCw className={`h-5 w-5 text-primary ${isRefreshing ? 'animate-spin' : ''}`} style={{ transform: `rotate(${pullDistance * 2}deg)` }} />
+          </div>
+        )}
         {/* Verification Status Banner */}
         {!profile.is_verified && !verificationStatus && (
           <Card className="mb-6 border-primary">

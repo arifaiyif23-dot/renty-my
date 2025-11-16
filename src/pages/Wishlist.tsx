@@ -7,11 +7,12 @@ import ItemCard from "@/components/ItemCard";
 import SkeletonCard from "@/components/SkeletonCard";
 import EmptyState from "@/components/EmptyState";
 import SEO from "@/components/SEO";
-import { Heart, Trash2 } from "lucide-react";
+import { Heart, Trash2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSwipeToDelete } from "@/hooks/use-swipe-to-delete";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 
 export default function Wishlist() {
   const { t } = useTranslation();
@@ -29,6 +30,11 @@ export default function Wishlist() {
   }, [user]);
 
   const isMobile = useIsMobile();
+
+  const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
+    await fetchSavedItems();
+    toast.success('Wishlist refreshed');
+  }, isMobile);
 
   const fetchSavedItems = async () => {
     try {
@@ -76,6 +82,22 @@ export default function Wishlist() {
   };
 
   const removeFromWishlist = async (itemId: string) => {
+    const previousItems = [...items];
+    
+    // Optimistic update
+    setItems(prev => prev.filter(item => item.id !== itemId));
+    
+    const undoToast = toast.success('Removed from wishlist', {
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          setItems(previousItems);
+          toast.dismiss(undoToast);
+        },
+      },
+      duration: 5000,
+    });
+
     try {
       const { error } = await supabase
         .from('saved_items')
@@ -84,10 +106,10 @@ export default function Wishlist() {
         .eq('item_id', itemId);
 
       if (error) throw error;
-      
-      setItems(prev => prev.filter(item => item.id !== itemId));
-      toast.success('Removed from wishlist');
     } catch (error) {
+      // Rollback on error
+      setItems(previousItems);
+      toast.dismiss(undoToast);
       console.error('Error removing item:', error);
       toast.error('Failed to remove item');
     }
@@ -101,6 +123,11 @@ export default function Wishlist() {
       />
       <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
+        {pullDistance > 0 && (
+          <div className="flex justify-center py-2">
+            <RefreshCw className={`h-5 w-5 text-primary ${isRefreshing ? 'animate-spin' : ''}`} style={{ transform: `rotate(${pullDistance * 2}deg)` }} />
+          </div>
+        )}
         <h1 className="text-3xl font-bold mb-6 text-foreground">My Wishlist</h1>
         
         {loading ? (

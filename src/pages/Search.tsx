@@ -24,13 +24,13 @@ import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
 import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 
 export default function Search() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState<ItemCategory | 'all'>('all');
   const [minPrice, setMinPrice] = useState('');
@@ -68,9 +68,115 @@ export default function Search() {
   // Debounce search query for better performance
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
+  // Infinite scroll
+  const fetchItemsPage = async (page: number, pageSize: number) => {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    let query = supabase
+      .from('items')
+      .select(`
+        id,
+        title,
+        price_per_day,
+        category,
+        location,
+        owner:owner_id (
+          is_verified
+        ),
+        images:item_images (
+          image_url
+        )
+      `)
+      .eq('is_available', true)
+      .range(start, end);
+
+    if (debouncedSearchQuery) {
+      query = query.or(`title.ilike.%${debouncedSearchQuery}%,description.ilike.%${debouncedSearchQuery}%`);
+    }
+
+    if (category !== 'all') {
+      query = query.eq('category', category);
+    }
+
+    if (minPrice) {
+      query = query.gte('price_per_day', parseFloat(minPrice));
+    }
+
+    if (maxPrice) {
+      query = query.lte('price_per_day', parseFloat(maxPrice));
+    }
+
+    if (userLocation) {
+      query = query.ilike('location', `%${userLocation}%`);
+    }
+
+    if (verifiedOnly) {
+      query = query.eq('owner.is_verified', true);
+    }
+
+    if (instantBookOnly) {
+      query = query.eq('instant_book_enabled', true);
+    }
+
+    if (itemCondition !== 'all') {
+      query = query.eq('item_condition', itemCondition);
+    }
+
+    if (sortBy === 'price_low') {
+      query = query.order('price_per_day', { ascending: true });
+    } else if (sortBy === 'price_high') {
+      query = query.order('price_per_day', { ascending: false });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    if (dateRange?.from && dateRange?.to) {
+      const availableItems = [];
+      for (const item of data || []) {
+        const { data: rentals } = await supabase
+          .from('rentals')
+          .select('start_date, end_date')
+          .eq('item_id', item.id)
+          .in('status', ['pending', 'approved', 'active']);
+
+        const isAvailable = !rentals?.some(rental => {
+          const rentalStart = new Date(rental.start_date);
+          const rentalEnd = new Date(rental.end_date);
+          return (
+            (dateRange.from! >= rentalStart && dateRange.from! <= rentalEnd) ||
+            (dateRange.to! >= rentalStart && dateRange.to! <= rentalEnd) ||
+            (dateRange.from! <= rentalStart && dateRange.to! >= rentalEnd)
+          );
+        });
+
+        if (isAvailable) {
+          availableItems.push(item);
+        }
+      }
+      return availableItems;
+    }
+
+    return data || [];
+  };
+
+  const { items, loading, hasMore, sentinelRef, reset } = useInfiniteScroll({
+    fetchFunction: fetchItemsPage,
+    pageSize: 12,
+  });
+
+  // Reset infinite scroll when filters change
+  useEffect(() => {
+    reset();
+  }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
+
   // Pull to refresh
   const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
-    await fetchItems();
+    reset();
     toast.success('Results refreshed');
   }, isMobile);
 
@@ -91,87 +197,8 @@ export default function Search() {
   }, [searchParams]);
 
   useEffect(() => {
-    fetchItems();
-  }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition]);
-
-  const fetchItems = async () => {
-    try {
-      let query = supabase
-        .from('items')
-        .select(`
-          *,
-          owner:profiles(*),
-          images:item_images(*)
-        `)
-        .eq('is_available', true);
-
-      if (debouncedSearchQuery) {
-        query = query.or(`title.ilike.%${debouncedSearchQuery}%,description.ilike.%${debouncedSearchQuery}%`);
-      }
-
-      if (userLocation) {
-        query = query.ilike('location', `%${userLocation}%`);
-      }
-
-      if (category !== 'all') {
-        query = query.eq('category', category);
-      }
-
-      if (minPrice) {
-        query = query.gte('price_per_day', parseFloat(minPrice));
-      }
-
-      if (maxPrice) {
-        query = query.lte('price_per_day', parseFloat(maxPrice));
-      }
-
-      if (verifiedOnly) {
-        query = query.eq('owner.is_verified', true);
-      }
-
-      if (instantBookOnly) {
-        query = query.eq('instant_book_enabled', true);
-      }
-
-      if (itemCondition !== 'all') {
-        query = query.eq('item_condition', itemCondition);
-      }
-
-      // Apply sorting
-      if (sortBy === 'newest') {
-        query = query.order('created_at', { ascending: false });
-      } else if (sortBy === 'price_low') {
-        query = query.order('price_per_day', { ascending: true });
-      } else if (sortBy === 'price_high') {
-        query = query.order('price_per_day', { ascending: false });
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      let filteredItems = data || [];
-
-      // Filter by date availability
-      if (dateRange?.from && dateRange?.to) {
-        const { data: bookedRentals } = await supabase
-          .from('rentals')
-          .select('item_id')
-          .in('status', ['approved', 'active'])
-          .lte('start_date', format(dateRange.to, 'yyyy-MM-dd'))
-          .gte('end_date', format(dateRange.from, 'yyyy-MM-dd'));
-
-        const bookedItemIds = bookedRentals?.map(r => r.item_id) || [];
-        filteredItems = filteredItems.filter(item => !bookedItemIds.includes(item.id));
-      }
-
-      setItems(filteredItems);
-    } catch (error: any) {
-      console.error('Error fetching items:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setInitialLoading(false);
+  }, []);
 
   const activeFiltersCount = [
     searchQuery,
@@ -456,7 +483,7 @@ export default function Search() {
         </p>
       </div>
 
-      {loading ? (
+      {initialLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <SkeletonCard key={i} />
