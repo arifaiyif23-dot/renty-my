@@ -141,8 +141,8 @@ export default function Wallet() {
     }
 
     const amount = parseFloat(topUpAmount);
-    if (amount < 10) {
-      toast.error('Minimum top up amount is RM 10');
+    if (amount < 1) {
+      toast.error('Minimum top up amount is RM 1');
       haptics.error();
       return;
     }
