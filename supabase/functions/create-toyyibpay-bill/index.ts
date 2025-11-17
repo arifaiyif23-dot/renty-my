@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Input validation schema
 const topUpSchema = z.object({
-  amount: z.number().positive().min(10).max(10000).finite(),
+  amount: z.number().positive().min(1).max(10000).finite(),
   description: z.string().max(500).optional(),
 });
 
