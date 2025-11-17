@@ -179,35 +179,34 @@ export default function Wallet() {
         setDialogOpen(false);
         setTopUpAmount("");
         
-        // Poll for payment completion
+        // Subscribe to realtime updates for payment completion
         const billCode = data.billCode;
-        let pollCount = 0;
-        const maxPolls = 60;
-        
-        const pollInterval = setInterval(async () => {
-          pollCount++;
-          
-          if (pollCount > maxPolls) {
-            clearInterval(pollInterval);
-            toast.info('Taking longer than expected. Please check your wallet in a few minutes.');
-            return;
-          }
-          
-          try {
-            const { data: statusData } = await supabase.functions.invoke('check-payment-status', {
-              body: { billCode }
-            });
-            
-            if (statusData?.status === 'completed') {
-              clearInterval(pollInterval);
-              haptics.success();
-              toast.success('Payment confirmed! Wallet updated.');
-              fetchWalletData();
+        const channel = supabase
+          .channel(`payment-${billCode}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'wallet_transactions',
+              filter: `toyyibpay_transaction_id=eq.${billCode}`
+            },
+            (payload) => {
+              if (payload.new && (payload.new as any).status === 'completed') {
+                haptics.success();
+                toast.success('Payment confirmed! Wallet updated.');
+                fetchWalletData();
+                supabase.removeChannel(channel);
+              }
             }
-          } catch (error) {
-            console.error('Polling error:', error);
-          }
-        }, 5000);
+          )
+          .subscribe();
+        
+        // Cleanup subscription after 10 minutes
+        setTimeout(() => {
+          supabase.removeChannel(channel);
+          toast.info('Payment window expired. Please check your wallet or contact support if needed.');
+        }, 600000); // 10 minutes
       }
     } catch (error: any) {
       console.error('Top up error:', error);

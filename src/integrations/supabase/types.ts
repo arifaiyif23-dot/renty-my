@@ -666,6 +666,41 @@ export type Database = {
           },
         ]
       }
+      payment_processing_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          rental_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          rental_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          rental_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_processing_log_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_reviews: {
         Row: {
           created_at: string
