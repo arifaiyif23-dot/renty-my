@@ -32,6 +32,7 @@ const Verification = lazy(() => import("./pages/Verification"));
 const AdminVerification = lazy(() => import("./pages/AdminVerification"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 const Install = lazy(() => import("./pages/Install"));
 const Offline = lazy(() => import("./pages/Offline"));
@@ -79,6 +80,7 @@ function AppRoutes() {
             <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
             <Route path="/offline" element={<Offline />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

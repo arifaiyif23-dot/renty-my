@@ -14,10 +14,13 @@ import {
   Clock,
   TrendingUp,
   Users,
-  Package
+  Package,
+  ArrowDownToLine
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PaymentReconciliation } from "@/components/PaymentReconciliation";
+import { AdminWithdrawals } from "@/components/AdminWithdrawals";
+import { WithdrawalAnalytics } from "@/components/WithdrawalAnalytics";
 
 interface PaymentData {
   rental: any;
@@ -254,18 +257,31 @@ export default function AdminPayments() {
         {/* Payment Reconciliation Tool */}
         <PaymentReconciliation />
 
-        {/* Payment List */}
+        {/* Tabs for Payments and Withdrawals */}
         <Card className="mt-8">
-          <Tabs defaultValue="all" className="w-full">
+          <Tabs defaultValue="payments" className="w-full">
             <TabsList className="w-full justify-start rounded-none border-b">
-              <TabsTrigger value="all">All Payments</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="paid">Paid</TabsTrigger>
-              <TabsTrigger value="held">On Hold</TabsTrigger>
+              <TabsTrigger value="payments" className="gap-2">
+                <DollarSign className="h-4 w-4" />
+                Rental Payments
+              </TabsTrigger>
+              <TabsTrigger value="withdrawals" className="gap-2">
+                <ArrowDownToLine className="h-4 w-4" />
+                Withdrawals
+              </TabsTrigger>
             </TabsList>
 
-            {["all", "pending", "paid", "held"].map((tabValue) => (
-              <TabsContent key={tabValue} value={tabValue} className="p-6">
+            <TabsContent value="payments">
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="w-full justify-start rounded-none border-b bg-transparent">
+                  <TabsTrigger value="all">All Payments</TabsTrigger>
+                  <TabsTrigger value="pending">Pending</TabsTrigger>
+                  <TabsTrigger value="paid">Paid</TabsTrigger>
+                  <TabsTrigger value="held">On Hold</TabsTrigger>
+                </TabsList>
+
+                {["all", "pending", "paid", "held"].map((tabValue) => (
+                  <TabsContent key={tabValue} value={tabValue} className="p-6">
                 {loading ? (
                   <div className="text-center py-12">Loading...</div>
                 ) : (
@@ -349,7 +365,7 @@ export default function AdminPayments() {
                       );
                     })}
 
-                    {filterPayments(tabValue).length === 0 && (
+                     {filterPayments(tabValue).length === 0 && (
                       <div className="text-center py-12 text-muted-foreground">
                         No payments found
                       </div>
@@ -359,8 +375,18 @@ export default function AdminPayments() {
               </TabsContent>
             ))}
           </Tabs>
-        </Card>
-      </div>
-    </div>
-  );
+        </TabsContent>
+
+        <TabsContent value="withdrawals" className="p-6">
+          <WithdrawalAnalytics />
+          <div className="mt-6">
+            <AdminWithdrawals />
+          </div>
+        </TabsContent>
+
+      </Tabs>
+    </Card>
+  </div>
+</div>
+);
 }
