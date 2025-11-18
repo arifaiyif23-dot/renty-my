@@ -113,8 +113,11 @@ serve(async (req) => {
 
       if (walletError || !ownerWallet) throw new Error('Owner wallet not found');
 
-      // Calculate platform fee (10%)
-      const platformFeeRate = 0.10;
+      // Get dynamic platform fee rate
+      const { data: platformFeeRateData } = await supabaseServiceClient
+        .rpc('get_platform_setting', { setting_key: 'platform_fee_rate' });
+      
+      const platformFeeRate = platformFeeRateData || 0.10; // Default to 10% if not set
       const totalPrice = Number(rental.total_price);
       const platformFee = totalPrice * platformFeeRate;
       const ownerAmount = totalPrice - platformFee;

@@ -739,6 +739,36 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1763,12 +1793,15 @@ export type Database = {
           account_holder_name: string | null
           account_number: string | null
           amount: number
+          auto_approved: boolean | null
           bank_name: string | null
           created_at: string
           id: string
+          notes: string | null
           processed_at: string | null
           processed_by: string | null
           rejection_reason: string | null
+          risk_score: number | null
           status: string
           updated_at: string
           user_id: string
@@ -1777,12 +1810,15 @@ export type Database = {
           account_holder_name?: string | null
           account_number?: string | null
           amount: number
+          auto_approved?: boolean | null
           bank_name?: string | null
           created_at?: string
           id?: string
+          notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
           rejection_reason?: string | null
+          risk_score?: number | null
           status?: string
           updated_at?: string
           user_id: string
@@ -1791,12 +1827,15 @@ export type Database = {
           account_holder_name?: string | null
           account_number?: string | null
           amount?: number
+          auto_approved?: boolean | null
           bank_name?: string | null
           created_at?: string
           id?: string
+          notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
           rejection_reason?: string | null
+          risk_score?: number | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -1835,8 +1874,13 @@ export type Database = {
         Args: { p_rental_id: string; p_user_id: string }
         Returns: boolean
       }
+      auto_process_safe_withdrawals: { Args: never; Returns: number }
       calculate_verification_confidence: {
         Args: { doc_quality: number; face_match: number; liveness: number }
+        Returns: number
+      }
+      calculate_withdrawal_risk: {
+        Args: { p_amount: number; p_user_id: string }
         Returns: number
       }
       check_promo_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
@@ -1869,6 +1913,7 @@ export type Database = {
         Args: { item_id_param: string }
         Returns: number
       }
+      get_platform_setting: { Args: { setting_key: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -277,18 +277,18 @@ export default function Wallet() {
                         <div className="space-y-2">
                           <Label htmlFor="amount">Amount (RM)</Label>
                           <Input
-                            id="amount"
-                            type="number"
-                            min="10"
-                            max="10000"
-                            step="0.01"
-                            placeholder="Enter amount (min RM 10)"
-                            value={topUpAmount}
-                            onChange={(e) => setTopUpAmount(e.target.value)}
-                          />
-                          <p className="text-sm text-muted-foreground">
-                            Minimum: RM 10.00 • Maximum: RM 10,000.00
-                          </p>
+            id="amount"
+            type="number"
+            min="1"
+            max="10000"
+            step="0.01"
+            placeholder="Enter amount (min RM 1)"
+            value={topUpAmount}
+            onChange={(e) => setTopUpAmount(e.target.value)}
+          />
+          <p className="text-sm text-muted-foreground">
+            Minimum: RM 1.00 • Maximum: RM 10,000.00
+          </p>
                         </div>
                         <Button 
                           className="w-full" 
