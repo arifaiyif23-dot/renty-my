@@ -1908,6 +1908,14 @@ export type Database = {
         }
         Returns: Json
       }
+      deduct_wallet_balance_withdrawal: {
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }

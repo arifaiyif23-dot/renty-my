@@ -7,9 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Input validation schema
+// Note: Dynamic validation happens after fetching platform settings
 const topUpSchema = z.object({
-  amount: z.number().positive().min(1).max(10000).finite(),
+  amount: z.number().positive().finite(),
   description: z.string().max(500).optional(),
 });
 
@@ -43,6 +43,12 @@ serve(async (req) => {
 
     const userId = user.id; // Always use authenticated user's ID
 
+    // Use service role for database operations
+    const supabaseServiceClient = createClient(
+      Deno.env.get("SUPABASE_URL")?.trim() ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ?? ""
+    );
+
     // Parse and validate input
     const body = await req.json();
     const validationResult = topUpSchema.safeParse(body);
@@ -56,16 +62,40 @@ serve(async (req) => {
     
     const { amount, description = 'Wallet Top-Up' } = validationResult.data;
     
+    // Get dynamic constraints from platform settings
+    const { data: minTopupData } = await supabaseServiceClient
+      .rpc('get_platform_setting', { setting_key: 'min_topup_amount' });
+    const { data: maxTopupData } = await supabaseServiceClient
+      .rpc('get_platform_setting', { setting_key: 'max_topup_amount' });
+    
+    const minTopup = minTopupData || 1;
+    const maxTopup = maxTopupData || 10000;
+    
+    // Validate against dynamic constraints
+    if (amount < minTopup) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Minimum top-up amount is RM ${minTopup.toFixed(2)}` 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (amount > maxTopup) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Maximum top-up amount is RM ${maxTopup.toFixed(2)}` 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Additional validation for decimal places
     if (!Number.isInteger(amount * 100)) {
       throw new Error('Amount must have at most 2 decimal places');
     }
-
-    // Use service role for database operations
-    const supabaseServiceClient = createClient(
-      Deno.env.get("SUPABASE_URL")?.trim() ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ?? ""
-    );
 
     // Get user details
     const { data: profile } = await supabaseServiceClient
