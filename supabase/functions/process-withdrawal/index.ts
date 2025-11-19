@@ -92,9 +92,9 @@ Deno.serve(async (req) => {
         throw new Error('Insufficient balance for withdrawal');
       }
 
-      // Deduct from wallet using RPC
+      // Deduct from wallet using withdrawal-specific function
       const { data: deductResult, error: deductError } = await supabaseServiceClient
-        .rpc('deduct_wallet_balance', {
+        .rpc('deduct_wallet_balance_withdrawal', {
           p_user_id: withdrawal.user_id,
           p_amount: totalDeduction,
           p_idempotency_key: `withdrawal_${withdrawalId}`
@@ -102,7 +102,33 @@ Deno.serve(async (req) => {
 
       if (deductError || !deductResult?.success) {
         console.error('Wallet deduction failed:', deductError || deductResult);
-        throw new Error(deductResult?.error || 'Failed to deduct from wallet');
+        const errorMessage = deductResult?.error || 'Failed to deduct from wallet';
+        const errorDetails = deductResult?.details || deductResult;
+        
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: errorMessage,
+            details: errorDetails
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      // Check for duplicate transaction
+      if (deductResult.duplicate) {
+        console.log('Duplicate withdrawal detected, skipping');
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Withdrawal already processed',
+            duplicate: true
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       // Record wallet transaction
@@ -145,6 +171,23 @@ Deno.serve(async (req) => {
         throw new Error('Failed to update withdrawal status');
       }
 
+      // Insert audit log
+      await supabaseServiceClient
+        .from('admin_audit_log')
+        .insert({
+          admin_id: user.id,
+          action: 'withdrawal_approve',
+          resource_type: 'withdrawal',
+          resource_id: withdrawalId,
+          details: {
+            amount: withdrawal.amount,
+            processing_fee: processingFee,
+            total_deduction: totalDeduction,
+            risk_score: withdrawal.risk_score,
+            notes: notes
+          }
+        });
+
       console.log(`✅ Withdrawal ${withdrawalId} approved. Deducted RM${totalDeduction}`);
 
       return new Response(
@@ -174,6 +217,22 @@ Deno.serve(async (req) => {
         console.error('Status update failed:', updateError);
         throw new Error('Failed to update withdrawal status');
       }
+
+      // Insert audit log
+      await supabaseServiceClient
+        .from('admin_audit_log')
+        .insert({
+          admin_id: user.id,
+          action: 'withdrawal_reject',
+          resource_type: 'withdrawal',
+          resource_id: withdrawalId,
+          details: {
+            amount: withdrawal.amount,
+            rejection_reason: rejectionReason,
+            risk_score: withdrawal.risk_score,
+            notes: notes
+          }
+        });
 
       console.log(`❌ Withdrawal ${withdrawalId} rejected`);
 

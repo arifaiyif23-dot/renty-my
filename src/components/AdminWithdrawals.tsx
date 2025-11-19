@@ -125,13 +125,47 @@ export function AdminWithdrawals() {
         }
       });
 
-      if (error) throw error;
+      console.log('Withdrawal response:', { data, error });
 
-      toast.success(
-        actionType === 'approve' 
-          ? `Withdrawal approved. Deducted RM${data.deducted}` 
-          : 'Withdrawal rejected'
-      );
+      if (error) {
+        console.error('Withdrawal error:', error);
+        // Map errors to user-friendly messages
+        if (error.message?.includes('Insufficient balance')) {
+          toast.error("User doesn't have enough balance. Please verify wallet.");
+        } else if (error.message?.includes('limit exceeded')) {
+          toast.error("Transaction limit exceeded for this user.");
+        } else if (error.message?.includes('already')) {
+          toast.error("This withdrawal was already processed.");
+        } else {
+          toast.error(error.message || 'Failed to process withdrawal');
+        }
+        return;
+      }
+
+      if (!data?.success) {
+        const errorMsg = data?.error || 'Failed to process withdrawal';
+        console.error('Withdrawal failed:', data);
+        
+        // Provide context for admins
+        if (errorMsg.includes('Insufficient balance')) {
+          const details = data?.details;
+          toast.error(`Insufficient balance. Current: RM${details?.current_balance || 0}, Required: RM${details?.required || 0}`);
+        } else if (errorMsg.includes('limit exceeded')) {
+          toast.error(`Transaction limit: ${data?.details?.reason || errorMsg}`);
+        } else {
+          toast.error(errorMsg);
+        }
+        return;
+      }
+
+      // Success with details
+      if (actionType === 'approve') {
+        const deducted = data.deducted || 0;
+        const fee = data.processingFee || 0;
+        toast.success(`Approved! Deducted RM${deducted.toFixed(2)} (RM${fee.toFixed(2)} fee)`);
+      } else {
+        toast.success('Withdrawal rejected');
+      }
       
       await fetchWithdrawals();
       setSelectedWithdrawal(null);
@@ -139,8 +173,8 @@ export function AdminWithdrawals() {
       setNotes('');
       setRejectionReason('');
     } catch (error: any) {
-      console.error('Error processing withdrawal:', error);
-      toast.error(error.message || 'Failed to process withdrawal');
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setProcessing(null);
     }

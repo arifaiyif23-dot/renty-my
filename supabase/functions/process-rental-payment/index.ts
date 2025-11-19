@@ -248,10 +248,30 @@ serve(async (req) => {
             .single();
 
           if (rental) {
-            const platformFeeRate = 0.10;
+            const platformFeeRate = await supabaseServiceClient
+              .rpc('get_platform_setting', { setting_key: 'platform_fee_rate' })
+              .then(({ data }) => data || 0.10);
+            
             const totalPrice = Number(rental.total_price);
             const platformFee = totalPrice * platformFeeRate;
             const ownerAmount = totalPrice - platformFee;
+
+            // Log rollback
+            await supabaseServiceClient
+              .from('payment_audit_log')
+              .insert({
+                rental_id: rentalId,
+                user_id: rental.renter_id,
+                action: 'rental_payment_rollback',
+                status: 'failed',
+                amount: totalPrice,
+                details: {
+                  reason: 'Payment processing failed - automatic rollback',
+                  platform_fee_rate: platformFeeRate,
+                  platform_fee: platformFee,
+                  owner_amount: ownerAmount
+                }
+              });
 
             await supabaseServiceClient.rpc('refund_wallet_balance', {
               p_user_id: rental.item.owner_id,

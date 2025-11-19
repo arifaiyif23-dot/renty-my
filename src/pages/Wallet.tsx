@@ -33,6 +33,9 @@ export default function Wallet() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [minTopup, setMinTopup] = useState(1);
+  const [maxTopup, setMaxTopup] = useState(10000);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Use realtime wallet updates
   const { balance: realtimeBalance, connectionState } = useWalletRealtime();
@@ -68,8 +71,27 @@ export default function Wallet() {
   useEffect(() => {
     if (user) {
       fetchWalletData();
+      fetchTopUpSettings();
     }
   }, [user]);
+
+  const fetchTopUpSettings = async () => {
+    try {
+      const { data: minData } = await supabase.rpc('get_platform_setting', { 
+        setting_key: 'min_topup_amount' 
+      });
+      const { data: maxData } = await supabase.rpc('get_platform_setting', { 
+        setting_key: 'max_topup_amount' 
+      });
+      
+      setMinTopup(minData || 1);
+      setMaxTopup(maxData || 10000);
+      setSettingsLoaded(true);
+    } catch (error) {
+      console.error('Error fetching top-up settings:', error);
+      setSettingsLoaded(true);
+    }
+  };
 
   // Update wallet balance from realtime when it changes
   useEffect(() => {
@@ -141,14 +163,14 @@ export default function Wallet() {
     }
 
     const amount = parseFloat(topUpAmount);
-    if (amount < 1) {
-      toast.error('Minimum top up amount is RM 1');
+    if (amount < minTopup) {
+      toast.error(`Minimum top-up amount is RM ${minTopup.toFixed(2)}`);
       haptics.error();
       return;
     }
 
-    if (amount > 10000) {
-      toast.error('Maximum top up amount is RM 10,000');
+    if (amount > maxTopup) {
+      toast.error(`Maximum top-up amount is RM ${maxTopup.toFixed(2)}`);
       haptics.error();
       return;
     }
@@ -279,16 +301,18 @@ export default function Wallet() {
                           <Input
             id="amount"
             type="number"
-            min="1"
-            max="10000"
+            min={minTopup}
+            max={maxTopup}
             step="0.01"
-            placeholder="Enter amount (min RM 1)"
+            placeholder={`Enter amount (min RM ${minTopup})`}
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
           />
-          <p className="text-sm text-muted-foreground">
-            Minimum: RM 1.00 • Maximum: RM 10,000.00
-          </p>
+          {settingsLoaded && (
+            <p className="text-sm text-muted-foreground">
+              Min: RM {minTopup.toFixed(2)} • Max: RM {maxTopup.toFixed(2)}
+            </p>
+          )}
                         </div>
                         <Button 
                           className="w-full" 

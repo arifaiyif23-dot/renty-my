@@ -8,10 +8,15 @@ interface WithdrawalStats {
   totalWeek: number;
   totalMonth: number;
   avgProcessingTime: number;
-  approvalRate: number;
+  approvalRate: string;
   pendingCount: number;
   approvedCount: number;
   rejectedCount: number;
+  totalProcessingFees: number;
+  avgAmount: number;
+  highRiskCount: number;
+  mediumRiskCount: number;
+  lowRiskCount: number;
 }
 
 export function WithdrawalAnalytics() {
@@ -20,10 +25,15 @@ export function WithdrawalAnalytics() {
     totalWeek: 0,
     totalMonth: 0,
     avgProcessingTime: 0,
-    approvalRate: 0,
+    approvalRate: '0.0',
     pendingCount: 0,
     approvedCount: 0,
-    rejectedCount: 0
+    rejectedCount: 0,
+    totalProcessingFees: 0,
+    avgAmount: 0,
+    highRiskCount: 0,
+    mediumRiskCount: 0,
+    lowRiskCount: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -33,48 +43,68 @@ export function WithdrawalAnalytics() {
 
   const fetchStats = async () => {
     try {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      // Get all withdrawal requests
       const { data: withdrawals, error } = await supabase
         .from('withdrawal_requests')
         .select('*');
 
       if (error) throw error;
 
-      if (!withdrawals) return;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
 
-      // Calculate stats
-      const totalToday = withdrawals
-        .filter(w => new Date(w.created_at) >= today)
-        .reduce((sum, w) => sum + Number(w.amount), 0);
+      let totalToday = 0;
+      let totalWeek = 0;
+      let totalMonth = 0;
+      let pendingCount = 0;
+      let approvedCount = 0;
+      let rejectedCount = 0;
+      let processingTimeSum = 0;
+      let processingTimeCount = 0;
+      let totalProcessingFees = 0;
+      let totalAmount = 0;
+      let highRiskCount = 0;
+      let mediumRiskCount = 0;
+      let lowRiskCount = 0;
 
-      const totalWeek = withdrawals
-        .filter(w => new Date(w.created_at) >= weekAgo)
-        .reduce((sum, w) => sum + Number(w.amount), 0);
+      withdrawals?.forEach((w) => {
+        const created = new Date(w.created_at);
+        const amount = Number(w.amount);
+        totalAmount += amount;
 
-      const totalMonth = withdrawals
-        .filter(w => new Date(w.created_at) >= monthAgo)
-        .reduce((sum, w) => sum + Number(w.amount), 0);
+        const risk = w.risk_score || 0;
+        if (risk >= 50) highRiskCount++;
+        else if (risk >= 30) mediumRiskCount++;
+        else lowRiskCount++;
 
-      const processed = withdrawals.filter(w => w.processed_at && w.created_at);
-      const avgProcessingTime = processed.length > 0
-        ? processed.reduce((sum, w) => {
-            const created = new Date(w.created_at).getTime();
-            const processed = new Date(w.processed_at).getTime();
-            return sum + (processed - created);
-          }, 0) / processed.length / (1000 * 60 * 60) // Convert to hours
+        if (created >= today) totalToday += amount;
+        if (created >= weekAgo) totalWeek += amount;
+        if (created >= monthAgo) totalMonth += amount;
+
+        if (w.status === 'pending') pendingCount++;
+        else if (w.status === 'approved') {
+          approvedCount++;
+          if (w.processed_at) {
+            const processedTime = new Date(w.processed_at).getTime() - created.getTime();
+            processingTimeSum += processedTime;
+            processingTimeCount++;
+          }
+          totalProcessingFees += 2;
+        } else if (w.status === 'rejected') {
+          rejectedCount++;
+        }
+      });
+
+      const avgProcessingTime = processingTimeCount > 0 
+        ? Math.round(processingTimeSum / processingTimeCount / (1000 * 60 * 60)) 
         : 0;
 
-      const approved = withdrawals.filter(w => w.status === 'approved').length;
-      const rejected = withdrawals.filter(w => w.status === 'rejected').length;
-      const total = approved + rejected;
-      const approvalRate = total > 0 ? (approved / total) * 100 : 0;
+      const approvalRate = (approvedCount + rejectedCount) > 0
+        ? ((approvedCount / (approvedCount + rejectedCount)) * 100).toFixed(1)
+        : '0.0';
 
-      const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
+      const avgAmount = withdrawals?.length ? (totalAmount / withdrawals.length).toFixed(2) : '0.00';
 
       setStats({
         totalToday,
@@ -83,8 +113,13 @@ export function WithdrawalAnalytics() {
         avgProcessingTime,
         approvalRate,
         pendingCount,
-        approvedCount: approved,
-        rejectedCount: rejected
+        approvedCount,
+        rejectedCount,
+        totalProcessingFees,
+        avgAmount: Number(avgAmount),
+        highRiskCount,
+        mediumRiskCount,
+        lowRiskCount
       });
     } catch (error) {
       console.error('Error fetching withdrawal stats:', error);
@@ -131,7 +166,7 @@ export function WithdrawalAnalytics() {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.approvalRate.toFixed(1)}%</div>
+          <div className="text-2xl font-bold">{stats.approvalRate}%</div>
           <p className="text-xs text-muted-foreground">
             {stats.approvedCount} approved / {stats.approvedCount + stats.rejectedCount} total
           </p>
