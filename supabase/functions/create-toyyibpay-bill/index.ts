@@ -56,8 +56,18 @@ serve(async (req) => {
     const toyyibpayCategoryCode = Deno.env.get("TOYYIBPAY_CATEGORY_CODE")?.trim();
     if (!toyyibpaySecretKey || !toyyibpayCategoryCode) throw new Error("ToyyibPay credentials not configured");
 
-    const returnUrl = `${Deno.env.get("FRONTEND_URL") ?? 'https://renty.lovable.app'}/wallet`;
+    // Ensure FRONTEND_URL doesn't have trailing slashes or paths
+    const frontendUrl = (Deno.env.get("FRONTEND_URL") ?? 'https://renty.lovable.app').replace(/\/+$/, '');
+    const returnUrl = `${frontendUrl}/wallet`;
     const callbackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/check-payment-status?userId=${userId}`;
+    
+    console.log('Creating ToyyibPay bill:', { 
+      userId, 
+      amount, 
+      returnUrl, 
+      callbackUrl,
+      categoryCode: toyyibpayCategoryCode 
+    });
 
     const billData = new URLSearchParams({
       userSecretKey: toyyibpaySecretKey,
@@ -82,16 +92,33 @@ serve(async (req) => {
     });
 
     const result = await response.json();
+    console.log('ToyyibPay response:', { status: response.status, result });
 
     if (Array.isArray(result) && result[0]?.BillCode) {
       const billCode = result[0].BillCode;
       const paymentUrl = `https://toyyibpay.com/${billCode}`;
 
       const { data: wallet } = await supabaseServiceClient.from("wallets").select("id").eq("user_id", userId).single();
-      if (wallet) await supabaseServiceClient.from("wallet_transactions").insert({ wallet_id: wallet.id, type: "top_up", amount, description, toyyibpay_transaction_id: billCode });
+      if (wallet) {
+        const { error: txError } = await supabaseServiceClient.from("wallet_transactions").insert({ 
+          wallet_id: wallet.id, 
+          type: "top_up", 
+          amount, 
+          description, 
+          toyyibpay_transaction_id: billCode 
+        });
+        
+        if (txError) {
+          console.error('Failed to create transaction record:', txError);
+        }
+      }
 
+      console.log('Bill created successfully:', { billCode, paymentUrl });
       return new Response(JSON.stringify({ success: true, billCode, paymentUrl }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    } else throw new Error(result[0]?.msg || "Failed to create ToyyibPay bill");
+    } else {
+      console.error('ToyyibPay bill creation failed:', result);
+      throw new Error(result[0]?.msg || "Failed to create ToyyibPay bill");
+    }
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Payment processing failed";
