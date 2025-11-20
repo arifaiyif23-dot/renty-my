@@ -76,7 +76,7 @@ export default function AdminSettings() {
     try {
       const updates = Object.entries(pendingChanges).map(([key, value]) => ({
         key,
-        value: JSON.stringify(value),
+        value: parseFloat(value),
         updated_at: new Date().toISOString()
       }));
 

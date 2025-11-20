@@ -94,7 +94,8 @@ serve(async (req) => {
     } else throw new Error(result[0]?.msg || "Failed to create ToyyibPay bill");
 
   } catch (error) {
-    return new Response(JSON.stringify({ success: false, error: error.message || "Payment processing failed" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const errorMessage = error instanceof Error ? error.message : "Payment processing failed";
+    return new Response(JSON.stringify({ success: false, error: errorMessage }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
 
