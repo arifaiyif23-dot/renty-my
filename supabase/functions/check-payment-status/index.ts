@@ -57,6 +57,12 @@ serve(async (req) => {
     let body: any = {};
     const contentType = req.headers.get('content-type') || '';
     
+    console.log('Payment callback received:', { 
+      method: req.method, 
+      contentType,
+      url: req.url 
+    });
+    
     try {
       if (contentType.includes('application/json')) {
         body = await req.json();
@@ -64,7 +70,9 @@ serve(async (req) => {
         const formData = await req.formData();
         body = Object.fromEntries(formData.entries());
       }
+      console.log('Callback body:', body);
     } catch (parseError) {
+      console.error('Failed to parse callback:', parseError);
       return new Response(JSON.stringify({ 
         success: false, 
         message: 'Invalid request format' 
@@ -193,24 +201,35 @@ serve(async (req) => {
       // Convert amount (ToyyibPay sends in cents: amount * 100)
       const amountInRM = parseFloat(amount) / 100;
 
-      // Credit wallet balance
-      const { error: walletError } = await supabase.rpc("increment_wallet_balance", {
-        p_user_id: tx.wallet.user_id,
-        p_amount: amountInRM,
-      });
+    // Credit wallet balance
+    const { error: walletError } = await supabase.rpc("increment_wallet_balance", {
+      p_user_id: tx.wallet.user_id,
+      p_amount: amountInRM,
+    });
 
-      if (walletError) {
-        throw walletError;
-      }
+    if (walletError) {
+      console.error('Wallet increment failed:', walletError);
+      throw walletError;
+    }
 
-      // Mark transaction as completed
-      await supabase
-        .from("wallet_transactions")
-        .update({ 
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", tx.id);
+    // Mark transaction as completed
+    const { error: updateError } = await supabase
+      .from("wallet_transactions")
+      .update({ 
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq("id", tx.id);
+      
+    if (updateError) {
+      console.error('Transaction update failed:', updateError);
+    }
+
+    console.log('Payment processed successfully:', { 
+      txId: tx.id, 
+      userId: tx.wallet.user_id, 
+      amount: amountInRM 
+    });
 
       // Send notification
       await supabase.from("notifications").insert({
