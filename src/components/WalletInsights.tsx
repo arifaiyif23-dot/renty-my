@@ -17,7 +17,7 @@ export function WalletInsights({ transactions, balance }: WalletInsightsProps) {
   const spendingByType = transactions.reduce((acc, t) => {
     const category = t.type === 'rental_payment' ? 'Rentals' : 
                      t.type === 'rental_earning' ? 'Earnings' : 
-                     t.type === 'top_up' ? 'Top Ups' : 'Other';
+                     t.type === 'deposit' ? 'Top Ups' : 'Other';
     acc[category] = (acc[category] || 0) + Math.abs(t.amount);
     return acc;
   }, {} as Record<string, number>);
@@ -34,7 +34,7 @@ export function WalletInsights({ transactions, balance }: WalletInsightsProps) {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const totalEarned = transactions
-    .filter(t => ['rental_earning', 'top_up'].includes(t.type))
+    .filter(t => ['rental_earning', 'deposit'].includes(t.type))
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (

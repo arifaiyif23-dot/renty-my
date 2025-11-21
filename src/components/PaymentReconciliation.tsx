@@ -89,7 +89,7 @@ export function PaymentReconciliation() {
           wallet:wallets!inner(user_id)
         `)
         .eq("status", "pending")
-        .eq("type", "top_up" as any)
+        .eq("type", "deposit" as any)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

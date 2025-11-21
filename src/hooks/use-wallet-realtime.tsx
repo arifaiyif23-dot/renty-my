@@ -69,7 +69,7 @@ export function useWalletRealtime() {
 
                 // Show toast notification for completed transactions
                 if (transaction.status === 'completed') {
-                  if (transaction.type === 'top_up') {
+                  if (transaction.type === 'deposit') {
                     toast.success('Wallet Topped Up', {
                       description: `RM ${transaction.amount.toFixed(2)} added to your wallet`,
                     });

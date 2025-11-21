@@ -102,7 +102,7 @@ serve(async (req) => {
       if (wallet) {
         const { error: txError } = await supabaseServiceClient.from("wallet_transactions").insert({ 
           wallet_id: wallet.id, 
-          type: "top_up", 
+          type: "deposit", 
           amount, 
           description, 
           toyyibpay_transaction_id: billCode 
