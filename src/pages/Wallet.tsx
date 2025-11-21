@@ -142,14 +142,14 @@ export default function Wallet() {
   };
 
   const getTransactionIcon = (type: string) => {
-    if (type === 'deposit' || type === 'rental_earning' || type === 'refund' || type === 'top_up') {
+    if (type === 'deposit' || type === 'rental_earning' || type === 'refund') {
       return <ArrowDownCircle className="h-5 w-5 text-success" />;
     }
     return <ArrowUpCircle className="h-5 w-5 text-destructive" />;
   };
 
   const getTransactionAmount = (type: string, amount: number) => {
-    if (type === 'deposit' || type === 'rental_earning' || type === 'refund' || type === 'top_up') {
+    if (type === 'deposit' || type === 'rental_earning' || type === 'refund') {
       return `+RM ${amount.toFixed(2)}`;
     }
     return `-RM ${amount.toFixed(2)}`;
@@ -381,7 +381,7 @@ export default function Wallet() {
                     <SelectItem value="rental_payment">Payments</SelectItem>
                     <SelectItem value="withdrawal">Withdrawals</SelectItem>
                     <SelectItem value="refund">Refunds</SelectItem>
-                    <SelectItem value="top_up">Top Ups</SelectItem>
+                    <SelectItem value="deposit">Top Ups</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -425,11 +425,11 @@ export default function Wallet() {
                               </p>
                             </div>
                             <div className={`font-semibold ${
-                              transaction.type === 'rental_earning' || transaction.type === 'top_up' || transaction.type === 'deposit' || transaction.type === 'refund'
+                              transaction.type === 'rental_earning' || transaction.type === 'deposit' || transaction.type === 'refund'
                                 ? 'text-green-600 dark:text-green-400' 
                                 : 'text-red-600 dark:text-red-400'
                             }`}>
-                              {['rental_earning', 'top_up', 'deposit', 'refund'].includes(transaction.type) ? '+' : '-'}
+                              {['rental_earning', 'deposit', 'refund'].includes(transaction.type) ? '+' : '-'}
                               RM {transaction.amount.toFixed(2)}
                             </div>
                           </div>

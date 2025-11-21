@@ -148,7 +148,7 @@ serve(async (req) => {
         .select("*, wallet:wallets(user_id)")
         .eq("status", "pending")
         .eq("amount", amountNum)
-        .eq("type", "top_up")
+        .eq("type", "deposit")
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
@@ -169,7 +169,7 @@ serve(async (req) => {
       .select("*, wallet:wallets(user_id)")
       .eq("status", "pending")
       .eq("amount", parseFloat(amount) / 100)
-      .eq("type", "top_up")
+      .eq("type", "deposit")
       .order("created_at", { ascending: false })
       .limit(1)
       .single()).data;
