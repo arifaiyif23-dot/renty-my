@@ -182,38 +182,7 @@ export default function ItemDetail() {
       const finalPrice = calculatePrice();
       console.log('💰 Final price calculated:', finalPrice, 'for', days, 'days');
 
-      // Check user's wallet balance
-      console.log('🔍 Checking wallet balance...');
-      const { data: walletData, error: walletError } = await supabase
-        .from('wallets')
-        .select('id, balance')
-        .eq('user_id', user.id)
-        .single();
-
-      if (walletError) {
-        console.error('❌ Wallet error:', walletError);
-        throw new Error('Failed to check wallet balance');
-      }
-
-      const currentBalance = Number(walletData.balance);
-      console.log('💵 Current balance:', currentBalance);
-
-      if (currentBalance < finalPrice) {
-        console.log('❌ Insufficient balance');
-        toast.error(
-          `Insufficient balance. You need RM ${finalPrice.toFixed(2)} but have RM ${currentBalance.toFixed(2)}`,
-          { 
-            duration: 5000,
-            action: {
-              label: 'Top Up',
-              onClick: () => navigate('/wallet')
-            }
-          }
-        );
-        return;
-      }
-
-      console.log('✅ Sufficient balance, creating rental...');
+      console.log('✅ Creating rental...');
 
       // Create rental
       const { data: rentalData, error: rentalError } = await supabase
@@ -225,8 +194,8 @@ export default function ItemDetail() {
           start_date: dateRange.from.toISOString().split('T')[0],
           end_date: dateRange.to.toISOString().split('T')[0],
           total_price: finalPrice,
-          payment_status: 'unpaid',
-          payment_method: 'wallet',
+          payment_status: 'pending',
+          payment_method: 'toyyibpay',
         })
         .select()
         .single();
@@ -280,67 +249,25 @@ export default function ItemDetail() {
           user_id: user.id,
           promo_code_id: promoDiscount.id,
         });
-
-        // Increment promo code usage count
-        await supabase.rpc('increment_wallet_balance', {
-          p_user_id: user.id,
-          p_amount: 0 // Just to trigger the update
-        });
       }
 
-      // Deduct from renter's wallet using RPC function
-      console.log('💸 Deducting from wallet...');
-      const { error: deductError } = await supabase.rpc('increment_wallet_balance', {
-        p_user_id: user.id,
-        p_amount: -finalPrice
+      console.log('💳 Creating payment...');
+
+      // Create payment and get ToyyibPay URL
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-rental-payment', {
+        body: { rentalId: rentalData.id }
       });
 
-      if (deductError) {
-        console.error('❌ Wallet deduction error:', deductError);
-        throw deductError;
+      if (paymentError) {
+        console.error('❌ Payment creation error:', paymentError);
+        throw new Error('Failed to create payment. Please try again.');
       }
 
-      console.log('✅ Wallet deducted');
+      console.log('✅ Payment URL created, redirecting to payment gateway...');
+      toast.success('Redirecting to payment gateway...');
 
-      // Create wallet transaction record
-      console.log('📝 Creating transaction record...');
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          wallet_id: walletData.id,
-          amount: finalPrice,
-          type: 'rental_payment',
-          description: `Payment for ${item?.title}`,
-          reference_id: rentalData.id,
-          status: 'completed',
-        });
-
-      if (transactionError) {
-        console.error('❌ Transaction record error:', transactionError);
-        throw transactionError;
-      }
-
-      console.log('✅ Transaction recorded');
-
-      // Process payment to owner immediately
-      console.log('🔄 Processing payment to owner...');
-      try {
-        const { data: paymentResult, error: paymentError } = await supabase.functions.invoke('process-rental-payment', {
-          body: { rentalId: rentalData.id }
-        });
-        
-        if (paymentError) {
-          console.error('⚠️ Payment processing error:', paymentError);
-        } else {
-          console.log('✅ Payment processed:', paymentResult);
-        }
-      } catch (paymentError) {
-        console.error('⚠️ Payment processing exception:', paymentError);
-      }
-      
-      console.log('🎉 Booking complete!');
-      toast.success(`Booking confirmed! RM ${finalPrice.toFixed(2)} deducted from your wallet.`);
-      navigate('/dashboard');
+      // Redirect to ToyyibPay
+      window.location.href = paymentData.paymentUrl;
     } catch (error: any) {
       console.error('💥 Booking failed:', error);
       toast.error(error.message || 'Failed to create booking');

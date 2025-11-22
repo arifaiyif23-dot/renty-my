@@ -2,32 +2,47 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { 
   DollarSign, 
-  AlertCircle, 
   CheckCircle, 
   Clock,
   TrendingUp,
-  Users,
   Package,
-  ArrowDownToLine
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PaymentReconciliation } from "@/components/PaymentReconciliation";
-import { AdminWithdrawals } from "@/components/AdminWithdrawals";
-import { WithdrawalAnalytics } from "@/components/WithdrawalAnalytics";
+
+interface PaymentStat {
+  totalRevenue: number;
+  pendingPayments: number;
+  platformFees: number;
+  successRate: number;
+}
 
 interface PaymentData {
-  rental: any;
-  renter: any;
-  owner: any;
-  item: any;
-  hold?: any;
+  id: string;
+  amount: number;
+  platform_fee: number;
+  owner_earnings: number;
+  status: string;
+  paid_at: string;
+  created_at: string;
+  rental: {
+    id: string;
+    start_date: string;
+    end_date: string;
+    renter: {
+      full_name: string;
+    };
+    item: {
+      title: string;
+      owner: {
+        full_name: string;
+      };
+    };
+  };
 }
 
 export default function AdminPayments() {
@@ -35,7 +50,7 @@ export default function AdminPayments() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [payments, setPayments] = useState<PaymentData[]>([]);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<PaymentStat>({
     totalRevenue: 0,
     pendingPayments: 0,
     platformFees: 0,
@@ -43,16 +58,14 @@ export default function AdminPayments() {
   });
 
   useEffect(() => {
-    checkAdminAccess();
-  }, [user]);
-
-  const checkAdminAccess = async () => {
     if (!user) {
       navigate("/auth");
       return;
     }
+    checkAdminAccess();
+  }, [user, navigate]);
 
-    // Use server-side admin verification
+  const checkAdminAccess = async () => {
     const { data, error } = await supabase.functions.invoke('verify-admin');
 
     if (error || !data?.isAdmin) {
@@ -61,120 +74,74 @@ export default function AdminPayments() {
       return;
     }
 
-    // Only fetch data after admin verification succeeds
     fetchPayments();
     fetchStats();
   };
 
   const fetchPayments = async () => {
     setLoading(true);
-    const { data: rentals, error } = await supabase
-      .from("rentals")
+    const { data, error } = await supabase
+      .from("payments")
       .select(`
         *,
-        renter:profiles!rentals_renter_id_fkey(id, full_name, avatar_url),
-        owner:profiles!rentals_owner_id_fkey(id, full_name, avatar_url),
-        item:items(id, title, price_per_day)
+        rental:rentals(
+          id,
+          start_date,
+          end_date,
+          renter:profiles!rentals_renter_id_fkey(full_name),
+          item:items(
+            title,
+            owner:profiles!items_owner_id_fkey(full_name)
+          )
+        )
       `)
-      .in("status", ["completed", "active", "approved"])
       .order("created_at", { ascending: false })
       .limit(100);
 
     if (error) {
+      console.error('Fetch payments error:', error);
       toast.error("Failed to fetch payments");
+      setLoading(false);
       return;
     }
 
-    const paymentsData: PaymentData[] = await Promise.all(
-      (rentals || []).map(async (rental) => {
-        const { data: hold } = await supabase
-          .from("payment_holds")
-          .select("*")
-          .eq("rental_id", rental.id)
-          .single();
-
-        return {
-          rental,
-          renter: rental.renter,
-          owner: rental.owner,
-          item: rental.item,
-          hold,
-        };
-      })
-    );
-
-    setPayments(paymentsData);
+    setPayments(data || []);
     setLoading(false);
   };
 
   const fetchStats = async () => {
-    const { data: transactions } = await supabase
-      .from("wallet_transactions")
-      .select("amount, type");
+    const { data: paymentsData } = await supabase
+      .from("payments")
+      .select("amount, platform_fee, status");
 
-    // Calculate platform fees as 10% of all rental earnings
-    const rentalEarnings = transactions?.filter(
-      (t) => t.type === "rental_earning"
-    );
+    const totalRevenue = paymentsData
+      ?.filter(p => p.status === 'completed')
+      .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-    const totalRevenue = transactions?.reduce(
-      (sum, t) => sum + Number(t.amount),
-      0
-    ) || 0;
+    const platformFees = paymentsData
+      ?.filter(p => p.status === 'completed')
+      .reduce((sum, p) => sum + Number(p.platform_fee), 0) || 0;
 
-    const platformFees = (rentalEarnings?.reduce(
-      (sum, t) => sum + Number(t.amount),
-      0
-    ) || 0) / 0.9 * 0.1; // Calculate 10% platform fee from owner earnings
-
-    const { count: pendingCount } = await supabase
-      .from("rentals")
-      .select("*", { count: "exact", head: true })
-      .eq("payment_status", "unpaid")
-      .eq("status", "completed");
-
-    const { count: totalCompleted } = await supabase
-      .from("rentals")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "completed");
-
-    const { count: paidCount } = await supabase
-      .from("rentals")
-      .select("*", { count: "exact", head: true })
-      .eq("payment_status", "paid")
-      .eq("status", "completed");
+    const pendingCount = paymentsData?.filter(p => p.status === 'pending').length || 0;
+    const completedCount = paymentsData?.filter(p => p.status === 'completed').length || 0;
+    const totalCount = paymentsData?.length || 0;
 
     setStats({
       totalRevenue,
-      pendingPayments: pendingCount || 0,
+      pendingPayments: pendingCount,
       platformFees,
-      successRate: totalCompleted ? ((paidCount || 0) / totalCompleted) * 100 : 0,
+      successRate: totalCount ? (completedCount / totalCount) * 100 : 0,
     });
-  };
-
-  const releasePayment = async (rentalId: string) => {
-    const { error } = await supabase.functions.invoke("process-rental-payment", {
-      body: { rentalId },
-    });
-
-    if (error) {
-      toast.error("Failed to release payment");
-      return;
-    }
-
-    toast.success("Payment released successfully");
-    fetchPayments();
-    fetchStats();
   };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      paid: { variant: "default", icon: CheckCircle, color: "text-green-600" },
-      unpaid: { variant: "secondary", icon: Clock, color: "text-yellow-600" },
-      processing: { variant: "outline", icon: AlertCircle, color: "text-blue-600" },
+      completed: { variant: "default", icon: CheckCircle, color: "text-primary" },
+      pending: { variant: "secondary", icon: Clock, color: "text-secondary" },
+      failed: { variant: "destructive", icon: Clock, color: "text-destructive" },
     };
 
-    const config = variants[status] || variants.unpaid;
+    const config = variants[status] || variants.pending;
     const Icon = config.icon;
 
     return (
@@ -185,19 +152,6 @@ export default function AdminPayments() {
     );
   };
 
-  const filterPayments = (filterType: string) => {
-    switch (filterType) {
-      case "pending":
-        return payments.filter((p) => p.rental.payment_status === "unpaid");
-      case "paid":
-        return payments.filter((p) => p.rental.payment_status === "paid");
-      case "held":
-        return payments.filter((p) => p.hold && p.hold.status === "held");
-      default:
-        return payments;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -206,7 +160,7 @@ export default function AdminPayments() {
           <div>
             <h1 className="text-3xl font-bold">Payment Management</h1>
             <p className="text-muted-foreground">
-              Oversee all transactions and releases
+              View all rental payments and platform statistics
             </p>
           </div>
         </div>
@@ -229,7 +183,7 @@ export default function AdminPayments() {
                 <p className="text-sm text-muted-foreground">Pending Payments</p>
                 <p className="text-2xl font-bold">{stats.pendingPayments}</p>
               </div>
-              <Clock className="w-8 h-8 text-yellow-600" />
+              <Clock className="w-8 h-8 text-secondary" />
             </div>
           </Card>
 
@@ -239,7 +193,7 @@ export default function AdminPayments() {
                 <p className="text-sm text-muted-foreground">Platform Fees</p>
                 <p className="text-2xl font-bold">RM {stats.platformFees.toFixed(2)}</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-600" />
+              <TrendingUp className="w-8 h-8 text-accent" />
             </div>
           </Card>
 
@@ -254,139 +208,78 @@ export default function AdminPayments() {
           </Card>
         </div>
 
-        {/* Payment Reconciliation Tool */}
-        <PaymentReconciliation />
+        {/* Payments List */}
+        <Card>
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Recent Payments</h2>
+            
+            {loading ? (
+              <div className="text-center py-12">Loading payments...</div>
+            ) : payments.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No payments found
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {payments.map((payment) => (
+                  <Card key={payment.id} className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Package className="w-5 h-5 text-muted-foreground" />
+                          <h3 className="font-semibold">{payment.rental?.item?.title || 'Unknown Item'}</h3>
+                          {getStatusBadge(payment.status)}
+                        </div>
 
-        {/* Tabs for Payments and Withdrawals */}
-        <Card className="mt-8">
-          <Tabs defaultValue="payments" className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b">
-              <TabsTrigger value="payments" className="gap-2">
-                <DollarSign className="h-4 w-4" />
-                Rental Payments
-              </TabsTrigger>
-              <TabsTrigger value="withdrawals" className="gap-2">
-                <ArrowDownToLine className="h-4 w-4" />
-                Withdrawals
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="payments">
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="w-full justify-start rounded-none border-b bg-transparent">
-                  <TabsTrigger value="all">All Payments</TabsTrigger>
-                  <TabsTrigger value="pending">Pending</TabsTrigger>
-                  <TabsTrigger value="paid">Paid</TabsTrigger>
-                  <TabsTrigger value="held">On Hold</TabsTrigger>
-                </TabsList>
-
-                {["all", "pending", "paid", "held"].map((tabValue) => (
-                  <TabsContent key={tabValue} value={tabValue} className="p-6">
-                {loading ? (
-                  <div className="text-center py-12">Loading...</div>
-                ) : (
-                  <div className="space-y-4">
-                    {filterPayments(tabValue).map((payment) => {
-                      const platformFee = payment.rental.total_price * 0.1;
-                      const ownerPayout = payment.rental.total_price - platformFee;
-
-                      return (
-                        <Card key={payment.rental.id} className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <Package className="w-5 h-5 text-muted-foreground" />
-                                <h3 className="font-semibold">{payment.item?.title}</h3>
-                                {getStatusBadge(payment.rental.payment_status)}
-                                {payment.hold && (
-                                  <Badge variant="destructive">Held</Badge>
-                                )}
-                              </div>
-
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                <div>
-                                  <p className="text-muted-foreground">Renter</p>
-                                  <p className="font-medium">{payment.renter?.full_name}</p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">Owner</p>
-                                  <p className="font-medium">{payment.owner?.full_name}</p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">Total Price</p>
-                                  <p className="font-medium">RM {Number(payment.rental.total_price).toFixed(2)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">Owner Payout</p>
-                                  <p className="font-medium text-green-600">
-                                    RM {ownerPayout.toFixed(2)}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-                                <span>Platform Fee: RM {platformFee.toFixed(2)}</span>
-                                <span>•</span>
-                                <span>
-                                  Rental Period: {payment.rental.start_date} to{" "}
-                                  {payment.rental.end_date}
-                                </span>
-                              </div>
-
-                              {payment.hold && (
-                                <div className="mt-3 p-3 bg-destructive/10 rounded-lg">
-                                  <p className="text-sm font-medium text-destructive">
-                                    Hold Reason: {payment.hold.hold_reason}
-                                  </p>
-                                  {payment.hold.admin_notes && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Notes: {payment.hold.admin_notes}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex flex-col gap-2 ml-4">
-                              {payment.rental.payment_status === "unpaid" &&
-                                payment.rental.status === "completed" &&
-                                payment.rental.renter_confirmed_completion &&
-                                payment.rental.owner_confirmed_completion && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => releasePayment(payment.rental.id)}
-                                  >
-                                    Release Payment
-                                  </Button>
-                                )}
-                            </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Renter</p>
+                            <p className="font-medium">{payment.rental?.renter?.full_name || 'N/A'}</p>
                           </div>
-                        </Card>
-                      );
-                    })}
+                          <div>
+                            <p className="text-muted-foreground">Owner</p>
+                            <p className="font-medium">{payment.rental?.item?.owner?.full_name || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Total Amount</p>
+                            <p className="font-medium">RM {Number(payment.amount).toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Owner Earnings</p>
+                            <p className="font-medium text-primary">
+                              RM {Number(payment.owner_earnings).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
 
-                     {filterPayments(tabValue).length === 0 && (
-                      <div className="text-center py-12 text-muted-foreground">
-                        No payments found
+                        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                          <span>Platform Fee: RM {Number(payment.platform_fee).toFixed(2)}</span>
+                          {payment.rental && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                Period: {payment.rental.start_date} to {payment.rental.end_date}
+                              </span>
+                            </>
+                          )}
+                          {payment.paid_at && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                Paid: {new Date(payment.paid_at).toLocaleDateString()}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </TabsContent>
-
-        <TabsContent value="withdrawals" className="p-6">
-          <WithdrawalAnalytics />
-          <div className="mt-6">
-            <AdminWithdrawals />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        </TabsContent>
-
-      </Tabs>
-    </Card>
-  </div>
-</div>
-);
+        </Card>
+      </div>
+    </div>
+  );
 }

@@ -194,138 +194,6 @@ export type Database = {
           },
         ]
       }
-      escrow_accounts: {
-        Row: {
-          auto_release_at: string | null
-          created_at: string
-          held_at: string
-          id: string
-          owner_payout: number
-          platform_fee: number
-          released_at: string | null
-          rental_id: string
-          status: string
-          total_amount: number
-          updated_at: string
-        }
-        Insert: {
-          auto_release_at?: string | null
-          created_at?: string
-          held_at?: string
-          id?: string
-          owner_payout: number
-          platform_fee?: number
-          released_at?: string | null
-          rental_id: string
-          status?: string
-          total_amount: number
-          updated_at?: string
-        }
-        Update: {
-          auto_release_at?: string | null
-          created_at?: string
-          held_at?: string
-          id?: string
-          owner_payout?: number
-          platform_fee?: number
-          released_at?: string | null
-          rental_id?: string
-          status?: string
-          total_amount?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "escrow_accounts_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: true
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "escrow_accounts_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: true
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      escrow_transactions: {
-        Row: {
-          amount: number
-          created_at: string
-          escrow_account_id: string
-          executed_at: string
-          executed_by: string | null
-          from_wallet_id: string | null
-          id: string
-          notes: string | null
-          to_wallet_id: string | null
-          transaction_type: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          escrow_account_id: string
-          executed_at?: string
-          executed_by?: string | null
-          from_wallet_id?: string | null
-          id?: string
-          notes?: string | null
-          to_wallet_id?: string | null
-          transaction_type: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          escrow_account_id?: string
-          executed_at?: string
-          executed_by?: string | null
-          from_wallet_id?: string | null
-          id?: string
-          notes?: string | null
-          to_wallet_id?: string | null
-          transaction_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "escrow_transactions_escrow_account_id_fkey"
-            columns: ["escrow_account_id"]
-            isOneToOne: false
-            referencedRelation: "escrow_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrow_transactions_executed_by_fkey"
-            columns: ["executed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrow_transactions_executed_by_fkey"
-            columns: ["executed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrow_transactions_from_wallet_id_fkey"
-            columns: ["from_wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "escrow_transactions_to_wallet_id_fkey"
-            columns: ["to_wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       fraud_alerts: {
         Row: {
           alert_type: string
@@ -775,6 +643,76 @@ export type Database = {
           },
         ]
       }
+      owner_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          held_until: string | null
+          id: string
+          owner_id: string
+          paid_to_owner_at: string | null
+          payment_id: string
+          payout_id: string | null
+          payout_status: string
+          released_at: string | null
+          rental_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          held_until?: string | null
+          id?: string
+          owner_id: string
+          paid_to_owner_at?: string | null
+          payment_id: string
+          payout_id?: string | null
+          payout_status?: string
+          released_at?: string | null
+          rental_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          held_until?: string | null
+          id?: string
+          owner_id?: string
+          paid_to_owner_at?: string | null
+          payment_id?: string
+          payout_id?: string | null
+          payout_status?: string
+          released_at?: string | null
+          rental_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_earnings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_earnings_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "owner_earnings_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_audit_log: {
         Row: {
           action: string
@@ -982,13 +920,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "payment_milestones_escrow_account_id_fkey"
-            columns: ["escrow_account_id"]
-            isOneToOne: false
-            referencedRelation: "escrow_accounts"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "payment_milestones_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
@@ -1083,6 +1014,120 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          owner_earnings: number
+          paid_at: string | null
+          payer_id: string
+          platform_fee: number
+          rental_id: string
+          status: string
+          toyyibpay_bill_code: string | null
+          toyyibpay_transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          owner_earnings: number
+          paid_at?: string | null
+          payer_id: string
+          platform_fee?: number
+          rental_id: string
+          status?: string
+          toyyibpay_bill_code?: string | null
+          toyyibpay_transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          owner_earnings?: number
+          paid_at?: string | null
+          payer_id?: string
+          platform_fee?: number
+          rental_id?: string
+          status?: string
+          toyyibpay_bill_code?: string | null
+          toyyibpay_transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "payments_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          account_holder_name: string
+          account_number: string
+          admin_notes: string | null
+          amount: number
+          bank_name: string
+          created_at: string
+          earnings_included: string[]
+          id: string
+          owner_id: string
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          status: string
+          toyyibpay_payout_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder_name: string
+          account_number: string
+          admin_notes?: string | null
+          amount: number
+          bank_name: string
+          created_at?: string
+          earnings_included?: string[]
+          id?: string
+          owner_id: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          toyyibpay_payout_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder_name?: string
+          account_number?: string
+          admin_notes?: string | null
+          amount?: number
+          bank_name?: string
+          created_at?: string
+          earnings_included?: string[]
+          id?: string
+          owner_id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          status?: string
+          toyyibpay_payout_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       platform_settings: {
         Row: {
@@ -2114,161 +2159,6 @@ export type Database = {
           },
         ]
       }
-      wallet_rate_limits: {
-        Row: {
-          action: string
-          created_at: string
-          id: string
-          ip_address: unknown
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          id?: string
-          ip_address?: unknown
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          id?: string
-          ip_address?: unknown
-          user_id?: string
-        }
-        Relationships: []
-      }
-      wallet_transactions: {
-        Row: {
-          amount: number
-          completed_at: string | null
-          created_at: string | null
-          description: string
-          expires_at: string | null
-          id: string
-          idempotency_key: string | null
-          reference_id: string | null
-          status: string | null
-          toyyibpay_transaction_id: string | null
-          type: Database["public"]["Enums"]["wallet_transaction_type"]
-          wallet_id: string
-        }
-        Insert: {
-          amount: number
-          completed_at?: string | null
-          created_at?: string | null
-          description: string
-          expires_at?: string | null
-          id?: string
-          idempotency_key?: string | null
-          reference_id?: string | null
-          status?: string | null
-          toyyibpay_transaction_id?: string | null
-          type: Database["public"]["Enums"]["wallet_transaction_type"]
-          wallet_id: string
-        }
-        Update: {
-          amount?: number
-          completed_at?: string | null
-          created_at?: string | null
-          description?: string
-          expires_at?: string | null
-          id?: string
-          idempotency_key?: string | null
-          reference_id?: string | null
-          status?: string | null
-          toyyibpay_transaction_id?: string | null
-          type?: Database["public"]["Enums"]["wallet_transaction_type"]
-          wallet_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wallet_transactions_wallet_id_fkey"
-            columns: ["wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      wallets: {
-        Row: {
-          balance: number
-          created_at: string | null
-          id: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          balance?: number
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          balance?: number
-          created_at?: string | null
-          id?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      withdrawal_requests: {
-        Row: {
-          account_holder_name: string | null
-          account_number: string | null
-          amount: number
-          auto_approved: boolean | null
-          bank_name: string | null
-          created_at: string
-          id: string
-          notes: string | null
-          processed_at: string | null
-          processed_by: string | null
-          rejection_reason: string | null
-          risk_score: number | null
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          account_holder_name?: string | null
-          account_number?: string | null
-          amount: number
-          auto_approved?: boolean | null
-          bank_name?: string | null
-          created_at?: string
-          id?: string
-          notes?: string | null
-          processed_at?: string | null
-          processed_by?: string | null
-          rejection_reason?: string | null
-          risk_score?: number | null
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          account_holder_name?: string | null
-          account_number?: string | null
-          amount?: number
-          auto_approved?: boolean | null
-          bank_name?: string | null
-          created_at?: string
-          id?: string
-          notes?: string | null
-          processed_at?: string | null
-          processed_by?: string | null
-          rejection_reason?: string | null
-          risk_score?: number | null
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       profiles_public: {
@@ -2360,21 +2250,9 @@ export type Database = {
         Args: { p_rental_id: string; p_user_id: string }
         Returns: boolean
       }
-      auto_process_safe_withdrawals: { Args: never; Returns: number }
       calculate_verification_confidence: {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
-      }
-      calculate_withdrawal_risk: {
-        Args: { p_amount: number; p_user_id: string }
-        Returns: number
-      }
-      check_escrow_auto_release: {
-        Args: never
-        Returns: {
-          escrow_id: string
-          rental_id: string
-        }[]
       }
       check_promo_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
       check_rate_limit: {
@@ -2387,28 +2265,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_wallet_operation_limit: {
-        Args: { p_amount: number; p_operation_type: string; p_user_id: string }
-        Returns: Json
-      }
       cleanup_expired_payment_locks: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
-      deduct_wallet_balance: {
-        Args: {
-          p_amount: number
-          p_idempotency_key?: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
-      deduct_wallet_balance_withdrawal: {
-        Args: {
-          p_amount: number
-          p_idempotency_key?: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }
@@ -2425,18 +2283,6 @@ export type Database = {
       increment_item_views: {
         Args: { item_id_param: string }
         Returns: undefined
-      }
-      increment_wallet_balance: {
-        Args: { p_amount: number; p_user_id: string }
-        Returns: number
-      }
-      process_orphaned_rental_payment: {
-        Args: { p_rental_id: string }
-        Returns: Json
-      }
-      refund_wallet_balance: {
-        Args: { p_amount: number; p_reason: string; p_user_id: string }
-        Returns: number
       }
       release_payment_lock: {
         Args: { p_rental_id: string }

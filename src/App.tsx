@@ -26,13 +26,12 @@ const ListItem = lazy(() => import("./pages/ListItem"));
 const ItemDetail = lazy(() => import("./pages/ItemDetail"));
 const Search = lazy(() => import("./pages/Search"));
 const Messages = lazy(() => import("./pages/Messages"));
-const Wallet = lazy(() => import("./pages/Wallet"));
+const Earnings = lazy(() => import("./pages/Earnings"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Verification = lazy(() => import("./pages/Verification"));
 const AdminVerification = lazy(() => import("./pages/AdminVerification"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
-const AdminEscrowManagement = lazy(() => import("./pages/AdminEscrowManagement"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const MyListings = lazy(() => import("./pages/MyListings"));
@@ -76,7 +75,7 @@ function AppRoutes() {
             <Route path="/items/:id" element={<ItemDetail />} />
             <Route path="/search" element={<Search />} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+            <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
             <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
@@ -84,7 +83,6 @@ function AppRoutes() {
             <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
-            <Route path="/admin/escrow" element={<ProtectedRoute><AdminRoute><AdminEscrowManagement /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
             <Route path="/pwa-settings" element={<PWASettings />} />
             <Route path="/offline" element={<Offline />} />
