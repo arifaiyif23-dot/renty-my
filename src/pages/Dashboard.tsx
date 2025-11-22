@@ -94,23 +94,9 @@ export default function Dashboard() {
 
         // Only process payment if both parties confirmed
         if (otherConfirmed) {
-          try {
-            const { error: paymentError } = await supabase.functions.invoke('process-rental-payment', {
-              body: { rentalId }
-            });
-
-            if (paymentError) {
-              console.error('Payment processing error:', paymentError);
-              toast.error('Rental completed but payment processing failed. Please contact support.');
-            } else {
-              toast.success('Rental completed and payment processed!');
-            }
-          } catch (paymentError) {
-            console.error('Payment processing failed:', paymentError);
-            toast.error('Rental completed but payment processing failed. Please contact support.');
-          }
+          toast.success('✅ Both parties confirmed! Payment will auto-release from escrow in 24 hours.');
         } else {
-          toast.success('Completion confirmed. Waiting for the other party.');
+          toast.success('✅ Confirmation recorded. Waiting for the other party to confirm.');
         }
       } else {
         // Regular status update

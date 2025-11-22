@@ -136,18 +136,29 @@ export default function AdminEscrowManagement() {
   const runAutoRelease = async () => {
     setProcessing('auto-release');
     try {
+      toast.info('Running auto-release check...', { duration: 2000 });
       const { data, error } = await supabase.functions.invoke('auto-release-escrow');
-      if (error) throw error;
-
-      toast.success('Auto-release completed', {
-        description: `Released ${data.released} of ${data.total_checked} eligible escrows`
-      });
       
-      fetchEscrows();
-      fetchStats();
-    } catch (error) {
+      if (error) throw error;
+      
+      const released = data?.released || 0;
+      const checked = data?.total_checked || 0;
+      
+      if (released > 0) {
+        toast.success(`✅ Auto-released ${released} of ${checked} eligible escrow accounts`, {
+          description: 'Payments have been transferred to owners'
+        });
+      } else {
+        toast.info(`✓ No escrows ready for release`, {
+          description: `Checked ${checked} accounts`
+        });
+      }
+      
+      // Refresh data
+      await Promise.all([fetchEscrows(), fetchStats()]);
+    } catch (error: any) {
       console.error('Auto-release error:', error);
-      toast.error('Failed to run auto-release');
+      toast.error('Failed to run auto-release: ' + (error.message || 'Unknown error'));
     } finally {
       setProcessing(null);
     }

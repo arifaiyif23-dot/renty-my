@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ReviewForm } from "@/components/ReviewForm";
 import { RentalModificationDialog } from "@/components/RentalModificationDialog";
 import { format } from "date-fns";
-import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock } from "lucide-react";
 import { Rental } from "@/types";
 import { toast } from "sonner";
 
@@ -164,6 +164,23 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               </div>
             </div>
 
+            {/* Escrow Status */}
+            {rental.payment_status === 'escrowed' && (
+              <div className="flex items-center gap-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded-md text-sm">
+                <Lock className="h-4 w-4 text-amber-600" />
+                <div className="flex-1">
+                  <p className="font-medium text-amber-800 dark:text-amber-400">
+                    Payment Secured in Escrow
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-500">
+                    {isOwner 
+                      ? 'Your earnings are protected and will release after completion'
+                      : 'Your payment is safe and protected until rental completion'}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="text-sm pt-2 border-t">
               <p className="text-muted-foreground">{isOwner ? 'Renter' : 'Owner'}</p>
               <p className="font-medium">{isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
@@ -262,6 +279,23 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Escrow Status - Desktop */}
+            {rental.payment_status === 'escrowed' && (
+              <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-md mb-3">
+                <Lock className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-amber-800 dark:text-amber-400 text-sm">
+                    Payment Secured in Escrow
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-500 mt-0.5">
+                    {isOwner 
+                      ? 'RM ' + (rental.total_price * 0.9).toFixed(2) + ' will release 24h after both parties confirm completion'
+                      : 'Your RM ' + rental.total_price + ' payment is protected until rental completion'}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="text-sm space-y-1">
               <p><strong>Dates:</strong> {format(new Date(rental.start_date), 'MMM d, yyyy')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}</p>
               <p><strong>Total:</strong> RM {rental.total_price}</p>
