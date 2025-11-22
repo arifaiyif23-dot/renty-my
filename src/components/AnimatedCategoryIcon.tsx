@@ -18,44 +18,31 @@ export const AnimatedCategoryIcon = memo(({
   onClick,
 }: AnimatedCategoryIconProps) => {
   return (
-    <div className="hover:scale-105 active:scale-95 transition-transform duration-300 animate-fade-in">
-      <Card
-        className={cn(
-          "relative p-6 text-center cursor-pointer overflow-hidden min-h-[44px]",
-          "glass-card hover:shadow-xl transition-all duration-300",
-          "group"
-        )}
-        onClick={onClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onClick();
-          }
-        }}
-        aria-label={`Browse ${name} category with ${count} items${minPrice ? ` starting from RM ${minPrice} per day` : ''}`}
-      >
-        {/* Icon */}
-        <div className="mb-3 flex items-center justify-center">
-          <Icon className="w-12 h-12 text-primary group-hover:animate-pulse" aria-hidden="true" />
+    <div 
+      className="group cursor-pointer"
+      onClick={onClick}
+      onKeyPress={(e) => e.key === 'Enter' && onClick()}
+      role="button"
+      tabIndex={0}
+      aria-label={`Browse ${name} category with ${count} items${minPrice ? ` starting from RM ${minPrice}` : ''}`}
+    >
+      <Card className="card-minimal p-6 text-center hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
+          <Icon className="w-8 h-8 text-primary" aria-hidden="true" />
         </div>
-
-        {/* Name */}
-        <h3 className="font-semibold text-base mb-1">{name}</h3>
-
-        {/* Count */}
-        <p className="text-sm text-muted-foreground mb-2">{count} items</p>
-
-        {/* Price on hover */}
-        {minPrice && (
-          <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 h-0 group-hover:h-auto overflow-hidden">
-            From RM {minPrice}/day
-          </div>
-        )}
-
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div>
+          <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">
+            {name}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {count} {count === 1 ? 'item' : 'items'}
+          </p>
+          {minPrice && (
+            <p className="text-xs text-primary font-medium mt-1">
+              From RM {minPrice}/day
+            </p>
+          )}
+        </div>
       </Card>
     </div>
   );

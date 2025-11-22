@@ -14,7 +14,6 @@ import { EnhancedItemCard } from "@/components/EnhancedItemCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Lazy load heavy below-the-fold components
-const FloatingParticles = lazy(() => import("@/components/FloatingParticles").then(m => ({ default: m.FloatingParticles })));
 const TrustBadges = lazy(() => import("@/components/TrustBadges").then(m => ({ default: m.TrustBadges })));
 const OnboardingGuide = lazy(() => import("@/components/OnboardingGuide").then(m => ({ default: m.OnboardingGuide })));
 const SocialProofSection = lazy(() => import("@/components/SocialProofSection").then(m => ({ default: m.SocialProofSection })));
@@ -250,19 +249,11 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 py-16 md:py-24 overflow-hidden" style={{ backgroundImage: `url(${heroBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-        {!isMobile && (
-          <Suspense fallback={null}>
-            <FloatingParticles />
-          </Suspense>
-        )}
+      <section className="relative bg-primary/5 py-16 md:py-24" style={{ backgroundImage: `url(${heroBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-background/85" />
         
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div
-            className={`max-w-4xl mx-auto text-center mb-8 ${prefersReducedMotion ? '' : 'animate-fade-in'}`}
-            style={prefersReducedMotion ? {} : { animationDelay: '0ms' }}
-          >
+        <div className="container mx-auto px-6 md:px-8 lg:px-12 relative z-10">
+          <div className="max-w-4xl mx-auto text-center mb-8">
             {/* Brand Clarity */}
             <div className="inline-block mb-4">
               <Badge variant="outline" className="px-4 py-2 text-sm font-medium border-primary/50">
@@ -307,11 +298,8 @@ const Index = () => {
           </div>
           
           {/* Enhanced Search Bar */}
-          <div
-            className={`max-w-3xl mx-auto ${prefersReducedMotion ? '' : 'animate-fade-in'}`}
-            style={prefersReducedMotion ? {} : { animationDelay: '300ms' }}
-          >
-            <div className="glass-card p-2 rounded-2xl shadow-2xl">
+          <div className="max-w-3xl mx-auto">
+            <div className="card-minimal p-2 rounded-xl">
               <SearchBar />
             </div>
             <p className="text-center text-sm text-muted-foreground mt-3">
@@ -322,9 +310,9 @@ const Index = () => {
       </section>
 
       {/* Categories */}
-      <section className="py-12 md:py-16 bg-card">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12 animate-fade-in">
+      <section className="py-16 md:py-24 bg-card">
+        <div className="container mx-auto px-6 md:px-8 lg:px-12">
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12">
             Browse by Category
           </h2>
           
@@ -344,7 +332,7 @@ const Index = () => {
           ) : loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="glass-card p-6 text-center animate-pulse">
+                <div key={i} className="card-minimal p-6 text-center animate-pulse">
                   <div className="h-16 w-16 bg-muted rounded-full mx-auto mb-3" />
                   <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2" />
                   <div className="h-3 bg-muted rounded w-1/2 mx-auto" />
@@ -356,8 +344,8 @@ const Index = () => {
       </section>
 
       {/* Featured Items */}
-      <section className="py-12 md:py-16" ref={featuredRef}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 md:py-24" ref={featuredRef}>
+        <div className="container mx-auto px-6 md:px-8 lg:px-12">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-heading text-3xl md:text-4xl font-bold mb-2">
@@ -406,9 +394,9 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-12 md:py-16 bg-card">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12 animate-fade-in">
+      <section className="py-16 md:py-24 bg-card">
+        <div className="container mx-auto px-6 md:px-8 lg:px-12">
+          <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12">
             How RENTY Works
           </h2>
           
@@ -428,9 +416,9 @@ const Index = () => {
       </section>
 
       {/* Trust & Safety Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 animate-fade-in">
+      <section className="py-16 md:py-24 bg-accent/5">
+        <div className="container mx-auto px-6 md:px-8 lg:px-12">
+          <div className="text-center mb-12">
             <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
               Safe, Secure, Insured
             </h2>
@@ -440,8 +428,8 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-          <div className={`text-center ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '100ms' }}>
-            <div className="glass-card p-6 rounded-xl hover:shadow-lg transition-shadow h-full">
+          <div className="text-center">
+            <div className="card-minimal p-6 rounded-xl h-full">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
@@ -510,26 +498,20 @@ const Index = () => {
       </section>
 
       {/* Dual CTA Section */}
-      <section className="relative py-16 md:py-24 bg-gradient-to-br from-primary to-secondary overflow-hidden">
-        {!isMobile && (
-          <Suspense fallback={null}>
-            <FloatingParticles />
-          </Suspense>
-        )}
-        
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">
+      <section className="py-16 md:py-24 bg-accent/10">
+        <div className="container mx-auto px-6 md:px-8 lg:px-12">
+          <div className="text-center mb-12">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
               Ready to Get Started?
             </h2>
-            <p className="text-lg text-white/90 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Whether you want to rent or earn, RENTY makes it easy
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* For Renters */}
-            <div className={`glass-card p-8 text-center rounded-2xl hover-scale ${prefersReducedMotion ? '' : 'animate-fade-in'}`} style={prefersReducedMotion ? {} : { animationDelay: '100ms' }}>
+            <div className="card-elevated p-8 text-center rounded-xl">
               <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" aria-hidden="true" />
               <h3 className="font-heading text-2xl font-bold mb-3">Looking to Rent?</h3>
               <p className="text-muted-foreground mb-6">

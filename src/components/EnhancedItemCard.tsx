@@ -54,22 +54,18 @@ export const EnhancedItemCard = memo(({
   );
 
   return (
-    <div className="animate-fade-in">
-      <Link to={`/items/${id}`} aria-label={`View details for ${title}`}>
-        <Card className="overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+    <Link to={`/items/${id}`} aria-label={`View details for ${title}`}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 group">
           <div className="relative">
             {/* Image */}
             <div className="relative h-56 overflow-hidden">
               <img
                 src={optimizedImage}
                 alt={`${title} - ${category} available for rent in ${location}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 loading="lazy"
                 decoding="async"
               />
-              
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>
 
             {/* Top badges */}
@@ -86,7 +82,7 @@ export const EnhancedItemCard = memo(({
               </div>
               
               {/* Save button */}
-              <div className="hover:scale-110 active:scale-90 transition-transform duration-200">
+              <div className="hover:scale-105 transition-transform duration-150">
                 <SaveItemButton itemId={id} />
               </div>
             </div>
@@ -129,7 +125,7 @@ export const EnhancedItemCard = memo(({
 
             {/* Price */}
             <div className="flex items-baseline gap-2 pt-3 border-t">
-              <span className="text-2xl font-bold text-primary group-hover:scale-105 transition-transform duration-200 inline-block">
+              <span className="text-2xl font-bold text-primary">
                 RM {pricePerDay}
               </span>
               <span className="text-sm text-muted-foreground">/day</span>
@@ -137,7 +133,6 @@ export const EnhancedItemCard = memo(({
           </CardContent>
         </Card>
       </Link>
-    </div>
   );
 });
 
