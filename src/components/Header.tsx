@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Menu, Search, Heart, MessageSquare, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logo from "@/assets/renty-main-logo.png";
+import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNav from "@/components/MobileNav";

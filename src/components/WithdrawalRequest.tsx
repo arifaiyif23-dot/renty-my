@@ -22,7 +22,7 @@ export const WithdrawalRequest = ({ availableBalance, onSuccess }: WithdrawalReq
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountHolderName, setAccountHolderName] = useState("");
-  const [minWithdrawal, setMinWithdrawal] = useState(10);
+  const [minWithdrawal, setMinWithdrawal] = useState(5);
   const [maxWithdrawal, setMaxWithdrawal] = useState(50000);
   const [processingFee, setProcessingFee] = useState(0);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -40,7 +40,7 @@ export const WithdrawalRequest = ({ availableBalance, onSuccess }: WithdrawalReq
         setting_key: 'withdrawal_processing_fee' 
       });
       
-      setMinWithdrawal(minData || 10);
+      setMinWithdrawal(minData || 5);
       setMaxWithdrawal(maxData || 50000);
       setProcessingFee(feeData || 0);
       setSettingsLoaded(true);

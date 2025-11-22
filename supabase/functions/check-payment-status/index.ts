@@ -119,9 +119,18 @@ serve(async (req) => {
 
     // Extract payment details (ToyyibPay uses different field names)
     const billCode = body.billcode || body.billCode || body.BillCode;
-    const status = body.status || body.status_id;
+    const rawStatus = body.status ?? body.status_id ?? '';
+    const status = String(rawStatus); // Normalize to string for comparison
     const amount = body.amount || body.billpaymentAmount;
     const transactionId = body.transaction_id || body.fpx_fpxTxnId;
+
+    console.log('ToyyibPay status received', {
+      rawStatus,
+      status,
+      typeofRawStatus: typeof rawStatus,
+      billCode,
+      amount
+    });
 
     if (!billCode) {
       return new Response(JSON.stringify({ 

@@ -100,19 +100,15 @@ export function PaymentReconciliation() {
         .from("profiles")
         .select("id, full_name")
         .in("id", userIds);
-
-      const { data: authData } = await supabase.auth.admin.listUsers();
-      const users = authData?.users || [];
       
       // Enrich transactions with user data
       const enrichedTransactions = transactions?.map((tx: any) => {
         const profile = profiles?.find((p: any) => p.id === tx.wallet.user_id);
-        const authUser = users?.find((u: any) => u.id === tx.wallet.user_id);
         return {
           ...tx,
           user: {
             full_name: profile?.full_name || 'Unknown',
-            email: authUser?.email || 'Unknown'
+            email: 'N/A' // Email not available from client-side query
           }
         };
       }) || [];
