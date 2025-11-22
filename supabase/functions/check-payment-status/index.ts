@@ -100,10 +100,16 @@ serve(async (req) => {
       });
     }
     
-    const signature = req.headers.get('x-signature') || body.signature;
+    // ToyyibPay sends MD5 hash as `hash` in the body
+    const signature = req.headers.get('x-signature') || body.signature || body.hash;
     const isValidSignature = await verifyToyyibPaySignature(body, signature, toyyibpaySecretKey);
     
     if (!isValidSignature) {
+      console.error('Invalid ToyyibPay signature', { 
+        billCode: body.billcode || body.billCode, 
+        signature,
+        receivedHash: body.hash 
+      });
       // Still return 200 to prevent retries, but don't process
       return new Response(JSON.stringify({ success: false, error: 'Invalid signature' }), {
         status: 200,
@@ -142,7 +148,9 @@ serve(async (req) => {
 
     if (txError || !transaction) {
       // Try to find by pending status and matching amount (last resort)
-      const amountNum = parseFloat(amount) / 100; // ToyyibPay sends in cents
+      // ToyyibPay sends "1.50" for RM 1.50
+      const rawAmount = typeof amount === 'number' ? amount : parseFloat(String(amount));
+      const amountNum = rawAmount; // Already in RM
       const { data: pendingTx } = await supabase
         .from("wallet_transactions")
         .select("*, wallet:wallets(user_id)")
@@ -164,11 +172,15 @@ serve(async (req) => {
       }
     }
 
+    // Reuse amountNum from above fallback logic
+    const rawAmount = typeof amount === 'number' ? amount : parseFloat(String(amount));
+    const amountNum = rawAmount; // Already in RM
+    
     const tx = transaction || (await supabase
       .from("wallet_transactions")
       .select("*, wallet:wallets(user_id)")
       .eq("status", "pending")
-      .eq("amount", parseFloat(amount) / 100)
+      .eq("amount", amountNum)
       .eq("type", "deposit")
       .order("created_at", { ascending: false })
       .limit(1)
@@ -198,8 +210,8 @@ serve(async (req) => {
         });
       }
 
-      // Convert amount (ToyyibPay sends in cents: amount * 100)
-      const amountInRM = parseFloat(amount) / 100;
+      // ToyyibPay `amount` is already in RM, e.g. "1.50"
+      const amountInRM = amountNum;
 
     // Credit wallet balance
     const { error: walletError } = await supabase.rpc("increment_wallet_balance", {
@@ -211,6 +223,12 @@ serve(async (req) => {
       console.error('Wallet increment failed:', walletError);
       throw walletError;
     }
+
+    console.log('Wallet increment successful', {
+      userId: tx.wallet.user_id,
+      amountInRM,
+      txId: tx.id,
+    });
 
     // Mark transaction as completed
     const { error: updateError } = await supabase
@@ -281,6 +299,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    console.error('check-payment-status webhook error', error);
     // Always return 200 to prevent retries from ToyyibPay
     return new Response(JSON.stringify({ 
       success: false, 
