@@ -168,6 +168,13 @@ export type Database = {
             foreignKeyName: "disputes_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "disputes_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -228,6 +235,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "escrow_accounts_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
           {
             foreignKeyName: "escrow_accounts_rental_id_fkey"
             columns: ["rental_id"]
@@ -687,6 +701,13 @@ export type Database = {
             foreignKeyName: "messages_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "messages_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -796,6 +817,13 @@ export type Database = {
             foreignKeyName: "payment_audit_log_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "payment_audit_log_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -855,6 +883,13 @@ export type Database = {
             foreignKeyName: "payment_holds_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "payment_holds_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -889,6 +924,13 @@ export type Database = {
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_locks_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
           {
             foreignKeyName: "payment_locks_rental_id_fkey"
             columns: ["rental_id"]
@@ -950,6 +992,13 @@ export type Database = {
             foreignKeyName: "payment_milestones_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -981,6 +1030,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_processing_log_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
           {
             foreignKeyName: "payment_processing_log_rental_id_fkey"
             columns: ["rental_id"]
@@ -1333,6 +1389,13 @@ export type Database = {
             foreignKeyName: "rental_delivery_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "rental_delivery_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1364,6 +1427,13 @@ export type Database = {
           rental_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rental_insurance_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
           {
             foreignKeyName: "rental_insurance_rental_id_fkey"
             columns: ["rental_id"]
@@ -1423,6 +1493,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rental_modifications_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
           {
             foreignKeyName: "rental_modifications_rental_id_fkey"
             columns: ["rental_id"]
@@ -1625,6 +1702,13 @@ export type Database = {
             foreignKeyName: "reviews_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
+          {
+            foreignKeyName: "reviews_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1764,6 +1848,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rental_fee_breakdown"
+            referencedColumns: ["rental_id"]
+          },
           {
             foreignKeyName: "transactions_rental_id_fkey"
             columns: ["rental_id"]
@@ -2203,6 +2294,65 @@ export type Database = {
           is_verified?: boolean | null
         }
         Relationships: []
+      }
+      rental_fee_breakdown: {
+        Row: {
+          base_rental_amount: number | null
+          created_at: string | null
+          owner_id: string | null
+          platform_fee: number | null
+          rental_id: string | null
+          renter_id: string | null
+          total_price: number | null
+        }
+        Insert: {
+          base_rental_amount?: never
+          created_at?: string | null
+          owner_id?: string | null
+          platform_fee?: never
+          rental_id?: string | null
+          renter_id?: string | null
+          total_price?: number | null
+        }
+        Update: {
+          base_rental_amount?: never
+          created_at?: string | null
+          owner_id?: string | null
+          platform_fee?: never
+          rental_id?: string | null
+          renter_id?: string | null
+          total_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

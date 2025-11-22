@@ -106,11 +106,11 @@ export default function AdminEscrowManagement() {
       const [heldResult, releasedResult, disputesResult] = await Promise.all([
         supabase
           .from('escrow_accounts')
-          .select('total_amount')
+          .select('total_amount, platform_fee')
           .eq('status', 'held'),
         supabase
           .from('escrow_accounts')
-          .select('total_amount')
+          .select('total_amount, platform_fee')
           .eq('status', 'released')
           .gte('released_at', today),
         supabase
@@ -121,6 +121,9 @@ export default function AdminEscrowManagement() {
 
       const totalHeld = heldResult.data?.reduce((sum, e) => sum + Number(e.total_amount), 0) || 0;
       const totalReleased = releasedResult.data?.reduce((sum, e) => sum + Number(e.total_amount), 0) || 0;
+      
+      // Platform revenue is now the platform_fee from each escrow
+      const platformRevenue = heldResult.data?.reduce((sum, e) => sum + Number(e.platform_fee), 0) || 0;
 
       setStats({
         total_held: totalHeld,
