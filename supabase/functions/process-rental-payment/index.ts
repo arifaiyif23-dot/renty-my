@@ -60,9 +60,8 @@ serve(async (req) => {
     }
 
     // Initialize state tracking flags
-    let walletUpdated = false;
-    let transactionRecorded = false;
-    let rentalUpdated = false;
+    let renterWalletDeducted = false;
+    let escrowCreated = false;
 
     // Helper function to log payment processing steps
     const logPaymentStep = async (action: string, details?: any) => {
@@ -73,13 +72,14 @@ serve(async (req) => {
           action,
           details: details ? { ...details, timestamp: new Date().toISOString() } : null,
         });
+        console.log(`[${rentalId}] ${action}:`, details || '');
       } catch (err) {
         console.error('Failed to log payment step:', err);
       }
     };
 
     try {
-      await logPaymentStep('started');
+      await logPaymentStep('escrow_payment_started');
 
       // Get rental details
       const { data: rental, error: rentalError } = await supabaseServiceClient
@@ -95,98 +95,167 @@ serve(async (req) => {
         throw new Error("Unauthorized to complete this rental");
       }
 
-      // Idempotency check
-      if (rental.status === 'completed' || rental.payment_status === 'paid') {
-        await logPaymentStep('completed', { note: 'Already completed - idempotency check' });
+      // Idempotency check - check if escrow already exists
+      const { data: existingEscrow } = await supabaseServiceClient
+        .from('escrow_accounts')
+        .select('*')
+        .eq('rental_id', rentalId)
+        .single();
+
+      if (existingEscrow) {
+        await logPaymentStep('escrow_already_exists', { 
+          escrow_status: existingEscrow.status,
+          note: 'Idempotency check - escrow already created' 
+        });
         return new Response(
-          JSON.stringify({ success: true, message: 'Already completed' }),
+          JSON.stringify({ 
+            success: true, 
+            message: 'Escrow already created',
+            escrowStatus: existingEscrow.status
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Get owner's wallet
-      const { data: ownerWallet, error: walletError } = await supabaseServiceClient
+      // Get renter's wallet for deduction
+      const { data: renterWallet, error: renterWalletError } = await supabaseServiceClient
+        .from('wallets')
+        .select('id, balance')
+        .eq('user_id', rental.renter_id)
+        .single();
+
+      if (renterWalletError || !renterWallet) throw new Error('Renter wallet not found');
+
+      // Get owner's wallet (create if doesn't exist)
+      let { data: ownerWallet, error: ownerWalletError } = await supabaseServiceClient
         .from('wallets')
         .select('id, balance')
         .eq('user_id', rental.item.owner_id)
         .single();
 
-      if (walletError || !ownerWallet) throw new Error('Owner wallet not found');
+      if (ownerWalletError || !ownerWallet) {
+        const { data: newWallet, error: createError } = await supabaseServiceClient
+          .from('wallets')
+          .insert({ user_id: rental.item.owner_id, balance: 0 })
+          .select()
+          .single();
+        
+        if (createError) throw new Error('Failed to create owner wallet');
+        ownerWallet = newWallet;
+      }
 
       // Get dynamic platform fee rate
       const { data: platformFeeRateData } = await supabaseServiceClient
         .rpc('get_platform_setting', { setting_key: 'platform_fee_rate' });
       
-      const platformFeeRate = platformFeeRateData || 0.10; // Default to 10% if not set
+      const platformFeeRate = platformFeeRateData || 0.10; // Default to 10%
       const totalPrice = Number(rental.total_price);
       const platformFee = totalPrice * platformFeeRate;
       const ownerAmount = totalPrice - platformFee;
 
-      await logPaymentStep('lock_acquired', { 
+      await logPaymentStep('escrow_calculation', { 
         total_price: totalPrice, 
-        platform_fee: platformFee, 
-        owner_amount: ownerAmount 
+        platform_fee: platformFee,
+        platform_fee_rate: platformFeeRate,
+        owner_payout: ownerAmount 
       });
 
-      // Update owner's wallet balance atomically
-      const { error: updateError } = await supabaseServiceClient.rpc("increment_wallet_balance", {
-        p_user_id: rental.item.owner_id,
-        p_amount: ownerAmount,
-      });
-
-      if (updateError) {
-        throw new Error("Failed to update owner wallet");
+      // Check renter has sufficient balance
+      if (renterWallet.balance < totalPrice) {
+        throw new Error(`Insufficient balance. Required: RM${totalPrice}, Available: RM${renterWallet.balance}`);
       }
-      
-      walletUpdated = true;
-      await logPaymentStep('wallet_updated', { 
-        owner_id: rental.item.owner_id, 
-        amount: ownerAmount 
-      });
 
-      // Record transaction for owner
-      const { error: txError } = await supabaseServiceClient
-        .from('wallet_transactions')
-        .insert({
-          wallet_id: ownerWallet.id,
-          type: 'rental_earning',
-          amount: ownerAmount,
-          description: `Rental payment for ${rental.item.title} (10% platform fee deducted)`,
-          reference_id: rentalId,
-          status: 'completed',
+      // Deduct from renter's wallet
+      const { data: deductResult, error: deductError } = await supabaseServiceClient
+        .rpc('deduct_wallet_balance', {
+          p_user_id: rental.renter_id,
+          p_amount: totalPrice,
+          p_idempotency_key: `rental_payment_${rentalId}`
         });
 
-      if (txError) {
-        throw new Error('Failed to record transaction');
+      if (deductError || !deductResult?.success) {
+        throw new Error(deductResult?.error || 'Failed to deduct from renter wallet');
       }
-      
-      transactionRecorded = true;
-      await logPaymentStep('transaction_recorded', { 
-        wallet_id: ownerWallet.id, 
-        transaction_type: 'rental_earning' 
+
+      renterWalletDeducted = true;
+      await logPaymentStep('renter_wallet_deducted', { 
+        renter_id: rental.renter_id,
+        amount: totalPrice,
+        new_balance: deductResult.new_balance
       });
 
-      // Update rental status
+      // Record renter's payment transaction
+      await supabaseServiceClient
+        .from('wallet_transactions')
+        .insert({
+          wallet_id: renterWallet.id,
+          type: 'rental_payment',
+          amount: -totalPrice,
+          description: `Payment for ${rental.item.title} - held in escrow`,
+          reference_id: rentalId,
+          status: 'completed',
+          idempotency_key: `rental_payment_${rentalId}`
+        });
+
+      // Create escrow account
+      const { data: escrowAccount, error: escrowError } = await supabaseServiceClient
+        .from('escrow_accounts')
+        .insert({
+          rental_id: rentalId,
+          total_amount: totalPrice,
+          platform_fee: platformFee,
+          owner_payout: ownerAmount,
+          status: 'held',
+          held_at: new Date().toISOString(),
+          // Auto-release will be set by trigger when rental completes
+        })
+        .select()
+        .single();
+
+      if (escrowError) {
+        throw new Error('Failed to create escrow account');
+      }
+
+      escrowCreated = true;
+      await logPaymentStep('escrow_account_created', { 
+        escrow_id: escrowAccount.id,
+        status: 'held',
+        total_amount: totalPrice
+      });
+
+      // Record escrow transaction
+      await supabaseServiceClient
+        .from('escrow_transactions')
+        .insert({
+          escrow_account_id: escrowAccount.id,
+          transaction_type: 'deposit',
+          amount: totalPrice,
+          from_wallet_id: renterWallet.id,
+          notes: `Payment received from renter - held in escrow pending rental completion`
+        });
+
+      await logPaymentStep('escrow_transaction_recorded', {
+        transaction_type: 'deposit'
+      });
+
+      // Update rental status to indicate payment is in escrow
       const { error: rentalUpdateError } = await supabaseServiceClient
         .from('rentals')
         .update({ 
-          status: 'completed',
-          payment_status: 'paid',
+          payment_status: 'escrowed',
           updated_at: new Date().toISOString()
         })
         .eq('id', rentalId);
 
       if (rentalUpdateError) {
-        throw new Error('Failed to update rental status');
+        throw new Error('Failed to update rental payment status');
       }
-      
-      rentalUpdated = true;
-      await logPaymentStep('rental_updated', { 
-        rental_id: rentalId, 
-        new_status: 'completed' 
+
+      await logPaymentStep('rental_payment_status_updated', { 
+        payment_status: 'escrowed'
       });
 
-      // Create notifications (non-critical - log errors but don't fail)
+      // Create notifications
       try {
         await supabaseServiceClient
           .from('notifications')
@@ -194,15 +263,15 @@ serve(async (req) => {
             {
               user_id: rental.owner_id,
               type: 'rental_confirmed',
-              title: 'Rental Payment Received',
-              message: `You've received RM ${ownerAmount.toFixed(2)} for ${rental.item.title}`,
+              title: 'Payment Received in Escrow',
+              message: `RM ${ownerAmount.toFixed(2)} for ${rental.item.title} is held safely in escrow. It will be released after rental completion.`,
               link: `/dashboard`,
             },
             {
               user_id: rental.renter_id,
               type: 'rental_confirmed',
-              title: 'Booking Confirmed',
-              message: `Your booking for ${rental.item.title} is confirmed`,
+              title: 'Payment Secured',
+              message: `Your payment of RM ${totalPrice.toFixed(2)} for ${rental.item.title} is held safely in escrow`,
               link: `/dashboard`,
             }
           ]);
@@ -213,32 +282,36 @@ serve(async (req) => {
 
       // Release payment lock
       await supabaseServiceClient.rpc('release_payment_lock', { p_rental_id: rentalId });
-      await logPaymentStep('completed', { success: true });
+      await logPaymentStep('escrow_payment_completed', { 
+        success: true,
+        escrow_id: escrowAccount.id
+      });
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Payment processed successfully',
-          ownerAmount,
-          platformFee
+          message: 'Payment secured in escrow',
+          escrowId: escrowAccount.id,
+          ownerPayout: ownerAmount,
+          platformFee,
+          status: 'escrowed'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
     } catch (innerError: any) {
-      // Rollback logic based on what steps completed
-      console.error('Payment processing error:', innerError);
+      // Rollback logic
+      console.error('Escrow payment error:', innerError);
       
-      await logPaymentStep('failed', { 
+      await logPaymentStep('escrow_payment_failed', { 
         error: innerError.message,
-        wallet_updated: walletUpdated,
-        transaction_recorded: transactionRecorded,
-        rental_updated: rentalUpdated
+        renter_wallet_deducted: renterWalletDeducted,
+        escrow_created: escrowCreated
       });
 
-      // If wallet was updated but transaction recording or rental update failed, rollback
-      if (walletUpdated && (!transactionRecorded || !rentalUpdated)) {
-        console.log('Attempting rollback: wallet updated but process incomplete');
+      // If renter wallet was deducted but escrow creation failed, refund
+      if (renterWalletDeducted && !escrowCreated) {
+        console.log('Rolling back: refunding renter wallet');
         
         try {
           const { data: rental } = await supabaseServiceClient
@@ -248,48 +321,40 @@ serve(async (req) => {
             .single();
 
           if (rental) {
-            const platformFeeRate = await supabaseServiceClient
-              .rpc('get_platform_setting', { setting_key: 'platform_fee_rate' })
-              .then(({ data }) => data || 0.10);
-            
             const totalPrice = Number(rental.total_price);
-            const platformFee = totalPrice * platformFeeRate;
-            const ownerAmount = totalPrice - platformFee;
 
-            // Log rollback
+            // Log rollback in audit
             await supabaseServiceClient
               .from('payment_audit_log')
               .insert({
                 rental_id: rentalId,
                 user_id: rental.renter_id,
-                action: 'rental_payment_rollback',
+                action: 'escrow_payment_rollback',
                 status: 'failed',
                 amount: totalPrice,
                 details: {
-                  reason: 'Payment processing failed - automatic rollback',
-                  platform_fee_rate: platformFeeRate,
-                  platform_fee: platformFee,
-                  owner_amount: ownerAmount
+                  reason: 'Escrow creation failed - automatic refund',
+                  error: innerError.message
                 }
               });
 
             await supabaseServiceClient.rpc('refund_wallet_balance', {
-              p_user_id: rental.item.owner_id,
-              p_amount: ownerAmount,
-              p_reason: `Payment processing failed - automatic rollback for rental ${rentalId}`
+              p_user_id: rental.renter_id,
+              p_amount: totalPrice,
+              p_reason: `Escrow payment failed - automatic refund for rental ${rentalId}`
             });
 
-            await logPaymentStep('rolled_back', { 
-              refunded_amount: ownerAmount,
-              reason: 'Payment processing incomplete'
+            await logPaymentStep('rollback_completed', { 
+              refunded_amount: totalPrice,
+              reason: 'Escrow creation failed'
             });
             
-            console.log('Rollback successful');
+            console.log('Rollback successful - renter refunded');
           }
         } catch (rollbackError: any) {
           console.error('CRITICAL: Rollback failed:', rollbackError);
-          await logPaymentStep('failed', { 
-            error: 'Rollback failed',
+          await logPaymentStep('rollback_failed', { 
+            error: 'Rollback failed - MANUAL INTERVENTION REQUIRED',
             rollback_error: rollbackError.message
           });
         }
@@ -301,10 +366,12 @@ serve(async (req) => {
     }
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Payment processing failed';
+    console.error('Payment error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: 'Payment processing failed'
+        error: errorMessage
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
