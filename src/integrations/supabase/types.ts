@@ -80,6 +80,238 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          created_at: string
+          description: string
+          dispute_type: string
+          evidence_urls: string[] | null
+          filed_against: string
+          filed_by: string
+          id: string
+          rental_id: string
+          resolution_amount: number | null
+          resolution_notes: string | null
+          resolution_split: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          dispute_type: string
+          evidence_urls?: string[] | null
+          filed_against: string
+          filed_by: string
+          id?: string
+          rental_id: string
+          resolution_amount?: number | null
+          resolution_notes?: string | null
+          resolution_split?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          dispute_type?: string
+          evidence_urls?: string[] | null
+          filed_against?: string
+          filed_by?: string
+          id?: string
+          rental_id?: string
+          resolution_amount?: number | null
+          resolution_notes?: string | null
+          resolution_split?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_filed_against_fkey"
+            columns: ["filed_against"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_filed_against_fkey"
+            columns: ["filed_against"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escrow_accounts: {
+        Row: {
+          auto_release_at: string | null
+          created_at: string
+          held_at: string
+          id: string
+          owner_payout: number
+          platform_fee: number
+          released_at: string | null
+          rental_id: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          auto_release_at?: string | null
+          created_at?: string
+          held_at?: string
+          id?: string
+          owner_payout: number
+          platform_fee?: number
+          released_at?: string | null
+          rental_id: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          auto_release_at?: string | null
+          created_at?: string
+          held_at?: string
+          id?: string
+          owner_payout?: number
+          platform_fee?: number
+          released_at?: string | null
+          rental_id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_accounts_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escrow_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          escrow_account_id: string
+          executed_at: string
+          executed_by: string | null
+          from_wallet_id: string | null
+          id: string
+          notes: string | null
+          to_wallet_id: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          escrow_account_id: string
+          executed_at?: string
+          executed_by?: string | null
+          from_wallet_id?: string | null
+          id?: string
+          notes?: string | null
+          to_wallet_id?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          escrow_account_id?: string
+          executed_at?: string
+          executed_by?: string | null
+          from_wallet_id?: string | null
+          id?: string
+          notes?: string | null
+          to_wallet_id?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_transactions_escrow_account_id_fkey"
+            columns: ["escrow_account_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_executed_by_fkey"
+            columns: ["executed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_executed_by_fkey"
+            columns: ["executed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_from_wallet_id_fkey"
+            columns: ["from_wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escrow_transactions_to_wallet_id_fkey"
+            columns: ["to_wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fraud_alerts: {
         Row: {
           alert_type: string
@@ -666,6 +898,63 @@ export type Database = {
           },
         ]
       }
+      payment_milestones: {
+        Row: {
+          actual_release_date: string | null
+          amount: number
+          created_at: string
+          escrow_account_id: string
+          id: string
+          milestone_number: number
+          notes: string | null
+          percentage: number
+          rental_id: string
+          scheduled_release_date: string
+          status: string
+        }
+        Insert: {
+          actual_release_date?: string | null
+          amount: number
+          created_at?: string
+          escrow_account_id: string
+          id?: string
+          milestone_number: number
+          notes?: string | null
+          percentage: number
+          rental_id: string
+          scheduled_release_date: string
+          status?: string
+        }
+        Update: {
+          actual_release_date?: string | null
+          amount?: number
+          created_at?: string
+          escrow_account_id?: string
+          id?: string
+          milestone_number?: number
+          notes?: string | null
+          percentage?: number
+          rental_id?: string
+          scheduled_release_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_milestones_escrow_account_id_fkey"
+            columns: ["escrow_account_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_milestones_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_processing_log: {
         Row: {
           action: string
@@ -936,6 +1225,53 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      refund_policies: {
+        Row: {
+          cancellation_window_hours: number
+          compensation_percentage: number | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          item_id: string | null
+          policy_type: string
+          refund_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          cancellation_window_hours?: number
+          compensation_percentage?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_id?: string | null
+          policy_type?: string
+          refund_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          cancellation_window_hours?: number
+          compensation_percentage?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_id?: string | null
+          policy_type?: string
+          refund_percentage?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_policies_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rental_delivery: {
         Row: {
@@ -1882,6 +2218,13 @@ export type Database = {
       calculate_withdrawal_risk: {
         Args: { p_amount: number; p_user_id: string }
         Returns: number
+      }
+      check_escrow_auto_release: {
+        Args: never
+        Returns: {
+          escrow_id: string
+          rental_id: string
+        }[]
       }
       check_promo_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
       check_rate_limit: {
