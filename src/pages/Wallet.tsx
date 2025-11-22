@@ -286,7 +286,7 @@ export default function Wallet() {
                 <PaymentErrorBoundary fallbackMessage="Unable to process top-up.">
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="gradient">
+                      <Button variant="default">
                         <Plus className="h-4 w-4 mr-2" />
                         Top Up
                       </Button>
