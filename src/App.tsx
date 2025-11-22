@@ -10,6 +10,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -36,6 +37,7 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const MyListings = lazy(() => import("./pages/MyListings"));
 const Install = lazy(() => import("./pages/Install"));
 const Offline = lazy(() => import("./pages/Offline"));
+const PWASettings = lazy(() => import("./pages/PWASettings"));
 
 // Configure React Query with aggressive caching
 const queryClient = new QueryClient({
@@ -56,6 +58,7 @@ function AppRoutes() {
   return (
     <div className="flex flex-col min-h-screen w-full">
       <OfflineIndicator />
+      <PWAInstallPrompt />
       {/* Skip to main content for keyboard navigation */}
       <a href="#main-content" className="skip-to-main">
         Skip to main content
@@ -81,6 +84,7 @@ function AppRoutes() {
             <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
+            <Route path="/pwa-settings" element={<PWASettings />} />
             <Route path="/offline" element={<Offline />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
