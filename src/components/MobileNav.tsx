@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   Package, 
-  Wallet, 
+  TrendingUp, 
   MessageCircle, 
   User, 
   LogOut 
@@ -29,7 +29,7 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Package, label: "My Rentals", path: "/dashboard" },
-    { icon: Wallet, label: "Wallet", path: "/wallet" },
+    { icon: TrendingUp, label: "My Earnings", path: "/earnings" },
     { icon: MessageCircle, label: "Messages", path: "/messages" },
     { icon: User, label: "Profile", path: "/profile" },
   ];

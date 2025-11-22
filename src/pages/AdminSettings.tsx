@@ -227,51 +227,12 @@ export default function AdminSettings() {
               </CardContent>
             </Card>
 
-            {/* Top-up Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ArrowUpFromLine className="h-5 w-5" />
-                  Top-Up Configuration
-                </CardTitle>
-                <CardDescription>
-                  Set limits for wallet top-ups
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="min_topup">Minimum Top-Up (RM)</Label>
-                    <Input
-                      id="min_topup"
-                      type="number"
-                      step="0.01"
-                      value={getCurrentValue('min_topup_amount')}
-                      onChange={(e) => handleChange('min_topup_amount', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="max_topup">Maximum Top-Up (RM)</Label>
-                    <Input
-                      id="max_topup"
-                      type="number"
-                      step="0.01"
-                      value={getCurrentValue('max_topup_amount')}
-                      onChange={(e) => handleChange('max_topup_amount', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Auto-Approval Settings */}
             <Card>
               <CardHeader>
                 <CardTitle>Automated Processing</CardTitle>
                 <CardDescription>
-                  Configure automatic withdrawal approval thresholds
+                  Configure automatic payout approval thresholds
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -287,7 +248,7 @@ export default function AdminSettings() {
                       className="mt-1"
                     />
                     <p className="text-sm text-muted-foreground mt-1">
-                      Low-risk withdrawals below this amount are auto-approved
+                      Low-risk payouts below this amount are auto-approved
                     </p>
                   </div>
                   <div>
