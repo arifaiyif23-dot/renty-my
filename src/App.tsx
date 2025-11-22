@@ -32,6 +32,7 @@ const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Verification = lazy(() => import("./pages/Verification"));
 const AdminVerification = lazy(() => import("./pages/AdminVerification"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const AdminEscrowManagement = lazy(() => import("./pages/AdminEscrowManagement"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const MyListings = lazy(() => import("./pages/MyListings"));
@@ -83,6 +84,7 @@ function AppRoutes() {
             <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute>} />
+            <Route path="/admin/escrow" element={<ProtectedRoute><AdminRoute><AdminEscrowManagement /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
             <Route path="/pwa-settings" element={<PWASettings />} />
             <Route path="/offline" element={<Offline />} />

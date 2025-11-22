@@ -159,22 +159,31 @@ export function AdminWithdrawals() {
       }
 
       // Success with details
+      // Optimistically update local state
+      setWithdrawals(prev => prev.filter(w => w.id !== selectedWithdrawal.id));
+      
       if (actionType === 'approve') {
         const deducted = data.deducted || 0;
         const fee = data.processingFee || 0;
-        toast.success(`Approved! Deducted RM${deducted.toFixed(2)} (RM${fee.toFixed(2)} fee)`);
+        toast.success('Withdrawal Approved!', {
+          description: `Deducted RM${deducted.toFixed(2)} (RM${fee.toFixed(2)} fee included)`
+        });
       } else {
-        toast.success('Withdrawal rejected');
+        toast.success('Withdrawal rejected successfully');
       }
       
-      await fetchWithdrawals();
       setSelectedWithdrawal(null);
       setActionType(null);
       setNotes('');
       setRejectionReason('');
+      
+      // Refetch in background to ensure sync
+      fetchWithdrawals();
     } catch (error: any) {
       console.error('Unexpected error:', error);
       toast.error('An unexpected error occurred. Please try again.');
+      // Refetch to restore correct state
+      fetchWithdrawals();
     } finally {
       setProcessing(null);
     }
