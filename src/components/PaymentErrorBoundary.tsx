@@ -57,8 +57,8 @@ export class PaymentErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
-              <Button onClick={() => window.location.href = '/wallet'} size="sm">
-                Go to Wallet
+              <Button onClick={() => window.location.href = '/dashboard'} size="sm">
+                Go to Dashboard
               </Button>
             </div>
           </CardContent>

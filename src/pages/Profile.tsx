@@ -170,8 +170,8 @@ export default function Profile() {
                   <Link to="/dashboard">
                     <Button size="sm" variant="outline">Dashboard</Button>
                   </Link>
-                  <Link to="/wallet">
-                    <Button size="sm" variant="outline">Wallet</Button>
+                  <Link to="/earnings">
+                    <Button size="sm" variant="outline">My Earnings</Button>
                   </Link>
                 </div>
               </div>
