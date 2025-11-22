@@ -36,6 +36,7 @@ import { SocialProof } from '@/components/SocialProof';
 import { PromoCodeRedemption } from '@/components/PromoCodeRedemption';
 import { InsurancePlans } from '@/components/InsurancePlans';
 import { DeliveryScheduler, DeliveryDetails } from '@/components/DeliveryScheduler';
+import { PlatformFeeInfo } from '@/components/PlatformFeeInfo';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -352,22 +353,31 @@ export default function ItemDetail() {
   const calculatePrice = () => {
     if (!dateRange?.from || !dateRange?.to || !item) return 0;
     const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-    let total = days * item.price_per_day;
+    
+    // Base rental price
+    let baseRental = days * item.price_per_day;
     
     // Add insurance
-    total += insurancePlan.price * days;
+    const insuranceCost = insurancePlan.price * days;
     
     // Add delivery
-    total += deliveryDetails.fee;
+    const deliveryCost = deliveryDetails.fee;
     
-    // Apply promo discount
+    // Subtotal before platform fee and discounts
+    let subtotal = baseRental + insuranceCost + deliveryCost;
+    
+    // Apply promo discount to subtotal (before platform fee)
     if (promoDiscount.amount > 0) {
       if (promoDiscount.type === 'percentage') {
-        total = total - (total * promoDiscount.amount) / 100;
+        subtotal = subtotal - (subtotal * promoDiscount.amount) / 100;
       } else {
-        total = total - promoDiscount.amount;
+        subtotal = subtotal - promoDiscount.amount;
       }
     }
+    
+    // Add 10% platform fee (charged to renter)
+    const platformFee = subtotal * 0.10;
+    const total = subtotal + platformFee;
     
     return Math.max(0, total);
   };
@@ -389,6 +399,10 @@ export default function ItemDetail() {
       }
     }
     
+    const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
+    const platformFee = subtotalAfterDiscount * 0.10; // 10% service fee
+    const total = subtotalAfterDiscount + platformFee;
+    
     return {
       days,
       basePrice,
@@ -396,7 +410,9 @@ export default function ItemDetail() {
       deliveryCost,
       subtotal,
       discountAmount,
-      total: Math.max(0, subtotal - discountAmount),
+      subtotalAfterDiscount,
+      platformFee,
+      total,
     };
   };
 
@@ -654,11 +670,26 @@ export default function ItemDetail() {
                         <span>-RM {breakdown.discountAmount.toFixed(2)}</span>
                       </div>
                     )}
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal:</span>
+                      <span>RM {breakdown.subtotalAfterDiscount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-blue-600 font-medium items-center">
+                      <div className="flex items-center gap-2">
+                        <span>Platform Service Fee (10%):</span>
+                        <PlatformFeeInfo />
+                      </div>
+                      <span>RM {breakdown.platformFee.toFixed(2)}</span>
+                    </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
                       <span>RM {breakdown.total.toFixed(2)}</span>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      💡 The owner receives RM {breakdown.basePrice.toFixed(2)}. 
+                      The platform fee helps maintain our secure payment system.
+                    </p>
                   </div>
                 );
               })()}

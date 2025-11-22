@@ -174,8 +174,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-500">
                     {isOwner 
-                      ? 'Your earnings are protected and will release after completion'
-                      : 'Your payment is safe and protected until rental completion'}
+                      ? `RM ${(rental.total_price / 1.10).toFixed(2)} protected until completion`
+                      : `RM ${rental.total_price.toFixed(2)} (incl. fee) secured`}
                   </p>
                 </div>
               </div>
@@ -289,8 +289,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-500 mt-0.5">
                     {isOwner 
-                      ? 'RM ' + (rental.total_price * 0.9).toFixed(2) + ' will release 24h after both parties confirm completion'
-                      : 'Your RM ' + rental.total_price + ' payment is protected until rental completion'}
+                      ? `RM ${(rental.total_price / 1.10).toFixed(2)} (full rental price) will release 24h after both parties confirm completion`
+                      : `Your RM ${rental.total_price.toFixed(2)} payment (including platform fee) is protected until rental completion`}
                   </p>
                 </div>
               </div>

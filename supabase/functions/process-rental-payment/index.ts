@@ -148,10 +148,12 @@ serve(async (req) => {
       const { data: platformFeeRateData } = await supabaseServiceClient
         .rpc('get_platform_setting', { setting_key: 'platform_fee_rate' });
       
-      const platformFeeRate = platformFeeRateData || 0.10; // Default to 10%
-      const totalPrice = Number(rental.total_price);
-      const platformFee = totalPrice * platformFeeRate;
-      const ownerAmount = totalPrice - platformFee;
+      // NEW FEE MODEL: Platform fee is already included in total_price (charged to renter)
+      const platformFeeRate = platformFeeRateData || 0.10; // 10%
+      const totalPrice = Number(rental.total_price); // This includes the 10% platform fee
+      const baseRentalAmount = totalPrice / (1 + platformFeeRate); // Extract base price
+      const platformFee = totalPrice - baseRentalAmount; // Calculate platform fee
+      const ownerAmount = baseRentalAmount; // Owner gets 100% of base price
 
       await logPaymentStep('escrow_calculation', { 
         total_price: totalPrice, 
