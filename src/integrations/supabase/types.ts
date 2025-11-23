@@ -629,6 +629,65 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          paid_at: string | null
+          platform_fee: number
+          platform_fee_percentage: number
+          rental_amount: number
+          rental_id: string
+          status: string
+          total_amount: number
+          toyyibpay_bill_code: string | null
+          toyyibpay_bill_url: string | null
+          toyyibpay_transaction_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          platform_fee: number
+          platform_fee_percentage: number
+          rental_amount: number
+          rental_id: string
+          status?: string
+          total_amount: number
+          toyyibpay_bill_code?: string | null
+          toyyibpay_bill_url?: string | null
+          toyyibpay_transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          platform_fee?: number
+          platform_fee_percentage?: number
+          rental_amount?: number
+          rental_id?: string
+          status?: string
+          total_amount?: number
+          toyyibpay_bill_code?: string | null
+          toyyibpay_bill_url?: string | null
+          toyyibpay_transaction_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           created_at: string | null
