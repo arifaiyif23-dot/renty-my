@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { ListingEditDialog } from '@/components/ListingEditDialog';
 
 type ViewMode = 'grid' | 'list';
 type SortBy = 'recent' | 'views' | 'bookings' | 'revenue';
@@ -45,6 +46,7 @@ export default function MyListings() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [editingItem, setEditingItem] = useState<any>(null);
 
   const { data: items, isLoading, refetch } = useQuery({
     queryKey: ['my-listings', user?.id, statusFilter, sortBy],
@@ -421,7 +423,7 @@ export default function MyListings() {
                             <Eye className="h-4 w-4 mr-2" />
                             {t('listings.viewListing')}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/list-item?id=${item.id}`)}>
+                          <DropdownMenuItem onClick={() => setEditingItem(item)}>
                             <Edit className="h-4 w-4 mr-2" />
                             {t('listings.editListing')}
                           </DropdownMenuItem>
@@ -466,6 +468,15 @@ export default function MyListings() {
           </div>
         )}
       </div>
+
+      {/* Edit Dialog */}
+      {editingItem && (
+        <ListingEditDialog
+          open={!!editingItem}
+          onOpenChange={(open) => !open && setEditingItem(null)}
+          listing={editingItem}
+        />
+      )}
     </div>
   );
 }
