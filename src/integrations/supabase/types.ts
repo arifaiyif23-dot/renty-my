@@ -683,6 +683,7 @@ export type Database = {
           expires_at: string | null
           id: string
           paid_at: string | null
+          payment_verified_at: string | null
           platform_fee: number
           platform_fee_percentage: number
           rental_amount: number
@@ -691,6 +692,7 @@ export type Database = {
           total_amount: number
           toyyibpay_bill_code: string | null
           toyyibpay_bill_url: string | null
+          toyyibpay_signature: string | null
           toyyibpay_transaction_id: string | null
           updated_at: string | null
         }
@@ -699,6 +701,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           paid_at?: string | null
+          payment_verified_at?: string | null
           platform_fee: number
           platform_fee_percentage: number
           rental_amount: number
@@ -707,6 +710,7 @@ export type Database = {
           total_amount: number
           toyyibpay_bill_code?: string | null
           toyyibpay_bill_url?: string | null
+          toyyibpay_signature?: string | null
           toyyibpay_transaction_id?: string | null
           updated_at?: string | null
         }
@@ -715,6 +719,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           paid_at?: string | null
+          payment_verified_at?: string | null
           platform_fee?: number
           platform_fee_percentage?: number
           rental_amount?: number
@@ -723,6 +728,7 @@ export type Database = {
           total_amount?: number
           toyyibpay_bill_code?: string | null
           toyyibpay_bill_url?: string | null
+          toyyibpay_signature?: string | null
           toyyibpay_transaction_id?: string | null
           updated_at?: string | null
         }
@@ -743,6 +749,7 @@ export type Database = {
           bank_name: string | null
           created_at: string | null
           failure_reason: string | null
+          held_reason: string | null
           id: string
           owner_id: string
           payment_id: string
@@ -762,6 +769,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           failure_reason?: string | null
+          held_reason?: string | null
           id?: string
           owner_id: string
           payment_id: string
@@ -781,6 +789,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           failure_reason?: string | null
+          held_reason?: string | null
           id?: string
           owner_id?: string
           payment_id?: string
@@ -1862,6 +1871,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_payments: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {

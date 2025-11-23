@@ -155,18 +155,23 @@ export default function AdminPayouts() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
-      case 'processing':
-        return <Badge variant="secondary" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" />Processing</Badge>;
-      case 'completed':
-        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="h-3 w-3" />Completed</Badge>;
-      case 'failed':
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Failed</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
+    const statusConfig = {
+      held: { label: 'Held', variant: 'secondary' as const, icon: Clock },
+      awaiting_bank_details: { label: 'Awaiting Bank', variant: 'secondary' as const, icon: XCircle },
+      pending: { label: 'Ready', variant: 'default' as const, icon: Clock },
+      completed: { label: 'Paid', variant: 'default' as const, icon: CheckCircle },
+      failed: { label: 'Failed', variant: 'destructive' as const, icon: XCircle },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'default' as const, icon: Clock };
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -240,14 +245,14 @@ export default function AdminPayouts() {
               <div className="flex items-center gap-4">
                 <Filter className="h-5 w-5 text-muted-foreground" />
                 <div className="flex gap-2">
-                  {['all', 'pending', 'completed', 'failed'].map((status) => (
+                  {['all', 'held', 'awaiting_bank_details', 'pending', 'completed', 'failed'].map((status) => (
                     <Button
                       key={status}
                       variant={filter === status ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setFilter(status)}
                     >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      {status === 'awaiting_bank_details' ? 'No Bank' : status.charAt(0).toUpperCase() + status.slice(1)}
                     </Button>
                   ))}
                 </div>

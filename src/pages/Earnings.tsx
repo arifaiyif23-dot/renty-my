@@ -158,18 +158,23 @@ export default function Earnings() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
-      case 'processing':
-        return <Badge variant="secondary" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" />Processing</Badge>;
-      case 'completed':
-        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="h-3 w-3" />Completed</Badge>;
-      case 'failed':
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Failed</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
+    const statusConfig = {
+      held: { label: 'Held Until Complete', variant: 'secondary' as const, icon: Clock },
+      awaiting_bank_details: { label: 'Add Bank Account', variant: 'secondary' as const, icon: XCircle },
+      pending: { label: 'Processing', variant: 'default' as const, icon: Clock },
+      completed: { label: 'Paid', variant: 'default' as const, icon: CheckCircle },
+      failed: { label: 'Failed', variant: 'destructive' as const, icon: XCircle },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'default' as const, icon: Clock };
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -252,16 +257,23 @@ export default function Earnings() {
         </div>
 
         {/* Bank Account Warning */}
-        {!bankAccount && (
+        {!bankAccount && stats.pendingPayouts > 0 && (
           <Card className="mb-6 border-orange-500/50 bg-orange-500/10">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
                 <CreditCard className="h-5 w-5 text-orange-500 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold mb-1">Bank Account Required</h3>
+                  <h3 className="font-semibold mb-1">⚠️ Bank Account Required</h3>
                   <p className="text-sm text-muted-foreground">
-                    Add your bank account details to receive automatic payouts when rentals complete.
+                    You have pending payouts! Add your bank account details now to receive payments.
                   </p>
+                  <Button 
+                    size="sm" 
+                    className="mt-3"
+                    onClick={() => setShowBankDialog(true)}
+                  >
+                    Add Bank Account Now
+                  </Button>
                 </div>
               </div>
             </CardContent>
