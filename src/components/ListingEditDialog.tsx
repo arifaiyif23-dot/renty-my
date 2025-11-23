@@ -122,6 +122,17 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
   const updateMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
+      // Validate images
+      if (images.length === 0) {
+        throw new Error('At least one image is required. Please upload an image before saving.');
+      }
+
+      // Ensure there's always a primary image
+      const updatedImages = [...images];
+      if (!updatedImages.some((img) => img.isPrimary) && updatedImages.length > 0) {
+        updatedImages[0].isPrimary = true;
+      }
+
       // Update item basic info
       const { error: itemError } = await supabase
         .from('items')
@@ -140,7 +151,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       if (deleteError) throw deleteError;
 
       // Insert updated images with correct order
-      const imageInserts = images.map((img, index) => ({
+      const imageInserts = updatedImages.map((img, index) => ({
         item_id: listing.id,
         image_url: img.url,
         is_primary: img.isPrimary,
@@ -157,8 +168,8 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       toast.success(t('listings.updateSuccess'));
       onOpenChange(false);
     },
-    onError: () => {
-      toast.error('Failed to update listing');
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update listing');
     },
   });
 
@@ -387,12 +398,16 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
                 <ImageUpload
                   onImagesChange={(urls) => {
-                    const newImages = urls.map((url) => ({
-                      id: crypto.randomUUID(),
-                      url,
-                      isPrimary: false,
-                    }));
-                    setImages((prev) => [...prev, ...newImages]);
+                    setImages((prev) => {
+                      const existingUrls = new Set(prev.map((i) => i.url));
+                      const addedUrls = urls.filter((url) => !existingUrls.has(url));
+                      const newImages = addedUrls.map((url) => ({
+                        id: crypto.randomUUID(),
+                        url,
+                        isPrimary: false,
+                      }));
+                      return [...prev, ...newImages];
+                    });
                   }}
                   maxImages={10}
                 />
