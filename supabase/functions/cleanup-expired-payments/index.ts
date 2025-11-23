@@ -1,0 +1,114 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+    
+    console.log('Starting expired payment cleanup...');
+    
+    // Get expired payments
+    const { data: expiredPayments, error: fetchError } = await supabase
+      .from('payments')
+      .select('id, rental_id, toyyibpay_bill_code')
+      .eq('status', 'pending')
+      .lt('expires_at', new Date().toISOString());
+    
+    if (fetchError) {
+      console.error('Error fetching expired payments:', fetchError);
+      throw fetchError;
+    }
+    
+    console.log(`Found ${expiredPayments?.length || 0} expired payments`);
+    
+    if (!expiredPayments || expiredPayments.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'No expired payments found', count: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Mark payments as expired
+    const { error: updateError } = await supabase
+      .from('payments')
+      .update({ 
+        status: 'expired',
+        updated_at: new Date().toISOString()
+      })
+      .in('id', expiredPayments.map(p => p.id));
+    
+    if (updateError) {
+      console.error('Error updating expired payments:', updateError);
+      throw updateError;
+    }
+    
+    // Cancel associated rentals
+    const { error: cancelError } = await supabase
+      .from('rentals')
+      .update({ 
+        status: 'cancelled',
+        updated_at: new Date().toISOString()
+      })
+      .in('id', expiredPayments.map(p => p.rental_id))
+      .eq('status', 'pending');
+    
+    if (cancelError) {
+      console.error('Error cancelling rentals:', cancelError);
+      throw cancelError;
+    }
+    
+    // Send notifications to renters
+    const { data: rentals } = await supabase
+      .from('rentals')
+      .select('renter_id, item_id')
+      .in('id', expiredPayments.map(p => p.rental_id));
+    
+    if (rentals) {
+      for (const rental of rentals) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: rental.renter_id,
+            type: 'rental_rejected',
+            title: 'Payment Expired',
+            message: 'Your payment has expired. Please create a new booking to rent this item.',
+            link: `/item/${rental.item_id}`
+          });
+      }
+    }
+    
+    console.log(`Successfully cleaned up ${expiredPayments.length} expired payments`);
+    
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Expired payments cleaned up successfully',
+        count: expiredPayments.length,
+        paymentIds: expiredPayments.map(p => p.id)
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+    
+  } catch (error: any) {
+    console.error('Payment cleanup error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+});

@@ -1,5 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHmac } from "https://deno.land/std@0.177.0/node/crypto.ts";
+
+// Verify ToyyibPay signature (optional - for enhanced security)
+function verifyToyyibPaySignature(params: URLSearchParams, secretKey: string): boolean {
+  const signature = params.get('signature');
+  if (!signature) return false;
+
+  const signatureParams = new URLSearchParams(params);
+  signatureParams.delete('signature');
+  
+  const sortedParams = Array.from(signatureParams.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('&');
+  
+  const computedSignature = createHmac('sha256', secretKey)
+    .update(sortedParams)
+    .digest('hex');
+  
+  return computedSignature === signature;
+}
 
 serve(async (req) => {
   try {
@@ -10,6 +31,13 @@ serve(async (req) => {
     const paymentId = url.searchParams.get('order_id');
     
     console.log('ToyyibPay callback:', { billCode, status, transactionId, paymentId });
+    
+    // SECURITY: Verify signature (uncomment when ToyyibPay adds signature support)
+    // const secretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
+    // if (!verifyToyyibPaySignature(url.searchParams, secretKey)) {
+    //   console.error('Invalid ToyyibPay signature');
+    //   return new Response('Unauthorized', { status: 401 });
+    // }
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -34,6 +62,8 @@ serve(async (req) => {
         .update({
           status: 'paid',
           toyyibpay_transaction_id: transactionId,
+          toyyibpay_signature: url.searchParams.get('signature'),
+          payment_verified_at: new Date().toISOString(),
           paid_at: new Date().toISOString()
         })
         .eq('id', paymentId);

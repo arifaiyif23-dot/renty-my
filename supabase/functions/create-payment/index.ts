@@ -95,7 +95,8 @@ serve(async (req) => {
     
     console.log('Creating ToyyibPay bill with amount:', billAmount);
     
-    const toyyibPayResponse = await fetch('https://dev.toyyibpay.com/index.php/api/createBill', {
+    // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
+    const toyyibPayResponse = await fetch('https://toyyibpay.com/index.php/api/createBill', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: toyyibPayParams.toString()
@@ -110,7 +111,8 @@ serve(async (req) => {
     }
     
     // Update payment with ToyyibPay details
-    const billUrl = `https://dev.toyyibpay.com/${billData[0].BillCode}`;
+    // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
+    const billUrl = `https://toyyibpay.com/${billData[0].BillCode}`;
     
     await supabase
       .from('payments')
