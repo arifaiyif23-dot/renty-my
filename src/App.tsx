@@ -37,6 +37,8 @@ const Install = lazy(() => import("./pages/Install"));
 const Offline = lazy(() => import("./pages/Offline"));
 const PWASettings = lazy(() => import("./pages/PWASettings"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const Earnings = lazy(() => import("./pages/Earnings"));
+const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 
 // Configure React Query with aggressive caching
 const queryClient = new QueryClient({
@@ -79,7 +81,9 @@ function AppRoutes() {
             <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
             <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+            <Route path="/admin/payouts" element={<ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
             <Route path="/pwa-settings" element={<PWASettings />} />

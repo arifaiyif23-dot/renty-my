@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search, Heart, MessageSquare, Shield } from "lucide-react";
+import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -201,6 +201,12 @@ const Header = () => {
                             {t('nav.wishlist')}
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/earnings" className="flex items-center cursor-pointer">
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            My Earnings
+                          </Link>
+                        </DropdownMenuItem>
                         {isAdmin && (
                           <>
                             <DropdownMenuSeparator />
@@ -208,6 +214,18 @@ const Header = () => {
                               <Link to="/admin/verifications" className="flex items-center cursor-pointer">
                                 <Shield className="h-4 w-4 mr-2" />
                                 Admin: Verifications
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/settings" className="flex items-center cursor-pointer">
+                                <Settings className="h-4 w-4 mr-2" />
+                                Admin: Settings
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/payouts" className="flex items-center cursor-pointer">
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                Admin: Payouts
                               </Link>
                             </DropdownMenuItem>
                           </>
