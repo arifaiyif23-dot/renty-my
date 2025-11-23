@@ -63,6 +63,33 @@ serve(async (req) => {
       
       console.log('Payment successful:', paymentId);
       
+      // Trigger n8n workflow for receipt generation
+      const n8nWebhookUrl = Deno.env.get('N8N_RECEIPT_WEBHOOK_URL');
+      if (n8nWebhookUrl) {
+        try {
+          const response = await fetch(n8nWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              paymentId,
+              rentalId: payment.rental_id,
+              renterId: payment.rental.renter_id,
+              ownerId: payment.rental.owner_id,
+              amount: payment.total_amount,
+              transactionId
+            })
+          });
+          
+          if (response.ok) {
+            console.log('n8n receipt workflow triggered successfully');
+          } else {
+            console.error('Failed to trigger n8n workflow:', await response.text());
+          }
+        } catch (error) {
+          console.error('Error triggering n8n workflow:', error);
+        }
+      }
+      
     } else if (status === '3') {
       // Payment failed
       await supabase
