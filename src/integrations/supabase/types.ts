@@ -1775,6 +1775,50 @@ export type Database = {
           },
         ]
       }
+      workflow_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          payment_id: string | null
+          response_data: Json | null
+          status: string
+          trigger_data: Json
+          updated_at: string
+          workflow_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payment_id?: string | null
+          response_data?: Json | null
+          status: string
+          trigger_data: Json
+          updated_at?: string
+          workflow_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payment_id?: string | null
+          response_data?: Json | null
+          status?: string
+          trigger_data?: Json
+          updated_at?: string
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_logs_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       profiles_public: {
