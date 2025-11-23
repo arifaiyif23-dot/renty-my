@@ -24,6 +24,8 @@ import { format } from 'date-fns';
 interface Payout {
   id: string;
   rental_id: string;
+  rental_amount: number;
+  platform_fee: number;
   payout_amount: number;
   status: string;
   bank_name: string | null;
@@ -362,7 +364,12 @@ export default function Earnings() {
                   <div key={payout.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="font-semibold">RM {parseFloat(payout.payout_amount.toString()).toFixed(2)}</span>
+                        <div>
+                          <div className="font-semibold">RM {parseFloat(payout.payout_amount.toString()).toFixed(2)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Rental: RM {parseFloat(payout.rental_amount.toString()).toFixed(2)} - Fee: RM {parseFloat(payout.platform_fee.toString()).toFixed(2)}
+                          </div>
+                        </div>
                         {getStatusBadge(payout.status)}
                       </div>
                       <div className="text-sm text-muted-foreground space-y-1">

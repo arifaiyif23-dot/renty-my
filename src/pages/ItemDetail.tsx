@@ -153,22 +153,9 @@ export default function ItemDetail() {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       const rentalPrice = days * (item?.price_per_day || 0);
 
-      const { data: feeSetting } = await supabase
-        .from('platform_settings')
-        .select('value')
-        .eq('key', 'platform_fee_percentage')
-        .single();
-      
-      const feePercentage = parseFloat(String(feeSetting?.value || '10'));
-      const platformFee = (rentalPrice * feePercentage) / 100;
-      const totalAmount = rentalPrice + platformFee;
-
       const confirmed = window.confirm(
         `Payment Breakdown:\n\n` +
-        `Rental Amount: RM ${rentalPrice.toFixed(2)}\n` +
-        `Platform Fee (${feePercentage}%): RM ${platformFee.toFixed(2)}\n` +
-        `──────────────────\n` +
-        `Total: RM ${totalAmount.toFixed(2)}\n\n` +
+        `Rental Amount: RM ${rentalPrice.toFixed(2)}\n\n` +
         `Proceed to payment?`
       );
 
@@ -398,7 +385,7 @@ export default function ItemDetail() {
                         <span>RM {calculatePrice()}</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Payment to be arranged directly with owner
+                        Platform fee (10%) will be deducted from owner's payout
                       </p>
                     </div>
                   </>

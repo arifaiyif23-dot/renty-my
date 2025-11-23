@@ -28,7 +28,7 @@ serve(async (req) => {
     
     const feePercentage = parseFloat(feeSetting?.value || '10');
     const platformFee = (totalPrice * feePercentage) / 100;
-    const totalAmount = totalPrice + platformFee;
+    const totalAmount = totalPrice; // Renter pays rental amount only, platform fee deducted from owner's payout
     
     console.log('Creating payment:', { totalPrice, platformFee, totalAmount, feePercentage });
     
