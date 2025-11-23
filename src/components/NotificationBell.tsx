@@ -69,8 +69,10 @@ export const NotificationBell = () => {
       return;
     }
 
-    setNotifications(data || []);
-    setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+    // Filter out legacy payment_received notifications
+    const filteredData = (data || []).filter(n => n.type !== 'payment_received');
+    setNotifications(filteredData as any);
+    setUnreadCount(filteredData.filter(n => !n.is_read).length || 0);
   };
 
   const markAsRead = async (notificationId: string) => {

@@ -29,14 +29,9 @@ import { PinchToZoom } from '@/components/PinchToZoom';
 import ItemCard from '@/components/ItemCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import SEO from '@/components/SEO';
-import { PaymentErrorBoundary } from '@/components/PaymentErrorBoundary';
 import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { SaveItemButton } from '@/components/SaveItemButton';
 import { SocialProof } from '@/components/SocialProof';
-import { PromoCodeRedemption } from '@/components/PromoCodeRedemption';
-import { InsurancePlans } from '@/components/InsurancePlans';
-import { DeliveryScheduler, DeliveryDetails } from '@/components/DeliveryScheduler';
-import { PlatformFeeInfo } from '@/components/PlatformFeeInfo';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -49,9 +44,6 @@ export default function ItemDetail() {
   const [isBooking, setIsBooking] = useState(false);
   const [similarItems, setSimilarItems] = useState<any[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
-  const [promoDiscount, setPromoDiscount] = useState<{ type: string; amount: number; code: string; id: string }>({ type: '', amount: 0, code: '', id: '' });
-  const [insurancePlan, setInsurancePlan] = useState<{ type: string; coverage: number; price: number }>({ type: 'basic', coverage: 5000, price: 0 });
-  const [deliveryDetails, setDeliveryDetails] = useState<DeliveryDetails>({ method: 'self_pickup', fee: 0 });
 
   useEffect(() => {
     if (id) {
@@ -128,19 +120,13 @@ export default function ItemDetail() {
   };
 
   const handleBooking = async () => {
-    console.log('🚀 Booking started');
-    
     if (!user) {
-      console.log('❌ No user logged in');
       toast.error('Please sign in to book');
       navigate('/auth');
       return;
     }
 
-    console.log('✅ User authenticated:', user.id);
-
-    // Check user verification status - now required for all bookings
-    console.log('🔒 Checking verification status');
+    // Check user verification status - required for all bookings
     const { data: profileData } = await supabase
       .from('profiles')
       .select('is_verified')
@@ -148,7 +134,6 @@ export default function ItemDetail() {
       .single();
     
     if (!profileData?.is_verified) {
-      console.log('❌ User not verified');
       toast.error('Verification required to book items', {
         description: 'Complete ID verification to start renting',
         action: {
@@ -158,33 +143,23 @@ export default function ItemDetail() {
       });
       return;
     }
-    console.log('✅ User verified');
 
     if (!dateRange?.from || !dateRange?.to) {
-      console.log('❌ No dates selected');
       toast.error('Please select dates');
       return;
     }
 
-    console.log('✅ Dates selected:', dateRange.from, dateRange.to);
-
     if (item?.owner_id === user.id) {
-      console.log('❌ User trying to book own item');
       toast.error("You can't book your own item");
       return;
     }
 
-    console.log('✅ Item owner check passed');
-
     setIsBooking(true);
     try {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-      const finalPrice = calculatePrice();
-      console.log('💰 Final price calculated:', finalPrice, 'for', days, 'days');
+      const totalPrice = days * (item?.price_per_day || 0);
 
-      console.log('✅ Creating rental...');
-
-      // Create rental
+      // Create rental directly (no payment processing)
       const { data: rentalData, error: rentalError } = await supabase
         .from('rentals')
         .insert({
@@ -193,15 +168,13 @@ export default function ItemDetail() {
           owner_id: item?.owner_id,
           start_date: dateRange.from.toISOString().split('T')[0],
           end_date: dateRange.to.toISOString().split('T')[0],
-          total_price: finalPrice,
-          payment_status: 'pending',
-          payment_method: 'toyyibpay',
+          total_price: totalPrice,
+          status: 'pending',
         })
         .select()
         .single();
 
       if (rentalError) {
-        console.error('❌ Rental creation error:', rentalError);
         // Handle verification error from database
         if (rentalError.message?.includes('violates row-level security policy') || 
             rentalError.message?.includes('is_verified')) {
@@ -217,59 +190,11 @@ export default function ItemDetail() {
         throw rentalError;
       }
 
-      console.log('✅ Rental created:', rentalData.id);
-
-      // Save insurance details
-      if (insurancePlan.type) {
-        await supabase.from('rental_insurance').insert({
-          rental_id: rentalData.id,
-          plan_type: insurancePlan.type,
-          coverage_amount: insurancePlan.coverage,
-          premium_cost: insurancePlan.price * days,
-        });
-      }
-
-      // Save delivery details
-      if (deliveryDetails.method) {
-        await supabase.from('rental_delivery').insert({
-          rental_id: rentalData.id,
-          delivery_method: deliveryDetails.method,
-          delivery_provider: deliveryDetails.provider,
-          delivery_fee: deliveryDetails.fee,
-          pickup_address: deliveryDetails.pickupAddress,
-          pickup_scheduled_at: deliveryDetails.pickupTime,
-          return_scheduled_at: deliveryDetails.returnTime,
-          delivery_instructions: deliveryDetails.instructions,
-        });
-      }
-
-      // Track promo code usage
-      if (promoDiscount.id) {
-        await supabase.from('user_promo_usage').insert({
-          user_id: user.id,
-          promo_code_id: promoDiscount.id,
-        });
-      }
-
-      console.log('💳 Creating payment...');
-
-      // Create payment and get ToyyibPay URL
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-rental-payment', {
-        body: { rentalId: rentalData.id }
+      toast.success('Booking request sent! Owner will review shortly.', {
+        description: 'Arrange payment directly with the owner'
       });
-
-      if (paymentError) {
-        console.error('❌ Payment creation error:', paymentError);
-        throw new Error('Failed to create payment. Please try again.');
-      }
-
-      console.log('✅ Payment URL created, redirecting to payment gateway...');
-      toast.success('Redirecting to payment gateway...');
-
-      // Redirect to ToyyibPay
-      window.location.href = paymentData.paymentUrl;
+      navigate('/dashboard');
     } catch (error: any) {
-      console.error('💥 Booking failed:', error);
       toast.error(error.message || 'Failed to create booking');
       console.error(error);
     } finally {
@@ -280,78 +205,18 @@ export default function ItemDetail() {
   const calculatePrice = () => {
     if (!dateRange?.from || !dateRange?.to || !item) return 0;
     const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-    
-    // Base rental price
-    let baseRental = days * item.price_per_day;
-    
-    // Add insurance
-    const insuranceCost = insurancePlan.price * days;
-    
-    // Add delivery
-    const deliveryCost = deliveryDetails.fee;
-    
-    // Subtotal before platform fee and discounts
-    let subtotal = baseRental + insuranceCost + deliveryCost;
-    
-    // Apply promo discount to subtotal (before platform fee)
-    if (promoDiscount.amount > 0) {
-      if (promoDiscount.type === 'percentage') {
-        subtotal = subtotal - (subtotal * promoDiscount.amount) / 100;
-      } else {
-        subtotal = subtotal - promoDiscount.amount;
-      }
-    }
-    
-    // Add 10% platform fee (charged to renter)
-    const platformFee = subtotal * 0.10;
-    const total = subtotal + platformFee;
-    
-    return Math.max(0, total);
-  };
-
-  const calculateBreakdown = () => {
-    if (!dateRange?.from || !dateRange?.to || !item) return null;
-    const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-    const basePrice = days * item.price_per_day;
-    const insuranceCost = insurancePlan.price * days;
-    const deliveryCost = deliveryDetails.fee;
-    const subtotal = basePrice + insuranceCost + deliveryCost;
-    
-    let discountAmount = 0;
-    if (promoDiscount.amount > 0) {
-      if (promoDiscount.type === 'percentage') {
-        discountAmount = (subtotal * promoDiscount.amount) / 100;
-      } else {
-        discountAmount = promoDiscount.amount;
-      }
-    }
-    
-    const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
-    const platformFee = subtotalAfterDiscount * 0.10; // 10% service fee
-    const total = subtotalAfterDiscount + platformFee;
-    
-    return {
-      days,
-      basePrice,
-      insuranceCost,
-      deliveryCost,
-      subtotal,
-      discountAmount,
-      subtotalAfterDiscount,
-      platformFee,
-      total,
-    };
+    return days * item.price_per_day;
   };
 
   if (loading) {
-  return (
-    <>
-      <SEO
-        title={item?.title || "Item Detail"}
-        description={item?.description || "View item details and book your rental"}
-        image={item?.images?.[0]?.image_url}
-      />
-      <Header />
+    return (
+      <>
+        <SEO
+          title={item?.title || "Item Detail"}
+          description={item?.description || "View item details and book your rental"}
+          image={item?.images?.[0]?.image_url}
+        />
+        <Header />
         <div className="container mx-auto p-4 pb-mobile-nav">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -399,296 +264,159 @@ export default function ItemDetail() {
         </div>
         
         <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <ImageCarousel images={item.images || []} title={item.title} />
-          
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                  <CardTitle>{item.title}</CardTitle>
-                  <SocialProof itemId={item.id} />
-                </div>
-                <div className="flex gap-2">
-                  {user?.id === item.owner_id && (
-                    <Button variant="outline" size="sm" onClick={() => navigate('/my-listings')}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      {t('common.edit')}
-                    </Button>
-                  )}
-                  <SaveItemButton itemId={item.id} />
-                  <Button variant="ghost" size="icon" onClick={() => {
-                    navigator.share?.({ 
-                      title: item.title, 
-                      url: window.location.href 
-                    }).catch(() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast.success('Link copied to clipboard');
-                    });
-                  }}>
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-              <Badge className="w-fit">{item.category}</Badge>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="details" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="details">Details</TabsTrigger>
-                  <TabsTrigger value="insurance">Insurance</TabsTrigger>
-                  <TabsTrigger value="delivery">Delivery</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="details" className="space-y-4 pt-4">
-                  <p className="text-muted-foreground">{item.description}</p>
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="w-4 h-4" />
-                    <span>{item.location}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-sm">
-                    <User className="w-4 h-4" />
-                    <span>{item.owner?.full_name}</span>
-                {item.owner?.is_verified && (
-                  <Badge variant="secondary" className="gap-1">
-                    <ShieldCheck className="h-3 w-3" />
-                    Verified
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="text-2xl font-bold">
-                RM {item.price_per_day}/day
-                  </div>
-                  
-                  {user?.id === item.owner_id && <ListingAnalytics itemId={item.id} />}
-                </TabsContent>
-
-                <TabsContent value="insurance" className="pt-4">
-                  {dateRange?.from && dateRange?.to && (
-                    <InsurancePlans
-                      selectedPlan={insurancePlan.type}
-                      onPlanSelect={(plan) => setInsurancePlan(plan)}
-                      rentalDays={differenceInDays(dateRange.to, dateRange.from) + 1}
-                    />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="delivery" className="pt-4">
-                  {dateRange?.from && dateRange?.to && (
-                    <DeliveryScheduler
-                      itemLocation={item.location}
-                      onDeliverySelect={(delivery) => setDeliveryDetails(delivery)}
-                    />
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-          
-          {/* Similar Items */}
-          {similarItems.length > 0 && (
-            <Card className="mt-6">
+          <div>
+            <ImageCarousel images={item.images || []} title={item.title} />
+            
+            <Card>
               <CardHeader>
-                <CardTitle>Similar Items</CardTitle>
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <CardTitle>{item.title}</CardTitle>
+                    <SocialProof itemId={item.id} />
+                  </div>
+                  <div className="flex gap-2">
+                    {user?.id === item.owner_id && (
+                      <Button variant="outline" size="sm" onClick={() => navigate('/my-listings')}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        {t('common.edit')}
+                      </Button>
+                    )}
+                    <SaveItemButton itemId={item.id} />
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      navigator.share?.({ 
+                        title: item.title, 
+                        url: window.location.href 
+                      }).catch(() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success('Link copied to clipboard');
+                      });
+                    }}>
+                      <Share2 className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                <Badge className="w-fit">{item.category}</Badge>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="w-full">
-                  <div className="flex gap-4 pb-4">
-                    {similarItems.map((similar) => (
-                      <div key={similar.id} className="min-w-[250px]">
-                        <ItemCard
-                          id={similar.id}
-                          title={similar.title}
-                          image={similar.images?.[0]?.image_url || ''}
-                          pricePerDay={similar.price_per_day}
-                          category={similar.category}
-                          rating={0}
-                          reviewCount={0}
-                          location={similar.location}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                <p className="text-muted-foreground mb-4">{item.description}</p>
+                
+                <div className="flex items-center gap-2 text-sm mb-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{item.location}</span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm mb-4">
+                  <User className="w-4 h-4" />
+                  <span>{item.owner?.full_name}</span>
+                  {item.owner?.is_verified && (
+                    <Badge variant="secondary" className="gap-1">
+                      <ShieldCheck className="h-3 w-3" />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="text-2xl font-bold mb-4">
+                  RM {item.price_per_day}/day
+                </div>
+                
+                {user?.id === item.owner_id && <ListingAnalytics itemId={item.id} />}
               </CardContent>
             </Card>
-          )}
-        </div>
-
-        <PaymentErrorBoundary fallbackMessage="Unable to process booking. Please refresh and try again.">
-          <Card>
-            <CardHeader>
-              <CardTitle>Book this item</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Select Dates</Label>
-                <UnifiedCalendar 
-                  itemId={item.id} 
-                  mode="select" 
-                  dateRange={dateRange} 
-                  setDateRange={setDateRange} 
-                />
-              </div>
-
-              {/* Insurance Plans */}
-              {dateRange?.from && dateRange?.to && (
-                <>
-                  <Separator />
-                  <InsurancePlans
-                    selectedPlan={insurancePlan.type}
-                    onPlanSelect={(plan) => setInsurancePlan(plan)}
-                    rentalDays={differenceInDays(dateRange.to, dateRange.from) + 1}
-                  />
-                </>
-              )}
-
-              {/* Delivery Options */}
-              {dateRange?.from && dateRange?.to && (
-                <>
-                  <Separator />
-                  <DeliveryScheduler
-                    itemLocation={item.location}
-                    onDeliverySelect={(delivery) => setDeliveryDetails(delivery)}
-                  />
-                </>
-              )}
-
-              {/* Promo Code */}
-              {dateRange?.from && dateRange?.to && (
-                <>
-                  <Separator />
-                  <PromoCodeRedemption
-                    onPromoApplied={setPromoDiscount}
-                    originalPrice={calculatePrice()}
-                  />
-                </>
-              )}
-
-              {/* Price Breakdown */}
-              {dateRange?.from && dateRange?.to && (() => {
-                const breakdown = calculateBreakdown();
-                if (!breakdown) return null;
-                
-                return (
-                  <div className="space-y-2 p-4 bg-muted rounded-lg">
-                    <div className="flex justify-between text-sm">
-                      <span>Base rent ({breakdown.days} days):</span>
-                      <span>RM {breakdown.basePrice.toFixed(2)}</span>
-                    </div>
-                    {breakdown.insuranceCost > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Insurance ({insurancePlan.type}):</span>
-                        <span>RM {breakdown.insuranceCost.toFixed(2)}</span>
-                      </div>
+            
+            {/* Similar Items */}
+            {similarItems.length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Similar Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {loadingSimilar ? (
+                      [...Array(4)].map((_, i) => <SkeletonCard key={i} />)
+                    ) : (
+                      similarItems.map((similarItem) => (
+                        <ItemCard 
+                          key={similarItem.id}
+                          id={similarItem.id}
+                          title={similarItem.title}
+                          image={similarItem.images?.[0]?.image_url || ''}
+                          pricePerDay={similarItem.price_per_day}
+                          category={similarItem.category}
+                          rating={4.5}
+                          reviewCount={0}
+                          location={similarItem.location}
+                          owner_id={similarItem.owner_id}
+                        />
+                      ))
                     )}
-                    {breakdown.deliveryCost > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Delivery fee:</span>
-                        <span>RM {breakdown.deliveryCost.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {breakdown.discountAmount > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Discount ({promoDiscount.code}):</span>
-                        <span>-RM {breakdown.discountAmount.toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal:</span>
-                      <span>RM {breakdown.subtotalAfterDiscount.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-blue-600 font-medium items-center">
-                      <div className="flex items-center gap-2">
-                        <span>Platform Service Fee (10%):</span>
-                        <PlatformFeeInfo />
-                      </div>
-                      <span>RM {breakdown.platformFee.toFixed(2)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span>RM {breakdown.total.toFixed(2)}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      💡 The owner receives RM {breakdown.basePrice.toFixed(2)}. 
-                      The platform fee helps maintain our secure payment system.
-                    </p>
                   </div>
-                );
-              })()}
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Reviews Section */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Reviews</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReviewsList itemId={id || ''} />
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Booking Section */}
+          <div className="space-y-4 sticky top-20 self-start">
+            <Card>
+              <CardHeader>
+                <CardTitle>Book this item</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Select Rental Dates</Label>
+                  <UnifiedCalendar
+                    itemId={id || ''}
+                    mode="select"
+                    dateRange={dateRange}
+                    setDateRange={setDateRange}
+                  />
+                </div>
 
-              <Button 
-                className="w-full" 
-                onClick={handleBooking}
-                disabled={!dateRange?.from || !dateRange?.to || isBooking}
-              >
-                {isBooking ? 'Booking...' : 'Request to Book'}
-              </Button>
-            </CardContent>
-          </Card>
-        </PaymentErrorBoundary>
-      </div>
+                {dateRange?.from && dateRange?.to && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>
+                          RM {item.price_per_day} × {differenceInDays(dateRange.to, dateRange.from) + 1} days
+                        </span>
+                        <span>RM {calculatePrice()}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold">
+                        <span>Total</span>
+                        <span>RM {calculatePrice()}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Payment to be arranged directly with owner
+                      </p>
+                    </div>
+                  </>
+                )}
 
-      <Separator className="my-8" />
-
-        <div className="max-w-4xl mx-auto">
-          {user?.id === item.owner_id ? (
-            <Tabs defaultValue="reviews" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              </TabsList>
-              <TabsContent value="reviews" className="space-y-4">
-                <ReviewsList itemId={item.id} />
-              </TabsContent>
-              <TabsContent value="analytics" className="space-y-4">
-                <ListingAnalytics itemId={item.id} />
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold mb-6">Reviews</h2>
-              <ReviewsList itemId={item.id} />
-            </>
-          )}
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleBooking}
+                  disabled={!dateRange?.from || !dateRange?.to || isBooking}
+                >
+                  {isBooking ? 'Processing...' : 'Request Booking'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Similar Items */}
-        {similarItems.length > 0 && (
-          <>
-            <Separator className="my-8" />
-            <div>
-              <h2 className="text-2xl font-bold mb-6">Similar Items</h2>
-              {loadingSimilar ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <SkeletonCard key={i} />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {similarItems.map((similarItem) => (
-                    <ItemCard
-                      key={similarItem.id}
-                      id={similarItem.id}
-                      title={similarItem.title}
-                      image={similarItem.images?.[0]?.image_url || '/placeholder.svg'}
-                      pricePerDay={Number(similarItem.price_per_day)}
-                      category={similarItem.category}
-                      rating={0}
-                      reviewCount={0}
-                      location={similarItem.location}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
       </div>
     </>
   );

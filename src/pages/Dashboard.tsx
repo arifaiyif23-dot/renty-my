@@ -65,49 +65,14 @@ export default function Dashboard() {
       const rental = rentals.find(r => r.id === rentalId);
       if (!rental) throw new Error('Rental not found');
 
-      // Handle completion confirmation
-      if (status === 'completed') {
-        const isOwner = rental.owner_id === user?.id;
-        const confirmField = isOwner ? 'owner_confirmed_completion' : 'renter_confirmed_completion';
-        const otherConfirmed = isOwner ? rental.renter_confirmed_completion : rental.owner_confirmed_completion;
-        const alreadyConfirmed = isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion;
+      // Update rental status
+      const { error } = await supabase
+        .from('rentals')
+        .update({ status })
+        .eq('id', rentalId);
 
-        if (alreadyConfirmed) {
-          toast.info('You have already confirmed completion');
-          return;
-        }
-
-        // Update confirmation status
-        const updateData: any = { [confirmField]: true };
-        
-        // If other party has already confirmed, mark as completed
-        if (otherConfirmed) {
-          updateData.status = 'completed';
-        }
-
-        const { error } = await supabase
-          .from('rentals')
-          .update(updateData)
-          .eq('id', rentalId);
-
-        if (error) throw error;
-
-        // Only process payment if both parties confirmed
-        if (otherConfirmed) {
-          toast.success('✅ Both parties confirmed! Payment will auto-release from escrow in 24 hours.');
-        } else {
-          toast.success('✅ Confirmation recorded. Waiting for the other party to confirm.');
-        }
-      } else {
-        // Regular status update
-        const { error } = await supabase
-          .from('rentals')
-          .update({ status })
-          .eq('id', rentalId);
-
-        if (error) throw error;
-        toast.success(`Rental ${status}`);
-      }
+      if (error) throw error;
+      toast.success(`Rental ${status}`);
       
       fetchRentals();
     } catch (error: any) {

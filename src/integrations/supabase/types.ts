@@ -168,13 +168,6 @@ export type Database = {
             foreignKeyName: "disputes_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "disputes_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -569,13 +562,6 @@ export type Database = {
             foreignKeyName: "messages_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "messages_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -642,492 +628,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      owner_earnings: {
-        Row: {
-          amount: number
-          created_at: string
-          held_until: string | null
-          id: string
-          owner_id: string
-          paid_to_owner_at: string | null
-          payment_id: string
-          payout_id: string | null
-          payout_status: string
-          released_at: string | null
-          rental_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          held_until?: string | null
-          id?: string
-          owner_id: string
-          paid_to_owner_at?: string | null
-          payment_id: string
-          payout_id?: string | null
-          payout_status?: string
-          released_at?: string | null
-          rental_id: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          held_until?: string | null
-          id?: string
-          owner_id?: string
-          paid_to_owner_at?: string | null
-          payment_id?: string
-          payout_id?: string | null
-          payout_status?: string
-          released_at?: string | null
-          rental_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "owner_earnings_payment_id_fkey"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "owner_earnings_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "owner_earnings_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_audit_log: {
-        Row: {
-          action: string
-          amount: number | null
-          created_at: string
-          details: Json | null
-          id: string
-          ip_address: unknown
-          rental_id: string
-          status: string
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          amount?: number | null
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown
-          rental_id: string
-          status: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          amount?: number | null
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown
-          rental_id?: string
-          status?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_audit_log_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "payment_audit_log_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_holds: {
-        Row: {
-          admin_notes: string | null
-          amount: number
-          created_at: string
-          held_at: string
-          held_by: string | null
-          hold_reason: string
-          id: string
-          owner_payout: number
-          platform_fee: number
-          rental_id: string
-          resolved_at: string | null
-          resolved_by: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          admin_notes?: string | null
-          amount: number
-          created_at?: string
-          held_at?: string
-          held_by?: string | null
-          hold_reason: string
-          id?: string
-          owner_payout: number
-          platform_fee?: number
-          rental_id: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          admin_notes?: string | null
-          amount?: number
-          created_at?: string
-          held_at?: string
-          held_by?: string | null
-          hold_reason?: string
-          id?: string
-          owner_payout?: number
-          platform_fee?: number
-          rental_id?: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_holds_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "payment_holds_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_locks: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          locked_at: string
-          locked_by: string
-          rental_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          locked_at?: string
-          locked_by: string
-          rental_id: string
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          locked_at?: string
-          locked_by?: string
-          rental_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_locks_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: true
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "payment_locks_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: true
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_milestones: {
-        Row: {
-          actual_release_date: string | null
-          amount: number
-          created_at: string
-          escrow_account_id: string
-          id: string
-          milestone_number: number
-          notes: string | null
-          percentage: number
-          rental_id: string
-          scheduled_release_date: string
-          status: string
-        }
-        Insert: {
-          actual_release_date?: string | null
-          amount: number
-          created_at?: string
-          escrow_account_id: string
-          id?: string
-          milestone_number: number
-          notes?: string | null
-          percentage: number
-          rental_id: string
-          scheduled_release_date: string
-          status?: string
-        }
-        Update: {
-          actual_release_date?: string | null
-          amount?: number
-          created_at?: string
-          escrow_account_id?: string
-          id?: string
-          milestone_number?: number
-          notes?: string | null
-          percentage?: number
-          rental_id?: string
-          scheduled_release_date?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_milestones_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "payment_milestones_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_processing_log: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          id: string
-          rental_id: string
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          rental_id: string
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          rental_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_processing_log_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "payment_processing_log_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_reviews: {
-        Row: {
-          created_at: string
-          id: string
-          payment_hold_id: string
-          review_notes: string | null
-          review_status: string
-          reviewed_by: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          payment_hold_id: string
-          review_notes?: string | null
-          review_status: string
-          reviewed_by?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          payment_hold_id?: string
-          review_notes?: string | null
-          review_status?: string
-          reviewed_by?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_reviews_payment_hold_id_fkey"
-            columns: ["payment_hold_id"]
-            isOneToOne: false
-            referencedRelation: "payment_holds"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payments: {
-        Row: {
-          amount: number
-          created_at: string
-          id: string
-          owner_earnings: number
-          paid_at: string | null
-          payer_id: string
-          platform_fee: number
-          rental_id: string
-          status: string
-          toyyibpay_bill_code: string | null
-          toyyibpay_transaction_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          id?: string
-          owner_earnings: number
-          paid_at?: string | null
-          payer_id: string
-          platform_fee?: number
-          rental_id: string
-          status?: string
-          toyyibpay_bill_code?: string | null
-          toyyibpay_transaction_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          id?: string
-          owner_earnings?: number
-          paid_at?: string | null
-          payer_id?: string
-          platform_fee?: number
-          rental_id?: string
-          status?: string
-          toyyibpay_bill_code?: string | null
-          toyyibpay_transaction_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payments_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "payments_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payouts: {
-        Row: {
-          account_holder_name: string
-          account_number: string
-          admin_notes: string | null
-          amount: number
-          bank_name: string
-          created_at: string
-          earnings_included: string[]
-          id: string
-          owner_id: string
-          processed_at: string | null
-          processed_by: string | null
-          rejection_reason: string | null
-          status: string
-          toyyibpay_payout_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          account_holder_name: string
-          account_number: string
-          admin_notes?: string | null
-          amount: number
-          bank_name: string
-          created_at?: string
-          earnings_included?: string[]
-          id?: string
-          owner_id: string
-          processed_at?: string | null
-          processed_by?: string | null
-          rejection_reason?: string | null
-          status?: string
-          toyyibpay_payout_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          account_holder_name?: string
-          account_number?: string
-          admin_notes?: string | null
-          amount?: number
-          bank_name?: string
-          created_at?: string
-          earnings_included?: string[]
-          id?: string
-          owner_id?: string
-          processed_at?: string | null
-          processed_by?: string | null
-          rejection_reason?: string | null
-          status?: string
-          toyyibpay_payout_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       platform_settings: {
         Row: {
@@ -1434,13 +934,6 @@ export type Database = {
             foreignKeyName: "rental_delivery_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "rental_delivery_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1472,13 +965,6 @@ export type Database = {
           rental_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "rental_insurance_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
           {
             foreignKeyName: "rental_insurance_rental_id_fkey"
             columns: ["rental_id"]
@@ -1542,13 +1028,6 @@ export type Database = {
             foreignKeyName: "rental_modifications_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "rental_modifications_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1560,16 +1039,11 @@ export type Database = {
           end_date: string
           id: string
           item_id: string
-          owner_confirmed_completion: boolean | null
           owner_id: string
-          payment_method: string | null
-          payment_status: string | null
-          renter_confirmed_completion: boolean | null
           renter_id: string
           start_date: string
           status: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
-          toyyibpay_bill_code: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1577,16 +1051,11 @@ export type Database = {
           end_date: string
           id?: string
           item_id: string
-          owner_confirmed_completion?: boolean | null
           owner_id: string
-          payment_method?: string | null
-          payment_status?: string | null
-          renter_confirmed_completion?: boolean | null
           renter_id: string
           start_date: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
-          toyyibpay_bill_code?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1594,16 +1063,11 @@ export type Database = {
           end_date?: string
           id?: string
           item_id?: string
-          owner_confirmed_completion?: boolean | null
           owner_id?: string
-          payment_method?: string | null
-          payment_status?: string | null
-          renter_confirmed_completion?: boolean | null
           renter_id?: string
           start_date?: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price?: number
-          toyyibpay_bill_code?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1747,13 +1211,6 @@ export type Database = {
             foreignKeyName: "reviews_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "reviews_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
           },
@@ -1857,57 +1314,6 @@ export type Database = {
           verified_only?: boolean | null
         }
         Relationships: []
-      }
-      transactions: {
-        Row: {
-          amount: number
-          created_at: string | null
-          id: string
-          payment_date: string | null
-          rental_id: string
-          status: Database["public"]["Enums"]["transaction_status"] | null
-          toyyibpay_bill_code: string | null
-          toyyibpay_transaction_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          id?: string
-          payment_date?: string | null
-          rental_id: string
-          status?: Database["public"]["Enums"]["transaction_status"] | null
-          toyyibpay_bill_code?: string | null
-          toyyibpay_transaction_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          id?: string
-          payment_date?: string | null
-          rental_id?: string
-          status?: Database["public"]["Enums"]["transaction_status"] | null
-          toyyibpay_bill_code?: string | null
-          toyyibpay_transaction_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rental_fee_breakdown"
-            referencedColumns: ["rental_id"]
-          },
-          {
-            foreignKeyName: "transactions_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_promo_usage: {
         Row: {
@@ -2185,71 +1591,8 @@ export type Database = {
         }
         Relationships: []
       }
-      rental_fee_breakdown: {
-        Row: {
-          base_rental_amount: number | null
-          created_at: string | null
-          owner_id: string | null
-          platform_fee: number | null
-          rental_id: string | null
-          renter_id: string | null
-          total_price: number | null
-        }
-        Insert: {
-          base_rental_amount?: never
-          created_at?: string | null
-          owner_id?: string | null
-          platform_fee?: never
-          rental_id?: string | null
-          renter_id?: string | null
-          total_price?: number | null
-        }
-        Update: {
-          base_rental_amount?: never
-          created_at?: string | null
-          owner_id?: string | null
-          platform_fee?: never
-          rental_id?: string | null
-          renter_id?: string | null
-          total_price?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rentals_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentals_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentals_renter_id_fkey"
-            columns: ["renter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentals_renter_id_fkey"
-            columns: ["renter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles_public"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Functions: {
-      acquire_payment_lock: {
-        Args: { p_rental_id: string; p_user_id: string }
-        Returns: boolean
-      }
       calculate_verification_confidence: {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
@@ -2265,7 +1608,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_expired_payment_locks: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
@@ -2282,10 +1624,6 @@ export type Database = {
       }
       increment_item_views: {
         Args: { item_id_param: string }
-        Returns: undefined
-      }
-      release_payment_lock: {
-        Args: { p_rental_id: string }
         Returns: undefined
       }
     }
