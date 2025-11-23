@@ -629,6 +629,54 @@ export type Database = {
           },
         ]
       }
+      owner_bank_accounts: {
+        Row: {
+          account_holder_name: string
+          account_number: string
+          bank_name: string
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_holder_name: string
+          account_number: string
+          bank_name: string
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_holder_name?: string
+          account_number?: string
+          bank_name?: string
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_bank_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_bank_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           created_at: string | null
@@ -681,6 +729,109 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "payments_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          account_holder_name: string | null
+          account_number: string | null
+          bank_name: string | null
+          created_at: string | null
+          failure_reason: string | null
+          id: string
+          owner_id: string
+          payment_id: string
+          payout_amount: number
+          platform_fee: number
+          processed_at: string | null
+          processed_by: string | null
+          rental_amount: number
+          rental_id: string
+          status: string
+          transaction_reference: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          owner_id: string
+          payment_id: string
+          payout_amount: number
+          platform_fee: number
+          processed_at?: string | null
+          processed_by?: string | null
+          rental_amount: number
+          rental_id: string
+          status?: string
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          owner_id?: string
+          payment_id?: string
+          payout_amount?: number
+          platform_fee?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          rental_amount?: number
+          rental_id?: string
+          status?: string
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: true
             referencedRelation: "rentals"
