@@ -66,27 +66,77 @@ serve(async (req) => {
       // Trigger n8n workflow for receipt generation
       const n8nWebhookUrl = Deno.env.get('N8N_RECEIPT_WEBHOOK_URL');
       if (n8nWebhookUrl) {
+        const webhookPayload = {
+          paymentId,
+          rentalId: payment.rental_id,
+          renterId: payment.rental.renter_id,
+          ownerId: payment.rental.owner_id,
+          amount: payment.total_amount,
+          transactionId
+        };
+        
+        // Create initial log entry
+        const { data: logEntry } = await supabase
+          .from('workflow_logs')
+          .insert({
+            workflow_name: 'payment-receipt-generation',
+            payment_id: paymentId,
+            trigger_data: webhookPayload,
+            status: 'pending'
+          })
+          .select()
+          .single();
+        
         try {
           const response = await fetch(n8nWebhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              paymentId,
-              rentalId: payment.rental_id,
-              renterId: payment.rental.renter_id,
-              ownerId: payment.rental.owner_id,
-              amount: payment.total_amount,
-              transactionId
-            })
+            body: JSON.stringify(webhookPayload)
           });
+          
+          const responseText = await response.text();
           
           if (response.ok) {
             console.log('n8n receipt workflow triggered successfully');
+            
+            // Update log to success
+            if (logEntry) {
+              await supabase
+                .from('workflow_logs')
+                .update({
+                  status: 'success',
+                  response_data: { statusCode: response.status, body: responseText }
+                })
+                .eq('id', logEntry.id);
+            }
           } else {
-            console.error('Failed to trigger n8n workflow:', await response.text());
+            console.error('Failed to trigger n8n workflow:', responseText);
+            
+            // Update log to failed
+            if (logEntry) {
+              await supabase
+                .from('workflow_logs')
+                .update({
+                  status: 'failed',
+                  error_message: `HTTP ${response.status}: ${responseText}`,
+                  response_data: { statusCode: response.status, body: responseText }
+                })
+                .eq('id', logEntry.id);
+            }
           }
         } catch (error) {
           console.error('Error triggering n8n workflow:', error);
+          
+          // Update log to failed
+          if (logEntry) {
+            await supabase
+              .from('workflow_logs')
+              .update({
+                status: 'failed',
+                error_message: error instanceof Error ? error.message : String(error)
+              })
+              .eq('id', logEntry.id);
+          }
         }
       }
       
