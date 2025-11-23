@@ -95,7 +95,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
       
       toast({
         title: "Upload failed",
-        description: error.message,
+        description: "We couldn't upload that photo. Please check your connection and try again.",
         variant: "destructive",
       });
       return null;
