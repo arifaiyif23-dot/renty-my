@@ -115,14 +115,35 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
   const updateMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
-      const { error } = await supabase
+      // Update item basic info
+      const { error: itemError } = await supabase
         .from('items')
         .update({
           ...values,
           category: values.category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'other',
         })
         .eq('id', listing.id);
-      if (error) throw error;
+      if (itemError) throw itemError;
+
+      // Update images: delete old ones and insert new ones with correct order
+      const { error: deleteError } = await supabase
+        .from('item_images')
+        .delete()
+        .eq('item_id', listing.id);
+      if (deleteError) throw deleteError;
+
+      // Insert updated images with correct order
+      const imageInserts = images.map((img, index) => ({
+        item_id: listing.id,
+        image_url: img.url,
+        is_primary: img.isPrimary,
+        display_order: index,
+      }));
+
+      const { error: imageError } = await supabase
+        .from('item_images')
+        .insert(imageInserts);
+      if (imageError) throw imageError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-listings'] });
@@ -359,12 +380,12 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
                 <ImageUpload
                   onImagesChange={(urls) => {
-                    const newImages = urls.map((url, idx) => ({
+                    const newImages = urls.map((url) => ({
                       id: crypto.randomUUID(),
                       url,
-                      isPrimary: idx === 0,
+                      isPrimary: false,
                     }));
-                    setImages(newImages);
+                    setImages((prev) => [...prev, ...newImages]);
                   }}
                   maxImages={10}
                 />
