@@ -210,12 +210,6 @@ const Header = () => {
                                 Admin: Verifications
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link to="/admin/payments" className="flex items-center cursor-pointer">
-                                <Shield className="h-4 w-4 mr-2" />
-                                Admin: Payments
-                              </Link>
-                            </DropdownMenuItem>
                           </>
                         )}
                         <DropdownMenuSeparator />

@@ -1,8 +1,7 @@
 export type AppRole = 'admin' | 'moderator' | 'user';
 export type RentalStatus = 'pending' | 'approved' | 'active' | 'completed' | 'cancelled' | 'rejected';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'other';
-export type TransactionStatus = 'pending' | 'completed' | 'refunded' | 'failed';
-export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
+export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'review_received' | 'message_received';
 
 export interface Profile {
   id: string;
@@ -59,28 +58,11 @@ export interface Rental {
   end_date: string;
   total_price: number;
   status: RentalStatus;
-  payment_status: string;
-  payment_method?: string;
-  toyyibpay_bill_code?: string;
-  owner_confirmed_completion?: boolean;
-  renter_confirmed_completion?: boolean;
   created_at: string;
   updated_at: string;
   item?: Item;
   renter?: Profile;
   owner?: Profile;
-}
-
-export interface Transaction {
-  id: string;
-  rental_id: string;
-  amount: number;
-  status: TransactionStatus;
-  toyyibpay_bill_code?: string;
-  toyyibpay_transaction_id?: string;
-  payment_date?: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface Review {

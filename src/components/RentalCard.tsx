@@ -105,16 +105,10 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
           confirmText: 'Mark Active',
         };
       case 'complete':
-        const alreadyConfirmed = isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion;
-        const otherConfirmed = isOwner ? rental.renter_confirmed_completion : rental.owner_confirmed_completion;
         return {
           title: 'Complete Rental',
-          description: alreadyConfirmed 
-            ? 'You have already confirmed completion. Waiting for the other party.'
-            : otherConfirmed 
-              ? 'The other party has confirmed. Once you confirm, payment will be processed.'
-              : 'Confirm rental completion? Both parties must confirm before payment is processed.',
-          confirmText: alreadyConfirmed ? 'Already Confirmed' : 'Confirm Completion',
+          description: 'Confirm rental completion? The rental will be marked as completed.',
+          confirmText: 'Confirm Completion',
         };
       default:
         return { title: '', description: '', confirmText: '' };
@@ -164,23 +158,6 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               </div>
             </div>
 
-            {/* Escrow Status */}
-            {rental.payment_status === 'escrowed' && (
-              <div className="flex items-center gap-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded-md text-sm">
-                <Lock className="h-4 w-4 text-amber-600" />
-                <div className="flex-1">
-                  <p className="font-medium text-amber-800 dark:text-amber-400">
-                    Payment Secured in Escrow
-                  </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-500">
-                    {isOwner 
-                      ? `RM ${(rental.total_price / 1.10).toFixed(2)} protected until completion`
-                      : `RM ${rental.total_price.toFixed(2)} (incl. fee) secured`}
-                  </p>
-                </div>
-              </div>
-            )}
-
             <div className="text-sm pt-2 border-t">
               <p className="text-muted-foreground">{isOwner ? 'Renter' : 'Owner'}</p>
               <p className="font-medium">{isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
@@ -224,12 +201,9 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <Button 
                   className="w-full h-12"
                   onClick={() => setConfirmDialog({ open: true, action: 'complete' })}
-                  disabled={isUpdating || (isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion)}
+                  disabled={isUpdating}
                 >
-                  {isOwner 
-                    ? (rental.owner_confirmed_completion ? '✓ Waiting for Renter' : 'Complete Rental')
-                    : (rental.renter_confirmed_completion ? '✓ Waiting for Owner' : 'Complete Rental')
-                  }
+                  Complete Rental
                 </Button>
               )}
 
@@ -279,23 +253,6 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Escrow Status - Desktop */}
-            {rental.payment_status === 'escrowed' && (
-              <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-md mb-3">
-                <Lock className="h-5 w-5 text-amber-600 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-amber-800 dark:text-amber-400 text-sm">
-                    Payment Secured in Escrow
-                  </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-500 mt-0.5">
-                    {isOwner 
-                      ? `RM ${(rental.total_price / 1.10).toFixed(2)} (full rental price) will release 24h after both parties confirm completion`
-                      : `Your RM ${rental.total_price.toFixed(2)} payment (including platform fee) is protected until rental completion`}
-                  </p>
-                </div>
-              </div>
-            )}
-
             <div className="text-sm space-y-1">
               <p><strong>Dates:</strong> {format(new Date(rental.start_date), 'MMM d, yyyy')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}</p>
               <p><strong>Total:</strong> RM {rental.total_price}</p>
@@ -336,12 +293,9 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <Button 
                 size="sm" 
                 onClick={() => setConfirmDialog({ open: true, action: 'complete' })}
-                disabled={isUpdating || (isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion)}
+                disabled={isUpdating}
               >
-                {isOwner 
-                  ? (rental.owner_confirmed_completion ? '✓ Waiting for Renter' : 'Complete Rental')
-                  : (rental.renter_confirmed_completion ? '✓ Waiting for Owner' : 'Complete Rental')
-                }
+                Complete Rental
               </Button>
             )}
 
@@ -392,7 +346,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             </Button>
             <Button 
               onClick={handleConfirmAction} 
-              disabled={isUpdating || (confirmDialog.action === 'complete' && (isOwner ? rental.owner_confirmed_completion : rental.renter_confirmed_completion))}
+              disabled={isUpdating}
             >
               {isUpdating ? 'Processing...' : dialogContent.confirmText}
             </Button>
