@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -81,13 +81,20 @@ interface ListingEditDialogProps {
 export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDialogProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [images, setImages] = useState<Array<{ id: string; url: string; isPrimary: boolean }>>(
-    listing?.item_images?.map((img: any, idx: number) => ({
-      id: img.id,
-      url: img.image_url,
-      isPrimary: img.is_primary || idx === 0,
-    })) || []
-  );
+  const [images, setImages] = useState<Array<{ id: string; url: string; isPrimary: boolean }>>([]);
+
+  // Reset images when listing changes or dialog opens
+  useEffect(() => {
+    if (listing?.item_images) {
+      setImages(
+        listing.item_images.map((img: any, idx: number) => ({
+          id: img.id,
+          url: img.image_url,
+          isPrimary: img.is_primary || idx === 0,
+        }))
+      );
+    }
+  }, [listing?.id, open]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
