@@ -126,7 +126,6 @@ export default function ItemDetail() {
       return;
     }
 
-    // Check user verification status - required for all bookings
     const { data: profileData } = await supabase
       .from('profiles')
       .select('is_verified')
@@ -134,13 +133,8 @@ export default function ItemDetail() {
       .single();
     
     if (!profileData?.is_verified) {
-      toast.error('Verification required to book items', {
-        description: 'Complete ID verification to start renting',
-        action: {
-          label: 'Verify Now',
-          onClick: () => navigate('/verification')
-        }
-      });
+      toast.error('Verification required to book items');
+      navigate('/verification');
       return;
     }
 
@@ -157,45 +151,50 @@ export default function ItemDetail() {
     setIsBooking(true);
     try {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-      const totalPrice = days * (item?.price_per_day || 0);
+      const rentalPrice = days * (item?.price_per_day || 0);
 
-      // Create rental directly (no payment processing)
-      const { data: rentalData, error: rentalError } = await supabase
-        .from('rentals')
-        .insert({
-          item_id: item?.id,
-          renter_id: user.id,
-          owner_id: item?.owner_id,
-          start_date: dateRange.from.toISOString().split('T')[0],
-          end_date: dateRange.to.toISOString().split('T')[0],
-          total_price: totalPrice,
-          status: 'pending',
-        })
-        .select()
+      const { data: feeSetting } = await supabase
+        .from('platform_settings')
+        .select('value')
+        .eq('key', 'platform_fee_percentage')
         .single();
+      
+      const feePercentage = parseFloat(String(feeSetting?.value || '10'));
+      const platformFee = (rentalPrice * feePercentage) / 100;
+      const totalAmount = rentalPrice + platformFee;
 
-      if (rentalError) {
-        // Handle verification error from database
-        if (rentalError.message?.includes('violates row-level security policy') || 
-            rentalError.message?.includes('is_verified')) {
-          toast.error('Verification required to book items', {
-            description: 'Complete ID verification to start renting',
-            action: {
-              label: 'Verify Now',
-              onClick: () => navigate('/verification')
-            }
-          });
-          return;
-        }
-        throw rentalError;
+      const confirmed = window.confirm(
+        `Payment Breakdown:\n\n` +
+        `Rental Amount: RM ${rentalPrice.toFixed(2)}\n` +
+        `Platform Fee (${feePercentage}%): RM ${platformFee.toFixed(2)}\n` +
+        `──────────────────\n` +
+        `Total: RM ${totalAmount.toFixed(2)}\n\n` +
+        `Proceed to payment?`
+      );
+
+      if (!confirmed) {
+        setIsBooking(false);
+        return;
       }
 
-      toast.success('Booking request sent! Owner will review shortly.', {
-        description: 'Arrange payment directly with the owner'
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          itemId: item.id,
+          startDate: dateRange.from.toISOString().split('T')[0],
+          endDate: dateRange.to.toISOString().split('T')[0],
+          renterId: user.id,
+          ownerId: item.owner_id,
+          totalPrice: rentalPrice
+        }
       });
-      navigate('/dashboard');
+
+      if (error) throw error;
+
+      toast.success('Redirecting to payment...');
+      window.location.href = data.paymentUrl;
+
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create booking');
+      toast.error(error.message || 'Failed to create payment');
       console.error(error);
     } finally {
       setIsBooking(false);

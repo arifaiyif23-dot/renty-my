@@ -145,30 +145,45 @@ export default function AdminSettings() {
           </div>
 
           <div className="space-y-6">
-            {/* Platform Fee Rate */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
-                  Platform Commission
+                  Platform Fee Settings
                 </CardTitle>
                 <CardDescription>
-                  Percentage charged on rental transactions
+                  Adjust the transaction fee charged on each rental payment
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Platform Fee Rate: {(getCurrentValue('platform_fee_rate') * 100).toFixed(1)}%</Label>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label>Platform Fee Percentage</Label>
+                    <span className="text-2xl font-bold text-primary">
+                      {getCurrentValue('platform_fee_percentage')}%
+                    </span>
+                  </div>
+                  
                   <Slider
-                    value={[getCurrentValue('platform_fee_rate') * 100]}
-                    onValueChange={([value]) => handleChange('platform_fee_rate', (value / 100).toFixed(3))}
+                    value={[parseFloat(getCurrentValue('platform_fee_percentage').toString())]}
+                    onValueChange={(value) => handleChange('platform_fee_percentage', value[0].toString())}
                     min={0}
                     max={30}
-                    step={0.1}
-                    className="mt-2"
+                    step={0.5}
+                    className="w-full"
                   />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Example: RM100 rental = RM{(100 * getCurrentValue('platform_fee_rate')).toFixed(2)} platform fee
+                  
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p className="font-medium">Example Calculation:</p>
+                    <p>If rental price is RM 100:</p>
+                    <p>• Platform Fee ({getCurrentValue('platform_fee_percentage')}%): RM {(100 * parseFloat(getCurrentValue('platform_fee_percentage').toString()) / 100).toFixed(2)}</p>
+                    <p className="font-semibold">• Total charged to renter: RM {(100 + (100 * parseFloat(getCurrentValue('platform_fee_percentage').toString()) / 100)).toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    ⚠️ Changes apply to new rentals only. Existing payments use the fee percentage at time of booking.
                   </p>
                 </div>
               </CardContent>
