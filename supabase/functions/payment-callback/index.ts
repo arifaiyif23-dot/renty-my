@@ -32,17 +32,28 @@ serve(async (req) => {
     
     console.log('ToyyibPay callback:', { billCode, status, transactionId, paymentId });
     
-    // SECURITY: Verify signature (uncomment when ToyyibPay adds signature support)
-    // const secretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
-    // if (!verifyToyyibPaySignature(url.searchParams, secretKey)) {
-    //   console.error('Invalid ToyyibPay signature');
-    //   return new Response('Unauthorized', { status: 401 });
-    // }
-    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+    
+    // SECURITY: Verify signature
+    const secretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
+    const signature = url.searchParams.get('signature');
+    
+    if (signature && !verifyToyyibPaySignature(url.searchParams, secretKey)) {
+      console.error('Invalid ToyyibPay signature');
+      
+      // Log security incident
+      await supabase.from('payment_flow_logs').insert({
+        payment_id: paymentId,
+        stage: 'callback_received',
+        status: 'error',
+        details: { error: 'Invalid signature', billCode, transactionId }
+      });
+      
+      return new Response('Unauthorized', { status: 401 });
+    }
     
     const { data: payment } = await supabase
       .from('payments')
@@ -50,13 +61,31 @@ serve(async (req) => {
       .eq('id', paymentId)
       .single();
     
+    // Log callback received
+    await supabase.from('payment_flow_logs').insert({
+      payment_id: paymentId,
+      stage: 'callback_received',
+      status: 'info',
+      details: { billCode, status, transactionId }
+    });
+    
     if (!payment) {
       console.error('Payment not found:', paymentId);
+      
+      await supabase.from('payment_flow_logs').insert({
+        payment_id: paymentId,
+        stage: 'callback_received',
+        status: 'error',
+        details: { error: 'Payment not found', paymentId }
+      });
+      
       return new Response('Payment not found', { status: 404 });
     }
     
     if (status === '1') {
       // Payment successful
+      console.log('Processing successful payment:', paymentId);
+      
       await supabase
         .from('payments')
         .update({
@@ -67,6 +96,15 @@ serve(async (req) => {
           paid_at: new Date().toISOString()
         })
         .eq('id', paymentId);
+      
+      // Log payment verification
+      await supabase.from('payment_flow_logs').insert({
+        payment_id: paymentId,
+        rental_id: payment.rental_id,
+        stage: 'payment_verified',
+        status: 'success',
+        details: { transactionId, billCode, amount: payment.total_amount }
+      });
       
       await supabase
         .from('rentals')
@@ -172,6 +210,8 @@ serve(async (req) => {
       
     } else if (status === '3') {
       // Payment failed
+      console.log('Processing failed payment:', paymentId);
+      
       await supabase
         .from('payments')
         .update({ status: 'failed' })
@@ -181,6 +221,15 @@ serve(async (req) => {
         .from('rentals')
         .update({ status: 'cancelled' })
         .eq('id', payment.rental_id);
+      
+      // Log payment failure
+      await supabase.from('payment_flow_logs').insert({
+        payment_id: paymentId,
+        rental_id: payment.rental_id,
+        stage: 'payment_failed',
+        status: 'error',
+        details: { billCode, transactionId, reason: 'Payment failed by user or gateway' }
+      });
       
       console.log('Payment failed:', paymentId);
     }

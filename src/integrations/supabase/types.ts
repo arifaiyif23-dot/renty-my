@@ -704,6 +704,51 @@ export type Database = {
           },
         ]
       }
+      payment_flow_logs: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          payment_id: string | null
+          rental_id: string | null
+          stage: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          payment_id?: string | null
+          rental_id?: string | null
+          stage: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          payment_id?: string | null
+          rental_id?: string | null
+          stage?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_flow_logs_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_flow_logs_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           created_at: string | null
