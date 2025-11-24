@@ -617,16 +617,41 @@ export default function AdminVerification() {
                       onClick={async () => {
                         setSelectedVerification(verification);
                         try {
-                          // Generate signed URLs and open in new tabs
-                          const frontUrl = await getSignedUrl(verification.document_front_url);
+                          // Extract path and generate signed URLs
+                          const extractPath = (url: string) => {
+                            const parts = url.split('/storage/v1/object/');
+                            if (parts.length < 2) {
+                              const publicParts = url.split('/storage/v1/object/public/');
+                              if (publicParts.length >= 2) {
+                                return publicParts[1].split('/').slice(1).join('/');
+                              }
+                            } else {
+                              return parts[1].split('/').slice(1).join('/').replace('public/', '');
+                            }
+                            return url.split('verification-documents/').pop() || url;
+                          };
+                          
+                          const frontPath = extractPath(verification.document_front_url);
+                          const frontUrl = await getSignedUrl(frontPath);
+                          
+                          // Log access
+                          await supabase.from('sensitive_data_access_log').insert({
+                            user_id: verification.user_id,
+                            resource_type: 'verification_document',
+                            resource_id: verification.document_front_url,
+                            access_type: 'admin_view'
+                          });
+                          
                           window.open(frontUrl, '_blank');
                           
                           if (verification.document_back_url) {
-                            const backUrl = await getSignedUrl(verification.document_back_url);
+                            const backPath = extractPath(verification.document_back_url);
+                            const backUrl = await getSignedUrl(backPath);
                             window.open(backUrl, '_blank');
                           }
                           
-                          const selfieUrl = await getSignedUrl(verification.selfie_url);
+                          const selfiePath = extractPath(verification.selfie_url);
+                          const selfieUrl = await getSignedUrl(selfiePath);
                           window.open(selfieUrl, '_blank');
                         } catch (error) {
                           toast.error("Failed to load documents");
