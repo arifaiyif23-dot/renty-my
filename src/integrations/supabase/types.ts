@@ -178,6 +178,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "disputes_filed_against_fkey"
+            columns: ["filed_against"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "disputes_filed_by_fkey"
             columns: ["filed_by"]
             isOneToOne: false
@@ -189,6 +196,13 @@ export type Database = {
             columns: ["filed_by"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_filed_by_fkey"
+            columns: ["filed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
           {
@@ -210,6 +224,13 @@ export type Database = {
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -322,6 +343,8 @@ export type Database = {
           ai_damage_assessment: Json | null
           ai_market_price_estimate: number | null
           ai_seo_keywords: string[] | null
+          approximate_latitude: number | null
+          approximate_longitude: number | null
           auto_approve_bookings: boolean | null
           booking_count: number | null
           cancellation_policy: string | null
@@ -343,6 +366,7 @@ export type Database = {
           minimum_rental_days: number | null
           owner_id: string
           price_per_day: number
+          show_precise_location: boolean | null
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -355,6 +379,8 @@ export type Database = {
           ai_damage_assessment?: Json | null
           ai_market_price_estimate?: number | null
           ai_seo_keywords?: string[] | null
+          approximate_latitude?: number | null
+          approximate_longitude?: number | null
           auto_approve_bookings?: boolean | null
           booking_count?: number | null
           cancellation_policy?: string | null
@@ -376,6 +402,7 @@ export type Database = {
           minimum_rental_days?: number | null
           owner_id: string
           price_per_day: number
+          show_precise_location?: boolean | null
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -388,6 +415,8 @@ export type Database = {
           ai_damage_assessment?: Json | null
           ai_market_price_estimate?: number | null
           ai_seo_keywords?: string[] | null
+          approximate_latitude?: number | null
+          approximate_longitude?: number | null
           auto_approve_bookings?: boolean | null
           booking_count?: number | null
           cancellation_policy?: string | null
@@ -409,6 +438,7 @@ export type Database = {
           minimum_rental_days?: number | null
           owner_id?: string
           price_per_day?: number
+          show_precise_location?: boolean | null
           tags?: string[] | null
           title?: string
           updated_at?: string | null
@@ -427,6 +457,13 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -522,6 +559,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "listing_edit_history_edited_by_fkey"
+            columns: ["edited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "listing_edit_history_item_id_fkey"
             columns: ["item_id"]
             isOneToOne: false
@@ -537,6 +581,7 @@ export type Database = {
           content: string
           created_at: string | null
           delivered_at: string | null
+          encrypted_content: string | null
           id: string
           is_read: boolean | null
           read_at: string | null
@@ -550,6 +595,7 @@ export type Database = {
           content: string
           created_at?: string | null
           delivered_at?: string | null
+          encrypted_content?: string | null
           id?: string
           is_read?: boolean | null
           read_at?: string | null
@@ -563,6 +609,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           delivered_at?: string | null
+          encrypted_content?: string | null
           id?: string
           is_read?: boolean | null
           read_at?: string | null
@@ -586,6 +633,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
@@ -604,6 +658,13 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -654,6 +715,13 @@ export type Database = {
             referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       owner_bank_accounts: {
@@ -662,6 +730,7 @@ export type Database = {
           account_number: string
           bank_name: string
           created_at: string | null
+          encrypted_account_number: string | null
           id: string
           is_verified: boolean | null
           updated_at: string | null
@@ -672,6 +741,7 @@ export type Database = {
           account_number: string
           bank_name: string
           created_at?: string | null
+          encrypted_account_number?: string | null
           id?: string
           is_verified?: boolean | null
           updated_at?: string | null
@@ -682,6 +752,7 @@ export type Database = {
           account_number?: string
           bank_name?: string
           created_at?: string | null
+          encrypted_account_number?: string | null
           id?: string
           is_verified?: boolean | null
           updated_at?: string | null
@@ -700,6 +771,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_bank_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -891,6 +969,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payouts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payouts_payment_id_fkey"
             columns: ["payment_id"]
             isOneToOne: false
@@ -909,6 +994,13 @@ export type Database = {
             columns: ["processed_by"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
           {
@@ -952,6 +1044,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approximate_location: string | null
           avatar_url: string | null
           created_at: string | null
           full_name: string
@@ -961,9 +1054,11 @@ export type Database = {
           location: string | null
           longitude: number | null
           phone: string | null
+          show_precise_location: boolean | null
           updated_at: string | null
         }
         Insert: {
+          approximate_location?: string | null
           avatar_url?: string | null
           created_at?: string | null
           full_name: string
@@ -973,9 +1068,11 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           phone?: string | null
+          show_precise_location?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          approximate_location?: string | null
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string
@@ -985,6 +1082,7 @@ export type Database = {
           location?: string | null
           longitude?: number | null
           phone?: string | null
+          show_precise_location?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1384,6 +1482,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "rentals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "rentals_renter_id_fkey"
             columns: ["renter_id"]
             isOneToOne: false
@@ -1395,6 +1500,13 @@ export type Database = {
             columns: ["renter_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_renter_id_fkey"
+            columns: ["renter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1520,6 +1632,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reviews_reviewer_id_fkey"
             columns: ["reviewer_id"]
             isOneToOne: false
@@ -1531,6 +1650,13 @@ export type Database = {
             columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1756,6 +1882,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "verification_audit_log_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "verification_audit_log_verification_id_fkey"
             columns: ["verification_id"]
             isOneToOne: false
@@ -1774,6 +1907,7 @@ export type Database = {
           date_of_birth: string | null
           document_back_analyzed: boolean | null
           document_back_url: string | null
+          document_expires_at: string | null
           document_front_url: string
           document_quality_score: number | null
           document_type: Database["public"]["Enums"]["document_type"]
@@ -1781,6 +1915,7 @@ export type Database = {
           fraud_risk_score: number | null
           full_name_on_document: string
           ic_number: string | null
+          ic_number_hash: string | null
           id: string
           liveness_score: number | null
           liveness_video_frames: string[] | null
@@ -1804,6 +1939,7 @@ export type Database = {
           date_of_birth?: string | null
           document_back_analyzed?: boolean | null
           document_back_url?: string | null
+          document_expires_at?: string | null
           document_front_url: string
           document_quality_score?: number | null
           document_type: Database["public"]["Enums"]["document_type"]
@@ -1811,6 +1947,7 @@ export type Database = {
           fraud_risk_score?: number | null
           full_name_on_document: string
           ic_number?: string | null
+          ic_number_hash?: string | null
           id?: string
           liveness_score?: number | null
           liveness_video_frames?: string[] | null
@@ -1834,6 +1971,7 @@ export type Database = {
           date_of_birth?: string | null
           document_back_analyzed?: boolean | null
           document_back_url?: string | null
+          document_expires_at?: string | null
           document_front_url?: string
           document_quality_score?: number | null
           document_type?: Database["public"]["Enums"]["document_type"]
@@ -1841,6 +1979,7 @@ export type Database = {
           fraud_risk_score?: number | null
           full_name_on_document?: string
           ic_number?: string | null
+          ic_number_hash?: string | null
           id?: string
           liveness_score?: number | null
           liveness_video_frames?: string[] | null
@@ -1871,6 +2010,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "verification_requests_verified_by_fkey"
             columns: ["verified_by"]
             isOneToOne: false
@@ -1882,6 +2028,13 @@ export type Database = {
             columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_requests_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1956,8 +2109,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles_public_safe: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          is_verified: boolean | null
+          location: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          location?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          location?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      approximate_coordinate: { Args: { coord: number }; Returns: number }
       calculate_verification_confidence: {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
@@ -1973,8 +2154,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_rate_limit_enhanced: {
+        Args: {
+          p_action: string
+          p_ip_address: unknown
+          p_max_attempts: number
+          p_user_id: string
+          p_window_minutes: number
+        }
+        Returns: boolean
+      }
       cleanup_expired_payments: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string; key?: string }
+        Returns: string
+      }
+      encrypt_sensitive_data: {
+        Args: { data: string; key?: string }
+        Returns: string
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }
@@ -1988,10 +2187,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_ic_number: { Args: { ic: string }; Returns: string }
       increment_item_views: {
         Args: { item_id_param: string }
         Returns: undefined
       }
+      log_sensitive_access: {
+        Args: {
+          p_access_type: string
+          p_resource_id: string
+          p_resource_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      mask_account_number: { Args: { account_number: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

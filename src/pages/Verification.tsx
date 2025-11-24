@@ -70,7 +70,8 @@ export default function Verification() {
 
     if (uploadError) throw uploadError;
 
-    return `verification-documents/${filePath}`;
+    // Return only the path, not the full URL (will use signed URLs for access)
+    return filePath;
   };
 
   const handleVideoCapture = (videoBlob: Blob, frames: Blob[]) => {
@@ -134,6 +135,13 @@ export default function Verification() {
         frameUrls = uploadResults.slice(resultIndex);
       }
 
+      // Hash IC number if available (MyKad only)
+      let icNumberHash = null;
+      if (documentType === "mykad") {
+        // Note: IC number would be extracted by admin or AI, we just store the hash
+        // For now, we'll let the admin/AI system handle this
+      }
+
       // Create verification request for manual admin review
       toast.info("Submitting documents for admin review...");
       
@@ -147,6 +155,7 @@ export default function Verification() {
           selfie_url: selfieUrl,
           video_liveness_url: videoUrl,
           liveness_video_frames: frameUrls.length > 0 ? frameUrls : null,
+          ic_number_hash: icNumberHash,
           status: 'pending',
           full_name_on_document: 'Pending Review'
         })

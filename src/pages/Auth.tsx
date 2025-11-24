@@ -12,6 +12,7 @@ import { Eye, EyeOff, Gift, Home } from 'lucide-react';
 import logo from "@/assets/renty-logo.png";
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
+import { checkRateLimit } from '@/utils/securityHelpers';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Invalid email address').toLowerCase(),
@@ -62,6 +63,13 @@ export default function Auth() {
       toast.error(error.message);
       return;
     }
+
+    // Check rate limit: max 5 login attempts per 15 minutes
+    const withinLimit = await checkRateLimit('login', 5, 15);
+    if (!withinLimit) {
+      toast.error('Too many login attempts. Please try again in 15 minutes.');
+      return;
+    }
     
     setIsLoading(true);
     try {
@@ -90,6 +98,13 @@ export default function Auth() {
     if (!result.success) {
       const error = result.error.errors[0];
       toast.error(error.message);
+      return;
+    }
+
+    // Check rate limit: max 3 signup attempts per hour
+    const withinLimit = await checkRateLimit('signup', 3, 60);
+    if (!withinLimit) {
+      toast.error('Too many signup attempts. Please try again later.');
       return;
     }
     
