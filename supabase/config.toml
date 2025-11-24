@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.cleanup-expired-payments]
 verify_jwt = false
+
+[functions.process-rental-transitions]
+verify_jwt = false

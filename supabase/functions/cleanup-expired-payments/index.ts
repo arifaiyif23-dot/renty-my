@@ -91,6 +91,14 @@ serve(async (req) => {
     
     console.log(`Successfully cleaned up ${expiredPayments.length} expired payments`);
     
+    // Log execution
+    await supabase.from('cron_job_logs').insert({
+      job_name: 'cleanup-expired-payments',
+      status: 'success',
+      records_processed: expiredPayments.length,
+      executed_at: new Date().toISOString()
+    });
+    
     return new Response(
       JSON.stringify({
         success: true,
@@ -103,6 +111,24 @@ serve(async (req) => {
     
   } catch (error: any) {
     console.error('Payment cleanup error:', error);
+    
+    // Log error
+    try {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      
+      await supabase.from('cron_job_logs').insert({
+        job_name: 'cleanup-expired-payments',
+        status: 'error',
+        error_message: error.message,
+        executed_at: new Date().toISOString()
+      });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
