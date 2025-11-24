@@ -1,5 +1,8 @@
 project_id = "rxwmzfaghsdouepbfrnr"
 
+[functions.send-email-notification]
+verify_jwt = false
+
 [functions.generate-signed-url]
 verify_jwt = true
 
