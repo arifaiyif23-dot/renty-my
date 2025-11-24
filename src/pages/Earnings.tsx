@@ -99,6 +99,16 @@ export default function Earnings() {
         .eq('user_id', user?.id)
         .single();
 
+      // Mask account number for display
+      if (bankData) {
+        const { data: masked } = await supabase.rpc('mask_account_number', {
+          account_number: bankData.account_number
+        });
+        if (masked) {
+          bankData.account_number = masked;
+        }
+      }
+
       if (bankError && bankError.code !== 'PGRST116') throw bankError;
       setBankAccount(bankData);
 
