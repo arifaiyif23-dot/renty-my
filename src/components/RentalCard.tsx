@@ -6,8 +6,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ReviewForm } from "@/components/ReviewForm";
 import { RentalModificationDialog } from "@/components/RentalModificationDialog";
 import { PayNowButton } from "@/components/PayNowButton";
+import { HandoverDialog } from "@/components/HandoverDialog";
+import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { format } from "date-fns";
-import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock, Key, Camera, AlertTriangle } from "lucide-react";
 import { Rental } from "@/types";
 import { toast } from "sonner";
 
@@ -29,6 +31,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
     open: boolean;
     type: 'extension' | 'early_return' | null;
   }>({ open: false, type: null });
+  const [handoverDialog, setHandoverDialog] = useState(false);
+  const [returnDialog, setReturnDialog] = useState(false);
 
   const canReview = rental.status === 'completed';
   const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
@@ -44,6 +48,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
         return 'bg-green-500/20 text-green-800 dark:text-green-400 border-green-500/30';
       case 'completed':
         return 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border-blue-500/30';
+      case 'disputed':
+        return 'bg-orange-500/20 text-orange-800 dark:text-orange-400 border-orange-500/30';
       case 'rejected':
       case 'cancelled':
         return 'bg-red-500/20 text-red-800 dark:text-red-400 border-red-500/30';
@@ -62,6 +68,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
       case 'active':
       case 'completed':
         return <CheckCircle className="h-3 w-3" />;
+      case 'disputed':
+        return <AlertTriangle className="h-3 w-3" />;
       case 'rejected':
       case 'cancelled':
         return <XCircle className="h-3 w-3" />;
@@ -170,9 +178,42 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 pt-2">
-              {/* NEW: Pay Now button for approved rentals (Renter side) */}
+              {/* Renter: Pickup code for approved/paid rentals */}
+              {!isOwner && (rental.status === 'approved' || rental.status === 'paid') && rental.pickup_code && (
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-1">Give this code to the Owner:</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Key className="h-5 w-5 text-primary" />
+                    <span className="text-3xl font-mono font-bold tracking-wider">{rental.pickup_code}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Renter: Pay Now button for approved rentals */}
               {!isOwner && rental.status === 'approved' && (
                 <PayNowButton rental={rental} onPaymentCreated={onReviewSuccess} />
+              )}
+
+              {/* Owner: Start Handover for paid rentals */}
+              {isOwner && rental.status === 'paid' && (
+                <Button 
+                  className="w-full h-12"
+                  onClick={() => setHandoverDialog(true)}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Start Handover
+                </Button>
+              )}
+
+              {/* Owner: Process Return for active rentals */}
+              {isOwner && rental.status === 'active' && (
+                <Button 
+                  className="w-full h-12"
+                  onClick={() => setReturnDialog(true)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Process Return
+                </Button>
               )}
 
               {/* Owner actions for pending_approval */}
@@ -216,14 +257,33 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   </p>
                 </div>
               )}
-              
-              {rental.status === 'active' && (
+
+              {/* Disputed status */}
+              {rental.status === 'disputed' && (
+                <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                  <p className="text-sm font-medium text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    {isOwner ? 'Dispute Raised' : 'Dispute Raised by Owner'}
+                  </p>
+                  {rental.dispute_reason && (
+                    <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
+                      Reason: {rental.dispute_reason}
+                    </p>
+                  )}
+                  <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
+                    Payment frozen pending admin review
+                  </p>
+                </div>
+              )}
+
+              {/* View handover/return photos */}
+              {rental.status === 'active' && rental.handover_photos && rental.handover_photos.length > 0 && (
                 <Button 
-                  className="w-full h-12"
-                  onClick={() => setConfirmDialog({ open: true, action: 'complete' })}
-                  disabled={isUpdating}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(rental.handover_photos![0], '_blank')}
                 >
-                  Complete Rental
+                  View Handover Photos ({rental.handover_photos.length})
                 </Button>
               )}
 
@@ -402,6 +462,22 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
           onSuccess={onReviewSuccess}
         />
       )}
+
+      {/* Handover Dialog */}
+      <HandoverDialog
+        rental={rental}
+        open={handoverDialog}
+        onOpenChange={setHandoverDialog}
+        onSuccess={onReviewSuccess}
+      />
+
+      {/* Return/Dispute Dialog */}
+      <ReturnDisputeDialog
+        rental={rental}
+        open={returnDialog}
+        onOpenChange={setReturnDialog}
+        onSuccess={onReviewSuccess}
+      />
     </>
   );
 }

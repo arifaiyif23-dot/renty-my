@@ -62,10 +62,21 @@ serve(async (req) => {
 
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
 
-    // Update rental status
+    // Generate 4-digit pickup code if approving
+    let pickupCode = null;
+    if (action === 'approve') {
+      pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+    }
+
+    // Update rental status and pickup code
+    const updateData: any = { status: newStatus };
+    if (pickupCode) {
+      updateData.pickup_code = pickupCode;
+    }
+
     const { error: updateError } = await supabase
       .from('rentals')
-      .update({ status: newStatus })
+      .update(updateData)
       .eq('id', rentalId);
 
     if (updateError) {

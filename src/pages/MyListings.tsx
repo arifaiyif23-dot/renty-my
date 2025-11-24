@@ -12,10 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, Search, Filter, Grid3x3, List, BarChart3, Eye, 
   Edit, Pause, Play, Copy, Trash2, MoreVertical, TrendingUp,
-  Calendar, DollarSign, Star, Heart
+  Calendar, DollarSign, Star, Heart, Inbox
 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import SkeletonCard from '@/components/SkeletonCard';
+import { IncomingRequests } from '@/components/IncomingRequests';
 import { toast } from 'sonner';
 import {
   Select,
@@ -47,6 +48,7 @@ export default function MyListings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');
 
   const { data: items, isLoading, refetch } = useQuery({
     queryKey: ['my-listings', user?.id, statusFilter, sortBy],
@@ -114,6 +116,28 @@ export default function MyListings() {
         totalRevenue,
         totalViews,
       };
+    },
+    enabled: !!user,
+  });
+
+  const { data: incomingRequests } = useQuery({
+    queryKey: ['incoming-requests', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('rentals')
+        .select(`
+          *,
+          item:items(*),
+          renter:profiles!rentals_renter_id_fkey(*)
+        `)
+        .eq('owner_id', user.id)
+        .eq('status', 'pending_approval')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user,
   });
@@ -206,7 +230,21 @@ export default function MyListings() {
       <div className="border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'listings' | 'requests')} className="mt-2">
+                <TabsList>
+                  <TabsTrigger value="listings">My Listings</TabsTrigger>
+                  <TabsTrigger value="requests" className="gap-2">
+                    <Inbox className="h-4 w-4" />
+                    Incoming Requests
+                    {incomingRequests && incomingRequests.length > 0 && (
+                      <Badge variant="destructive" className="ml-1">{incomingRequests.length}</Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
             <Button onClick={() => navigate('/list-item')}>
               <Plus className="h-4 w-4 mr-2" />
               {t('listings.createNew')}
@@ -342,31 +380,32 @@ export default function MyListings() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6">
-        {isLoading ? (
-          <div className={cn(
-            viewMode === 'grid' 
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'space-y-4'
-          )}>
-            {[...Array(6)].map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        ) : !filteredItems || filteredItems.length === 0 ? (
-          <EmptyState
-            icon={List}
-            title={t('listings.noListings')}
-            description={t('listings.noListingsDesc')}
-            actionLabel={t('listings.createNew')}
-            onAction={() => navigate('/list-item')}
-          />
-        ) : (
-          <div className={cn(
-            viewMode === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'space-y-4'
-          )}>
-            {filteredItems.map((item: any) => {
+        {activeTab === 'listings' ? (
+          isLoading ? (
+            <div className={cn(
+              viewMode === 'grid' 
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-4'
+            )}>
+              {[...Array(6)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : !filteredItems || filteredItems.length === 0 ? (
+            <EmptyState
+              icon={List}
+              title={t('listings.noListings')}
+              description={t('listings.noListingsDesc')}
+              actionLabel={t('listings.createNew')}
+              onAction={() => navigate('/list-item')}
+            />
+          ) : (
+            <div className={cn(
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-4'
+            )}>
+              {filteredItems.map((item: any) => {
               const primaryImage = item.item_images?.find((img: any) => img.is_primary);
               const imageUrl = primaryImage?.image_url || item.item_images?.[0]?.image_url;
               const isSelected = selectedItems.includes(item.id);
@@ -466,7 +505,15 @@ export default function MyListings() {
               );
             })}
           </div>
-        )}
+        )
+      ) : (
+        <IncomingRequests 
+          rentals={(incomingRequests || []) as any} 
+          onUpdate={() => {
+            refetch();
+          }} 
+        />
+      )}
       </div>
 
       {/* Edit Dialog */}

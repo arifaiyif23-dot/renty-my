@@ -9,7 +9,7 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
   const config = {
-    pending: {
+    pending_approval: {
       label: 'Pending Approval',
       icon: Clock,
       variant: 'secondary' as const,
@@ -20,6 +20,12 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
       icon: CheckCircle,
       variant: 'default' as const,
       className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+    },
+    paid: {
+      label: 'Paid',
+      icon: CheckCircle,
+      variant: 'default' as const,
+      className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
     },
     active: {
       label: 'Active Rental',
@@ -45,9 +51,15 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
       variant: 'destructive' as const,
       className: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
     },
+    disputed: {
+      label: 'Disputed',
+      icon: AlertCircle,
+      variant: 'destructive' as const,
+      className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+    },
   };
 
-  const { label, icon: Icon, className } = config[status] || config.pending;
+  const { label, icon: Icon, className } = config[status] || config.pending_approval;
   const iconSize = size === 'sm' ? 'h-3 w-3' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
 
   return (
