@@ -1424,36 +1424,57 @@ export type Database = {
       }
       rentals: {
         Row: {
+          actual_start_at: string | null
           created_at: string | null
+          dispute_reason: string | null
+          dispute_status: string | null
           end_date: string
+          handover_photos: string[] | null
           id: string
+          is_disputed: boolean | null
           item_id: string
           owner_id: string
+          pickup_code: string | null
           renter_id: string
+          return_photos: string[] | null
           start_date: string
           status: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
           updated_at: string | null
         }
         Insert: {
+          actual_start_at?: string | null
           created_at?: string | null
+          dispute_reason?: string | null
+          dispute_status?: string | null
           end_date: string
+          handover_photos?: string[] | null
           id?: string
+          is_disputed?: boolean | null
           item_id: string
           owner_id: string
+          pickup_code?: string | null
           renter_id: string
+          return_photos?: string[] | null
           start_date: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
           updated_at?: string | null
         }
         Update: {
+          actual_start_at?: string | null
           created_at?: string | null
+          dispute_reason?: string | null
+          dispute_status?: string | null
           end_date?: string
+          handover_photos?: string[] | null
           id?: string
+          is_disputed?: boolean | null
           item_id?: string
           owner_id?: string
+          pickup_code?: string | null
           renter_id?: string
+          return_photos?: string[] | null
           start_date?: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price?: number
@@ -2229,6 +2250,7 @@ export type Database = {
         | "rejected"
         | "pending_approval"
         | "paid"
+        | "disputed"
       transaction_status: "pending" | "completed" | "refunded" | "failed"
       verification_status:
         | "pending"
@@ -2396,6 +2418,7 @@ export const Constants = {
         "rejected",
         "pending_approval",
         "paid",
+        "disputed",
       ],
       transaction_status: ["pending", "completed", "refunded", "failed"],
       verification_status: [

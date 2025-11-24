@@ -52,7 +52,7 @@ export default function Dashboard() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRentals(data || []);
+      setRentals((data || []) as Rental[]);
     } catch (error: any) {
       toast.error('Failed to load rentals');
       console.error(error);
