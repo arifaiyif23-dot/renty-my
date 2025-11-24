@@ -154,9 +154,10 @@ export default function ItemDetail() {
       const rentalPrice = days * (item?.price_per_day || 0);
 
       const confirmed = window.confirm(
-        `Payment Breakdown:\n\n` +
-        `Rental Amount: RM ${rentalPrice.toFixed(2)}\n\n` +
-        `Proceed to payment?`
+        `Booking Request Summary:\n\n` +
+        `Rental Amount: RM ${rentalPrice.toFixed(2)}\n` +
+        `${days} day(s) rental\n\n` +
+        `Send booking request to owner?`
       );
 
       if (!confirmed) {
@@ -164,7 +165,8 @@ export default function ItemDetail() {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('create-payment', {
+      // NEW FLOW: Only create booking request, no payment yet
+      const { data, error } = await supabase.functions.invoke('request-booking', {
         body: {
           itemId: item.id,
           startDate: dateRange.from.toISOString().split('T')[0],
@@ -177,11 +179,15 @@ export default function ItemDetail() {
 
       if (error) throw error;
 
-      toast.success('Redirecting to payment...');
-      window.location.href = data.paymentUrl;
+      toast.success('Request sent! Waiting for owner approval.', {
+        description: 'You will be notified when the owner responds to your request.'
+      });
+      
+      // Navigate to dashboard to show pending requests
+      navigate('/dashboard');
 
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create payment');
+      toast.error(error.message || 'Failed to send booking request');
       console.error(error);
     } finally {
       setIsBooking(false);

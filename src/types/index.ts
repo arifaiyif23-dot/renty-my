@@ -1,7 +1,7 @@
 export type AppRole = 'admin' | 'moderator' | 'user';
-export type RentalStatus = 'pending' | 'approved' | 'active' | 'completed' | 'cancelled' | 'rejected';
+export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid' | 'pending' | 'active' | 'completed' | 'cancelled';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'other';
-export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'review_received' | 'message_received';
+export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
 
 export interface Profile {
   id: string;

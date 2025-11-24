@@ -2227,6 +2227,8 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "rejected"
+        | "pending_approval"
+        | "paid"
       transaction_status: "pending" | "completed" | "refunded" | "failed"
       verification_status:
         | "pending"
@@ -2392,6 +2394,8 @@ export const Constants = {
         "completed",
         "cancelled",
         "rejected",
+        "pending_approval",
+        "paid",
       ],
       transaction_status: ["pending", "completed", "refunded", "failed"],
       verification_status: [
