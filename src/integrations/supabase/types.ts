@@ -1606,6 +1606,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sensitive_data_access_log: {
+        Row: {
+          access_type: string
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          access_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          access_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          resource_id?: string
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_promo_usage: {
         Row: {
           id: string
