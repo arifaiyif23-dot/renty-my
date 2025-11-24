@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { RentalCard } from '@/components/RentalCard';
+import { IncomingRequests } from '@/components/IncomingRequests';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CountdownTimer } from '@/components/CountdownTimer';
 import { Clock, CheckCircle, XCircle, Calendar as CalendarIcon, GitBranch } from 'lucide-react';
@@ -121,8 +122,8 @@ export default function Dashboard() {
     return <div className="container mx-auto p-4">Loading...</div>;
   }
 
-  const activeCount = filterRentals(['approved', 'active']).length;
-  const pendingCount = filterRentals(['pending']).length;
+  const activeCount = filterRentals(['paid', 'active']).length;
+  const pendingCount = filterRentals(['pending_approval', 'approved']).length;
   const pastCount = filterRentals(['completed', 'cancelled', 'rejected']).length;
 
   return (
@@ -149,6 +150,16 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Incoming Requests for Owners */}
+        {rentals.some(r => r.status === 'pending_approval' && r.owner_id === user?.id) && (
+          <div className="mb-6">
+            <IncomingRequests 
+              rentals={rentals.filter(r => r.owner_id === user?.id)} 
+              onUpdate={fetchRentals} 
+            />
+          </div>
+        )}
       
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="bg-muted/20">
@@ -158,7 +169,7 @@ export default function Dashboard() {
         </TabsList>
         
         <TabsContent value="active" className="space-y-4">
-          {filterRentals(['approved', 'active']).map(rental => (
+          {filterRentals(['paid', 'active']).map(rental => (
             <div key={rental.id} className="relative">
               <div className="absolute left-4 top-4 z-10">
                 <Checkbox
@@ -187,7 +198,7 @@ export default function Dashboard() {
         </TabsContent>
         
         <TabsContent value="pending" className="space-y-4">
-          {filterRentals(['pending']).map(rental => (
+          {filterRentals(['pending_approval', 'approved']).map(rental => (
             <RentalCard 
               key={rental.id} 
               rental={rental}

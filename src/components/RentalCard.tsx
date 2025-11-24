@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ReviewForm } from "@/components/ReviewForm";
 import { RentalModificationDialog } from "@/components/RentalModificationDialog";
+import { PayNowButton } from "@/components/PayNowButton";
 import { format } from "date-fns";
 import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock } from "lucide-react";
 import { Rental } from "@/types";
@@ -34,9 +35,11 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
 
   const getStatusColor = (status: Rental['status']) => {
     switch (status) {
-      case 'pending':
+      case 'pending_approval':
         return 'bg-yellow-500/20 text-yellow-800 dark:text-yellow-400 border-yellow-500/30';
       case 'approved':
+        return 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border-blue-500/30';
+      case 'paid':
       case 'active':
         return 'bg-green-500/20 text-green-800 dark:text-green-400 border-green-500/30';
       case 'completed':
@@ -51,9 +54,11 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
 
   const getStatusIcon = (status: Rental['status']) => {
     switch (status) {
-      case 'pending':
+      case 'pending_approval':
         return <Clock className="h-3 w-3" />;
       case 'approved':
+        return <CheckCircle className="h-3 w-3" />;
+      case 'paid':
       case 'active':
       case 'completed':
         return <CheckCircle className="h-3 w-3" />;
@@ -165,7 +170,13 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 pt-2">
-              {isOwner && rental.status === 'pending' && (
+              {/* NEW: Pay Now button for approved rentals (Renter side) */}
+              {!isOwner && rental.status === 'approved' && (
+                <PayNowButton rental={rental} onPaymentCreated={onReviewSuccess} />
+              )}
+
+              {/* Owner actions for pending_approval */}
+              {isOwner && rental.status === 'pending_approval' && (
                 <>
                   <Button 
                     className="w-full h-12"
@@ -173,7 +184,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                     disabled={isUpdating}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve
+                    Approve Request
                   </Button>
                   <Button 
                     variant="outline"
@@ -182,19 +193,28 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                     disabled={isUpdating}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Decline
+                    Decline Request
                   </Button>
                 </>
               )}
               
-              {isOwner && rental.status === 'approved' && (
-                <Button 
-                  className="w-full h-12"
-                  onClick={() => setConfirmDialog({ open: true, action: 'active' })}
-                  disabled={isUpdating}
-                >
-                  Mark as Active
-                </Button>
+              {/* Status messages for renters */}
+              {!isOwner && rental.status === 'pending_approval' && (
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Waiting for owner approval
+                  </p>
+                </div>
+              )}
+
+              {!isOwner && rental.status === 'rejected' && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
+                    <XCircle className="h-4 w-4" />
+                    Request declined by owner
+                  </p>
+                </div>
               )}
               
               {rental.status === 'active' && (

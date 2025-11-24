@@ -12,12 +12,70 @@ serve(async (req) => {
   }
 
   try {
-    const { itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
+    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+    
+    let rental;
+    
+    // NEW FLOW: Check if rental already exists (for approved rentals)
+    if (rentalId) {
+      console.log('Processing payment for existing approved rental:', rentalId);
+      
+      const { data: existingRental, error: fetchError } = await supabase
+        .from('rentals')
+        .select('*')
+        .eq('id', rentalId)
+        .single();
+      
+      if (fetchError || !existingRental) {
+        throw new Error('Rental not found');
+      }
+      
+      // Verify rental is approved
+      if (existingRental.status !== 'approved') {
+        throw new Error(`Rental must be approved before payment. Current status: ${existingRental.status}`);
+      }
+      
+      rental = existingRental;
+    } else {
+      // OLD FLOW: Create new rental (for backward compatibility, but shouldn't be used)
+      console.log('Creating new rental (legacy flow):', { itemId, renterId, ownerId });
+      
+      const { data: newRental, error: rentalError } = await supabase
+        .from('rentals')
+        .insert({
+          item_id: itemId,
+          renter_id: renterId,
+          owner_id: ownerId,
+          start_date: startDate,
+          end_date: endDate,
+          total_price: totalPrice,
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      if (rentalError) {
+        console.error('Rental creation error:', rentalError);
+        throw rentalError;
+      }
+      
+      rental = newRental;
+      
+      // Log rental creation
+      await supabase.from('payment_flow_logs').insert({
+        rental_id: rental.id,
+        stage: 'rental_created',
+        status: 'success',
+        details: { itemId, renterId, ownerId, startDate, endDate, totalPrice }
+      });
+    }
+    
+    console.log('Creating payment for rental:', rental.id);
     
     // Get current platform fee percentage
     const { data: feeSetting } = await supabase
@@ -27,40 +85,21 @@ serve(async (req) => {
       .single();
     
     const feePercentage = parseFloat(feeSetting?.value || '10');
-    const platformFee = (totalPrice * feePercentage) / 100;
-    const totalAmount = totalPrice; // Renter pays rental amount only, platform fee deducted from owner's payout
+    const platformFee = (rental.total_price * feePercentage) / 100;
+    const totalAmount = rental.total_price; // Renter pays rental amount only, platform fee deducted from owner's payout
     
-    console.log('Creating payment:', { totalPrice, platformFee, totalAmount, feePercentage });
+    console.log('Creating payment:', { totalPrice: rental.total_price, platformFee, totalAmount, feePercentage });
     
-    // Create rental record
-    const { data: rental, error: rentalError } = await supabase
-      .from('rentals')
-      .insert({
-        item_id: itemId,
-        renter_id: renterId,
-        owner_id: ownerId,
-        start_date: startDate,
-        end_date: endDate,
-        total_price: totalPrice,
-        status: 'pending'
-      })
-      .select()
+    // Check if payment already exists for this rental
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id, status')
+      .eq('rental_id', rental.id)
       .single();
     
-    if (rentalError) {
-      console.error('Rental creation error:', rentalError);
-      throw rentalError;
+    if (existingPayment && existingPayment.status !== 'expired') {
+      throw new Error('Payment already exists for this rental');
     }
-    
-    console.log('Rental created:', rental.id);
-    
-    // Log rental creation
-    await supabase.from('payment_flow_logs').insert({
-      rental_id: rental.id,
-      stage: 'rental_created',
-      status: 'success',
-      details: { itemId, renterId, ownerId, startDate, endDate, totalPrice }
-    });
     
     // Create payment record
     const expiresAt = new Date();
@@ -70,7 +109,7 @@ serve(async (req) => {
       .from('payments')
       .insert({
         rental_id: rental.id,
-        rental_amount: totalPrice,
+        rental_amount: rental.total_price,
         platform_fee: platformFee,
         platform_fee_percentage: feePercentage,
         total_amount: totalAmount,

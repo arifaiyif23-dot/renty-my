@@ -1,0 +1,246 @@
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Rental } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Calendar, DollarSign, CheckCircle, XCircle, ShieldCheck, Clock } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+interface IncomingRequestsProps {
+  rentals: Rental[];
+  onUpdate: () => void;
+}
+
+export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ 
+    open: boolean; 
+    rentalId: string | null; 
+    action: 'approve' | 'reject';
+    rental?: Rental;
+  }>({ open: false, rentalId: null, action: 'approve' });
+
+  const handleApproval = async (rentalId: string, action: 'approve' | 'reject') => {
+    setProcessingId(rentalId);
+    try {
+      const { error } = await supabase.functions.invoke('process-rental-approval', {
+        body: { rentalId, action }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Booking ${action === 'approve' ? 'approved' : 'declined'} successfully`, {
+        description: action === 'approve' 
+          ? 'The renter has been notified and can now proceed to payment.'
+          : 'The renter has been notified of your decision.'
+      });
+      
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.message || `Failed to ${action} booking`);
+      console.error(error);
+    } finally {
+      setProcessingId(null);
+      setConfirmDialog({ open: false, rentalId: null, action: 'approve' });
+    }
+  };
+
+  const pendingRequests = rentals.filter(r => r.status === 'pending_approval');
+
+  if (pendingRequests.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Incoming Requests
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-8">
+            No pending booking requests
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Incoming Requests
+            <Badge variant="secondary">{pendingRequests.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {pendingRequests.map((rental) => {
+            const days = differenceInDays(new Date(rental.end_date), new Date(rental.start_date)) + 1;
+            
+            return (
+              <div key={rental.id} className="border rounded-lg p-4 space-y-4">
+                {/* Renter Info with Verification Status */}
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={rental.renter?.avatar_url} />
+                    <AvatarFallback>{rental.renter?.full_name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{rental.renter?.full_name}</p>
+                      {rental.renter?.is_verified && (
+                        <Badge variant="secondary" className="gap-1">
+                          <ShieldCheck className="h-3 w-3 text-green-500" />
+                          ID Verified
+                        </Badge>
+                      )}
+                    </div>
+                    {!rental.renter?.is_verified && (
+                      <Badge variant="destructive" className="mt-1">
+                        Not Verified
+                      </Badge>
+                    )}
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {rental.renter?.location || 'Location not specified'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Item & Booking Details */}
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Item</p>
+                    <p className="font-medium">{rental.item?.title}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Duration</p>
+                    <p className="font-medium">{days} day{days !== 1 ? 's' : ''}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Dates
+                    </p>
+                    <p className="font-medium text-sm">
+                      {format(new Date(rental.start_date), 'MMM dd')} - {format(new Date(rental.end_date), 'MMM dd')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      Amount
+                    </p>
+                    <p className="font-semibold text-lg">RM {rental.total_price}</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground pt-2 border-t">
+                  Requested {format(new Date(rental.created_at), 'MMM dd, yyyy')}
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    onClick={() => setConfirmDialog({ 
+                      open: true, 
+                      rentalId: rental.id, 
+                      action: 'approve',
+                      rental 
+                    })}
+                    disabled={processingId === rental.id}
+                  >
+                    {processingId === rental.id && confirmDialog.action === 'approve' ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Approve
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setConfirmDialog({ 
+                      open: true, 
+                      rentalId: rental.id, 
+                      action: 'reject',
+                      rental 
+                    })}
+                    disabled={processingId === rental.id}
+                  >
+                    {processingId === rental.id && confirmDialog.action === 'reject' ? (
+                      <>
+                        <Clock className="h-4 w-4 mr-2 animate-spin" />
+                        Declining...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Decline
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ open: false, rentalId: null, action: 'approve' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog.action === 'approve' ? 'Approve Booking Request?' : 'Decline Booking Request?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.action === 'approve' ? (
+                <>
+                  By approving, you're confirming that your item is available for rental during the requested dates.
+                  The renter will be notified and can proceed to payment.
+                  <br /><br />
+                  <strong>Item:</strong> {confirmDialog.rental?.item?.title}<br />
+                  <strong>Amount:</strong> RM {confirmDialog.rental?.total_price}
+                </>
+              ) : (
+                <>
+                  The renter will be notified that their booking request has been declined.
+                  This action cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDialog.rentalId && handleApproval(confirmDialog.rentalId, confirmDialog.action)}
+            >
+              {confirmDialog.action === 'approve' ? 'Approve' : 'Decline'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
