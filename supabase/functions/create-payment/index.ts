@@ -47,7 +47,20 @@ serve(async (req) => {
       .select()
       .single();
     
-    if (rentalError) throw rentalError;
+    if (rentalError) {
+      console.error('Rental creation error:', rentalError);
+      throw rentalError;
+    }
+    
+    console.log('Rental created:', rental.id);
+    
+    // Log rental creation
+    await supabase.from('payment_flow_logs').insert({
+      rental_id: rental.id,
+      stage: 'rental_created',
+      status: 'success',
+      details: { itemId, renterId, ownerId, startDate, endDate, totalPrice }
+    });
     
     // Create payment record
     const expiresAt = new Date();
@@ -67,7 +80,29 @@ serve(async (req) => {
       .select()
       .single();
     
-    if (paymentError) throw paymentError;
+    if (paymentError) {
+      console.error('Payment creation error:', paymentError);
+      
+      await supabase.from('payment_flow_logs').insert({
+        rental_id: rental.id,
+        stage: 'payment_created',
+        status: 'error',
+        details: { error: paymentError.message }
+      });
+      
+      throw paymentError;
+    }
+    
+    console.log('Payment created:', payment.id);
+    
+    // Log payment creation
+    await supabase.from('payment_flow_logs').insert({
+      payment_id: payment.id,
+      rental_id: rental.id,
+      stage: 'payment_created',
+      status: 'success',
+      details: { totalAmount, platformFee, expiresAt: expiresAt.toISOString() }
+    });
     
     // Create ToyyibPay bill
     const billAmount = (Math.round(totalAmount * 100) / 100).toFixed(2);
@@ -107,6 +142,16 @@ serve(async (req) => {
     console.log('ToyyibPay response:', billData);
     
     if (!billData[0]?.BillCode) {
+      console.error('ToyyibPay bill creation failed:', billData);
+      
+      await supabase.from('payment_flow_logs').insert({
+        payment_id: payment.id,
+        rental_id: rental.id,
+        stage: 'bill_created',
+        status: 'error',
+        details: { error: 'No BillCode returned', response: billData }
+      });
+      
       throw new Error('Failed to create ToyyibPay bill');
     }
     
@@ -121,6 +166,17 @@ serve(async (req) => {
         toyyibpay_bill_url: billUrl
       })
       .eq('id', payment.id);
+    
+    console.log('ToyyibPay bill created:', billData[0].BillCode);
+    
+    // Log bill creation
+    await supabase.from('payment_flow_logs').insert({
+      payment_id: payment.id,
+      rental_id: rental.id,
+      stage: 'bill_created',
+      status: 'success',
+      details: { billCode: billData[0].BillCode, billUrl, amount: billAmount }
+    });
     
     return new Response(
       JSON.stringify({
