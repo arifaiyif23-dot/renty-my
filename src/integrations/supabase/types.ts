@@ -80,6 +80,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_logs: {
+        Row: {
+          error_message: string | null
+          executed_at: string | null
+          id: string
+          job_name: string
+          records_processed: number | null
+          status: string
+        }
+        Insert: {
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          job_name: string
+          records_processed?: number | null
+          status: string
+        }
+        Update: {
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          job_name?: string
+          records_processed?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           created_at: string
