@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Upload, X, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,16 +20,28 @@ interface UploadProgress {
   status: 'compressing' | 'uploading' | 'complete' | 'error';
 }
 
-export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps) => {
-  const [images, setImages] = useState<string[]>([]);
+export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] }: ImageUploadProps & { initialImages?: string[] }) => {
+  const [images, setImages] = useState<string[]>(initialImages);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [primaryIndex, setPrimaryIndex] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Reset images when initialImages change
+  useEffect(() => {
+    setImages(initialImages);
+  }, [JSON.stringify(initialImages)]);
+
   const uploadImage = async (file: File, progressIndex: number): Promise<string | null> => {
-    if (!user) return null;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to upload images",
+        variant: "destructive",
+      });
+      return null;
+    }
     
     try {
       // Update progress: Compressing
@@ -52,7 +64,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
         return updated;
       });
 
-      const fileName = `${Math.random()}.webp`;
+      const fileName = `${Date.now()}-${Math.random()}.webp`;
       const filePath = `${user.id}/${fileName}`;
 
       // Update progress during upload
@@ -69,7 +81,10 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
           upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('item-images')
@@ -95,7 +110,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5 }: ImageUploadProps)
       
       toast({
         title: "Upload failed",
-        description: "We couldn't upload that photo. Please check your connection and try again.",
+        description: error.message || "We couldn't upload that photo. Please check your connection and try again.",
         variant: "destructive",
       });
       return null;
