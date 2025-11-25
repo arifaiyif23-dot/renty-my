@@ -108,7 +108,7 @@ serve(async (req) => {
       
       await supabase
         .from('rentals')
-        .update({ status: 'approved' })
+        .update({ status: 'paid' })
         .eq('id', payment.rental_id);
       
       // Notifications
