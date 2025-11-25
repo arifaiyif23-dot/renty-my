@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ interface Conversation {
 
 export default function Messages() {
   const { user } = useAuth();
+  const location = useLocation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -39,6 +41,15 @@ export default function Messages() {
   const conversationId = selectedUserId ? `${user?.id}_${selectedUserId}` : '';
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId, user?.id || '');
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // Handle recipient from navigation state
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.recipientId && user) {
+      setSelectedUserId(state.recipientId);
+      setShowThread(true);
+    }
+  }, [location.state, user]);
 
   useEffect(() => {
     if (user) {

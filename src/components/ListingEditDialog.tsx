@@ -372,45 +372,53 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
               </TabsContent>
 
               <TabsContent value="images" className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-4">{t('listingEdit.reorderImages')}</h3>
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={images.map((img) => img.id)} strategy={verticalListSortingStrategy}>
-                      <div className="grid grid-cols-4 gap-4">
-                        {images.map((img) => (
-                          <SortableImage
-                            key={img.id}
-                            id={img.id}
-                            url={img.url}
-                            isPrimary={img.isPrimary}
-                            onSetPrimary={() => {
-                              setImages((prev) => prev.map((i) => ({ ...i, isPrimary: i.id === img.id })));
-                            }}
-                            onRemove={() => {
-                              setImages((prev) => prev.filter((i) => i.id !== img.id));
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-                </div>
+                {images.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-4">{t('listingEdit.reorderImages')}</h3>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                      <SortableContext items={images.map((img) => img.id)} strategy={verticalListSortingStrategy}>
+                        <div className="grid grid-cols-4 gap-4">
+                          {images.map((img) => (
+                            <SortableImage
+                              key={img.id}
+                              id={img.id}
+                              url={img.url}
+                              isPrimary={img.isPrimary}
+                              onSetPrimary={() => {
+                                setImages((prev) => prev.map((i) => ({ ...i, isPrimary: i.id === img.id })));
+                              }}
+                              onRemove={() => {
+                                setImages((prev) => prev.filter((i) => i.id !== img.id));
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                )}
 
-                <ImageUpload
-                  onImagesChange={(urls) => {
-                    setImages((prev) => {
-                      const existingUrls = new Set(prev.map((i) => i.url));
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Add New Images</h3>
+                  <ImageUpload
+                    onImagesChange={(urls) => {
+                      // Get the last uploaded image URLs (the difference between new and previous)
+                      const existingUrls = new Set(images.map((i) => i.url));
                       const addedUrls = urls.filter((url) => !existingUrls.has(url));
-                      const newImages = addedUrls.map((url) => ({
-                        id: crypto.randomUUID(),
-                        url,
-                        isPrimary: false,
-                      }));
-                      return [...prev, ...newImages];
-                    });
-                  }}
-                  maxImages={10}
-                />
+                      
+                      if (addedUrls.length > 0) {
+                        const newImages = addedUrls.map((url) => ({
+                          id: crypto.randomUUID(),
+                          url,
+                          isPrimary: images.length === 0, // First image is primary if no images exist
+                        }));
+                        setImages((prev) => [...prev, ...newImages]);
+                      }
+                    }}
+                    maxImages={10 - images.length}
+                    initialImages={[]}
+                  />
+                </div>
               </TabsContent>
 
               <TabsContent value="availability">

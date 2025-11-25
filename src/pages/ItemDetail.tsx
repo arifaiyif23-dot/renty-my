@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil } from 'lucide-react';
+import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil, MessageCircle } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -192,6 +192,22 @@ export default function ItemDetail() {
     } finally {
       setIsBooking(false);
     }
+  };
+
+  const handleMessageOwner = async () => {
+    if (!user) {
+      toast.error('Please sign in to message');
+      navigate('/auth');
+      return;
+    }
+
+    if (item?.owner_id === user.id) {
+      toast.error("You can't message yourself");
+      return;
+    }
+
+    // Create initial message or just navigate to messages
+    navigate('/messages', { state: { recipientId: item?.owner_id } });
   };
 
   const calculatePrice = () => {
@@ -395,6 +411,18 @@ export default function ItemDetail() {
                       </p>
                     </div>
                   </>
+                )}
+
+                {user?.id !== item.owner_id && (
+                  <Button 
+                    variant="outline"
+                    className="w-full" 
+                    size="lg"
+                    onClick={handleMessageOwner}
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Message Owner
+                  </Button>
                 )}
 
                 <Button 
