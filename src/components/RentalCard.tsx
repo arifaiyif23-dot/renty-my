@@ -339,13 +339,53 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <p><strong>{isOwner ? 'Renter' : 'Owner'}:</strong> {isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
             </div>
             
-            {isOwner && rental.status === 'pending' && (
+            {/* Renter: Pickup code for approved/paid rentals */}
+            {!isOwner && (rental.status === 'approved' || rental.status === 'paid') && rental.pickup_code && (
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">Give this code to the Owner:</p>
+                <div className="flex items-center justify-center gap-2">
+                  <Key className="h-5 w-5 text-primary" />
+                  <span className="text-3xl font-mono font-bold tracking-wider">{rental.pickup_code}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Renter: Pay Now button for approved rentals */}
+            {!isOwner && rental.status === 'approved' && (
+              <PayNowButton rental={rental} onPaymentCreated={onReviewSuccess} />
+            )}
+
+            {/* Owner: Start Handover for paid rentals */}
+            {isOwner && rental.status === 'paid' && (
+              <Button 
+                size="sm"
+                onClick={() => setHandoverDialog(true)}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Start Handover
+              </Button>
+            )}
+
+            {/* Owner: Process Return for active rentals */}
+            {isOwner && rental.status === 'active' && (
+              <Button 
+                size="sm"
+                onClick={() => setReturnDialog(true)}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Process Return
+              </Button>
+            )}
+
+            {/* Owner actions for pending_approval */}
+            {isOwner && rental.status === 'pending_approval' && (
               <div className="flex gap-2">
                 <Button 
                   size="sm" 
                   onClick={() => setConfirmDialog({ open: true, action: 'approve' })}
                   disabled={isUpdating}
                 >
+                  <CheckCircle className="h-4 w-4 mr-2" />
                   Approve
                 </Button>
                 <Button 
@@ -354,31 +394,61 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   onClick={() => setConfirmDialog({ open: true, action: 'reject' })}
                   disabled={isUpdating}
                 >
-                  Reject
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Decline
                 </Button>
               </div>
             )}
             
-            {isOwner && rental.status === 'approved' && (
-              <Button 
-                size="sm" 
-                onClick={() => setConfirmDialog({ open: true, action: 'active' })}
-                disabled={isUpdating}
-              >
-                Mark as Active
-              </Button>
+            {/* Status messages for renters */}
+            {!isOwner && rental.status === 'pending_approval' && (
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <p className="text-sm text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Waiting for owner approval
+                </p>
+              </div>
             )}
-            
-            {rental.status === 'active' && (
+
+            {!isOwner && rental.status === 'rejected' && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Request declined by owner
+                </p>
+              </div>
+            )}
+
+            {/* Disputed status */}
+            {rental.status === 'disputed' && (
+              <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                <p className="text-sm font-medium text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  {isOwner ? 'Dispute Raised' : 'Dispute Raised by Owner'}
+                </p>
+                {rental.dispute_reason && (
+                  <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
+                    Reason: {rental.dispute_reason}
+                  </p>
+                )}
+                <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
+                  Payment frozen pending admin review
+                </p>
+              </div>
+            )}
+
+            {/* View handover/return photos */}
+            {rental.status === 'active' && rental.handover_photos && rental.handover_photos.length > 0 && (
               <Button 
-                size="sm" 
-                onClick={() => setConfirmDialog({ open: true, action: 'complete' })}
-                disabled={isUpdating}
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(rental.handover_photos![0], '_blank')}
               >
-                Complete Rental
+                View Handover Photos ({rental.handover_photos.length})
               </Button>
             )}
 
+            {/* Renter modification options */}
             {!isOwner && rental.status === 'active' && (
               <div className="flex gap-2">
                 <Button 

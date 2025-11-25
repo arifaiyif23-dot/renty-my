@@ -210,7 +210,7 @@ export default function Dashboard() {
         </TabsContent>
         
         <TabsContent value="past" className="space-y-4">
-          {filterRentals(['completed', 'cancelled', 'rejected']).map(rental => (
+          {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
             <RentalCard 
               key={rental.id} 
               rental={rental}
