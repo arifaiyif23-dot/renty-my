@@ -458,13 +458,14 @@ export default function MyListings() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/item/${item.id}`)}>
+                          <DropdownMenuItem onClick={() => navigate(`/items/${item.id}`)}>
                             <Eye className="h-4 w-4 mr-2" />
                             {t('listings.viewListing')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setEditingItem(item)}>
                             <Edit className="h-4 w-4 mr-2" />
                             {t('listings.editListing')}
+                          </DropdownMenuItem>
                           </DropdownMenuItem>
                           {item.listing_status === 'active' ? (
                             <DropdownMenuItem onClick={() => handleStatusChange(item.id, 'paused')}>
