@@ -28,7 +28,7 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-    { icon: Package, label: "My Rentals", path: "/dashboard" },
+    { icon: Package, label: "My Listings", path: "/my-listings" },
     { icon: TrendingUp, label: "My Earnings", path: "/earnings" },
     { icon: MessageCircle, label: "Messages", path: "/messages" },
     { icon: User, label: "Profile", path: "/profile" },

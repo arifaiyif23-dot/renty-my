@@ -28,22 +28,26 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
   const { toast } = useToast();
   const { user } = useAuth();
   const isInitializedRef = useRef(false);
+  const prevInitialImagesRef = useRef<string>('');
 
   // Initialize from initialImages only once on mount
   useEffect(() => {
     if (!isInitializedRef.current && initialImages.length > 0) {
       setImages(initialImages);
+      prevInitialImagesRef.current = JSON.stringify(initialImages);
       isInitializedRef.current = true;
     }
   }, []);
 
-  // Reset when initialImages length changes (truly new set of images)
+  // Update when initialImages actually changes (not just length)
   useEffect(() => {
-    if (initialImages.length > 0 && initialImages.length !== images.length) {
+    const currentStr = JSON.stringify(initialImages);
+    
+    if (currentStr !== prevInitialImagesRef.current && initialImages.length > 0) {
       setImages(initialImages);
-      isInitializedRef.current = true;
+      prevInitialImagesRef.current = currentStr;
     }
-  }, [initialImages.length]);
+  }, [initialImages]);
 
   const uploadImage = async (file: File, progressIndex: number): Promise<string | null> => {
     if (!user) {
