@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Upload, X, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,11 +27,23 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
   const [primaryIndex, setPrimaryIndex] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
+  const isInitializedRef = useRef(false);
 
-  // Reset images when initialImages change
+  // Initialize from initialImages only once on mount
   useEffect(() => {
-    setImages(initialImages);
-  }, [JSON.stringify(initialImages)]);
+    if (!isInitializedRef.current && initialImages.length > 0) {
+      setImages(initialImages);
+      isInitializedRef.current = true;
+    }
+  }, []);
+
+  // Reset when initialImages length changes (truly new set of images)
+  useEffect(() => {
+    if (initialImages.length > 0 && initialImages.length !== images.length) {
+      setImages(initialImages);
+      isInitializedRef.current = true;
+    }
+  }, [initialImages.length]);
 
   const uploadImage = async (file: File, progressIndex: number): Promise<string | null> => {
     if (!user) {

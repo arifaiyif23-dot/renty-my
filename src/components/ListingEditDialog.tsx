@@ -83,19 +83,6 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
   const queryClient = useQueryClient();
   const [images, setImages] = useState<Array<{ id: string; url: string; isPrimary: boolean }>>([]);
 
-  // Reset images when listing changes or dialog opens
-  useEffect(() => {
-    if (listing?.item_images) {
-      setImages(
-        listing.item_images.map((img: any, idx: number) => ({
-          id: img.id,
-          url: img.image_url,
-          isPrimary: img.is_primary || idx === 0,
-        }))
-      );
-    }
-  }, [listing?.id, open]);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -119,6 +106,37 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       tags: listing?.tags || [],
     },
   });
+
+  // Reset form and images when listing changes or dialog opens
+  useEffect(() => {
+    if (listing && open) {
+      form.reset({
+        title: listing.title || '',
+        description: listing.description || '',
+        category: listing.category || '',
+        price_per_day: listing.price_per_day || 0,
+        location: listing.location || '',
+        deposit_amount: listing.deposit_amount || 0,
+        minimum_rental_days: listing.minimum_rental_days || 1,
+        maximum_rental_days: listing.maximum_rental_days || undefined,
+        instant_book_enabled: listing.instant_book_enabled || false,
+        auto_approve_bookings: listing.auto_approve_bookings || false,
+        item_condition: listing.item_condition || 'good',
+        cancellation_policy: listing.cancellation_policy || 'flexible',
+        tags: listing.tags || [],
+      });
+
+      if (listing.item_images) {
+        setImages(
+          listing.item_images.map((img: any, idx: number) => ({
+            id: img.id,
+            url: img.image_url,
+            isPrimary: img.is_primary || idx === 0,
+          }))
+        );
+      }
+    }
+  }, [listing?.id, open, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
@@ -193,13 +211,13 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
         <ScrollArea className="flex-1 px-6">
           <Tabs defaultValue="basic" className="w-full pb-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="basic">{t('listingEdit.basicInfo')}</TabsTrigger>
-            <TabsTrigger value="pricing">{t('listingEdit.pricing')}</TabsTrigger>
-            <TabsTrigger value="images">{t('listingEdit.images')}</TabsTrigger>
-            <TabsTrigger value="availability">{t('listingEdit.availability')}</TabsTrigger>
-            <TabsTrigger value="details">{t('listingEdit.details')}</TabsTrigger>
-            <TabsTrigger value="analytics">{t('listingEdit.analytics')}</TabsTrigger>
+          <TabsList className="flex w-full overflow-x-auto">
+            <TabsTrigger value="basic" className="flex-shrink-0">{t('listingEdit.basicInfo')}</TabsTrigger>
+            <TabsTrigger value="pricing" className="flex-shrink-0">{t('listingEdit.pricing')}</TabsTrigger>
+            <TabsTrigger value="images" className="flex-shrink-0">{t('listingEdit.images')}</TabsTrigger>
+            <TabsTrigger value="availability" className="flex-shrink-0">{t('listingEdit.availability')}</TabsTrigger>
+            <TabsTrigger value="details" className="flex-shrink-0">{t('listingEdit.details')}</TabsTrigger>
+            <TabsTrigger value="analytics" className="flex-shrink-0">{t('listingEdit.analytics')}</TabsTrigger>
           </TabsList>
 
           <Form {...form}>
