@@ -12,7 +12,7 @@ import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CountdownTimer } from '@/components/CountdownTimer';
-import { Clock, CheckCircle, XCircle, Calendar as CalendarIcon, GitBranch } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Calendar as CalendarIcon, GitBranch, PackageSearch } from 'lucide-react';
 import { RentalTimeline } from '@/components/RentalTimeline';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { RentalCalendarView } from '@/components/RentalCalendarView';
@@ -23,9 +23,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import EmptyState from '@/components/EmptyState';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRentals, setSelectedRentals] = useState<Set<string>>(new Set());
@@ -125,6 +128,25 @@ export default function Dashboard() {
   const activeCount = filterRentals(['paid', 'active']).length;
   const pendingCount = filterRentals(['pending_approval', 'approved']).length;
   const pastCount = filterRentals(['completed', 'cancelled', 'rejected']).length;
+
+  // Show empty state if no rentals
+  if (!loading && rentals.length === 0) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 pb-20 md:pb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-6">My Rentals</h1>
+          <EmptyState
+            icon={PackageSearch}
+            title="No Rentals Yet"
+            description="Start by browsing items to rent or list your own items for others to rent"
+            actionLabel="Browse Items"
+            onAction={() => navigate('/search')}
+          />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

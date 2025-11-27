@@ -13,7 +13,7 @@ const MobileBottomNav = () => {
   
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Heart, label: "Saved", path: "/wishlist" },
+    { icon: Search, label: "Browse", path: "/search" },
   ];
 
   const rightNavItems = [

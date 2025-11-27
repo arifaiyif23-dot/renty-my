@@ -172,6 +172,11 @@ export default function Search() {
   // Reset infinite scroll when filters change
   useEffect(() => {
     reset();
+    setInitialLoading(true);
+    fetchItemsPage(1, 12).then(newItems => {
+      // The hook will handle setting items
+      setInitialLoading(false);
+    });
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
   // Pull to refresh
@@ -518,9 +523,18 @@ export default function Search() {
               reviewCount={0}
               location={item.location}
             />
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+        
+        {/* Infinite scroll sentinel */}
+        <div ref={sentinelRef} className="h-10 w-full" />
+        
+        {loading && hasMore && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
       </div>
     </>
   );
