@@ -231,6 +231,20 @@
     "moderate": "Moderate",
     "strict": "Strict"
   },
+  "listingEdit": {
+    "basicInfo": "Basic Info",
+    "pricing": "Pricing",
+    "images": "Images",
+    "availability": "Availability",
+    "details": "Details",
+    "analytics": "Analytics",
+    "titlePlaceholder": "e.g., Canon EOS R5 Camera",
+    "descriptionPlaceholder": "Describe your item in detail...",
+    "pricePerDay": "Price per Day (RM)",
+    "depositAmount": "Deposit Amount (RM)",
+    "minimumRentalDays": "Minimum Rental Days",
+    "maximumRentalDays": "Maximum Rental Days"
+  },
   "profile": {
     "myProfile": "My Profile",
     "editProfile": "Edit Profile",

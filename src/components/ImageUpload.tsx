@@ -160,7 +160,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     // Clear progress after a short delay
     setTimeout(() => setUploadProgress([]), 1000);
 
-    sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
+    if (validUrls.length > 0) {
+      sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
+    }
   };
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
@@ -191,7 +193,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     // Clear progress after a short delay
     setTimeout(() => setUploadProgress([]), 1000);
 
-    sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
+    if (validUrls.length > 0) {
+      sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
+    }
   }, [images, maxImages, onImagesChange, toast]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
