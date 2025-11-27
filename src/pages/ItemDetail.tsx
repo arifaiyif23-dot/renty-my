@@ -47,6 +47,14 @@ export default function ItemDetail() {
 
   useEffect(() => {
     if (id) {
+      // Validate UUID format before fetching
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        setItem(null);
+        setLoading(false);
+        return;
+      }
+      
       fetchItem();
       trackView();
     }
