@@ -38,6 +38,13 @@ export function useInfiniteScroll<T>({
     }
   }, [fetchFunction, page, pageSize, loading, hasMore]);
 
+  // Initial load on mount
+  useEffect(() => {
+    if (items.length === 0 && !loading) {
+      loadMore();
+    }
+  }, []);
+
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {
