@@ -231,6 +231,26 @@
     "moderate": "Sederhana",
     "strict": "Ketat"
   },
+  "listingEdit": {
+    "basicInfo": "Maklumat Asas",
+    "pricing": "Harga",
+    "images": "Gambar",
+    "availability": "Ketersediaan",
+    "details": "Butiran",
+    "analytics": "Analitik",
+    "titlePlaceholder": "cth: Kamera Canon EOS R5",
+    "descriptionPlaceholder": "Terangkan item anda secara terperinci...",
+    "pricePerDay": "Harga sehari (RM)",
+    "depositAmount": "Jumlah Deposit (RM)",
+    "minimumRentalDays": "Hari Minimum Sewaan",
+    "maximumRentalDays": "Hari Maksimum Sewaan",
+    "instantBooking": "Tempahan Segera",
+    "autoApproveBookings": "Lulus Tempahan Automatik",
+    "reorderImages": "Seret untuk susun semula gambar",
+    "itemCondition": "Keadaan Item",
+    "performance": "Prestasi",
+    "saveChanges": "Simpan Perubahan"
+  },
   "profile": {
     "myProfile": "Profil Saya",
     "editProfile": "Edit Profil",

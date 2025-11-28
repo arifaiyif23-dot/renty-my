@@ -238,12 +238,18 @@
     "availability": "Availability",
     "details": "Details",
     "analytics": "Analytics",
-    "titlePlaceholder": "e.g., Canon EOS R5 Camera",
+    "titlePlaceholder": "e.g. Canon EOS R5 Camera",
     "descriptionPlaceholder": "Describe your item in detail...",
-    "pricePerDay": "Price per Day (RM)",
+    "pricePerDay": "Price per day (RM)",
     "depositAmount": "Deposit Amount (RM)",
     "minimumRentalDays": "Minimum Rental Days",
-    "maximumRentalDays": "Maximum Rental Days"
+    "maximumRentalDays": "Maximum Rental Days",
+    "instantBooking": "Enable Instant Booking",
+    "autoApproveBookings": "Auto Approve Bookings",
+    "reorderImages": "Drag to reorder images",
+    "itemCondition": "Item Condition",
+    "performance": "Performance",
+    "saveChanges": "Save Changes"
   },
   "profile": {
     "myProfile": "My Profile",
