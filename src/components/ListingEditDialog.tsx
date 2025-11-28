@@ -363,7 +363,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                     <FormItem className="flex items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">{t('listingEdit.instantBooking')}</FormLabel>
-                        <FormDescription>Allow renters to book instantly without approval</FormDescription>
+                        <FormDescription>{t('listingEdit.instantBookingDesc')}</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -379,7 +379,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                     <FormItem className="flex items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">{t('listingEdit.autoApproveBookings')}</FormLabel>
-                        <FormDescription>Automatically approve all booking requests</FormDescription>
+                        <FormDescription>{t('listingEdit.autoApproveDesc')}</FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -417,7 +417,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                 )}
 
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Add New Images</h3>
+                  <h3 className="text-sm font-medium mb-2">{t('listingEdit.addNewImages')}</h3>
                   <ImageUpload
                     onImagesChange={(urls) => {
                       // Get the last uploaded image URLs (the difference between new and previous)

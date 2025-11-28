@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface RentalCardProps {
 }
 
 export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }: RentalCardProps) {
+  const { t } = useTranslation();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     action: 'approve' | 'reject' | 'active' | 'complete' | null;
@@ -101,27 +103,27 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
     switch (confirmDialog.action) {
       case 'approve':
         return {
-          title: 'Approve Rental Request',
-          description: `Are you sure you want to approve this rental for ${rental.item?.title}?`,
-          confirmText: 'Approve',
+          title: t('rental.approveTitle'),
+          description: t('rental.approveDescription', { title: rental.item?.title }),
+          confirmText: t('rental.approve'),
         };
       case 'reject':
         return {
-          title: 'Reject Rental Request',
-          description: `Are you sure you want to reject this rental request for ${rental.item?.title}?`,
-          confirmText: 'Reject',
+          title: t('rental.rejectTitle'),
+          description: t('rental.rejectDescription', { title: rental.item?.title }),
+          confirmText: t('rental.decline'),
         };
       case 'active':
         return {
-          title: 'Activate Rental',
-          description: `Mark this rental as active? The renter has picked up ${rental.item?.title}.`,
-          confirmText: 'Mark Active',
+          title: t('rental.activeTitle'),
+          description: t('rental.activeDescription', { title: rental.item?.title }),
+          confirmText: t('rental.markActive'),
         };
       case 'complete':
         return {
-          title: 'Complete Rental',
-          description: 'Confirm rental completion? The rental will be marked as completed.',
-          confirmText: 'Confirm Completion',
+          title: t('rental.completeTitle'),
+          description: t('rental.completeDescription'),
+          confirmText: t('rental.confirmCompletion'),
         };
       default:
         return { title: '', description: '', confirmText: '' };
@@ -156,7 +158,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  Dates
+                  {t('rental.dates')}
                 </p>
                 <p className="font-medium text-xs leading-tight">
                   {format(new Date(rental.start_date), 'MMM d')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}
@@ -165,14 +167,14 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <div className="space-y-1">
                 <p className="text-muted-foreground flex items-center gap-1">
                   <DollarSign className="h-3 w-3" />
-                  Total
+                  {t('rental.total')}
                 </p>
                 <p className="font-semibold text-lg">RM {rental.total_price}</p>
               </div>
             </div>
 
             <div className="text-sm pt-2 border-t">
-              <p className="text-muted-foreground">{isOwner ? 'Renter' : 'Owner'}</p>
+              <p className="text-muted-foreground">{isOwner ? t('rental.renter') : t('rental.owner')}</p>
               <p className="font-medium">{isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
             </div>
             
@@ -181,7 +183,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               {/* Renter: Pickup code for approved/paid rentals */}
               {!isOwner && (rental.status === 'approved' || rental.status === 'paid') && rental.pickup_code && (
                 <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Give this code to the Owner:</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('rental.pickupCode')}</p>
                   <div className="flex items-center justify-center gap-2">
                     <Key className="h-5 w-5 text-primary" />
                     <span className="text-3xl font-mono font-bold tracking-wider">{rental.pickup_code}</span>
@@ -201,7 +203,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   onClick={() => setHandoverDialog(true)}
                 >
                   <Camera className="h-4 w-4 mr-2" />
-                  Start Handover
+                  {t('rental.startHandover')}
                 </Button>
               )}
 
@@ -212,7 +214,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   onClick={() => setReturnDialog(true)}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Process Return
+                  {t('rental.processReturn')}
                 </Button>
               )}
 
@@ -225,7 +227,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                     disabled={isUpdating}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Approve Request
+                    {t('rental.approveRequest')}
                   </Button>
                   <Button 
                     variant="outline"
@@ -234,7 +236,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                     disabled={isUpdating}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Decline Request
+                    {t('rental.declineRequest')}
                   </Button>
                 </>
               )}
@@ -244,7 +246,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                   <p className="text-sm text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Waiting for owner approval
+                    {t('rental.waitingApproval')}
                   </p>
                 </div>
               )}
@@ -253,7 +255,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
                     <XCircle className="h-4 w-4" />
-                    Request declined by owner
+                    {t('rental.requestDeclined')}
                   </p>
                 </div>
               )}
@@ -263,15 +265,15 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
                   <p className="text-sm font-medium text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-1">
                     <AlertTriangle className="h-4 w-4" />
-                    {isOwner ? 'Dispute Raised' : 'Dispute Raised by Owner'}
+                    {isOwner ? t('rental.disputeRaised') : t('rental.disputeRaisedByOwner')}
                   </p>
                   {rental.dispute_reason && (
                     <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
-                      Reason: {rental.dispute_reason}
+                      {t('rental.disputeReason')}: {rental.dispute_reason}
                     </p>
                   )}
                   <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
-                    Payment frozen pending admin review
+                    {t('rental.paymentFrozen')}
                   </p>
                 </div>
               )}
@@ -283,7 +285,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   size="sm"
                   onClick={() => window.open(rental.handover_photos![0], '_blank')}
                 >
-                  View Handover Photos ({rental.handover_photos.length})
+                  {t('rental.viewHandoverPhotos')} ({rental.handover_photos.length})
                 </Button>
               )}
 
@@ -295,7 +297,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                     onClick={() => setModificationDialog({ open: true, type: 'extension' })}
                   >
                     <Clock3 className="h-4 w-4 mr-2" />
-                    Extend
+                    {t('rental.extend')}
                   </Button>
                   <Button 
                     variant="outline"
@@ -303,7 +305,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                     onClick={() => setModificationDialog({ open: true, type: 'early_return' })}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    Return Early
+                    {t('rental.returnEarly')}
                   </Button>
                 </div>
               )}
@@ -314,7 +316,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   className="w-full h-12"
                   onClick={() => setReviewDialogOpen(true)}
                 >
-                  Leave a Review
+                  {t('rental.leaveReview')}
                 </Button>
               )}
             </div>
@@ -334,15 +336,15 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-sm space-y-1">
-              <p><strong>Dates:</strong> {format(new Date(rental.start_date), 'MMM d, yyyy')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}</p>
-              <p><strong>Total:</strong> RM {rental.total_price}</p>
-              <p><strong>{isOwner ? 'Renter' : 'Owner'}:</strong> {isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
+              <p><strong>{t('rental.dates')}:</strong> {format(new Date(rental.start_date), 'MMM d, yyyy')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}</p>
+              <p><strong>{t('rental.total')}:</strong> RM {rental.total_price}</p>
+              <p><strong>{isOwner ? t('rental.renter') : t('rental.owner')}:</strong> {isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
             </div>
             
             {/* Renter: Pickup code for approved/paid rentals */}
             {!isOwner && (rental.status === 'approved' || rental.status === 'paid') && rental.pickup_code && (
               <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Give this code to the Owner:</p>
+                <p className="text-xs text-muted-foreground mb-1">{t('rental.pickupCode')}</p>
                 <div className="flex items-center justify-center gap-2">
                   <Key className="h-5 w-5 text-primary" />
                   <span className="text-3xl font-mono font-bold tracking-wider">{rental.pickup_code}</span>
@@ -362,7 +364,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 onClick={() => setHandoverDialog(true)}
               >
                 <Camera className="h-4 w-4 mr-2" />
-                Start Handover
+                {t('rental.startHandover')}
               </Button>
             )}
 
@@ -373,7 +375,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 onClick={() => setReturnDialog(true)}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Process Return
+                {t('rental.processReturn')}
               </Button>
             )}
 
@@ -386,7 +388,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   disabled={isUpdating}
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Approve
+                  {t('rental.approve')}
                 </Button>
                 <Button 
                   size="sm" 
@@ -395,7 +397,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                   disabled={isUpdating}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Decline
+                  {t('rental.decline')}
                 </Button>
               </div>
             )}
@@ -405,7 +407,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                 <p className="text-sm text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Waiting for owner approval
+                  {t('rental.waitingApproval')}
                 </p>
               </div>
             )}
@@ -414,7 +416,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                 <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
                   <XCircle className="h-4 w-4" />
-                  Request declined by owner
+                  {t('rental.requestDeclined')}
                 </p>
               </div>
             )}
@@ -424,15 +426,15 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
                 <p className="text-sm font-medium text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-1">
                   <AlertTriangle className="h-4 w-4" />
-                  {isOwner ? 'Dispute Raised' : 'Dispute Raised by Owner'}
+                  {isOwner ? t('rental.disputeRaised') : t('rental.disputeRaisedByOwner')}
                 </p>
                 {rental.dispute_reason && (
                   <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
-                    Reason: {rental.dispute_reason}
+                    {t('rental.disputeReason')}: {rental.dispute_reason}
                   </p>
                 )}
                 <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
-                  Payment frozen pending admin review
+                  {t('rental.paymentFrozen')}
                 </p>
               </div>
             )}

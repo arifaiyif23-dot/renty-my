@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Rental } from '@/types';
@@ -27,6 +28,7 @@ import EmptyState from '@/components/EmptyState';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [rentals, setRentals] = useState<Rental[]>([]);
@@ -122,7 +124,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div className="container mx-auto p-4">Loading...</div>;
+    return <div className="container mx-auto p-4">{t('common.loading')}</div>;
   }
 
   const activeCount = filterRentals(['paid', 'active']).length;
@@ -135,12 +137,12 @@ export default function Dashboard() {
       <>
         <Header />
         <div className="container mx-auto p-4 pb-20 md:pb-4">
-          <h1 className="text-3xl font-bold text-foreground mb-6">My Rentals</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-6">{t('dashboard.myRentals')}</h1>
           <EmptyState
             icon={PackageSearch}
-            title="No Rentals Yet"
-            description="Start by browsing items to rent or list your own items for others to rent"
-            actionLabel="Browse Items"
+            title={t('dashboard.noRentals')}
+            description={t('dashboard.noRentalsDesc')}
+            actionLabel={t('dashboard.browseItems')}
             onAction={() => navigate('/search')}
           />
         </div>
@@ -153,14 +155,14 @@ export default function Dashboard() {
       <Header />
       <div className="container mx-auto p-4 pb-20 md:pb-4">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h1 className="text-3xl font-bold text-foreground">My Rentals</h1>
+          <h1 className="text-3xl font-bold text-foreground">{t('dashboard.myRentals')}</h1>
           <div className="flex gap-2 flex-wrap">
             <Badge variant="outline" className="gap-1">
               <Clock className="h-3 w-3" />
-              {activeCount} Active
+              {activeCount} {t('dashboard.active')}
             </Badge>
             <Badge variant="secondary" className="gap-1">
-              {pendingCount} Pending
+              {pendingCount} {t('dashboard.pending')}
             </Badge>
             <Button
               variant="outline"
@@ -168,7 +170,7 @@ export default function Dashboard() {
               onClick={() => setShowCalendar(true)}
             >
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Calendar View
+              {t('dashboard.calendarView')}
             </Button>
           </div>
         </div>
@@ -185,9 +187,9 @@ export default function Dashboard() {
       
       <Tabs defaultValue="active" className="w-full">
         <TabsList className="bg-muted/20">
-          <TabsTrigger value="active" className="data-[state=active]:bg-card data-[state=active]:text-foreground">Active</TabsTrigger>
-          <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:text-foreground">Pending</TabsTrigger>
-          <TabsTrigger value="past" className="data-[state=active]:bg-card data-[state=active]:text-foreground">Past</TabsTrigger>
+          <TabsTrigger value="active" className="data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.active')}</TabsTrigger>
+          <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.pending')}</TabsTrigger>
+          <TabsTrigger value="past" className="data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.past')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="active" className="space-y-4">
@@ -213,7 +215,7 @@ export default function Dashboard() {
                 className="mt-2"
               >
                 <GitBranch className="h-4 w-4 mr-2" />
-                View Timeline
+                {t('dashboard.viewTimeline')}
               </Button>
             </div>
           ))}
