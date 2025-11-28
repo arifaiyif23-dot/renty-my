@@ -466,7 +466,6 @@ export default function MyListings() {
                             <Edit className="h-4 w-4 mr-2" />
                             {t('listings.editListing')}
                           </DropdownMenuItem>
-                          </DropdownMenuItem>
                           {item.listing_status === 'active' ? (
                             <DropdownMenuItem onClick={() => handleStatusChange(item.id, 'paused')}>
                               <Pause className="h-4 w-4 mr-2" />
