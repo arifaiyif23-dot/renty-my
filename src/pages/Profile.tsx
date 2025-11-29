@@ -119,6 +119,28 @@ export default function Profile() {
           </Card>
         )}
 
+        {verificationStatus && verificationStatus.status === 'rejected' && (
+          <Card className="mb-6 border-red-500">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <div className="h-8 w-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle>Verification Rejected</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Your verification was rejected. Please review your documents and try again.
+                  </p>
+                  <Button onClick={() => navigate('/verification')} variant="destructive" className="mt-4">
+                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        )}
+
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">

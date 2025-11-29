@@ -22,35 +22,44 @@ export const NotificationBell = () => {
   useEffect(() => {
     fetchNotifications();
     
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
-          
-          // Play sound based on notification type
-          if (newNotification.type === 'rental_request' || newNotification.type === 'rental_approved') {
-            soundPlayer.playOrder();
-          } else {
-            soundPlayer.playNotification();
-          }
-          
-          toast.info(newNotification.title);
-        }
-      )
-      .subscribe();
+    const fetchAndSubscribe = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    return () => {
-      supabase.removeChannel(channel);
+      // Subscribe to new notifications with user filter
+      const channel = supabase
+        .channel('notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const newNotification = payload.new as Notification;
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+            
+            // Play sound based on notification type
+            if (newNotification.type === 'rental_request' || newNotification.type === 'rental_approved') {
+              soundPlayer.playOrder();
+            } else {
+              soundPlayer.playNotification();
+            }
+            
+            toast.info(newNotification.title);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     };
+
+    fetchAndSubscribe();
   }, []);
 
   const fetchNotifications = async () => {

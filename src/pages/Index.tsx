@@ -90,12 +90,12 @@ const Index = () => {
 
   // Memoize category config to prevent recreation on every render
   const categoryConfig = useMemo(() => ({
+    electronics: { icon: Smartphone, displayName: "Electronics" },
     vehicles: { icon: Car, displayName: "Vehicles" },
-    gadgets: { icon: Smartphone, displayName: "Gadgets" },
-    rooms: { icon: Home, displayName: "Rooms" },
-    sports: { icon: Dumbbell, displayName: "Sports" },
-    music: { icon: Music, displayName: "Music" },
     tools: { icon: Wrench, displayName: "Tools" },
+    sports: { icon: Dumbbell, displayName: "Sports" },
+    party: { icon: Music, displayName: "Party" },
+    other: { icon: Package, displayName: "Other" },
   }), []);
 
   // Memoize steps array to prevent recreation on every render

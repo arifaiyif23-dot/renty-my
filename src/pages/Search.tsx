@@ -142,7 +142,7 @@ export default function Search() {
           .from('rentals')
           .select('start_date, end_date')
           .eq('item_id', item.id)
-          .in('status', ['pending', 'approved', 'active']);
+          .in('status', ['pending_approval', 'approved', 'paid', 'active']);
 
         const isAvailable = !rentals?.some(rental => {
           const rentalStart = new Date(rental.start_date);

@@ -4,6 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { Rental } from '@/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface PayNowButtonProps {
   rental: Rental;
@@ -12,22 +22,12 @@ interface PayNowButtonProps {
 
 export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const handlePayNow = async () => {
+  const handleConfirmPayment = async () => {
+    setShowConfirmDialog(false);
     setIsProcessing(true);
     try {
-      const confirmed = window.confirm(
-        `Ready to pay for this rental?\n\n` +
-        `Amount: RM ${rental.total_price}\n` +
-        `Item: ${rental.item?.title}\n\n` +
-        `You'll be redirected to ToyyibPay to complete payment.`
-      );
-
-      if (!confirmed) {
-        setIsProcessing(false);
-        return;
-      }
-
       toast.info('Creating payment link...');
 
       // Call create-payment edge function with the approved rental
@@ -58,23 +58,52 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
   };
 
   return (
-    <Button
-      className="w-full"
-      size="lg"
-      onClick={handlePayNow}
-      disabled={isProcessing}
-    >
-      {isProcessing ? (
-        <>
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          Creating Payment...
-        </>
-      ) : (
-        <>
-          <CreditCard className="h-4 w-4 mr-2" />
-          Pay Now - RM {rental.total_price}
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        className="w-full"
+        size="lg"
+        onClick={() => setShowConfirmDialog(true)}
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Creating Payment...
+          </>
+        ) : (
+          <>
+            <CreditCard className="h-4 w-4 mr-2" />
+            Pay Now - RM {rental.total_price}
+          </>
+        )}
+      </Button>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ready to pay for this rental?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-foreground">Amount:</span>
+                  <span className="font-semibold text-foreground">RM {rental.total_price}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground">Item:</span>
+                  <span className="font-medium text-foreground">{rental.item?.title}</span>
+                </div>
+              </div>
+              <p className="text-sm">You'll be redirected to ToyyibPay to complete payment securely.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPayment}>
+              Proceed to Payment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
