@@ -22,6 +22,21 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
   const [enteredCode, setEnteredCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const resetState = () => {
+    setStep('upload');
+    setPhotos([]);
+    setPhotoUrls([]);
+    setEnteredCode('');
+    setIsProcessing(false);
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      resetState();
+    }
+    onOpenChange(newOpen);
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -74,13 +89,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
 
       toast.success('Rental Started Successfully! 🎉');
       onSuccess();
-      onOpenChange(false);
-      
-      // Reset state
-      setStep('upload');
-      setPhotos([]);
-      setPhotoUrls([]);
-      setEnteredCode('');
+      handleOpenChange(false);
     } catch (error: any) {
       toast.error(error.message || 'Failed to start rental');
     } finally {
@@ -91,7 +100,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
   const canProceedToVerify = photoUrls.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Start Handover Process</DialogTitle>
@@ -165,7 +174,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
             className="w-full sm:w-auto"
           >
             Cancel

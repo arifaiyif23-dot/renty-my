@@ -422,25 +422,27 @@ export default function ItemDetail() {
                 )}
 
                 {user?.id !== item.owner_id && (
-                  <Button 
-                    variant="outline"
-                    className="w-full" 
-                    size="lg"
-                    onClick={handleMessageOwner}
-                  >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Message Owner
-                  </Button>
-                )}
+                  <>
+                    <Button 
+                      variant="outline"
+                      className="w-full" 
+                      size="lg"
+                      onClick={handleMessageOwner}
+                    >
+                      <MessageCircle className="h-5 w-5 mr-2" />
+                      Message Owner
+                    </Button>
 
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handleBooking}
-                  disabled={!dateRange?.from || !dateRange?.to || isBooking}
-                >
-                  {isBooking ? 'Processing...' : 'Request Booking'}
-                </Button>
+                    <Button 
+                      className="w-full" 
+                      size="lg"
+                      onClick={handleBooking}
+                      disabled={!dateRange?.from || !dateRange?.to || isBooking}
+                    >
+                      {isBooking ? 'Processing...' : 'Request Booking'}
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
