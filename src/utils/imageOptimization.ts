@@ -13,8 +13,12 @@ export const convertToWebP = async (
     const img = new Image();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
+    let objectUrl: string | null = null;
 
     img.onload = () => {
+      // Revoke object URL to free memory
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      
       // Set canvas dimensions
       canvas.width = img.width;
       canvas.height = img.height;
@@ -39,8 +43,13 @@ export const convertToWebP = async (
       );
     };
 
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
+    };
+    
+    objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
   });
 };
 
@@ -54,8 +63,12 @@ export const resizeImage = async (
     const img = new Image();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
+    let objectUrl: string | null = null;
 
     img.onload = () => {
+      // Revoke object URL to free memory
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      
       let { width, height } = img;
 
       // Calculate new dimensions while maintaining aspect ratio
@@ -82,13 +95,18 @@ export const resizeImage = async (
             reject(new Error('Failed to resize image'));
           }
         },
-        file.type,
+        file.type || 'image/jpeg',
         0.9
       );
     };
 
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(file);
+    img.onerror = () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
+    };
+    
+    objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
   });
 };
 
