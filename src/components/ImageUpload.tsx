@@ -67,11 +67,21 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
         return updated;
       });
 
-      // Optimize image (resize + WebP conversion)
-      const optimizedBlob = await optimizeImage(file);
-      const optimizedFile = new File([optimizedBlob], `${file.name.split('.')[0]}.webp`, {
-        type: 'image/webp'
-      });
+      let fileToUpload: File;
+      let fileExtension = 'webp';
+      
+      try {
+        // Optimize image (resize + WebP conversion)
+        const optimizedBlob = await optimizeImage(file);
+        fileToUpload = new File([optimizedBlob], `${file.name.split('.')[0]}.webp`, {
+          type: 'image/webp'
+        });
+      } catch (optimizeError) {
+        console.warn('Image optimization failed, uploading original:', optimizeError);
+        // Fallback: upload original file if optimization fails
+        fileToUpload = file;
+        fileExtension = file.name.split('.').pop() || 'jpg';
+      }
 
       // Update progress: Compression complete
       setUploadProgress(prev => {
@@ -80,7 +90,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
         return updated;
       });
 
-      const fileName = `${Date.now()}-${Math.random()}.webp`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExtension}`;
       const filePath = `${user.id}/${fileName}`;
 
       // Update progress during upload
@@ -92,7 +102,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
 
       const { error: uploadError } = await supabase.storage
         .from('item-images')
-        .upload(filePath, optimizedFile, {
+        .upload(filePath, fileToUpload, {
           cacheControl: '3600',
           upsert: false
         });
