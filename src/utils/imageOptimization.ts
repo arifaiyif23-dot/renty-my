@@ -112,22 +112,29 @@ export const resizeImage = async (
 
 // Optimize image based on network quality
 export const optimizeImage = async (file: File): Promise<Blob> => {
-  const networkQuality = getNetworkQuality();
-  const isSlow = networkQuality === 'slow';
+  try {
+    const networkQuality = getNetworkQuality();
+    const isSlow = networkQuality === 'slow';
 
-  // Resize if needed
-  const maxWidth = isSlow ? 1280 : 1920;
-  const maxHeight = isSlow ? 720 : 1080;
-  const resized = await resizeImage(file, maxWidth, maxHeight);
+    // Resize if needed
+    const maxWidth = isSlow ? 1280 : 1920;
+    const maxHeight = isSlow ? 720 : 1080;
+    const resized = await resizeImage(file, maxWidth, maxHeight);
 
-  // Convert to WebP for better compression
-  const quality = isSlow ? 0.6 : 0.8;
-  const webpBlob = await convertToWebP(
-    new File([resized], file.name, { type: file.type }),
-    quality
-  );
-
-  return webpBlob;
+    // Convert to WebP for better compression
+    const quality = isSlow ? 0.6 : 0.8;
+    
+    // Create a proper File object from the resized blob with correct MIME type
+    const resizedType = file.type.startsWith('image/') ? file.type : 'image/jpeg';
+    const resizedFile = new File([resized], file.name, { type: resizedType });
+    
+    const webpBlob = await convertToWebP(resizedFile, quality);
+    return webpBlob;
+  } catch (error) {
+    console.error('Image optimization failed:', error);
+    // If optimization fails, return the original file as blob
+    return file;
+  }
 };
 
 // Get optimized image URL from Supabase storage

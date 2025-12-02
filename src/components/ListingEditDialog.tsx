@@ -140,6 +140,9 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
   const updateMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
+      console.log('Saving listing with values:', values);
+      console.log('Current images:', images);
+      
       // Validate images
       if (images.length === 0) {
         throw new Error('At least one image is required. Please upload an image before saving.');
@@ -155,18 +158,37 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       const { error: itemError } = await supabase
         .from('items')
         .update({
-          ...values,
+          title: values.title,
+          description: values.description,
           category: values.category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'other',
+          price_per_day: values.price_per_day,
+          location: values.location,
+          deposit_amount: values.deposit_amount,
+          minimum_rental_days: values.minimum_rental_days,
+          maximum_rental_days: values.maximum_rental_days || null,
+          instant_book_enabled: values.instant_book_enabled,
+          auto_approve_bookings: values.auto_approve_bookings,
+          item_condition: values.item_condition,
+          cancellation_policy: values.cancellation_policy,
+          tags: values.tags,
         })
         .eq('id', listing.id);
-      if (itemError) throw itemError;
+      
+      if (itemError) {
+        console.error('Item update error:', itemError);
+        throw new Error(`Failed to update item: ${itemError.message}`);
+      }
 
       // Update images: delete old ones and insert new ones with correct order
       const { error: deleteError } = await supabase
         .from('item_images')
         .delete()
         .eq('item_id', listing.id);
-      if (deleteError) throw deleteError;
+      
+      if (deleteError) {
+        console.error('Image delete error:', deleteError);
+        throw new Error(`Failed to update images: ${deleteError.message}`);
+      }
 
       // Insert updated images with correct order
       const imageInserts = updatedImages.map((img, index) => ({
@@ -179,7 +201,13 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       const { error: imageError } = await supabase
         .from('item_images')
         .insert(imageInserts);
-      if (imageError) throw imageError;
+      
+      if (imageError) {
+        console.error('Image insert error:', imageError);
+        throw new Error(`Failed to save images: ${imageError.message}`);
+      }
+      
+      console.log('Listing saved successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-listings'] });
@@ -187,6 +215,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       onOpenChange(false);
     },
     onError: (error: any) => {
+      console.error('Update mutation error:', error);
       toast.error(error.message || 'Failed to update listing');
     },
   });
@@ -221,7 +250,13 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
           </TabsList>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit((values) => updateMutation.mutate(values))} className="space-y-6 mt-6">
+            <form onSubmit={form.handleSubmit((values) => {
+              console.log('Form submitted with values:', values);
+              updateMutation.mutate(values);
+            }, (errors) => {
+              console.error('Form validation errors:', errors);
+              toast.error('Please fill in all required fields correctly');
+            })} className="space-y-6 mt-6">
               <TabsContent value="basic" className="space-y-4">
                 <FormField
                   control={form.control}
