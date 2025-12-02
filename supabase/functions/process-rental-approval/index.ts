@@ -16,27 +16,32 @@ serve(async (req) => {
     
     console.log('Processing rental approval:', { rentalId, action });
     
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    // Create service role client for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get auth header for user verification
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
-      throw new Error('Unauthorized');
+      throw new Error('Unauthorized: No authorization header');
     }
 
-    // Verify user from auth header
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    // Extract token from Bearer header
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Verify user from token using service role client
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    
+    console.log('User verification result:', { userId: user?.id, error: userError?.message });
+    
     if (userError || !user) {
-      throw new Error('Unauthorized: Invalid user');
+      console.error('User verification failed:', userError);
+      throw new Error('Unauthorized: Invalid user token');
     }
 
     // Get rental details
@@ -47,11 +52,15 @@ serve(async (req) => {
       .single();
 
     if (rentalError || !rental) {
+      console.error('Rental fetch error:', rentalError);
       throw new Error('Rental not found');
     }
 
+    console.log('Rental found:', { id: rental.id, owner_id: rental.owner_id, status: rental.status });
+
     // Verify user is the owner
     if (rental.owner_id !== user.id) {
+      console.error('Owner mismatch:', { rentalOwner: rental.owner_id, currentUser: user.id });
       throw new Error('Unauthorized: Only the owner can approve/reject rentals');
     }
 
