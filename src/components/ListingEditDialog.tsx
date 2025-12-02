@@ -257,7 +257,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('common.category')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -450,7 +450,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('listingEdit.itemCondition')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -474,7 +474,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('listings.cancellationPolicy')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
