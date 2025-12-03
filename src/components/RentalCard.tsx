@@ -10,9 +10,10 @@ import { PayNowButton } from "@/components/PayNowButton";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { format } from "date-fns";
-import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock, Key, Camera, AlertTriangle } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock, Key, Camera, AlertTriangle, Loader2 } from "lucide-react";
 import { Rental } from "@/types";
 import { toast } from "sonner";
+import { haptics } from "@/utils/haptics";
 
 interface RentalCardProps {
   rental: Rental;
@@ -90,9 +91,13 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
       complete: 'completed' as Rental['status'],
     };
 
+    haptics.medium();
     setIsUpdating(true);
     try {
       await onStatusUpdate(rental.id, statusMap[confirmDialog.action]);
+      haptics.success();
+    } catch (error) {
+      haptics.error();
     } finally {
       setIsUpdating(false);
       setConfirmDialog({ open: false, action: null });
@@ -223,19 +228,27 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <>
                   <Button 
                     className="w-full h-12"
-                    onClick={() => setConfirmDialog({ open: true, action: 'approve' })}
+                    onClick={() => { haptics.light(); setConfirmDialog({ open: true, action: 'approve' }); }}
                     disabled={isUpdating}
                   >
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    {isUpdating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
                     {t('rental.approveRequest')}
                   </Button>
                   <Button 
                     variant="outline"
                     className="w-full h-12"
-                    onClick={() => setConfirmDialog({ open: true, action: 'reject' })}
+                    onClick={() => { haptics.light(); setConfirmDialog({ open: true, action: 'reject' }); }}
                     disabled={isUpdating}
                   >
-                    <XCircle className="h-4 w-4 mr-2" />
+                    {isUpdating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <XCircle className="h-4 w-4 mr-2" />
+                    )}
                     {t('rental.declineRequest')}
                   </Button>
                 </>
@@ -384,19 +397,27 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <div className="flex gap-2">
                 <Button 
                   size="sm" 
-                  onClick={() => setConfirmDialog({ open: true, action: 'approve' })}
+                  onClick={() => { haptics.light(); setConfirmDialog({ open: true, action: 'approve' }); }}
                   disabled={isUpdating}
                 >
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                  {isUpdating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
                   {t('rental.approve')}
                 </Button>
                 <Button 
                   size="sm" 
                   variant="destructive"
-                  onClick={() => setConfirmDialog({ open: true, action: 'reject' })}
+                  onClick={() => { haptics.light(); setConfirmDialog({ open: true, action: 'reject' }); }}
                   disabled={isUpdating}
                 >
-                  <XCircle className="h-4 w-4 mr-2" />
+                  {isUpdating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <XCircle className="h-4 w-4 mr-2" />
+                  )}
                   {t('rental.decline')}
                 </Button>
               </div>

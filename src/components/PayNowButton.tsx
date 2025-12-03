@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { haptics } from '@/utils/haptics';
 
 interface PayNowButtonProps {
   rental: Rental;
@@ -25,6 +26,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleConfirmPayment = async () => {
+    haptics.medium();
     setShowConfirmDialog(false);
     setIsProcessing(true);
     try {
@@ -45,12 +47,14 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
 
       if (error) throw error;
 
+      haptics.success();
       toast.success('Redirecting to payment...');
       
       // Redirect to ToyyibPay
       window.location.href = data.paymentUrl;
 
     } catch (error: any) {
+      haptics.error();
       toast.error(error.message || 'Failed to create payment');
       console.error(error);
       setIsProcessing(false);
@@ -62,7 +66,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
       <Button
         className="w-full"
         size="lg"
-        onClick={() => setShowConfirmDialog(true)}
+        onClick={() => { haptics.light(); setShowConfirmDialog(true); }}
         disabled={isProcessing}
       >
         {isProcessing ? (

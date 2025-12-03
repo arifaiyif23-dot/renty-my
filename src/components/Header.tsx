@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign } from "lucide-react";
+import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { haptics } from "@/utils/haptics";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,6 +39,18 @@ const Header = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+
+  const handleSignOut = () => {
+    haptics.medium();
+    setShowSignOutDialog(true);
+  };
+
+  const confirmSignOut = async () => {
+    haptics.success();
+    await signOut();
+    setShowSignOutDialog(false);
+  };
 
   const userInitials = profile?.full_name
     ?.split(" ")
@@ -231,7 +254,8 @@ const Header = () => {
                           </>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+                        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                          <LogOut className="h-4 w-4 mr-2" />
                           {t('nav.signOut')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -253,6 +277,24 @@ const Header = () => {
 
       {/* Mobile Navigation Drawer */}
       <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('nav.signOutConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('nav.signOutConfirmDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSignOut} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('nav.signOut')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
