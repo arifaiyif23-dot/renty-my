@@ -39,13 +39,16 @@ serve(async (req) => {
       throw new Error('Renter must be verified to create booking requests');
     }
 
-    // Check for overlapping rentals
+    // Check for overlapping rentals (correct AND logic: existing rental overlaps if it starts before requested ends AND ends after requested starts)
+    console.log('Checking for overlapping rentals:', { itemId, startDate, endDate });
+    
     const { data: existingRentals, error: overlapError } = await supabase
       .from('rentals')
-      .select('id, status')
+      .select('id, status, start_date, end_date')
       .eq('item_id', itemId)
       .in('status', ['pending_approval', 'approved', 'paid', 'active'])
-      .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+      .lte('start_date', endDate)
+      .gte('end_date', startDate);
 
     if (overlapError) {
       console.error('Overlap check error:', overlapError);
