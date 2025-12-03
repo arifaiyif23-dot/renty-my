@@ -164,7 +164,7 @@ serve(async (req) => {
       billSplitPaymentArgs: '',
       billPaymentChannel: '0',
       billContentEmail: `Your rental payment of RM ${billAmount}`,
-      billChargeToCustomer: '1'
+      billChargeToCustomer: '2' // Platform absorbs gateway fees - customer pays exact amount shown
     });
     
     console.log('Creating ToyyibPay bill with amount:', billAmount);

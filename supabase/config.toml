@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.process-rental-transitions]
 verify_jwt = false
+
+[functions.request-booking]
+verify_jwt = true
+
+[functions.process-rental-approval]
+verify_jwt = true
