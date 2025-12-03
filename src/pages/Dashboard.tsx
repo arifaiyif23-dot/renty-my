@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +13,7 @@ import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CountdownTimer } from '@/components/CountdownTimer';
-import { Clock, CheckCircle, XCircle, Calendar as CalendarIcon, GitBranch, PackageSearch } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Calendar as CalendarIcon, GitBranch, PackageSearch, RefreshCw } from 'lucide-react';
 import { RentalTimeline } from '@/components/RentalTimeline';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { RentalCalendarView } from '@/components/RentalCalendarView';
@@ -25,6 +25,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import EmptyState from '@/components/EmptyState';
+import DashboardSkeleton from '@/components/DashboardSkeleton';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -43,7 +45,7 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  const fetchRentals = async () => {
+  const fetchRentals = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('rentals')
@@ -64,7 +66,10 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  // Pull-to-refresh hook
+  const { isRefreshing, pullDistance } = usePullToRefresh(fetchRentals);
 
   const updateRentalStatus = async (rentalId: string, status: Rental['status']) => {
     try {
@@ -124,7 +129,15 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div className="container mx-auto p-4">{t('common.loading')}</div>;
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 pb-20 md:pb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-6">{t('dashboard.myRentals')}</h1>
+          <DashboardSkeleton />
+        </div>
+      </>
+    );
   }
 
   const activeCount = filterRentals(['paid', 'active']).length;
@@ -153,6 +166,22 @@ export default function Dashboard() {
   return (
     <>
       <Header />
+      
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div 
+          className="fixed top-16 left-0 right-0 z-40 flex justify-center transition-all duration-200"
+          style={{ 
+            transform: `translateY(${Math.min(pullDistance / 2, 40)}px)`,
+            opacity: Math.min(pullDistance / 80, 1) 
+          }}
+        >
+          <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto p-4 pb-20 md:pb-4">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <h1 className="text-3xl font-bold text-foreground">{t('dashboard.myRentals')}</h1>
