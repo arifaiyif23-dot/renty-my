@@ -1,15 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, MessageCircle, User, Plus, Bell, Heart } from "lucide-react";
+import { Home, Search, MessageCircle, User, Plus, Heart, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTranslation } from 'react-i18next';
 
 const MobileBottomNav = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const { t } = useTranslation();
   
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
@@ -17,8 +14,8 @@ const MobileBottomNav = () => {
   ];
 
   const rightNavItems = [
-    { icon: MessageCircle, label: "Messages", path: "/messages" },
-    { icon: User, label: "Profile", path: user ? "/profile" : "/auth" },
+    { icon: Heart, label: "Wishlist", path: user ? "/wishlist" : "/auth" },
+    { icon: LayoutDashboard, label: "Dashboard", path: user ? "/dashboard" : "/auth" },
   ];
 
   return (
