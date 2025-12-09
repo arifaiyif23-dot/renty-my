@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -14,6 +14,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import PageTransition from "@/components/PageTransition";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -56,6 +57,7 @@ const queryClient = new QueryClient({
 
 function AppRoutes() {
   useScrollToTop();
+  const location = useLocation();
   
   return (
     <div className="flex flex-col min-h-screen w-full">
@@ -68,30 +70,32 @@ function AppRoutes() {
       
       <Suspense fallback={<LoadingSpinner />}>
         <main id="main-content">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/install" element={<Install />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
-            <Route path="/items/:id" element={<ItemDetail />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-            <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
-            <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
-            <Route path="/admin/payouts" element={<ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute>} />
-            <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
-            <Route path="/admin/automation" element={<ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute>} />
-            <Route path="/pwa-settings" element={<PWASettings />} />
-            <Route path="/offline" element={<Offline />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <PageTransition key={location.pathname}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/install" element={<Install />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
+              <Route path="/items/:id" element={<ItemDetail />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+              <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
+              <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/payouts" element={<ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/automation" element={<ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute>} />
+              <Route path="/pwa-settings" element={<PWASettings />} />
+              <Route path="/offline" element={<Offline />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PageTransition>
         </main>
       </Suspense>
       <MobileBottomNav />

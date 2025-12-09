@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { ReferralSystem } from "@/components/ReferralSystem";
 import Header from "@/components/Header";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
+import ProfileSkeleton from "@/components/ProfileSkeleton";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
@@ -58,8 +59,8 @@ export default function Profile() {
     return (
       <>
         <Header />
-        <div className="container mx-auto p-4">
-          <div className="text-center py-8">Loading...</div>
+        <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
+          <ProfileSkeleton />
         </div>
       </>
     );

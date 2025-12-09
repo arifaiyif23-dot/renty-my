@@ -11,9 +11,7 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
-import { StatusBadge } from '@/components/StatusBadge';
-import { CountdownTimer } from '@/components/CountdownTimer';
-import { Clock, CheckCircle, XCircle, Calendar as CalendarIcon, GitBranch, PackageSearch, RefreshCw } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, GitBranch, PackageSearch, RefreshCw } from 'lucide-react';
 import { RentalTimeline } from '@/components/RentalTimeline';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { RentalCalendarView } from '@/components/RentalCalendarView';
@@ -27,17 +25,27 @@ import {
 import EmptyState from '@/components/EmptyState';
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import { useSwipeTabs } from '@/hooks/use-swipe-tabs';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+const DASHBOARD_TABS = ['active', 'pending', 'past'] as const;
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRentals, setSelectedRentals] = useState<Set<string>>(new Set());
   const [selectedRentalTimeline, setSelectedRentalTimeline] = useState<Rental | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+
+  const { activeTab, setTab, swipeHandlers } = useSwipeTabs({
+    tabs: [...DASHBOARD_TABS],
+    initialTab: 'active',
+  });
 
   useEffect(() => {
     if (user) {
@@ -214,14 +222,15 @@ export default function Dashboard() {
           </div>
         )}
       
-      <Tabs defaultValue="active" className="w-full">
-        <TabsList className="bg-muted/20">
-          <TabsTrigger value="active" className="data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.active')}</TabsTrigger>
-          <TabsTrigger value="pending" className="data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.pending')}</TabsTrigger>
-          <TabsTrigger value="past" className="data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.past')}</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setTab} className="w-full">
+        <TabsList className="bg-muted/20 w-full justify-start">
+          <TabsTrigger value="active" className="flex-1 data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.active')}</TabsTrigger>
+          <TabsTrigger value="pending" className="flex-1 data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.pending')}</TabsTrigger>
+          <TabsTrigger value="past" className="flex-1 data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.past')}</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="active" className="space-y-4">
+        <div {...(isMobile ? swipeHandlers : {})} className="touch-pan-y">
+        <TabsContent value="active" className="space-y-4 mt-4">
           {filterRentals(['paid', 'active']).map(rental => (
             <div key={rental.id} className="relative">
               <div className="absolute left-4 top-4 z-10">
@@ -250,7 +259,7 @@ export default function Dashboard() {
           ))}
         </TabsContent>
         
-        <TabsContent value="pending" className="space-y-4">
+        <TabsContent value="pending" className="space-y-4 mt-4">
           {filterRentals(['pending_approval', 'approved']).map(rental => (
             <RentalCard 
               key={rental.id} 
@@ -262,7 +271,7 @@ export default function Dashboard() {
           ))}
         </TabsContent>
         
-        <TabsContent value="past" className="space-y-4">
+        <TabsContent value="past" className="space-y-4 mt-4">
           {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
             <RentalCard 
               key={rental.id} 
@@ -273,6 +282,7 @@ export default function Dashboard() {
             />
           ))}
         </TabsContent>
+        </div>
       </Tabs>
 
       <BulkActionsBar
