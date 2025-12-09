@@ -80,6 +80,39 @@ export type Database = {
         }
         Relationships: []
       }
+      content_moderation_log: {
+        Row: {
+          action_taken: string
+          blocked_content: string
+          content_type: string
+          created_at: string | null
+          detected_keywords: string[]
+          id: string
+          ip_address: unknown
+          user_id: string
+        }
+        Insert: {
+          action_taken?: string
+          blocked_content: string
+          content_type: string
+          created_at?: string | null
+          detected_keywords: string[]
+          id?: string
+          ip_address?: unknown
+          user_id: string
+        }
+        Update: {
+          action_taken?: string
+          blocked_content?: string
+          content_type?: string
+          created_at?: string | null
+          detected_keywords?: string[]
+          id?: string
+          ip_address?: unknown
+          user_id?: string
+        }
+        Relationships: []
+      }
       cron_job_logs: {
         Row: {
           error_message: string | null
