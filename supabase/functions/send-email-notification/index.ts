@@ -7,17 +7,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Get FROM email from env or use default (configure RESEND_FROM_EMAIL for production)
+const getFromEmail = () => {
+  const customFrom = Deno.env.get('RESEND_FROM_EMAIL');
+  if (customFrom) {
+    return `Renty <${customFrom}>`;
+  }
+  // Default for development - will go to spam in production
+  return 'Renty <onboarding@resend.dev>';
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
+
+    const resend = new Resend(resendApiKey);
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+    
+    const fromEmail = getFromEmail();
+    console.log(`Using FROM email: ${fromEmail}`);
 
     const payload = await req.json();
     console.log('Webhook payload received:', payload);
@@ -47,8 +65,8 @@ serve(async (req) => {
       const { data: ownerAuth } = await supabase.auth.admin.getUserById(rental.owner_id);
       
       if (ownerAuth?.user?.email) {
-        await resend.emails.send({
-          from: 'Renty <notifications@resend.dev>',
+        const emailResult = await resend.emails.send({
+          from: fromEmail,
           to: [ownerAuth.user.email],
           subject: 'New Rental Request for Your Item',
           html: `
@@ -60,7 +78,7 @@ serve(async (req) => {
             <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">Review Request</a></p>
           `,
         });
-        console.log('New request email sent to owner');
+        console.log('New request email sent to owner:', emailResult);
       }
     }
 
@@ -89,8 +107,8 @@ serve(async (req) => {
         const { data: renterAuth } = await supabase.auth.admin.getUserById(rental.renter_id);
         
         if (renterAuth?.user?.email) {
-          await resend.emails.send({
-            from: 'Renty <notifications@resend.dev>',
+          const emailResult = await resend.emails.send({
+            from: fromEmail,
             to: [renterAuth.user.email],
             subject: 'Rental Request Approved!',
             html: `
@@ -103,7 +121,7 @@ serve(async (req) => {
               <p><a href="${Deno.env.get('FRONTEND_URL')}/dashboard">Pay Now</a></p>
             `,
           });
-          console.log('Approval email sent to renter');
+          console.log('Approval email sent to renter:', emailResult);
         }
       }
 
@@ -112,8 +130,8 @@ serve(async (req) => {
         const { data: ownerAuth } = await supabase.auth.admin.getUserById(rental.owner_id);
         
         if (ownerAuth?.user?.email) {
-          await resend.emails.send({
-            from: 'Renty <notifications@resend.dev>',
+          const emailResult = await resend.emails.send({
+            from: fromEmail,
             to: [ownerAuth.user.email],
             subject: 'Payment Received - Rental Confirmed',
             html: `
@@ -127,7 +145,29 @@ serve(async (req) => {
               <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">View Details</a></p>
             `,
           });
-          console.log('Payment confirmation email sent to owner');
+          console.log('Payment confirmation email sent to owner:', emailResult);
+        }
+      }
+
+      // Status changed to 'rejected' - notify renter
+      if (record.status === 'rejected') {
+        const { data: renterAuth } = await supabase.auth.admin.getUserById(rental.renter_id);
+        
+        if (renterAuth?.user?.email) {
+          const emailResult = await resend.emails.send({
+            from: fromEmail,
+            to: [renterAuth.user.email],
+            subject: 'Rental Request Update',
+            html: `
+              <h2>Update on your rental request</h2>
+              <p>Unfortunately, your rental request for <strong>${rental.item.title}</strong> was not approved.</p>
+              <p>Owner: ${rental.owner.full_name}</p>
+              <p>Requested Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+              <p>Don't worry! There are plenty of other items available on Renty.</p>
+              <p><a href="${Deno.env.get('FRONTEND_URL')}/search">Browse More Items</a></p>
+            `,
+          });
+          console.log('Rejection email sent to renter:', emailResult);
         }
       }
     }
@@ -139,8 +179,17 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Email notification error:', error);
+    
+    // Log more details for debugging
+    if (error.response) {
+      console.error('Resend API error response:', error.response);
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.response || null 
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
