@@ -28,7 +28,10 @@ Deno.serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { path, expiresIn = 3600 } = await req.json();
+    const { path, expiresIn = 900 } = await req.json(); // Default 15 minutes for security
+    
+    // Cap maximum expiration to 1 hour for security
+    const cappedExpiresIn = Math.min(expiresIn, 3600);
 
     if (!path) {
       throw new Error('Missing path parameter');
@@ -57,17 +60,22 @@ Deno.serve(async (req) => {
       if (!isOwnDocument && !isAdmin) {
         throw new Error('Forbidden: You do not have access to this document');
       }
+      
+      // Log access to sensitive verification documents
+      console.log(`Document access: user=${user.id}, document_owner=${userId}, is_admin=${isAdmin}`);
     }
 
-    // Generate signed URL
+    // Generate signed URL with capped expiration
     const { data, error } = await supabase.storage
       .from(bucket)
-      .createSignedUrl(path.replace(`${bucket}/`, ''), expiresIn);
+      .createSignedUrl(path.replace(`${bucket}/`, ''), cappedExpiresIn);
 
     if (error) {
       console.error('Error generating signed URL:', error);
       throw error;
     }
+    
+    console.log(`Signed URL generated: path=${path}, expires_in=${cappedExpiresIn}s, user=${user.id}`);
 
     return new Response(
       JSON.stringify({ signedUrl: data.signedUrl }),

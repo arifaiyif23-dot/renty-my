@@ -2220,6 +2220,7 @@ export type Database = {
       }
       cleanup_expired_payments: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      decrypt_message: { Args: { encrypted_text: string }; Returns: string }
       decrypt_sensitive_data: {
         Args: { encrypted_data: string; key?: string }
         Returns: string
