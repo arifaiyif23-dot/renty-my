@@ -37,19 +37,25 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    // SECURITY: Verify signature
+    // SECURITY: Verify signature - REQUIRED for all callbacks
     const secretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
     const signature = url.searchParams.get('signature');
     
-    if (signature && !verifyToyyibPaySignature(url.searchParams, secretKey)) {
-      console.error('Invalid ToyyibPay signature');
+    // Reject callbacks without signature or with invalid signature
+    if (!signature || !verifyToyyibPaySignature(url.searchParams, secretKey)) {
+      console.error('Missing or invalid ToyyibPay signature');
       
       // Log security incident
       await supabase.from('payment_flow_logs').insert({
         payment_id: paymentId,
         stage: 'callback_received',
         status: 'error',
-        details: { error: 'Invalid signature', billCode, transactionId }
+        details: { 
+          error: signature ? 'Invalid signature' : 'Missing signature', 
+          billCode, 
+          transactionId,
+          ip: req.headers.get('x-forwarded-for') || 'unknown'
+        }
       });
       
       return new Response('Unauthorized', { status: 401 });
