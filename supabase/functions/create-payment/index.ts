@@ -12,12 +12,26 @@ serve(async (req) => {
   }
 
   try {
-    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
+    // Verify user authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Unauthorized: No authorization header');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
+    
+    // Verify the user's identity
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      throw new Error('Unauthorized: Invalid token');
+    }
+    
+    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
     
     let rental;
     
@@ -38,6 +52,11 @@ serve(async (req) => {
       // Verify rental is approved
       if (existingRental.status !== 'approved') {
         throw new Error(`Rental must be approved before payment. Current status: ${existingRental.status}`);
+      }
+      
+      // Verify the authenticated user is the renter
+      if (existingRental.renter_id !== user.id) {
+        throw new Error('Forbidden: You can only create payments for your own rentals');
       }
       
       rental = existingRental;
