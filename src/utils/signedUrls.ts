@@ -1,6 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export const getSignedUrl = async (path: string, expiresIn: number = 3600): Promise<string> => {
+// Default expiration: 15 minutes for enhanced security
+const DEFAULT_URL_EXPIRATION = 900; // 15 minutes in seconds
+
+// Shorter expiration for sensitive documents (verification docs, IDs)
+const SENSITIVE_DOC_EXPIRATION = 600; // 10 minutes in seconds
+
+export const getSignedUrl = async (path: string, expiresIn: number = DEFAULT_URL_EXPIRATION): Promise<string> => {
   try {
     const { data, error } = await supabase.functions.invoke('generate-signed-url', {
       body: { path, expiresIn }
@@ -21,5 +27,6 @@ export const getVerificationDocumentUrl = async (documentUrl: string, userId: st
   const fileName = documentUrl.split('/').pop();
   const path = `verification-documents/${userId}/${fileName}`;
   
-  return getSignedUrl(path);
+  // Use shorter expiration for sensitive verification documents
+  return getSignedUrl(path, SENSITIVE_DOC_EXPIRATION);
 };
