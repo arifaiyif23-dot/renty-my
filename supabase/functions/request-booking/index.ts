@@ -21,10 +21,24 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    // Verify user is authenticated
+    // Verify user is authenticated AND matches renterId
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Unauthorized');
+      throw new Error('Unauthorized: No authorization header');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Auth verification failed:', authError);
+      throw new Error('Unauthorized: Invalid token');
+    }
+    
+    // SECURITY: Ensure the authenticated user matches the renterId
+    if (user.id !== renterId) {
+      console.error('User mismatch:', { authenticated: user.id, requested: renterId });
+      throw new Error('Forbidden: Cannot create booking for another user');
     }
 
     // Verify renter is verified
