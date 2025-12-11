@@ -75,37 +75,74 @@ serve(async (req) => {
         documentFrontUrl: verification.document_front_url,
         documentBackUrl: verification.document_back_url,
         selfieUrl: verification.selfie_url,
-        documentType: verification.document_type
+        documentType: verification.document_type,
+        fullNameOnDocument: verification.full_name_on_document
       })
     });
 
     if (!aiResult.ok) {
       const errorText = await aiResult.text();
       console.error('AI verification failed:', aiResult.status, errorText);
-      throw new Error("AI verification failed");
+      
+      // Revert status to pending on failure
+      await supabase
+        .from('verification_requests')
+        .update({ status: 'pending' })
+        .eq('id', verificationId);
+      
+      throw new Error(`AI verification failed: ${errorText}`);
     }
 
     const aiData = await aiResult.json();
 
     if (!aiData.success) {
+      // Revert status to pending on failure
+      await supabase
+        .from('verification_requests')
+        .update({ status: 'pending' })
+        .eq('id', verificationId);
+      
       throw new Error(aiData.error || "AI verification failed");
     }
 
-    console.log('AI verification successful, updating database...');
+    console.log('AI verification successful:', {
+      confidence: aiData.overallConfidence,
+      autoApprove: aiData.autoApprove,
+      faceMatch: aiData.faceMatchResult?.faceMatchScore
+    });
+
+    // Determine final status
+    const finalStatus = aiData.autoApprove ? 'approved' : 'pending';
+    const isAutoApproved = aiData.autoApprove;
 
     // Update verification with AI results
-    const updateData = {
-      document_quality_score: aiData.extractedInfo.qualityScore,
-      face_match_score: aiData.faceMatchResult.faceMatchScore,
-      liveness_score: aiData.faceMatchResult.livenessScore,
-      overall_confidence_score: aiData.overallConfidence,
+    const updateData: Record<string, any> = {
+      document_quality_score: aiData.extractedInfo?.qualityScore || 0,
+      face_match_score: aiData.faceMatchResult?.faceMatchScore || 0,
+      liveness_score: aiData.faceMatchResult?.livenessScore || 0,
+      overall_confidence_score: aiData.overallConfidence || 0,
+      fraud_risk_score: aiData.fraudIndicators?.riskScore || 0,
       ai_analysis_result: aiData,
-      full_name_on_document: aiData.extractedInfo.fullName,
-      ic_number: aiData.extractedInfo.documentNumber,
-      date_of_birth: aiData.extractedInfo.dateOfBirth,
-      status: aiData.autoApprove ? 'approved' : 'pending',
-      verified_at: aiData.autoApprove ? new Date().toISOString() : null
+      ai_processing_time_ms: aiData.processingTimeMs,
+      openai_model: aiData.model,
+      status: finalStatus,
     };
+
+    // Only update extracted info if we got valid data
+    if (aiData.extractedInfo?.fullName) {
+      updateData.full_name_on_document = aiData.extractedInfo.fullName;
+    }
+    if (aiData.extractedInfo?.documentNumber) {
+      updateData.ic_number = aiData.extractedInfo.documentNumber;
+    }
+    if (aiData.extractedInfo?.dateOfBirth) {
+      updateData.date_of_birth = aiData.extractedInfo.dateOfBirth;
+    }
+
+    // Set verified_at if auto-approved
+    if (isAutoApproved) {
+      updateData.verified_at = new Date().toISOString();
+    }
 
     const { error: finalUpdateError } = await supabase
       .from('verification_requests')
@@ -117,26 +154,60 @@ serve(async (req) => {
       throw new Error("Failed to save verification results");
     }
 
+    // Update user profile if auto-approved
+    if (isAutoApproved) {
+      console.log('Auto-approved - updating user profile verification status...');
+      await supabase
+        .from('profiles')
+        .update({ is_verified: true })
+        .eq('id', user.id);
+    }
+
     // Create notification
     console.log('Creating notification...');
+    const notificationType = isAutoApproved ? 'verification_approved' : 'verification_pending';
+    const notificationTitle = isAutoApproved ? 'Verification Approved!' : 'Verification Under Review';
+    const notificationMessage = isAutoApproved 
+      ? 'Your identity has been verified successfully. You can now list items for rent.' 
+      : `Your verification is being reviewed by our team. Confidence score: ${aiData.overallConfidence}%`;
+
     await supabase.from('notifications').insert({
       user_id: user.id,
-      type: aiData.autoApprove ? 'verification_approved' : 'verification_pending',
-      title: aiData.autoApprove ? 'Verification Approved!' : 'Verification Under Review',
-      message: aiData.autoApprove 
-        ? 'Your identity has been verified successfully.' 
-        : 'Your verification is being reviewed by our team.',
+      type: notificationType,
+      title: notificationTitle,
+      message: notificationMessage,
       link: '/profile'
     });
 
-    console.log('Verification submission complete');
+    // Create audit log entry
+    await supabase.from('verification_audit_log').insert({
+      verification_id: verificationId,
+      action: isAutoApproved ? 'auto_approved' : 'ai_analyzed',
+      performed_by: null, // System action
+      details: {
+        ai_model: aiData.model,
+        confidence: aiData.overallConfidence,
+        face_match: aiData.faceMatchResult?.faceMatchScore,
+        fraud_risk: aiData.fraudIndicators?.riskScore,
+        auto_approve_reason: isAutoApproved ? 'High confidence, no fraud flags' : null,
+        processing_time_ms: aiData.processingTimeMs
+      }
+    });
+
+    console.log('Verification submission complete:', {
+      status: finalStatus,
+      confidence: aiData.overallConfidence,
+      autoApproved: isAutoApproved
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
-        status: updateData.status,
+        status: finalStatus,
         confidence: aiData.overallConfidence,
-        autoApproved: aiData.autoApprove
+        autoApproved: isAutoApproved,
+        faceMatchScore: aiData.faceMatchResult?.faceMatchScore,
+        reasoning: aiData.reasoning
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

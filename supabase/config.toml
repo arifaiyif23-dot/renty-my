@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.submit-verification]
 verify_jwt = true
 
+[functions.verify-document-ai]
+verify_jwt = true
+
 [functions.validate-promo-code]
 verify_jwt = true
 
