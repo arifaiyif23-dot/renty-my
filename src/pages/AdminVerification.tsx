@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
-import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, CheckSquare, Square, Calendar } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, Brain, Sparkles, RefreshCw } from "lucide-react";
 import Header from "@/components/Header";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { getSignedUrl } from "@/utils/signedUrls";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AIAnalysisCard } from "@/components/AIAnalysisCard";
 
 interface VerificationRequest {
   id: string;
@@ -59,6 +60,7 @@ interface DashboardStats {
   rejectedToday: number;
   highRiskCount: number;
   avgConfidenceScore: number;
+  aiSuggestedApprove: number;
 }
 
 export default function AdminVerification() {
@@ -157,6 +159,10 @@ export default function AdminVerification() {
       const highRisk = verificationsWithProfiles?.filter(v => 
         v.fraud_risk_score && v.fraud_risk_score > 50
       ).length || 0;
+      const aiSuggestedApprove = verificationsWithProfiles?.filter(v => 
+        v.status === 'pending' && 
+        (v.ai_analysis_result as any)?.autoApprove === true
+      ).length || 0;
       const avgScore = verificationsWithProfiles?.reduce((acc, v) => 
         acc + (v.overall_confidence_score || 0), 0
       ) / (verificationsWithProfiles?.length || 1);
@@ -166,12 +172,18 @@ export default function AdminVerification() {
         approvedToday,
         rejectedToday,
         highRiskCount: highRisk,
-        avgConfidenceScore: Math.round(avgScore)
+        avgConfidenceScore: Math.round(avgScore),
+        aiSuggestedApprove
       });
 
       // Apply filters
       let filtered = verificationsWithProfiles || [];
-      if (filterStatus !== "all") {
+      if (filterStatus === "ai_suggested") {
+        filtered = filtered.filter(v => 
+          v.status === 'pending' && 
+          (v.ai_analysis_result as any)?.autoApprove === true
+        );
+      } else if (filterStatus !== "all") {
         filtered = filtered.filter(v => v.status === filterStatus);
       }
       if (filterDocType !== "all") {
@@ -389,11 +401,20 @@ export default function AdminVerification() {
 
         {/* Stats Dashboard */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
             <Card>
               <CardHeader className="pb-3">
                 <CardDescription>Pending Review</CardDescription>
                 <CardTitle className="text-3xl">{stats.pendingCount}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card className={stats.aiSuggestedApprove > 0 ? "border-green-500/50 bg-green-500/5" : ""}>
+              <CardHeader className="pb-3">
+                <CardDescription className="flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  AI Suggested
+                </CardDescription>
+                <CardTitle className="text-3xl text-green-600">{stats.aiSuggestedApprove}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
@@ -457,6 +478,12 @@ export default function AdminVerification() {
                     <SelectContent>
                       <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="ai_suggested">
+                        <span className="flex items-center gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          AI Suggested
+                        </span>
+                      </SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
                       <SelectItem value="approved">Approved</SelectItem>
                       <SelectItem value="rejected">Rejected</SelectItem>
@@ -474,7 +501,7 @@ export default function AdminVerification() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <Select value={filterRiskLevel} onValueChange={setFilterRiskLevel}>
                     <SelectTrigger className="w-[200px]">
                       <ShieldAlert className="h-4 w-4 mr-2" />
@@ -486,31 +513,44 @@ export default function AdminVerification() {
                       <SelectItem value="high">High Risk</SelectItem>
                     </SelectContent>
                   </Select>
-                  {selectedIds.size > 0 && (
-                    <div className="flex gap-2">
-                      <Badge variant="secondary">{selectedIds.size} selected</Badge>
-                      <Button
-                        size="sm"
-                        onClick={handleBatchApprove}
-                        disabled={processing}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {processing ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                        )}
-                        Batch Approve
-                      </Button>
+                  <div className="flex gap-2 flex-wrap">
+                    {stats && stats.aiSuggestedApprove > 0 && filterStatus !== 'ai_suggested' && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedIds(new Set())}
+                        onClick={() => setFilterStatus('ai_suggested')}
+                        className="border-green-500/50 text-green-600 hover:bg-green-500/10"
                       >
-                        Clear Selection
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        View {stats.aiSuggestedApprove} AI Suggested
                       </Button>
-                    </div>
-                  )}
+                    )}
+                    {selectedIds.size > 0 && (
+                      <>
+                        <Badge variant="secondary">{selectedIds.size} selected</Badge>
+                        <Button
+                          size="sm"
+                          onClick={handleBatchApprove}
+                          disabled={processing}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {processing ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                          )}
+                          Batch Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedIds(new Set())}
+                        >
+                          Clear Selection
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -589,7 +629,12 @@ export default function AdminVerification() {
                     )}
                   </div>
 
-                  {verification.overall_confidence_score !== null && (
+                  {/* AI Analysis Results */}
+                  {verification.ai_analysis_result ? (
+                    <div className="mb-4">
+                      <AIAnalysisCard analysis={verification.ai_analysis_result} />
+                    </div>
+                  ) : verification.overall_confidence_score !== null ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-4 bg-muted rounded-lg">
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Overall</p>
@@ -607,6 +652,11 @@ export default function AdminVerification() {
                         <p className="text-xs text-muted-foreground mb-1">Liveness</p>
                         <p className="text-lg font-bold">{verification.liveness_score}%</p>
                       </div>
+                    </div>
+                  ) : (
+                    <div className="mb-4 p-4 bg-muted/50 rounded-lg flex items-center gap-2 text-muted-foreground">
+                      <Brain className="h-5 w-5" />
+                      <span className="text-sm">AI analysis not yet performed</span>
                     </div>
                   )}
 
