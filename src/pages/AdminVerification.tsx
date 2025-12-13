@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
-import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, Brain, Sparkles, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, Brain, Sparkles, RefreshCw, Keyboard } from "lucide-react";
 import Header from "@/components/Header";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { getSignedUrl } from "@/utils/signedUrls";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AIAnalysisCard } from "@/components/AIAnalysisCard";
+import { DocumentViewerModal } from "@/components/DocumentViewerModal";
+import { useAdminKeyboardShortcuts } from "@/hooks/use-admin-keyboard-shortcuts";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface VerificationRequest {
   id: string;
@@ -82,6 +84,9 @@ export default function AdminVerification() {
   const [processing, setProcessing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState("verifications");
+  const [showDocViewer, setShowDocViewer] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -344,6 +349,12 @@ export default function AdminVerification() {
     setShowDialog(true);
   };
 
+  const openDocViewer = (verification: VerificationRequest, index: number) => {
+    setSelectedVerification(verification);
+    setSelectedIndex(index);
+    setShowDocViewer(true);
+  };
+
   const filteredVerifications = verifications.filter(v => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -352,6 +363,35 @@ export default function AdminVerification() {
       v.ic_number?.toLowerCase().includes(query) ||
       v.profiles?.full_name?.toLowerCase().includes(query)
     );
+  });
+
+  // Get pending verifications for keyboard navigation
+  const pendingVerifications = filteredVerifications.filter(v => v.status === 'pending');
+  const currentPendingVerification = selectedIndex >= 0 && selectedIndex < pendingVerifications.length 
+    ? pendingVerifications[selectedIndex] 
+    : null;
+
+  // Keyboard shortcuts
+  useAdminKeyboardShortcuts({
+    onApprove: currentPendingVerification ? () => openActionDialog(currentPendingVerification, 'approve') : undefined,
+    onReject: currentPendingVerification ? () => openActionDialog(currentPendingVerification, 'reject') : undefined,
+    onViewDocuments: currentPendingVerification ? () => openDocViewer(currentPendingVerification, selectedIndex) : undefined,
+    onNextItem: () => {
+      if (pendingVerifications.length > 0) {
+        const newIndex = selectedIndex < pendingVerifications.length - 1 ? selectedIndex + 1 : 0;
+        setSelectedIndex(newIndex);
+        setSelectedVerification(pendingVerifications[newIndex]);
+      }
+    },
+    onPrevItem: () => {
+      if (pendingVerifications.length > 0) {
+        const newIndex = selectedIndex > 0 ? selectedIndex - 1 : pendingVerifications.length - 1;
+        setSelectedIndex(newIndex);
+        setSelectedVerification(pendingVerifications[newIndex]);
+      }
+    },
+    onRefresh: fetchData,
+    enabled: activeTab === 'verifications' && !showDialog && !showDocViewer
   });
 
   const getStatusBadge = (status: string) => {
@@ -391,12 +431,34 @@ export default function AdminVerification() {
             <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
             <p className="text-muted-foreground">Review verifications, manage fraud alerts, and approve users</p>
           </div>
-          {connectionState === 'connected' && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <span>Live Updates Active</span>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setShowShortcutsHelp(!showShortcutsHelp)}>
+                    <Keyboard className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs">
+                  <div className="text-xs space-y-1">
+                    <p className="font-semibold mb-2">Keyboard Shortcuts</p>
+                    <p><kbd className="bg-muted px-1 rounded">A</kbd> Approve selected</p>
+                    <p><kbd className="bg-muted px-1 rounded">R</kbd> Reject selected</p>
+                    <p><kbd className="bg-muted px-1 rounded">V</kbd> View documents</p>
+                    <p><kbd className="bg-muted px-1 rounded">↑/K</kbd> Previous item</p>
+                    <p><kbd className="bg-muted px-1 rounded">↓/J</kbd> Next item</p>
+                    <p><kbd className="bg-muted px-1 rounded">Shift+R</kbd> Refresh</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {connectionState === 'connected' && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span>Live Updates Active</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Dashboard */}
@@ -664,53 +726,13 @@ export default function AdminVerification() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={async () => {
-                        setSelectedVerification(verification);
-                        try {
-                          // Extract path and generate signed URLs
-                          const extractPath = (url: string) => {
-                            const parts = url.split('/storage/v1/object/');
-                            if (parts.length < 2) {
-                              const publicParts = url.split('/storage/v1/object/public/');
-                              if (publicParts.length >= 2) {
-                                return publicParts[1].split('/').slice(1).join('/');
-                              }
-                            } else {
-                              return parts[1].split('/').slice(1).join('/').replace('public/', '');
-                            }
-                            return url.split('verification-documents/').pop() || url;
-                          };
-                          
-                          const frontPath = extractPath(verification.document_front_url);
-                          const frontUrl = await getSignedUrl(frontPath);
-                          
-                          // Log access
-                          await supabase.from('sensitive_data_access_log').insert({
-                            user_id: verification.user_id,
-                            resource_type: 'verification_document',
-                            resource_id: verification.document_front_url,
-                            access_type: 'admin_view'
-                          });
-                          
-                          window.open(frontUrl, '_blank');
-                          
-                          if (verification.document_back_url) {
-                            const backPath = extractPath(verification.document_back_url);
-                            const backUrl = await getSignedUrl(backPath);
-                            window.open(backUrl, '_blank');
-                          }
-                          
-                          const selfiePath = extractPath(verification.selfie_url);
-                          const selfieUrl = await getSignedUrl(selfiePath);
-                          window.open(selfieUrl, '_blank');
-                        } catch (error) {
-                          toast.error("Failed to load documents");
-                          console.error(error);
-                        }
+                      onClick={() => {
+                        const index = pendingVerifications.findIndex(v => v.id === verification.id);
+                        openDocViewer(verification, index >= 0 ? index : 0);
                       }}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      View Documents
+                      View Documents (V)
                     </Button>
                     {verification.status === 'pending' && (
                       <>
@@ -877,6 +899,21 @@ export default function AdminVerification() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Document Viewer Modal */}
+        <DocumentViewerModal
+          open={showDocViewer}
+          onOpenChange={setShowDocViewer}
+          verification={selectedVerification}
+          onApprove={selectedVerification?.status === 'pending' ? () => {
+            setShowDocViewer(false);
+            openActionDialog(selectedVerification!, 'approve');
+          } : undefined}
+          onReject={selectedVerification?.status === 'pending' ? () => {
+            setShowDocViewer(false);
+            openActionDialog(selectedVerification!, 'reject');
+          } : undefined}
+        />
       </div>
     </>
   );
