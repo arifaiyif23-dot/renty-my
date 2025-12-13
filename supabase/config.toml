@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.validate-listing-content]
 verify_jwt = true
+
+[functions.resend-webhook]
+verify_jwt = false

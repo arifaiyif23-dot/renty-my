@@ -18,9 +18,11 @@ import {
   Search,
   Filter,
   RefreshCw,
-  FileCheck
+  FileCheck,
+  Mail
 } from "lucide-react";
 import Header from "@/components/Header";
+import EmailAnalytics from "@/components/EmailAnalytics";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -395,7 +397,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">
               <TrendingUp className="h-4 w-4 mr-2" />
               Overview
@@ -413,6 +415,10 @@ export default function AdminDashboard() {
               {stats.pendingVerifications > 0 && (
                 <Badge className="ml-2" variant="secondary">{stats.pendingVerifications}</Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="email">
+              <Mail className="h-4 w-4 mr-2" />
+              Email
             </TabsTrigger>
           </TabsList>
 
@@ -847,6 +853,11 @@ export default function AdminDashboard() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Email Tab */}
+        <TabsContent value="email">
+          <EmailAnalytics />
+        </TabsContent>
       </div>
     </>
   );

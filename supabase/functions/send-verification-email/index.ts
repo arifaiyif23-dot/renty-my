@@ -15,6 +15,32 @@ const getFromEmail = () => {
   return 'Renty <onboarding@resend.dev>';
 };
 
+// Helper function to log email to database
+async function logEmail(
+  supabase: any,
+  resendEmailId: string | null,
+  toEmail: string,
+  subject: string,
+  templateType: string,
+  metadata: any = {},
+  errorMessage: string | null = null
+) {
+  try {
+    await supabase.from('email_logs').insert({
+      resend_email_id: resendEmailId,
+      to_email: toEmail,
+      subject: subject,
+      template_type: templateType,
+      status: errorMessage ? 'failed' : 'sent',
+      error_message: errorMessage,
+      metadata: metadata
+    });
+    console.log(`Email logged: ${templateType} to ${toEmail}`);
+  } catch (logError) {
+    console.error('Failed to log email:', logError);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -37,7 +63,6 @@ serve(async (req) => {
 
     console.log(`Sending verification email for user ${userId}, status: ${status}`);
 
-    // Get user email
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
     
     if (userError || !userData?.user?.email) {
@@ -46,7 +71,6 @@ serve(async (req) => {
 
     const userEmail = userData.user.email;
 
-    // Get user profile name
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name')
@@ -57,8 +81,10 @@ serve(async (req) => {
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://renty.my';
 
     let emailContent: { subject: string; html: string };
+    let templateType: string;
 
     if (status === 'approved') {
+      templateType = 'verification_approved';
       emailContent = {
         subject: '🎉 Your Renty Identity Verification is Approved!',
         html: `
@@ -100,6 +126,7 @@ serve(async (req) => {
         `,
       };
     } else if (status === 'rejected') {
+      templateType = 'verification_rejected';
       const reasonMap: Record<string, string> = {
         'poor_quality': 'The uploaded document image was not clear enough. Please upload a clearer photo.',
         'face_mismatch': 'The selfie did not match the photo on the document. Please ensure you take a clear selfie matching your ID photo.',
@@ -164,19 +191,29 @@ serve(async (req) => {
       );
     }
 
-    const emailResult = await resend.emails.send({
-      from: fromEmail,
-      to: [userEmail],
-      subject: emailContent.subject,
-      html: emailContent.html,
-    });
+    try {
+      const emailResult = await resend.emails.send({
+        from: fromEmail,
+        to: [userEmail],
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
 
-    console.log('Verification email sent:', emailResult);
+      console.log('Verification email sent:', emailResult);
+      
+      await logEmail(supabase, emailResult.data?.id || null, userEmail, emailContent.subject, templateType, {
+        user_id: userId,
+        rejection_reason: rejectionReason
+      });
 
-    return new Response(
-      JSON.stringify({ success: true, emailId: emailResult.data?.id }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      return new Response(
+        JSON.stringify({ success: true, emailId: emailResult.data?.id }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (emailError: any) {
+      await logEmail(supabase, null, userEmail, emailContent.subject, templateType, { user_id: userId }, emailError.message);
+      throw emailError;
+    }
 
   } catch (error: any) {
     console.error('Verification email error:', error);

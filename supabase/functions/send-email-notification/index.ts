@@ -7,15 +7,39 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Get FROM email from env or use default (configure RESEND_FROM_EMAIL for production)
 const getFromEmail = () => {
   const customFrom = Deno.env.get('RESEND_FROM_EMAIL');
   if (customFrom) {
     return `Renty <${customFrom}>`;
   }
-  // Default for development - will go to spam in production
   return 'Renty <onboarding@resend.dev>';
 };
+
+// Helper function to log email to database
+async function logEmail(
+  supabase: any,
+  resendEmailId: string | null,
+  toEmail: string,
+  subject: string,
+  templateType: string,
+  metadata: any = {},
+  errorMessage: string | null = null
+) {
+  try {
+    await supabase.from('email_logs').insert({
+      resend_email_id: resendEmailId,
+      to_email: toEmail,
+      subject: subject,
+      template_type: templateType,
+      status: errorMessage ? 'failed' : 'sent',
+      error_message: errorMessage,
+      metadata: metadata
+    });
+    console.log(`Email logged: ${templateType} to ${toEmail}`);
+  } catch (logError) {
+    console.error('Failed to log email:', logError);
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -46,7 +70,6 @@ serve(async (req) => {
     if (type === 'INSERT' && record.status === 'pending_approval') {
       console.log('Processing new rental request notification');
       
-      // Fetch owner, renter, and item details
       const { data: rental, error: rentalError } = await supabase
         .from('rentals')
         .select(`
@@ -61,24 +84,36 @@ serve(async (req) => {
         throw new Error(`Failed to fetch rental details: ${rentalError?.message}`);
       }
 
-      // Get owner's email
       const { data: ownerAuth } = await supabase.auth.admin.getUserById(rental.owner_id);
       
       if (ownerAuth?.user?.email) {
-        const emailResult = await resend.emails.send({
-          from: fromEmail,
-          to: [ownerAuth.user.email],
-          subject: 'New Rental Request for Your Item',
-          html: `
-            <h2>You have a new rental request!</h2>
-            <p>Renter: ${rental.renter.full_name} ${rental.renter.is_verified ? '✓ Verified' : ''}</p>
-            <p>Item: ${rental.item.title}</p>
-            <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
-            <p>Total Price: RM ${rental.total_price}</p>
-            <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">Review Request</a></p>
-          `,
-        });
-        console.log('New request email sent to owner:', emailResult);
+        const subject = 'New Rental Request for Your Item';
+        const templateType = 'rental_request';
+        
+        try {
+          const emailResult = await resend.emails.send({
+            from: fromEmail,
+            to: [ownerAuth.user.email],
+            subject: subject,
+            html: `
+              <h2>You have a new rental request!</h2>
+              <p>Renter: ${rental.renter.full_name} ${rental.renter.is_verified ? '✓ Verified' : ''}</p>
+              <p>Item: ${rental.item.title}</p>
+              <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+              <p>Total Price: RM ${rental.total_price}</p>
+              <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">Review Request</a></p>
+            `,
+          });
+          console.log('New request email sent to owner:', emailResult);
+          
+          await logEmail(supabase, emailResult.data?.id || null, ownerAuth.user.email, subject, templateType, {
+            rental_id: record.id,
+            item_title: rental.item.title
+          });
+        } catch (emailError: any) {
+          await logEmail(supabase, null, ownerAuth.user.email, subject, templateType, { rental_id: record.id }, emailError.message);
+          throw emailError;
+        }
       }
     }
 
@@ -86,7 +121,6 @@ serve(async (req) => {
     if (type === 'UPDATE' && record.status !== old_record?.status) {
       console.log(`Processing status change: ${old_record?.status} -> ${record.status}`);
 
-      // Fetch rental details
       const { data: rental, error: rentalError } = await supabase
         .from('rentals')
         .select(`
@@ -107,21 +141,34 @@ serve(async (req) => {
         const { data: renterAuth } = await supabase.auth.admin.getUserById(rental.renter_id);
         
         if (renterAuth?.user?.email) {
-          const emailResult = await resend.emails.send({
-            from: fromEmail,
-            to: [renterAuth.user.email],
-            subject: 'Rental Request Approved!',
-            html: `
-              <h2>Great news! Your rental request has been approved.</h2>
-              <p>Item: ${rental.item.title}</p>
-              <p>Owner: ${rental.owner.full_name}</p>
-              <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
-              <p>Total Price: RM ${rental.total_price}</p>
-              <p><strong>Next Step:</strong> Complete your payment to confirm the booking.</p>
-              <p><a href="${Deno.env.get('FRONTEND_URL')}/dashboard">Pay Now</a></p>
-            `,
-          });
-          console.log('Approval email sent to renter:', emailResult);
+          const subject = 'Rental Request Approved!';
+          const templateType = 'rental_approved';
+          
+          try {
+            const emailResult = await resend.emails.send({
+              from: fromEmail,
+              to: [renterAuth.user.email],
+              subject: subject,
+              html: `
+                <h2>Great news! Your rental request has been approved.</h2>
+                <p>Item: ${rental.item.title}</p>
+                <p>Owner: ${rental.owner.full_name}</p>
+                <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+                <p>Total Price: RM ${rental.total_price}</p>
+                <p><strong>Next Step:</strong> Complete your payment to confirm the booking.</p>
+                <p><a href="${Deno.env.get('FRONTEND_URL')}/dashboard">Pay Now</a></p>
+              `,
+            });
+            console.log('Approval email sent to renter:', emailResult);
+            
+            await logEmail(supabase, emailResult.data?.id || null, renterAuth.user.email, subject, templateType, {
+              rental_id: record.id,
+              item_title: rental.item.title
+            });
+          } catch (emailError: any) {
+            await logEmail(supabase, null, renterAuth.user.email, subject, templateType, { rental_id: record.id }, emailError.message);
+            throw emailError;
+          }
         }
       }
 
@@ -130,22 +177,36 @@ serve(async (req) => {
         const { data: ownerAuth } = await supabase.auth.admin.getUserById(rental.owner_id);
         
         if (ownerAuth?.user?.email) {
-          const emailResult = await resend.emails.send({
-            from: fromEmail,
-            to: [ownerAuth.user.email],
-            subject: 'Payment Received - Rental Confirmed',
-            html: `
-              <h2>Payment received for your rental!</h2>
-              <p>Item: ${rental.item.title}</p>
-              <p>Renter: ${rental.renter.full_name}</p>
-              <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
-              <p>Total Price: RM ${rental.total_price}</p>
-              ${record.pickup_code ? `<p><strong>Pickup Code:</strong> ${record.pickup_code}</p>` : ''}
-              <p>The renter will provide this code during item pickup.</p>
-              <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">View Details</a></p>
-            `,
-          });
-          console.log('Payment confirmation email sent to owner:', emailResult);
+          const subject = 'Payment Received - Rental Confirmed';
+          const templateType = 'rental_paid';
+          
+          try {
+            const emailResult = await resend.emails.send({
+              from: fromEmail,
+              to: [ownerAuth.user.email],
+              subject: subject,
+              html: `
+                <h2>Payment received for your rental!</h2>
+                <p>Item: ${rental.item.title}</p>
+                <p>Renter: ${rental.renter.full_name}</p>
+                <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+                <p>Total Price: RM ${rental.total_price}</p>
+                ${record.pickup_code ? `<p><strong>Pickup Code:</strong> ${record.pickup_code}</p>` : ''}
+                <p>The renter will provide this code during item pickup.</p>
+                <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">View Details</a></p>
+              `,
+            });
+            console.log('Payment confirmation email sent to owner:', emailResult);
+            
+            await logEmail(supabase, emailResult.data?.id || null, ownerAuth.user.email, subject, templateType, {
+              rental_id: record.id,
+              item_title: rental.item.title,
+              pickup_code: record.pickup_code
+            });
+          } catch (emailError: any) {
+            await logEmail(supabase, null, ownerAuth.user.email, subject, templateType, { rental_id: record.id }, emailError.message);
+            throw emailError;
+          }
         }
       }
 
@@ -154,20 +215,33 @@ serve(async (req) => {
         const { data: renterAuth } = await supabase.auth.admin.getUserById(rental.renter_id);
         
         if (renterAuth?.user?.email) {
-          const emailResult = await resend.emails.send({
-            from: fromEmail,
-            to: [renterAuth.user.email],
-            subject: 'Rental Request Update',
-            html: `
-              <h2>Update on your rental request</h2>
-              <p>Unfortunately, your rental request for <strong>${rental.item.title}</strong> was not approved.</p>
-              <p>Owner: ${rental.owner.full_name}</p>
-              <p>Requested Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
-              <p>Don't worry! There are plenty of other items available on Renty.</p>
-              <p><a href="${Deno.env.get('FRONTEND_URL')}/search">Browse More Items</a></p>
-            `,
-          });
-          console.log('Rejection email sent to renter:', emailResult);
+          const subject = 'Rental Request Update';
+          const templateType = 'rental_rejected';
+          
+          try {
+            const emailResult = await resend.emails.send({
+              from: fromEmail,
+              to: [renterAuth.user.email],
+              subject: subject,
+              html: `
+                <h2>Update on your rental request</h2>
+                <p>Unfortunately, your rental request for <strong>${rental.item.title}</strong> was not approved.</p>
+                <p>Owner: ${rental.owner.full_name}</p>
+                <p>Requested Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+                <p>Don't worry! There are plenty of other items available on Renty.</p>
+                <p><a href="${Deno.env.get('FRONTEND_URL')}/search">Browse More Items</a></p>
+              `,
+            });
+            console.log('Rejection email sent to renter:', emailResult);
+            
+            await logEmail(supabase, emailResult.data?.id || null, renterAuth.user.email, subject, templateType, {
+              rental_id: record.id,
+              item_title: rental.item.title
+            });
+          } catch (emailError: any) {
+            await logEmail(supabase, null, renterAuth.user.email, subject, templateType, { rental_id: record.id }, emailError.message);
+            throw emailError;
+          }
         }
       }
     }
@@ -179,11 +253,6 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Email notification error:', error);
-    
-    // Log more details for debugging
-    if (error.response) {
-      console.error('Resend API error response:', error.response);
-    }
     
     return new Response(
       JSON.stringify({ 
