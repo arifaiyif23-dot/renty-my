@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AIAnalysisCard } from "@/components/AIAnalysisCard";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
+import { VerificationAnalytics } from "@/components/VerificationAnalytics";
 import { useAdminKeyboardShortcuts } from "@/hooks/use-admin-keyboard-shortcuts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -242,6 +243,14 @@ export default function AdminVerification() {
 
       if (updateError) throw updateError;
 
+      // Update user profile verification status if approved
+      if (actionType === 'approve') {
+        await supabase
+          .from('profiles')
+          .update({ is_verified: true })
+          .eq('id', selectedVerification.user_id);
+      }
+
       // Create notification
       await (supabase as any).from('notifications').insert({
         user_id: selectedVerification.user_id,
@@ -263,6 +272,20 @@ export default function AdminVerification() {
           admin_notes: adminNotes
         }
       });
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-verification-email', {
+          body: {
+            userId: selectedVerification.user_id,
+            status: actionType === 'approve' ? 'approved' : 'rejected',
+            rejectionReason: rejectionReason
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Don't fail the whole operation if email fails
+      }
 
       toast.success(`Verification ${actionType === 'approve' ? 'approved' : 'rejected'} successfully`);
       setShowDialog(false);
@@ -507,14 +530,21 @@ export default function AdminVerification() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="verifications">
               Verifications ({stats?.pendingCount || 0})
             </TabsTrigger>
             <TabsTrigger value="fraud">
               Fraud Alerts ({fraudAlerts.length})
             </TabsTrigger>
+            <TabsTrigger value="analytics">
+              Analytics
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <VerificationAnalytics />
+          </TabsContent>
 
           <TabsContent value="verifications">
             {/* Filters */}
