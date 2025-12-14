@@ -6,6 +6,7 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import Header from "@/components/Header";
 import heroBanner from "@/assets/hero-banner.jpg";
+import rentyLogo from "@/assets/renty-logo.png";
 import SearchBar from "@/components/SearchBar";
 import { AnimatedCategoryIcon } from "@/components/AnimatedCategoryIcon";
 import { AnimatedStepCard } from "@/components/AnimatedStepCard";
@@ -261,10 +262,18 @@ const Index = () => {
               </Badge>
             </div>
             
-            <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
+            {/* Renty Brand Logo & Name */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <img src={rentyLogo} alt="Renty" className="h-14 md:h-20 w-auto" />
+              <span className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-primary">
+                Renty
+              </span>
+            </div>
+            
+            <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
               Rent Anything.{" "}
               <span className="block mt-2">Earn from Anything.</span>
-              <span className="text-primary block mt-2">From Cameras to Cars.</span>
+              <span className="text-muted-foreground block mt-2 text-2xl md:text-3xl">From Cameras to Cars.</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
