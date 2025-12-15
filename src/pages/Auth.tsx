@@ -13,6 +13,7 @@ import logo from "@/assets/renty-logo.png";
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
 import { checkRateLimit } from '@/utils/securityHelpers';
+import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Invalid email address').toLowerCase(),
@@ -198,6 +199,9 @@ export default function Auth() {
                         <Eye className="h-5 w-5 text-muted-foreground" />
                       )}
                     </Button>
+                  </div>
+                  <div className="flex justify-end">
+                    <ForgotPasswordDialog />
                   </div>
                 </div>
                 <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
