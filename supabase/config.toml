@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.send-verification-email]
 verify_jwt = true
 
+[functions.send-welcome-email]
+verify_jwt = false
+
 [functions.generate-signed-url]
 verify_jwt = true
 
