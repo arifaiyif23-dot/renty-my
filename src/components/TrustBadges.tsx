@@ -29,11 +29,10 @@ export const TrustBadges = () => {
     if (num >= 1000) {
       return `${Math.floor(num / 1000)}K+`;
     }
-    if (num >= 100) {
+    if (num > 0) {
       return `${num}+`;
     }
-    // For low numbers, show aspirational values
-    return "500+";
+    return "—";
   };
 
   const fetchStats = async () => {
@@ -60,21 +59,20 @@ export const TrustBadges = () => {
             reviewsData.length
           : 4.8;
 
-      // Use real data if substantial, otherwise show growth values
+      // Use real data
       setStats({
-        totalItems: (itemCount && itemCount >= 100) ? itemCount : 500,
-        totalUsers: (userCount && userCount >= 100) ? userCount : 1200,
+        totalItems: itemCount || 0,
+        totalUsers: userCount || 0,
         avgRating: Math.round(avgRating * 10) / 10,
-        sameDayCount: Math.floor((itemCount || 500) * 0.7),
+        sameDayCount: Math.floor((itemCount || 0) * 0.7),
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
-      // Fallback values for launch
       setStats({
-        totalItems: 500,
-        totalUsers: 1200,
-        avgRating: 4.8,
-        sameDayCount: 350,
+        totalItems: 0,
+        totalUsers: 0,
+        avgRating: 5.0,
+        sameDayCount: 0,
       });
     } finally {
       setLoading(false);
@@ -106,11 +104,11 @@ export const TrustBadges = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8">
+      <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="glass-card px-6 py-3 rounded-full h-16 w-32 animate-pulse"
+            className="bg-card/80 backdrop-blur-sm border border-border/50 px-4 py-2 rounded-full h-12 w-28 animate-pulse"
           />
         ))}
       </div>
@@ -118,17 +116,16 @@ export const TrustBadges = () => {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+    <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
       {badges.map((badge, index) => (
         <div
           key={index}
-          className="glass-card px-6 py-3 rounded-full flex items-center gap-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 animate-scale-in"
-          style={{ animationDelay: `${index * 0.1 + 0.4}s` }}
+          className="bg-card/80 backdrop-blur-sm border border-border/50 px-4 py-2 rounded-full flex items-center gap-2 hover:bg-card hover:shadow-md transition-all duration-200"
         >
-          <badge.icon className="w-5 h-5 text-primary" />
+          <badge.icon className="w-4 h-4 text-primary" />
           <div className="text-left">
-            <div className="font-bold text-sm">{badge.value}</div>
-            <div className="text-xs text-muted-foreground">{badge.label}</div>
+            <span className="font-semibold text-sm">{badge.value}</span>
+            <span className="text-xs text-muted-foreground ml-1">{badge.label}</span>
           </div>
         </div>
       ))}
