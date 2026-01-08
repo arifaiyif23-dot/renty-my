@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import ItemCard from "@/components/ItemCard";
 import SkeletonCard from "@/components/SkeletonCard";
-import EmptyState from "@/components/EmptyState";
+import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import SEO from "@/components/SEO";
 import { Heart, Trash2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -102,12 +102,14 @@ export default function Wishlist() {
             ))}
           </div>
         ) : (
-          <EmptyState
+          <EnhancedEmptyState
             icon={Heart}
-            title="No Saved Items"
-            description="Start adding items to your wishlist to see them here"
+            title="No Saved Items Yet"
+            description="Save items you love to easily find them later. Tap the heart icon on any listing to add it here."
             actionLabel="Browse Items"
             onAction={() => navigate('/search')}
+            secondaryActionLabel="Explore Categories"
+            onSecondaryAction={() => navigate('/')}
           />
         )}
       </div>

@@ -14,7 +14,7 @@ import {
   Edit, Pause, Play, Copy, Trash2, MoreVertical, TrendingUp,
   Calendar, DollarSign, Star, Heart, Inbox
 } from 'lucide-react';
-import EmptyState from '@/components/EmptyState';
+import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import SkeletonCard from '@/components/SkeletonCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
 import { toast } from 'sonner';
@@ -392,12 +392,14 @@ export default function MyListings() {
               ))}
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (
-            <EmptyState
+            <EnhancedEmptyState
               icon={List}
               title={t('listings.noListings')}
-              description={t('listings.noListingsDesc')}
+              description="Start earning by listing your first item. It only takes a few minutes to set up."
               actionLabel={t('listings.createNew')}
               onAction={() => navigate('/list-item')}
+              secondaryActionLabel="Learn How It Works"
+              onSecondaryAction={() => navigate('/#how-it-works')}
             />
           ) : (
             <div className={cn(

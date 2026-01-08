@@ -20,7 +20,7 @@ const OnboardingGuide = lazy(() => import("@/components/OnboardingGuide").then(m
 const SocialProofSection = lazy(() => import("@/components/SocialProofSection").then(m => ({ default: m.SocialProofSection })));
 const RecentlyViewed = lazy(() => import("@/components/RecentlyViewed").then(m => ({ default: m.RecentlyViewed })));
 import SkeletonCard from "@/components/SkeletonCard";
-import EmptyState from "@/components/EmptyState";
+import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import SEO from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [footerDialog, setFooterDialog] = useState<string | null>(null);
+  const [totalItemCount, setTotalItemCount] = useState<number>(0);
   
   const { ref: featuredRef, inView: featuredInView } = useInView({
     triggerOnce: true,
@@ -130,7 +131,7 @@ const Index = () => {
   const fetchData = async () => {
     try {
       // Combine queries using Promise.all for better performance
-      const [itemsResult, categoryResult] = await Promise.all([
+      const [itemsResult, categoryResult, countResult] = await Promise.all([
         supabase
           .from('items')
           .select(`
@@ -150,8 +151,17 @@ const Index = () => {
         supabase
           .from('items')
           .select('category, price_per_day')
+          .eq('is_available', true),
+        supabase
+          .from('items')
+          .select('*', { count: 'exact', head: true })
           .eq('is_available', true)
       ]);
+      
+      // Set total item count
+      if (countResult.count !== null) {
+        setTotalItemCount(countResult.count);
+      }
 
       if (itemsResult.error) throw itemsResult.error;
 
@@ -245,7 +255,7 @@ const Index = () => {
     <div className="min-h-screen pb-mobile-nav">
       <SEO
         title="Rent Anything, Earn from Anything"
-        description="Malaysia's trusted P2P rental marketplace. Access 500+ verified items from cameras to cars. Rent what you need or earn from what you own. Insured & verified."
+        description={`Malaysia's trusted P2P rental marketplace. Access ${totalItemCount || 'hundreds of'} verified items from cameras to cars. Rent what you need or earn from what you own. Insured & verified.`}
       />
       <Header />
 
@@ -277,7 +287,7 @@ const Index = () => {
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Malaysia's trusted peer-to-peer rental platform. Access thousands of items without buying, or earn from what you already own.
+              Malaysia's trusted peer-to-peer rental platform. Access {totalItemCount > 0 ? `${totalItemCount}+ items` : 'thousands of items'} without buying, or earn from what you already own.
             </p>
             
             {/* Primary CTAs */}
@@ -380,12 +390,14 @@ const Index = () => {
               ))}
             </div>
           ) : (
-            <EmptyState
+            <EnhancedEmptyState
               icon={Package}
-              title="No Items Available"
-              description="Be the first to list an item on RENTY and start earning!"
+              title="No Items Available Yet"
+              description="Be the first to list an item on RENTY and start earning from things you own!"
               actionLabel="List Your First Item"
               onAction={() => navigate('/list-item')}
+              secondaryActionLabel="Learn How It Works"
+              onSecondaryAction={() => navigate('#how-it-works')}
             />
           )}
         </div>
