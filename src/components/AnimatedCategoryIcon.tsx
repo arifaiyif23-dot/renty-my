@@ -26,20 +26,20 @@ export const AnimatedCategoryIcon = memo(({
       tabIndex={0}
       aria-label={`Browse ${name} category with ${count} items${minPrice ? ` starting from RM ${minPrice}` : ''}`}
     >
-      <Card className="card-minimal p-6 text-center hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-200">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/20 transition-colors">
-          <Icon className="w-8 h-8 text-primary" aria-hidden="true" />
+      <Card className="card-minimal p-5 text-center hover:shadow-lg hover:-translate-y-1 active:scale-[0.98] transition-all duration-200 border-border/50">
+        <div className="w-14 h-14 bg-gradient-to-br from-primary/15 to-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:from-primary/25 group-hover:to-primary/10 transition-colors">
+          <Icon className="w-7 h-7 text-primary" aria-hidden="true" />
         </div>
         <div>
-          <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-base mb-0.5 group-hover:text-primary transition-colors">
             {name}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {count} {count === 1 ? 'item' : 'items'}
           </p>
           {minPrice && (
-            <p className="text-xs text-primary font-medium mt-1">
-              From RM {minPrice}/day
+            <p className="text-xs text-primary/80 font-medium mt-1">
+              From RM{minPrice}/day
             </p>
           )}
         </div>

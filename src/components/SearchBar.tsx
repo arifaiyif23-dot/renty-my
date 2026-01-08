@@ -57,52 +57,58 @@ const SearchBar = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-card rounded-[20px] shadow-lg p-2 border border-border/50">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="bg-card rounded-2xl shadow-lg border border-border/50 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] divide-y md:divide-y-0 md:divide-x divide-border/50">
           {/* Location */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors">
-            <MapPin className="h-5 w-5 text-primary shrink-0" />
-            <div className="flex-1 min-w-0 relative">
-              <label className="block text-xs font-medium text-muted-foreground mb-1">
+          <div className="flex items-center gap-3 px-4 py-3 hover:bg-accent/5 transition-colors group">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+              <MapPin className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="block text-xs font-medium text-muted-foreground">
                 Location
               </label>
-              <Input
-                type="text"
-                placeholder="City or area"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="border-0 p-0 pr-8 h-auto focus-visible:ring-0 text-sm bg-transparent"
-                aria-label="Enter location"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-6 min-h-[44px] min-w-[44px]"
-                onClick={getUserLocation}
-                disabled={gettingLocation}
-                aria-label={gettingLocation ? "Getting your location" : "Use current location"}
-              >
-                {gettingLocation ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <MapPin className="h-4 w-4" />
-                )}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Input
+                  type="text"
+                  placeholder="City or area"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="border-0 p-0 h-auto focus-visible:ring-0 text-sm font-medium bg-transparent placeholder:text-muted-foreground/60"
+                  aria-label="Enter location"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 shrink-0"
+                  onClick={getUserLocation}
+                  disabled={gettingLocation}
+                  aria-label={gettingLocation ? "Getting your location" : "Use current location"}
+                >
+                  {gettingLocation ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : (
+                    <MapPin className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Dates */}
           <Popover>
             <PopoverTrigger asChild>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-accent/5 transition-colors cursor-pointer">
-                <Calendar className="h-5 w-5 text-primary shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 hover:bg-accent/5 transition-colors cursor-pointer group">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  <label className="block text-xs font-medium text-muted-foreground">
                     Dates
                   </label>
-                  <p className="text-sm">
+                  <p className="text-sm font-medium truncate">
                     {dateRange?.from ? (
                       dateRange.to ? (
                         `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
@@ -110,7 +116,7 @@ const SearchBar = () => {
                         format(dateRange.from, "MMM d")
                       )
                     ) : (
-                      "Select dates"
+                      <span className="text-muted-foreground/60">Select dates</span>
                     )}
                   </p>
                 </div>
@@ -130,15 +136,15 @@ const SearchBar = () => {
           </Popover>
 
           {/* Search Button */}
-          <div className="flex items-center justify-center md:justify-end px-2">
+          <div className="flex items-center p-2">
             <Button 
               size="lg" 
               onClick={handleSearch} 
-              className="w-full md:w-auto gap-2 rounded-xl min-h-[44px]"
+              className="w-full md:w-auto gap-2 rounded-xl h-12 px-6 shadow-sm hover:shadow-md transition-shadow"
               aria-label="Search for rental items"
             >
               <Search className="h-4 w-4" />
-              <span>Search</span>
+              <span className="font-medium">Search</span>
             </Button>
           </div>
         </div>
