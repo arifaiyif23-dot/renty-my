@@ -311,34 +311,52 @@ export default function Earnings() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" /> Total Earnings
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">RM {stats.totalEarnings.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-2">All time earnings</p>
+              <div className="text-2xl font-bold">RM {stats.totalEarnings.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">All time</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Shield className="h-3 w-3" /> Held in Escrow
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.pendingPayouts}</div>
-              <p className="text-xs text-muted-foreground mt-2">Awaiting processing</p>
+              <div className="text-2xl font-bold">RM {stats.heldAmount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Released after rental ends</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Completed Payouts</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Pending Payout
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.completedPayouts}</div>
-              <p className="text-xs text-muted-foreground mt-2">Successfully paid</p>
+              <div className="text-2xl font-bold">RM {stats.pendingAmount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stats.pendingPayouts} in queue</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" /> Paid Out
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">RM {stats.paidAmount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stats.completedPayouts} completed</p>
             </CardContent>
           </Card>
         </div>
