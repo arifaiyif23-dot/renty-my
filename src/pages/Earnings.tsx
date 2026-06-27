@@ -283,6 +283,7 @@ export default function Earnings() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Bank Account Warning */}
