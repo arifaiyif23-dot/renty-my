@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import { AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
-import { EnhancedEmptyState } from "@/components/EnhancedEmptyState";
+import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import { format } from "date-fns";
 
 interface Dispute {
