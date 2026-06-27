@@ -27,7 +27,7 @@ type FlowLog = {
   stage: string;
   created_at: string;
   rental_id: string | null;
-  metadata: any;
+  details?: any;
 };
 
 export default function AdminHealth() {
