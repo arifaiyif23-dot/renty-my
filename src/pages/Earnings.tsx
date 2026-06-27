@@ -226,6 +226,11 @@ export default function Earnings() {
               Track your rental earnings and manage payouts
             </p>
           </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
           <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
             <DialogTrigger asChild>
               <Button variant={bankAccount ? "outline" : "default"}>
