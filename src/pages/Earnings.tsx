@@ -59,8 +59,11 @@ export default function Earnings() {
 
   const [stats, setStats] = useState({
     totalEarnings: 0,
+    heldAmount: 0,
+    pendingAmount: 0,
+    paidAmount: 0,
     pendingPayouts: 0,
-    completedPayouts: 0
+    completedPayouts: 0,
   });
 
   useEffect(() => {
