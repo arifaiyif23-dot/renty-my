@@ -398,6 +398,7 @@ export default function AdminDashboard() {
           </div>
           <div className="flex flex-wrap gap-2">
             <a href="/admin/health" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">System Health</a>
+            <a href="/admin/disputes" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Disputes</a>
             <a href="/admin/payouts" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Payouts</a>
             <a href="/admin/automation" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Automation</a>
             <a href="/admin/settings" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Settings</a>
