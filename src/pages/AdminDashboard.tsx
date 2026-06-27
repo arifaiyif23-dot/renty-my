@@ -391,9 +391,17 @@ export default function AdminDashboard() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-7xl pb-mobile-nav">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage verifications, fraud alerts, and platform security</p>
+        <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage verifications, fraud alerts, and platform security</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a href="/admin/health" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">System Health</a>
+            <a href="/admin/payouts" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Payouts</a>
+            <a href="/admin/automation" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Automation</a>
+            <a href="/admin/settings" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Settings</a>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
