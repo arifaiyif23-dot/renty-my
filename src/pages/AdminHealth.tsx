@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, CheckCircle2, RefreshCw, Mail, CreditCard, Database, Shield } from "lucide-react";
-import { Header } from "@/components/Header";
+import Header from "@/components/Header";
 import { toast } from "sonner";
 
 type Stats = {
