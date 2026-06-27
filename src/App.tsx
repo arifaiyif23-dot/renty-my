@@ -42,6 +42,8 @@ const Earnings = lazy(() => import("./pages/Earnings"));
 const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 const AdminAutomation = lazy(() => import("./pages/AdminAutomation"));
 const AdminHealth = lazy(() => import("./pages/AdminHealth"));
+const AdminDisputes = lazy(() => import("./pages/AdminDisputes"));
+const Disputes = lazy(() => import("./pages/Disputes"));
 
 // Configure React Query with aggressive caching
 const queryClient = new QueryClient({
