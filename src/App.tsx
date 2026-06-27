@@ -92,6 +92,7 @@ function AppRoutes() {
               <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
               <Route path="/admin/automation" element={<ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute>} />
               <Route path="/pwa-settings" element={<PWASettings />} />
               <Route path="/offline" element={<Offline />} />
               <Route path="*" element={<NotFound />} />
