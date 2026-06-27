@@ -41,6 +41,9 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const Earnings = lazy(() => import("./pages/Earnings"));
 const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 const AdminAutomation = lazy(() => import("./pages/AdminAutomation"));
+const AdminHealth = lazy(() => import("./pages/AdminHealth"));
+const AdminDisputes = lazy(() => import("./pages/AdminDisputes"));
+const Disputes = lazy(() => import("./pages/Disputes"));
 
 // Configure React Query with aggressive caching
 const queryClient = new QueryClient({
@@ -91,6 +94,9 @@ function AppRoutes() {
               <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
               <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
               <Route path="/admin/automation" element={<ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute>} />
+              <Route path="/admin/disputes" element={<ProtectedRoute><AdminRoute><AdminDisputes /></AdminRoute></ProtectedRoute>} />
+              <Route path="/disputes" element={<ProtectedRoute><Disputes /></ProtectedRoute>} />
               <Route path="/pwa-settings" element={<PWASettings />} />
               <Route path="/offline" element={<Offline />} />
               <Route path="*" element={<NotFound />} />

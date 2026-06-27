@@ -40,7 +40,7 @@ export default function Messages() {
   
   const conversationId = selectedUserId ? `${user?.id}_${selectedUserId}` : '';
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId, user?.id || '');
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [typingTimeout, setTypingTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Handle recipient from navigation state
   useEffect(() => {

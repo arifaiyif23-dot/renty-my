@@ -2242,6 +2242,7 @@ export type Database = {
         Args: { doc_quality: number; face_match: number; liveness: number }
         Returns: number
       }
+      check_encryption_configured: { Args: never; Returns: boolean }
       check_promo_rate_limit: { Args: { p_user_id: string }; Returns: boolean }
       check_rate_limit: {
         Args: {
@@ -2280,6 +2281,7 @@ export type Database = {
         Returns: number
       }
       get_platform_setting: { Args: { setting_key: string }; Returns: number }
+      get_system_health_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

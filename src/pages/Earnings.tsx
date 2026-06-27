@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle } from 'lucide-react';
+import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
 import Header from '@/components/Header';
 import {
   Dialog,
@@ -59,8 +59,11 @@ export default function Earnings() {
 
   const [stats, setStats] = useState({
     totalEarnings: 0,
+    heldAmount: 0,
+    pendingAmount: 0,
+    paidAmount: 0,
     pendingPayouts: 0,
-    completedPayouts: 0
+    completedPayouts: 0,
   });
 
   useEffect(() => {
@@ -82,14 +85,23 @@ export default function Earnings() {
       setPayouts(payoutsData || []);
 
       // Calculate stats
-      const total = payoutsData?.reduce((sum, p) => sum + parseFloat(p.payout_amount.toString()), 0) || 0;
-      const pending = payoutsData?.filter(p => p.status === 'pending').length || 0;
-      const completed = payoutsData?.filter(p => p.status === 'completed').length || 0;
+      const sumBy = (status: string) =>
+        (payoutsData || [])
+          .filter((p) => p.status === status)
+          .reduce((s, p) => s + parseFloat(p.payout_amount.toString()), 0);
+
+      const heldAmount = sumBy('held') + sumBy('awaiting_bank_details');
+      const pendingAmount = sumBy('pending') + sumBy('processing');
+      const paidAmount = sumBy('completed');
+      const total = heldAmount + pendingAmount + paidAmount;
 
       setStats({
         totalEarnings: total,
-        pendingPayouts: pending,
-        completedPayouts: completed
+        heldAmount,
+        pendingAmount,
+        paidAmount,
+        pendingPayouts: (payoutsData || []).filter((p) => p.status === 'pending').length,
+        completedPayouts: (payoutsData || []).filter((p) => p.status === 'completed').length,
       });
 
       // Fetch bank account
@@ -214,6 +226,11 @@ export default function Earnings() {
               Track your rental earnings and manage payouts
             </p>
           </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
           <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
             <DialogTrigger asChild>
               <Button variant={bankAccount ? "outline" : "default"}>
@@ -266,6 +283,7 @@ export default function Earnings() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Bank Account Warning */}
@@ -293,34 +311,52 @@ export default function Earnings() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" /> Total Earnings
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">RM {stats.totalEarnings.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-2">All time earnings</p>
+              <div className="text-2xl font-bold">RM {stats.totalEarnings.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">All time</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Shield className="h-3 w-3" /> Held in Escrow
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.pendingPayouts}</div>
-              <p className="text-xs text-muted-foreground mt-2">Awaiting processing</p>
+              <div className="text-2xl font-bold">RM {stats.heldAmount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Released after rental ends</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Completed Payouts</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Pending Payout
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.completedPayouts}</div>
-              <p className="text-xs text-muted-foreground mt-2">Successfully paid</p>
+              <div className="text-2xl font-bold">RM {stats.pendingAmount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stats.pendingPayouts} in queue</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" /> Paid Out
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">RM {stats.paidAmount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stats.completedPayouts} completed</p>
             </CardContent>
           </Card>
         </div>
@@ -404,4 +440,28 @@ export default function Earnings() {
       </div>
     </>
   );
+}
+
+function exportCsv(payouts: Payout[]) {
+  const headers = ['Date', 'Rental ID', 'Rental Amount (RM)', 'Platform Fee (RM)', 'Payout Amount (RM)', 'Status', 'Bank', 'Processed At'];
+  const rows = payouts.map((p) => [
+    new Date(p.created_at).toISOString(),
+    p.rental_id,
+    Number(p.rental_amount).toFixed(2),
+    Number(p.platform_fee).toFixed(2),
+    Number(p.payout_amount).toFixed(2),
+    p.status,
+    p.bank_name || '',
+    p.processed_at ? new Date(p.processed_at).toISOString() : '',
+  ]);
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `renty-payouts-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
