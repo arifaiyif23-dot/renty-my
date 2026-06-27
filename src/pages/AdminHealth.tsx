@@ -44,7 +44,7 @@ export default function AdminHealth() {
     ]);
     if (se) toast.error(se.message);
     setStats(s as Stats | null);
-    setLogs((l as FlowLog[]) || []);
+    setLogs(((l as unknown) as FlowLog[]) || []);
     setLoading(false);
   };
 
