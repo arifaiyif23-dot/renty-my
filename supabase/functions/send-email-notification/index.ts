@@ -10,8 +10,12 @@ const corsHeaders = {
 const getFromEmail = () => {
   const customFrom = Deno.env.get('RESEND_FROM_EMAIL');
   if (customFrom) {
+    if (customFrom.includes('@resend.dev')) {
+      console.warn('[email] RESEND_FROM_EMAIL still uses @resend.dev — emails likely flagged as spam. Configure a verified production domain.');
+    }
     return `Renty <${customFrom}>`;
   }
+  console.warn('[email] RESEND_FROM_EMAIL is not set — falling back to onboarding@resend.dev. Set a production sender domain before launch.');
   return 'Renty <onboarding@resend.dev>';
 };
 
