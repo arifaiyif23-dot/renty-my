@@ -85,14 +85,23 @@ export default function Earnings() {
       setPayouts(payoutsData || []);
 
       // Calculate stats
-      const total = payoutsData?.reduce((sum, p) => sum + parseFloat(p.payout_amount.toString()), 0) || 0;
-      const pending = payoutsData?.filter(p => p.status === 'pending').length || 0;
-      const completed = payoutsData?.filter(p => p.status === 'completed').length || 0;
+      const sumBy = (status: string) =>
+        (payoutsData || [])
+          .filter((p) => p.status === status)
+          .reduce((s, p) => s + parseFloat(p.payout_amount.toString()), 0);
+
+      const heldAmount = sumBy('held') + sumBy('awaiting_bank_details');
+      const pendingAmount = sumBy('pending') + sumBy('processing');
+      const paidAmount = sumBy('completed');
+      const total = heldAmount + pendingAmount + paidAmount;
 
       setStats({
         totalEarnings: total,
-        pendingPayouts: pending,
-        completedPayouts: completed
+        heldAmount,
+        pendingAmount,
+        paidAmount,
+        pendingPayouts: (payoutsData || []).filter((p) => p.status === 'pending').length,
+        completedPayouts: (payoutsData || []).filter((p) => p.status === 'completed').length,
       });
 
       // Fetch bank account
