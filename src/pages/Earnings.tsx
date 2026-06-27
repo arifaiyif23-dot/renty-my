@@ -441,3 +441,27 @@ export default function Earnings() {
     </>
   );
 }
+
+function exportCsv(payouts: Payout[]) {
+  const headers = ['Date', 'Rental ID', 'Rental Amount (RM)', 'Platform Fee (RM)', 'Payout Amount (RM)', 'Status', 'Bank', 'Processed At'];
+  const rows = payouts.map((p) => [
+    new Date(p.created_at).toISOString(),
+    p.rental_id,
+    Number(p.rental_amount).toFixed(2),
+    Number(p.platform_fee).toFixed(2),
+    Number(p.payout_amount).toFixed(2),
+    p.status,
+    p.bank_name || '',
+    p.processed_at ? new Date(p.processed_at).toISOString() : '',
+  ]);
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `renty-payouts-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
