@@ -1,52 +1,94 @@
-# Plan: Production Readiness & High-Impact Features
 
-Implement everything discussed in 3 sequential phases. Each phase is shippable on its own.
+# Troubleshoot Report — Apa Kena Fix
 
-## Phase 1 — Production Readiness (must do before launch)
+Saya jalankan diagnostic terus pada database. Ada **2 punca sebenar** untuk masalah yang awak report, plus beberapa isu kecil yang berkaitan.
 
-1. **End-to-end payment test harness**
-   - Add admin-only `/admin/health` page showing: latest payment_flow_logs, expired-payment cleanup status, payout queue, email delivery rate.
-   - Add a "Test Payment" button (admin only) that creates a RM 1 test rental + bill against ToyyibPay to verify the full callback → payout chain.
+---
 
-2. **Email domain readiness check**
-   - Add startup check in `send-email-notification` that warns if `RESEND_FROM_EMAIL` still contains `@resend.dev`.
-   - Surface a banner in admin dashboard if production domain not verified.
+## 🔴 Issue 1: Mesej Tak Boleh Hantar (CRITICAL)
 
-3. **Encryption key guard**
-   - Add SQL function `check_encryption_configured()` returning boolean.
-   - Show warning banner in admin if `app.settings.encryption_key` not set (messages won't encrypt).
+**Punca:** Trigger `encrypt_message_on_insert` panggil `pgp_sym_encrypt(content, current_setting('app.settings.encryption_key'))`. Setting `app.settings.encryption_key` **tidak wujud** dalam database (`key_missing = true`), jadi `pgp_sym_encrypt(text, NULL)` throw error → setiap INSERT pada `messages` gagal.
 
-## Phase 2 — Payout Dashboard (owner-facing)
+Ini akibat sambungan dari fix lama (PGP encryption messages) yang tak pernah disiapkan dengan encryption key sebenar.
 
-1. **`/earnings` page upgrade**
-   - Summary cards: Total earned, Held in escrow, Pending payout, Paid out.
-   - Payout history table with status timeline (held → pending → processing → paid).
-   - Bank account management inline (add/edit/verify).
-   - Export to CSV button.
+**Fix:**
+- Set `app.settings.encryption_key` di level role (`ALTER ROLE authenticator SET ...` + `ALTER ROLE postgres SET ...`) supaya trigger boleh baca masa runtime.
+- Patch `encrypt_message_content()` trigger: kalau key tiada, **skip encryption** (biar `encrypted_content` NULL) instead of crash. Ini safety net supaya mesej tak block kalau key hilang masa depan.
 
-2. **Edge function `request-payout-export`** to generate CSV for tax filing.
+---
 
-## Phase 3 — Dispute Resolution UI
+## 🔴 Issue 2: Item Tak Boleh Delete (CRITICAL)
 
-1. **`/disputes` page** (both renter and owner views)
-   - List of active disputes with evidence photos, timeline, messages.
-   - Submit counter-evidence flow.
-   - Admin resolution panel under `/admin/disputes` with: approve refund, release to owner, partial split.
+**Punca:** Foreign key cascade tak lengkap.
+- `items` → `rentals` = ON DELETE CASCADE ✅
+- Tapi `payments.rental_id` dan `payouts.rental_id` = **NO ACTION** ❌
 
-2. **Email + in-app notifications** at each dispute state change.
+Bila cuba delete item yang pernah ada rental + payment, PostgreSQL block dengan "violates foreign key constraint on table payments".
 
-3. **Review system polish** (small): only allow reviews after status `completed`, surface verified-rental badge on reviews.
+**Fix:** Tukar 2 FK ini kepada `ON DELETE CASCADE`:
+- `payments_rental_id_fkey`
+- `payouts_rental_id_fkey`
 
-## Technical Notes
+(Lebih selamat dari segi audit trail untuk soft-delete, tapi untuk MVP cascade OK sebab payment record tetap tinggal di `payment_flow_logs` dan `email_logs` untuk reconciliation.)
 
-- Reuse existing `payouts`, `disputes`, `payment_flow_logs`, `email_logs` tables — no schema changes needed except possibly a `dispute_messages` table in Phase 3.
-- All new pages use existing `PageTransition`, `DashboardSkeleton`, `EnhancedEmptyState` components for consistency.
-- Admin pages gated by `has_role(auth.uid(), 'admin')`.
+**Alternative (better long-term):** Tambah `deleted_at timestamp` pada `items` dan buat soft-delete. Tapi ini bigger refactor — saya cadangkan cascade fix dulu, soft-delete kemudian kalau perlu.
 
-## Out of Scope
+---
 
-- Sumsub migration (separate effort, needs credentials).
-- Stripe escrow (ToyyibPay stays for MY market).
-- Push notifications (PWA only for now).
+## 🟡 Issue 3 (Bonus): Mark-as-Read Policy Rosak
 
-Confirm and I'll start with Phase 1.
+Policy `Recipients can mark messages as read` ada `WITH CHECK` yang reference subquery rosak:
+```
+content = (SELECT messages_1.content FROM messages messages_1 WHERE messages_1.id = messages_1.id)
+```
+`WHERE id = id` match SEMUA row → subquery return multiple rows → UPDATE gagal. Read receipts mungkin tak berfungsi.
+
+**Fix:** Rewrite policy supaya hanya benarkan recipient toggle `is_read` dan `read_at`, tanpa subquery pelik.
+
+---
+
+## 🟡 Issue 4 (Bonus): Encryption Key Tak Set = Health Dashboard Sentiasa Merah
+
+`check_encryption_configured()` akan return `false` selagi `app.settings.encryption_key` tak set. Fix Issue 1 akan auto-resolve ini.
+
+---
+
+## Pelaksanaan (1 migration + 0 code change frontend)
+
+Satu migration database je yang perlu:
+
+```text
+1. ALTER ROLE postgres       SET app.settings.encryption_key = '<32-char key>';
+   ALTER ROLE authenticator  SET app.settings.encryption_key = '<32-char key>';
+   ALTER ROLE service_role   SET app.settings.encryption_key = '<32-char key>';
+
+2. CREATE OR REPLACE FUNCTION encrypt_message_content()
+   → tambah guard: kalau key NULL/empty, skip encryption, return NEW.
+
+3. ALTER TABLE payments
+     DROP CONSTRAINT payments_rental_id_fkey,
+     ADD  CONSTRAINT payments_rental_id_fkey
+       FOREIGN KEY (rental_id) REFERENCES rentals(id) ON DELETE CASCADE;
+
+   (sama untuk payouts_rental_id_fkey)
+
+4. DROP POLICY "Recipients can mark messages as read" ON messages;
+   CREATE POLICY ... FOR UPDATE
+     USING (auth.uid() = recipient_id)
+     WITH CHECK (auth.uid() = recipient_id);
+```
+
+Encryption key akan saya generate (32-byte random string) sebagai sebahagian migration.
+
+---
+
+## Selepas Fix, Apa Patut Improve Next
+
+Bukan critical, tapi worth doing:
+1. **Soft-delete untuk items** — preserve audit history of rentals/payments.
+2. **Retry queue untuk Resend webhook** — kalau email fail, auto-retry.
+3. **Admin "Resend message" tool** kalau encryption fail di masa depan.
+
+---
+
+**Approve plan ni dan saya akan apply migration tersebut sahaja.** Apps lain tak terjejas — semua perubahan di database level.
