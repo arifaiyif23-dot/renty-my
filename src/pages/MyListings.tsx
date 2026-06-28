@@ -168,18 +168,26 @@ export default function MyListings() {
     }
   };
 
-  const handleDelete = async (itemId: string) => {
-    if (!confirm(t('listings.confirmDelete'))) return;
+  const handleDelete = (itemId: string) => {
+    setDeleteTarget({ ids: [itemId], bulk: false });
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     const { error } = await supabase
       .from('items')
       .delete()
-      .eq('id', itemId);
+      .in('id', deleteTarget.ids);
+
+    setIsDeleting(false);
+    setDeleteTarget(null);
 
     if (error) {
-      toast.error(t('common.error'));
+      toast.error(error.message || t('common.error'));
     } else {
       toast.success(t('listings.deleteSuccess'));
+      if (deleteTarget.bulk) setSelectedItems([]);
       refetch();
     }
   };
@@ -187,22 +195,12 @@ export default function MyListings() {
   const handleBulkAction = async (action: 'activate' | 'pause' | 'delete') => {
     if (selectedItems.length === 0) return;
 
-    if (action === 'delete' && !confirm(t('listings.confirmBulkDelete', { count: selectedItems.length }))) {
+    if (action === 'delete') {
+      setDeleteTarget({ ids: selectedItems, bulk: true });
       return;
     }
 
-    if (action === 'delete') {
-      const { error } = await supabase
-        .from('items')
-        .delete()
-        .in('id', selectedItems);
-
-      if (!error) {
-        toast.success(t('listings.deleteSuccess'));
-        setSelectedItems([]);
-        refetch();
-      }
-    } else {
+    {
       const status = action === 'activate' ? 'active' : 'paused';
       const { error } = await supabase
         .from('items')
