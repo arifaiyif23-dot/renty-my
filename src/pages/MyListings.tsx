@@ -33,6 +33,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ListingEditDialog } from '@/components/ListingEditDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type ViewMode = 'grid' | 'list';
 type SortBy = 'recent' | 'views' | 'bookings' | 'revenue';
@@ -48,6 +58,8 @@ export default function MyListings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; bulk: boolean } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');
 
   const { data: items, isLoading, refetch } = useQuery({
@@ -156,18 +168,26 @@ export default function MyListings() {
     }
   };
 
-  const handleDelete = async (itemId: string) => {
-    if (!confirm(t('listings.confirmDelete'))) return;
+  const handleDelete = (itemId: string) => {
+    setDeleteTarget({ ids: [itemId], bulk: false });
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     const { error } = await supabase
       .from('items')
       .delete()
-      .eq('id', itemId);
+      .in('id', deleteTarget.ids);
+
+    setIsDeleting(false);
+    setDeleteTarget(null);
 
     if (error) {
-      toast.error(t('common.error'));
+      toast.error(error.message || t('common.error'));
     } else {
       toast.success(t('listings.deleteSuccess'));
+      if (deleteTarget.bulk) setSelectedItems([]);
       refetch();
     }
   };
@@ -175,22 +195,12 @@ export default function MyListings() {
   const handleBulkAction = async (action: 'activate' | 'pause' | 'delete') => {
     if (selectedItems.length === 0) return;
 
-    if (action === 'delete' && !confirm(t('listings.confirmBulkDelete', { count: selectedItems.length }))) {
+    if (action === 'delete') {
+      setDeleteTarget({ ids: selectedItems, bulk: true });
       return;
     }
 
-    if (action === 'delete') {
-      const { error } = await supabase
-        .from('items')
-        .delete()
-        .in('id', selectedItems);
-
-      if (!error) {
-        toast.success(t('listings.deleteSuccess'));
-        setSelectedItems([]);
-        refetch();
-      }
-    } else {
+    {
       const status = action === 'activate' ? 'active' : 'paused';
       const { error } = await supabase
         .from('items')
@@ -526,6 +536,43 @@ export default function MyListings() {
           listing={editingItem}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && !isDeleting && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteTarget?.bulk
+                ? `Delete ${deleteTarget.ids.length} listings?`
+                : 'Delete this listing?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>This action cannot be undone. The following will happen:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>The listing will be permanently removed from search</li>
+                  <li>All photos, analytics, and saved bookmarks will be deleted</li>
+                  <li>Rental history with this item will also be removed</li>
+                  <li>Active rentals (if any) may be affected</li>
+                </ul>
+                <p className="font-medium text-foreground pt-2">
+                  Tip: If you just want to stop receiving requests, pause the listing instead.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDelete(); }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Yes, delete permanently'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
