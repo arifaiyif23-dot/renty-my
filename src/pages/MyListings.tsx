@@ -536,6 +536,43 @@ export default function MyListings() {
           listing={editingItem}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && !isDeleting && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteTarget?.bulk
+                ? `Delete ${deleteTarget.ids.length} listings?`
+                : 'Delete this listing?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>This action cannot be undone. The following will happen:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li>The listing will be permanently removed from search</li>
+                  <li>All photos, analytics, and saved bookmarks will be deleted</li>
+                  <li>Rental history with this item will also be removed</li>
+                  <li>Active rentals (if any) may be affected</li>
+                </ul>
+                <p className="font-medium text-foreground pt-2">
+                  Tip: If you just want to stop receiving requests, pause the listing instead.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDelete(); }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Yes, delete permanently'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
