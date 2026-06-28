@@ -117,6 +117,17 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
           </>
         )}
       </Button>
+      {hasActiveBill && (
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Bill expires in <span className="font-medium text-foreground">{formatRemaining(remainingMs)}</span></span>
+        </div>
+      )}
+      {pendingExpiresAt && remainingMs <= 0 && (
+        <div className="mt-2 text-xs text-destructive text-center">
+          Previous bill expired — a new one will be generated.
+        </div>
+      )}
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
