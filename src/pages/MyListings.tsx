@@ -58,6 +58,8 @@ export default function MyListings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; bulk: boolean } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');
 
   const { data: items, isLoading, refetch } = useQuery({
