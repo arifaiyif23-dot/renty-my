@@ -68,7 +68,30 @@ serve(async (req) => {
     const payload = await req.json();
     console.log('Webhook payload received:', payload);
 
+    // --- Direct test-email path (used by Admin Health "Send test email") ---
+    if (payload?.type === 'test' && payload?.to) {
+      try {
+        const result = await resend.emails.send({
+          from: fromEmail,
+          to: payload.to,
+          subject: payload.subject || 'Renty — Test email',
+          html: payload.html || '<p>Test email from Renty.</p>',
+        });
+        await logEmail(supabase, (result as any)?.data?.id || null, payload.to, payload.subject || 'Renty — Test email', 'test', { source: 'admin_health' });
+        return new Response(JSON.stringify({ ok: true, id: (result as any)?.data?.id }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (err: any) {
+        await logEmail(supabase, null, payload.to, payload.subject || 'Renty — Test email', 'test', {}, err.message);
+        return new Response(JSON.stringify({ error: err.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     const { type, record, old_record } = payload;
+    
     
     // Handle INSERT events (new rental request)
     if (type === 'INSERT' && record.status === 'pending_approval') {
