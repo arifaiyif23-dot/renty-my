@@ -26,25 +26,58 @@ import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 
+const FILTERS_STORAGE_KEY = 'renty:searchFilters:v1';
+
+type PersistedFilters = {
+  category?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  userLocation?: string;
+  sortBy?: 'newest' | 'price_low' | 'price_high';
+  verifiedOnly?: boolean;
+  instantBookOnly?: boolean;
+  itemCondition?: string;
+  maxDistance?: number;
+};
+
+function loadFilters(): PersistedFilters {
+  try {
+    const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
 export default function Search() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [category, setCategory] = useState<ItemCategory | 'all'>('all');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const persisted = (typeof window !== 'undefined') ? loadFilters() : {};
+  const [category, setCategory] = useState<ItemCategory | 'all'>((persisted.category as any) || 'all');
+  const [minPrice, setMinPrice] = useState(persisted.minPrice || '');
+  const [maxPrice, setMaxPrice] = useState(persisted.maxPrice || '');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [userLocation, setUserLocation] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>('newest');
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [instantBookOnly, setInstantBookOnly] = useState(false);
-  const [itemCondition, setItemCondition] = useState<string>('all');
-  const [maxDistance, setMaxDistance] = useState(50);
+  const [userLocation, setUserLocation] = useState<string>(persisted.userLocation || '');
+  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>(persisted.sortBy || 'newest');
+  const [verifiedOnly, setVerifiedOnly] = useState(!!persisted.verifiedOnly);
+  const [instantBookOnly, setInstantBookOnly] = useState(!!persisted.instantBookOnly);
+  const [itemCondition, setItemCondition] = useState<string>(persisted.itemCondition || 'all');
+  const [maxDistance, setMaxDistance] = useState(persisted.maxDistance ?? 50);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { isListening, transcript, startListening, stopListening, isSupported } = useVoiceSearch();
+
+  // Persist filters to localStorage whenever they change
+  useEffect(() => {
+    const payload: PersistedFilters = {
+      category, minPrice, maxPrice, userLocation, sortBy,
+      verifiedOnly, instantBookOnly, itemCondition, maxDistance,
+    };
+    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload)); } catch {}
+  }, [category, minPrice, maxPrice, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, maxDistance]);
 
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches');
