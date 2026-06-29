@@ -154,6 +154,30 @@ export default function AdminHealth() {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-4 w-4" /> Send test email
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                placeholder="recipient@example.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+              />
+              <Button onClick={sendTestEmail} disabled={testEmailSending}>
+                {testEmailSending ? "Sending..." : "Send test"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Verifies Resend domain + edge function delivery end-to-end.</p>
+          </CardContent>
+        </Card>
+
+
+        <Card>
+          <CardHeader>
             <CardTitle>Recent payment flow logs</CardTitle>
           </CardHeader>
           <CardContent>
