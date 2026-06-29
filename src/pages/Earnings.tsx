@@ -293,7 +293,7 @@ export default function Earnings() {
               <div className="flex items-start gap-3">
                 <CreditCard className="h-5 w-5 text-orange-500 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold mb-1">⚠️ Bank Account Required</h3>
+                  <h3 className="font-semibold mb-1">Bank Account Required</h3>
                   <p className="text-sm text-muted-foreground">
                     You have pending payouts! Add your bank account details now to receive payments.
                   </p>
@@ -332,7 +332,7 @@ export default function Earnings() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">RM {stats.heldAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Released after rental ends</p>
+              <p className="text-xs text-muted-foreground mt-1">Released ~3 days after rental ends</p>
             </CardContent>
           </Card>
 

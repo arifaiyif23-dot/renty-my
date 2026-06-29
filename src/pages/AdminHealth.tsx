@@ -35,6 +35,8 @@ export default function AdminHealth() {
   const [logs, setLogs] = useState<FlowLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [cleanupRunning, setCleanupRunning] = useState(false);
+  const [testEmailSending, setTestEmailSending] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -56,6 +58,30 @@ export default function AdminHealth() {
     setCleanupRunning(false);
     if (error) toast.error(error.message);
     else { toast.success("Expired payments cleaned"); load(); }
+  };
+
+  const sendTestEmail = async () => {
+    if (!testEmail.trim()) {
+      toast.error("Enter a recipient email first");
+      return;
+    }
+    setTestEmailSending(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-email-notification", {
+        body: {
+          to: testEmail.trim(),
+          subject: "Renty — Test email from Admin Health",
+          html: `<p>This is a test email from the Renty Admin Health dashboard.</p><p>If you can read this, Resend is delivering successfully.</p>`,
+          type: "test",
+        },
+      });
+      if (error) throw error;
+      toast.success("Test email sent. Check the recipient inbox and Email Analytics.");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to send test email");
+    } finally {
+      setTestEmailSending(false);
+    }
   };
 
   const deliveryRate = stats && stats.emails_today > 0
@@ -125,6 +151,30 @@ export default function AdminHealth() {
             <CheckRow ok={(stats?.payouts_awaiting_bank ?? 0) === 0} label="No payouts blocked on missing bank details" />
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-4 w-4" /> Send test email
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                placeholder="recipient@example.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+              />
+              <Button onClick={sendTestEmail} disabled={testEmailSending}>
+                {testEmailSending ? "Sending..." : "Send test"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Verifies Resend domain + edge function delivery end-to-end.</p>
+          </CardContent>
+        </Card>
+
 
         <Card>
           <CardHeader>

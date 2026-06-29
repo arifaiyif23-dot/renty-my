@@ -265,64 +265,62 @@ const Index = () => {
         
         <div className="container mx-auto px-6 md:px-8 lg:px-12 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-8">
-            {/* Brand Clarity */}
-            <div className="inline-block mb-4">
-              <Badge variant="outline" className="px-4 py-2 text-sm font-medium border-primary/50">
-                🇲🇾 Malaysia's P2P Rental Marketplace
+            {/* Brand */}
+            <div className="inline-block mb-5">
+              <Badge variant="outline" className="px-3 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground border-border">
+                Malaysia's Peer-to-Peer Rental Marketplace
               </Badge>
             </div>
-            
+
             {/* Renty Brand Logo & Name */}
             <div className="flex items-center justify-center gap-3 mb-6">
-              <img src={rentyLogo} alt="Renty" className="h-14 md:h-20 w-auto" />
-              <span className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-primary">
+              <img src={rentyLogo} alt="Renty" className="h-12 md:h-16 w-auto" />
+              <span className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-foreground">
                 Renty
               </span>
             </div>
-            
+
             <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-foreground">
               Rent Anything.{" "}
               <span className="block mt-2">Earn from Anything.</span>
-              <span className="text-muted-foreground block mt-2 text-2xl md:text-3xl">From Cameras to Cars.</span>
+              <span className="text-muted-foreground block mt-3 text-xl md:text-2xl font-normal">From cameras to cars — locally, safely.</span>
             </h1>
-            
-            <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Malaysia's trusted peer-to-peer rental platform. Access {totalItemCount > 0 ? `${totalItemCount}+ items` : 'thousands of items'} without buying, or earn from what you already own.
+
+            <p className="text-base md:text-lg text-muted-foreground mb-7 max-w-2xl mx-auto">
+              Access {totalItemCount > 0 ? `${totalItemCount}+ items` : 'thousands of items'} without buying, or earn from what you already own. Verified renters, insured rentals.
             </p>
-            
+
             {/* Primary CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-6 shadow-lg hover:shadow-xl"
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+              <Button
+                size="lg"
+                className="text-base px-7 py-6"
                 onClick={() => navigate('/search')}
               >
-                <Sparkles className="w-5 h-5 mr-2" />
                 Browse Items
               </Button>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
-                className="text-lg px-8 py-6 shadow-lg hover:shadow-xl"
+                className="text-base px-7 py-6"
                 onClick={() => navigate('/list-item')}
               >
-                <TrendingUp className="w-5 h-5 mr-2" />
                 List Your Item
               </Button>
             </div>
-            
+
             <Suspense fallback={<div className="h-12" />}>
               <TrustBadges />
             </Suspense>
           </div>
-          
-          {/* Enhanced Search Bar */}
+
+          {/* Search Bar */}
           <div className="max-w-3xl mx-auto">
             <div className="card-minimal p-2 rounded-xl">
               <SearchBar />
             </div>
-            <p className="text-center text-sm text-muted-foreground mt-3">
-              🔍 Popular: Cameras • Cars • Tools • Drones • Party Equipment
+            <p className="text-center text-xs text-muted-foreground mt-3">
+              Popular: Cameras · Cars · Tools · Drones · Party Equipment
             </p>
           </div>
         </div>
