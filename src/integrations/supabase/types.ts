@@ -2275,6 +2275,7 @@ export type Database = {
         Args: { data: string; key?: string }
         Returns: string
       }
+      encryption_self_test: { Args: never; Returns: boolean }
       generate_referral_code: { Args: never; Returns: string }
       get_listing_conversion_rate: {
         Args: { item_id_param: string }
