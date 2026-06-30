@@ -104,29 +104,23 @@ export const TrustBadges = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-6">
         {[...Array(4)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-card/80 backdrop-blur-sm border border-border/50 px-4 py-2 rounded-full h-12 w-28 animate-pulse"
-          />
+          <div key={i} className="h-5 w-24 bg-muted rounded animate-pulse" />
         ))}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6">
+    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-6">
       {badges.map((badge, index) => (
-        <div
-          key={index}
-          className="bg-card/80 backdrop-blur-sm border border-border/50 px-4 py-2 rounded-full flex items-center gap-2 hover:bg-card hover:shadow-md transition-all duration-200"
-        >
-          <badge.icon className="w-4 h-4 text-primary" />
-          <div className="text-left">
-            <span className="font-semibold text-sm">{badge.value}</span>
-            <span className="text-xs text-muted-foreground ml-1">{badge.label}</span>
-          </div>
+        <div key={index} className="flex items-center gap-2">
+          <badge.icon className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+          <span className="text-sm">
+            <span className="font-medium text-foreground">{badge.value}</span>
+            <span className="text-muted-foreground ml-1.5">{badge.label}</span>
+          </span>
         </div>
       ))}
     </div>

@@ -9,13 +9,13 @@ const MobileBottomNav = () => {
   const { user } = useAuth();
   
   const navItems = [
-    { icon: Home, label: "Home", path: "/" },
-    { icon: Search, label: "Browse", path: "/search" },
+    { key: "home", icon: Home, label: "Home", path: "/" },
+    { key: "browse", icon: Search, label: "Browse", path: "/search" },
   ];
 
   const rightNavItems = [
-    { icon: MessageCircle, label: "Messages", path: user ? "/messages" : "/auth" },
-    { icon: LayoutDashboard, label: "Dashboard", path: user ? "/dashboard" : "/auth" },
+    { key: "messages", icon: MessageCircle, label: "Messages", path: user ? "/messages" : "/auth" },
+    { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: user ? "/dashboard" : "/auth" },
   ];
 
   return (
@@ -30,7 +30,7 @@ const MobileBottomNav = () => {
           const isActive = location.pathname === item.path;
           return (
             <Link
-              key={item.path}
+              key={item.key}
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px]",
@@ -63,7 +63,7 @@ const MobileBottomNav = () => {
           const isActive = location.pathname === item.path;
           return (
             <Link
-              key={item.path}
+              key={item.key}
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px]",
