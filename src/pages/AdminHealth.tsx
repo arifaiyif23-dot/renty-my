@@ -20,6 +20,8 @@ type Stats = {
   emails_bounced_today: number;
   last_payment_log: string | null;
   encryption_configured: boolean;
+  pgcrypto_installed?: boolean;
+  encryption_self_test?: boolean;
 };
 
 type FlowLog = {
@@ -102,13 +104,13 @@ export default function AdminHealth() {
           </Button>
         </div>
 
-        {stats && !stats.encryption_configured && (
+        {stats && stats.encryption_self_test === false && (
           <Alert variant="destructive">
             <Shield className="h-4 w-4" />
-            <AlertTitle>Message encryption not configured</AlertTitle>
+            <AlertTitle>Encryption self-test failed</AlertTitle>
             <AlertDescription>
-              Database setting <code>app.settings.encryption_key</code> is missing. New messages will not be encrypted.
-              Contact support to set the production encryption key before launch.
+              The encrypt/decrypt round-trip on the database failed. Messages and bank details may not be readable.
+              Contact engineering immediately.
             </AlertDescription>
           </Alert>
         )}
@@ -145,7 +147,8 @@ export default function AdminHealth() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <CheckRow ok={!!stats?.encryption_configured} label="Message encryption key configured" />
+            <CheckRow ok={stats?.encryption_self_test === true} label="Encryption self-test (round-trip pass)" />
+            <CheckRow ok={stats?.pgcrypto_installed === true} label="pgcrypto extension installed" />
             <CheckRow ok={(stats?.payments_paid_today ?? 0) > 0 || (stats?.payouts_held ?? 0) > 0} label="At least one successful end-to-end payment processed" />
             <CheckRow ok={(stats?.emails_delivered_today ?? 0) > 0} label="Resend delivering emails today" />
             <CheckRow ok={(stats?.payouts_awaiting_bank ?? 0) === 0} label="No payouts blocked on missing bank details" />
