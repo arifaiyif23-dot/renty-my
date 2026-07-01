@@ -21,14 +21,15 @@ export const NotificationBell = () => {
 
   useEffect(() => {
     fetchNotifications();
-    
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     const fetchAndSubscribe = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Subscribe to new notifications with user filter
-      const channel = supabase
-        .channel('notifications')
+      channel = supabase
+        .channel(`notifications-${user.id}`)
         .on(
           'postgres_changes',
           {
@@ -53,13 +54,15 @@ export const NotificationBell = () => {
           }
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     };
 
     fetchAndSubscribe();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const fetchNotifications = async () => {

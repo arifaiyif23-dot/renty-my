@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Upload, X, Star, Loader2 } from "lucide-react";
+import { Camera, Image as ImageIcon, Upload, X, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -277,8 +277,8 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span className="truncate max-w-[200px]">{progress.fileName}</span>
                   <span>
-                    {progress.status === 'compressing' && '🔄 Compressing...'}
-                    {progress.status === 'uploading' && '⬆️ Uploading...'}
+                    {progress.status === 'compressing' && 'Compressing...'}
+                    {progress.status === 'uploading' && 'Uploading...'}
                     {progress.status === 'complete' && '✓ Complete'}
                     {progress.status === 'error' && '✗ Failed'}
                   </span>
@@ -298,8 +298,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
               disabled={uploading || images.length >= maxImages}
               asChild
             >
-              <span className="cursor-pointer">
-                📷 Camera
+                <span className="cursor-pointer inline-flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  Camera
               </span>
             </Button>
           </label>
@@ -311,8 +312,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
               disabled={uploading || images.length >= maxImages}
               asChild
             >
-              <span className="cursor-pointer">
-                🖼️ Gallery
+                <span className="cursor-pointer inline-flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4" />
+                  Gallery
               </span>
             </Button>
           </label>
@@ -343,7 +345,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
               <Button
                 variant="destructive"
                 size="icon"
-                className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
+                className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm z-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeImage(index);
@@ -352,7 +354,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
                 <X className="h-5 w-5 md:h-4 md:w-4" />
               </Button>
               {index === primaryIndex && (
-                <Badge className="absolute bottom-2 left-2 gap-1 bg-primary shadow-lg">
+                <Badge className="absolute bottom-2 left-2 gap-1 bg-primary shadow-sm">
                   <Star className="h-3 w-3 fill-current" />
                   Cover
                 </Badge>
