@@ -368,7 +368,7 @@ export default function Messages() {
                               </div>
                             </div>
                             {conv.unreadCount > 0 && (
-                              <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0 animate-pulse">
+                              <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0">
                                 {conv.unreadCount}
                               </div>
                             )}
