@@ -174,6 +174,7 @@ export default function Messages() {
     data?.forEach((msg: any) => {
       const otherUserId = msg.sender_id === user.id ? msg.recipient_id : msg.sender_id;
       const otherUser = msg.sender_id === user.id ? msg.recipient : msg.sender;
+      const isUnreadForMe = msg.recipient_id === user.id && !msg.is_read;
       
       if (!conversationMap.has(otherUserId)) {
         conversationMap.set(otherUserId, {
@@ -182,8 +183,11 @@ export default function Messages() {
           userAvatar: otherUser?.avatar_url,
           lastMessage: msg.content,
           lastMessageTime: msg.created_at,
-          unreadCount: msg.recipient_id === user.id && !msg.is_read ? 1 : 0,
+          unreadCount: isUnreadForMe ? 1 : 0,
         });
+      } else if (isUnreadForMe) {
+        const conversation = conversationMap.get(otherUserId)!;
+        conversation.unreadCount += 1;
       }
     });
 
