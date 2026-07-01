@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ArrowLeft, FileImage, File as FileIcon } from "lucide-react";
+import { Send, ArrowLeft, File as FileIcon, Loader2 } from "lucide-react";
 import { FileAttachment } from "@/components/FileAttachment";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
@@ -37,10 +37,32 @@ export default function Messages() {
   const [showThread, setShowThread] = useState(false);
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [attachmentType, setAttachmentType] = useState("");
+  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const isMobile = useIsMobile();
+  const messageEndRef = useRef<HTMLDivElement | null>(null);
   
-  const conversationId = selectedUserId ? `${user?.id}_${selectedUserId}` : '';
+  const conversationId = useMemo(() => {
+    if (!user?.id || !selectedUserId) return '';
+    return [user.id, selectedUserId].sort().join('_');
+  }, [selectedUserId, user?.id]);
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId, user?.id || '');
   const [typingTimeout, setTypingTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  const upsertMessage = (incomingMessage: any) => {
+    setMessages(prev => {
+      const exists = prev.some(msg => msg.id === incomingMessage.id);
+      if (exists) {
+        return prev.map(msg => msg.id === incomingMessage.id ? { ...msg, ...incomingMessage } : msg);
+      }
+
+      const withoutOptimistic = prev.filter(msg => !(msg.pending && msg.content === incomingMessage.content));
+      return [...withoutOptimistic, incomingMessage].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    });
+  };
 
   // Handle recipient from navigation state
   useEffect(() => {
@@ -54,6 +76,31 @@ export default function Messages() {
   useEffect(() => {
     if (user) {
       fetchConversations();
+
+      const channel = supabase
+        .channel(`messages-list-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'messages',
+          },
+          (payload) => {
+            const changedMessage = (payload.new || payload.old) as any;
+            if (
+              changedMessage &&
+              (changedMessage.sender_id === user.id || changedMessage.recipient_id === user.id)
+            ) {
+              fetchConversations();
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -74,11 +121,11 @@ export default function Messages() {
       markMessagesRead();
       
       const channel = supabase
-        .channel('messages')
+        .channel(`messages-thread-${user.id}-${selectedUserId}`)
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*',
             schema: 'public',
             table: 'messages',
           },
@@ -88,7 +135,8 @@ export default function Messages() {
               (newMsg.sender_id === selectedUserId && newMsg.recipient_id === user.id) ||
               (newMsg.sender_id === user.id && newMsg.recipient_id === selectedUserId)
             ) {
-              setMessages(prev => [...prev, newMsg]);
+              upsertMessage(newMsg);
+              fetchConversations();
             }
           }
         )
@@ -100,8 +148,14 @@ export default function Messages() {
     }
   }, [selectedUserId, user]);
 
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages.length, typingUsers.length]);
+
   const fetchConversations = async () => {
     if (!user) return;
+
+    setIsLoadingConversations(true);
 
     const { data, error } = await supabase
       .from('messages')
@@ -111,6 +165,7 @@ export default function Messages() {
 
     if (error) {
       console.error('Error fetching conversations:', error);
+      setIsLoadingConversations(false);
       return;
     }
 
@@ -133,10 +188,13 @@ export default function Messages() {
     });
 
     setConversations(Array.from(conversationMap.values()));
+    setIsLoadingConversations(false);
   };
 
   const fetchMessages = async (otherUserId: string) => {
     if (!user) return;
+
+    setIsLoadingMessages(true);
 
     const { data, error } = await supabase
       .from('messages')
@@ -146,6 +204,7 @@ export default function Messages() {
 
     if (error) {
       console.error('Error fetching messages:', error);
+      setIsLoadingMessages(false);
       return;
     }
 
@@ -157,10 +216,12 @@ export default function Messages() {
       .update({ is_read: true })
       .eq('sender_id', otherUserId)
       .eq('recipient_id', user.id);
+
+    setIsLoadingMessages(false);
   };
 
   const sendMessage = async () => {
-    if (!user || !selectedUserId || (!newMessage.trim() && !attachmentUrl)) return;
+    if (!user || !selectedUserId || isSending || (!newMessage.trim() && !attachmentUrl)) return;
 
     // Stop typing indicator
     stopTyping();
@@ -169,9 +230,30 @@ export default function Messages() {
     // Sanitize message content to prevent XSS
     const sanitizedContent = newMessage.trim() 
       ? sanitizeMessage(newMessage.trim()) 
-      : '📎 Attachment';
+      : 'Attachment';
 
-    const { error } = await supabase
+    const optimisticId = `pending-${Date.now()}`;
+    const optimisticMessage = {
+      id: optimisticId,
+      sender_id: user.id,
+      recipient_id: selectedUserId,
+      content: sanitizedContent,
+      attachment_url: attachmentUrl || null,
+      attachment_type: attachmentType || null,
+      delivered_at: null,
+      read_at: null,
+      is_read: false,
+      created_at: new Date().toISOString(),
+      pending: true,
+    };
+
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage("");
+    setAttachmentUrl("");
+    setAttachmentType("");
+    setIsSending(true);
+
+    const { data, error } = await supabase
       .from('messages')
       .insert({
         sender_id: user.id,
@@ -180,16 +262,21 @@ export default function Messages() {
         attachment_url: attachmentUrl || null,
         attachment_type: attachmentType || null,
         delivered_at: new Date().toISOString(),
-      });
+      })
+      .select('*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
+      .single();
+
+    setIsSending(false);
 
     if (error) {
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
+      setNewMessage(sanitizedContent);
       toast.error('Failed to send message');
       return;
     }
 
-    setNewMessage("");
-    setAttachmentUrl("");
-    setAttachmentType("");
+    setMessages(prev => prev.map(msg => msg.id === optimisticId ? data : msg));
+    fetchConversations();
   };
 
   const handleTyping = () => {
@@ -216,7 +303,6 @@ export default function Messages() {
     );
   }
 
-  const isMobile = useIsMobile();
   const selectedConversation = conversations.find(c => c.userId === selectedUserId);
 
   const handleSelectConversation = (userId: string) => {
@@ -234,20 +320,24 @@ export default function Messages() {
   return (
     <>
       <Header />
-      <div className="container mx-auto p-4 pb-mobile-nav max-w-7xl">
+      <div className="container mx-auto p-3 md:p-4 pb-mobile-nav max-w-7xl">
         {/* Mobile: Conditionally show list OR thread */}
         {isMobile ? (
           <>
             {!showThread ? (
-              <div>
-                <h1 className="text-2xl font-bold mb-6">Messages</h1>
-                <Card>
+              <div className="space-y-4">
+                <h1 className="text-2xl font-bold">Messages</h1>
+                <Card className="border-border/70 shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg">Conversations</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <ScrollArea className="h-[calc(100vh-250px)]">
-                      {conversations.map((conv) => (
+                      {isLoadingConversations ? (
+                        <div className="flex items-center justify-center p-8 text-muted-foreground">
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
+                        </div>
+                      ) : conversations.map((conv) => (
                         <div
                           key={conv.userId}
                           onClick={() => handleSelectConversation(conv.userId)}
@@ -280,7 +370,7 @@ export default function Messages() {
                           </div>
                         </div>
                       ))}
-                      {conversations.length === 0 && (
+                      {!isLoadingConversations && conversations.length === 0 && (
                         <div className="p-8 text-center text-muted-foreground">
                           <p className="text-base">No conversations yet</p>
                           <p className="text-sm mt-2">Messages will appear here when you start chatting</p>
@@ -291,9 +381,9 @@ export default function Messages() {
                 </Card>
               </div>
             ) : (
-              <div className="h-[calc(100vh-80px)] flex flex-col">
+              <div className="h-[calc(100dvh-88px)] flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
                 {/* Thread Header with Back Button */}
-                <div className="sticky top-0 z-10 bg-card border-b p-4 flex items-center gap-3 min-h-[60px]">
+                <div className="z-10 bg-card border-b p-3 flex items-center gap-3 min-h-[60px]">
                   <Button variant="ghost" size="icon" onClick={handleBackToList} className="flex-shrink-0">
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
@@ -305,15 +395,19 @@ export default function Messages() {
                 </div>
 
                 {/* Messages */}
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {messages.map((msg) => (
+                <ScrollArea className="flex-1 p-3">
+                  <div className="space-y-3">
+                    {isLoadingMessages ? (
+                      <div className="flex items-center justify-center py-10 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading messages
+                      </div>
+                    ) : messages.map((msg) => (
                       <div
                         key={msg.id}
                         className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'} animate-fade-in`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
+                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm ${
                             msg.sender_id === user.id
                               ? 'bg-primary text-primary-foreground rounded-br-sm'
                               : 'bg-muted rounded-bl-sm'
@@ -350,7 +444,7 @@ export default function Messages() {
                             </span>
                             {msg.sender_id === user.id && (
                               <span className="ml-1">
-                                {msg.read_at ? '✓✓' : '✓'}
+                                {msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}
                               </span>
                             )}
                           </div>
@@ -370,11 +464,12 @@ export default function Messages() {
                         </div>
                       </div>
                     )}
+                    <div ref={messageEndRef} />
                   </div>
                 </ScrollArea>
 
                 {/* Input Bar - Sticky at bottom */}
-                <div className="sticky bottom-0 bg-card border-t p-4">
+                <div className="bg-card border-t p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                   <div className="space-y-2">
                     <FileAttachment 
                       onFileSelect={(url, type) => {
@@ -398,10 +493,10 @@ export default function Messages() {
                       <Button 
                         onClick={sendMessage} 
                         size="icon"
-                        disabled={!newMessage.trim() && !attachmentUrl}
+                        disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
                         className="h-12 w-12 flex-shrink-0"
                       >
-                        <Send className="h-5 w-5" />
+                        {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                       </Button>
                     </div>
                   </div>
@@ -415,13 +510,17 @@ export default function Messages() {
             <h1 className="text-3xl font-bold mb-6">Messages</h1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Conversations List */}
-              <Card className="lg:col-span-1">
+              <Card className="lg:col-span-1 border-border/70 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">Conversations</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <ScrollArea className="h-[600px]">
-                    {conversations.map((conv) => (
+                    {isLoadingConversations ? (
+                      <div className="flex items-center justify-center p-8 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
+                      </div>
+                    ) : conversations.map((conv) => (
                       <div
                         key={conv.userId}
                         onClick={() => setSelectedUserId(conv.userId)}
@@ -448,7 +547,7 @@ export default function Messages() {
                         </div>
                       </div>
                     ))}
-                    {conversations.length === 0 && (
+                    {!isLoadingConversations && conversations.length === 0 && (
                       <div className="p-8 text-center text-muted-foreground">
                         <p>No conversations yet</p>
                         <p className="text-xs mt-2">Messages will appear here when you start chatting</p>
@@ -459,7 +558,7 @@ export default function Messages() {
               </Card>
 
               {/* Messages Thread */}
-              <Card className="lg:col-span-2">
+              <Card className="lg:col-span-2 border-border/70 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">
                     {selectedUserId
@@ -472,13 +571,17 @@ export default function Messages() {
                     <>
                       <ScrollArea className="h-[480px] mb-4 pr-2">
                         <div className="space-y-4">
-                          {messages.map((msg) => (
+                          {isLoadingMessages ? (
+                            <div className="flex items-center justify-center py-10 text-muted-foreground">
+                              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading messages
+                            </div>
+                          ) : messages.map((msg) => (
                             <div
                               key={msg.id}
                               className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                             >
                               <div
-                                className={`max-w-[70%] rounded-lg p-3 ${
+                                className={`max-w-[70%] rounded-lg p-3 shadow-sm ${
                                   msg.sender_id === user.id
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-muted'
@@ -487,10 +590,14 @@ export default function Messages() {
                                 <div className="text-base break-words">{msg.content}</div>
                                 <div className="text-xs opacity-70 mt-1">
                                   {new Date(msg.created_at).toLocaleTimeString()}
+                                  {msg.sender_id === user.id && (
+                                    <span className="ml-2">{msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}</span>
+                                  )}
                                 </div>
                               </div>
                             </div>
                           ))}
+                          <div ref={messageEndRef} />
                         </div>
                       </ScrollArea>
 
@@ -513,10 +620,10 @@ export default function Messages() {
                           <Button 
                             onClick={sendMessage} 
                             size="icon"
-                            disabled={!newMessage.trim() && !attachmentUrl}
+                            disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
                             className="min-h-[44px] min-w-[44px]"
                           >
-                            <Send className="h-4 w-4" />
+                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                           </Button>
                         </div>
                       </div>
