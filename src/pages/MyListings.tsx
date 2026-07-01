@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, Search, Filter, Grid3x3, List, BarChart3, Eye, 
   Edit, Pause, Play, Copy, Trash2, MoreVertical, TrendingUp,
-  Calendar, DollarSign, Star, Heart, Inbox
+  Calendar, DollarSign, Star, Heart, Inbox, Loader2
 } from 'lucide-react';
 import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -81,6 +81,8 @@ export default function MyListings() {
 
       if (statusFilter !== 'all') {
         query = query.eq('listing_status', statusFilter);
+      } else {
+        query = query.or('listing_status.is.null,listing_status.neq.archived');
       }
 
       switch (sortBy) {
@@ -175,20 +177,50 @@ export default function MyListings() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
-    const { error } = await supabase
-      .from('items')
-      .delete()
-      .in('id', deleteTarget.ids);
 
-    setIsDeleting(false);
-    setDeleteTarget(null);
+    try {
+      const { data: rentalRows, error: rentalError } = await supabase
+        .from('rentals')
+        .select('item_id')
+        .in('item_id', deleteTarget.ids);
 
-    if (error) {
-      toast.error(error.message || t('common.error'));
-    } else {
-      toast.success(t('listings.deleteSuccess'));
+      if (rentalError) throw rentalError;
+
+      const itemsWithHistory = new Set((rentalRows || []).map((rental) => rental.item_id));
+      const archiveIds = deleteTarget.ids.filter((id) => itemsWithHistory.has(id));
+      const deleteIds = deleteTarget.ids.filter((id) => !itemsWithHistory.has(id));
+
+      if (archiveIds.length > 0) {
+        const { error: archiveError } = await supabase
+          .from('items')
+          .update({ listing_status: 'archived', is_available: false })
+          .in('id', archiveIds);
+
+        if (archiveError) throw archiveError;
+      }
+
+      if (deleteIds.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('items')
+          .delete()
+          .in('id', deleteIds);
+
+        if (deleteError) throw deleteError;
+      }
+
+      toast.success(
+        archiveIds.length > 0
+          ? 'Listing removed from marketplace. Rental history is kept safely.'
+          : t('listings.deleteSuccess')
+      );
+
       if (deleteTarget.bulk) setSelectedItems([]);
       refetch();
+    } catch (error: any) {
+      toast.error(error.message || t('common.error'));
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -239,15 +271,15 @@ export default function MyListings() {
       {/* Header - Non-sticky */}
       <div className="border-b">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
+            <div className="min-w-0">
               <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'listings' | 'requests')} className="mt-2">
-                <TabsList>
-                  <TabsTrigger value="listings">My Listings</TabsTrigger>
-                  <TabsTrigger value="requests" className="gap-2">
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'listings' | 'requests')} className="mt-3 w-full">
+                <TabsList className="grid w-full grid-cols-2 md:inline-flex md:w-auto">
+                  <TabsTrigger value="listings" className="text-sm">My Listings</TabsTrigger>
+                  <TabsTrigger value="requests" className="gap-2 text-sm">
                     <Inbox className="h-4 w-4" />
-                    Incoming Requests
+                    <span className="truncate">Requests</span>
                     {incomingRequests && incomingRequests.length > 0 && (
                       <Badge variant="destructive" className="ml-1">{incomingRequests.length}</Badge>
                     )}
@@ -255,7 +287,7 @@ export default function MyListings() {
                 </TabsList>
               </Tabs>
             </div>
-            <Button onClick={() => navigate('/list-item')}>
+            <Button onClick={() => navigate('/list-item')} className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               {t('listings.createNew')}
             </Button>
@@ -264,8 +296,8 @@ export default function MyListings() {
           {/* Stats */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Card className="border-border/50">
-                <CardContent className="p-4">
+              <Card className="border-border/70 shadow-sm">
+                <CardContent className="p-3 md:p-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <List className="h-4 w-4" />
@@ -275,8 +307,8 @@ export default function MyListings() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-border/50">
-                <CardContent className="p-4">
+              <Card className="border-border/70 shadow-sm">
+                <CardContent className="p-3 md:p-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Calendar className="h-4 w-4" />
@@ -286,8 +318,8 @@ export default function MyListings() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-border/50">
-                <CardContent className="p-4">
+              <Card className="border-border/70 shadow-sm">
+                <CardContent className="p-3 md:p-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <DollarSign className="h-4 w-4" />
@@ -297,8 +329,8 @@ export default function MyListings() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-border/50">
-                <CardContent className="p-4">
+              <Card className="border-border/70 shadow-sm">
+                <CardContent className="p-3 md:p-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Eye className="h-4 w-4" />
@@ -317,7 +349,7 @@ export default function MyListings() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -327,8 +359,8 @@ export default function MyListings() {
                 className="pl-10"
               />
             </div>
-            <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-              <TabsList>
+            <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="w-full md:w-auto overflow-x-auto">
+              <TabsList className="w-max min-w-full md:min-w-0">
                 <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
                 <TabsTrigger value="active">{t('common.active')}</TabsTrigger>
                 <TabsTrigger value="paused">{t('common.paused')}</TabsTrigger>
@@ -336,7 +368,7 @@ export default function MyListings() {
               </TabsList>
             </Tabs>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -345,7 +377,7 @@ export default function MyListings() {
                 <SelectItem value="bookings">{t('listings.mostBookings')}</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2 md:flex">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="icon"
@@ -426,7 +458,7 @@ export default function MyListings() {
                 <Card 
                   key={item.id} 
                   className={cn(
-                    "overflow-hidden transition-all hover:shadow-lg",
+                    "overflow-hidden transition-all border-border/70 shadow-sm hover:shadow-md",
                     isSelected && "ring-2 ring-primary"
                   )}
                 >
@@ -441,13 +473,13 @@ export default function MyListings() {
                           setSelectedItems(selectedItems.filter(id => id !== item.id));
                         }
                       }}
-                      className="absolute top-2 left-2 z-10 h-5 w-5 rounded"
+                      className="absolute top-2 left-2 z-10 h-6 w-6 rounded border-background"
                     />
                     {imageUrl && (
                       <img
                         src={imageUrl}
                         alt={item.title}
-                        className="w-full h-48 object-cover"
+                        className="w-full h-44 md:h-48 object-cover"
                       />
                     )}
                     <Badge 
@@ -459,13 +491,13 @@ export default function MyListings() {
                   </div>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0 pr-2">
                         <h3 className="font-semibold text-lg line-clamp-1">{item.title}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -497,8 +529,8 @@ export default function MyListings() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                      <div className="text-lg font-bold">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t">
+                      <div className="text-lg font-bold leading-none">
                         RM{item.price_per_day}/{t('common.per_day')}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -543,17 +575,16 @@ export default function MyListings() {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {deleteTarget?.bulk
-                ? `Delete ${deleteTarget.ids.length} listings?`
-                : 'Delete this listing?'}
+                ? `Remove ${deleteTarget.ids.length} listings from marketplace?`
+                : 'Remove this listing from marketplace?'}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>This action cannot be undone. The following will happen:</p>
+                <p>The listing will stop appearing in search and renters will not be able to request it.</p>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>The listing will be permanently removed from search</li>
-                  <li>All photos, analytics, and saved bookmarks will be deleted</li>
-                  <li>Rental history with this item will also be removed</li>
-                  <li>Active rentals (if any) may be affected</li>
+                  <li>If it has rental history, Renty keeps that history safely and archives the listing.</li>
+                  <li>If it has no history, the listing and related photos/bookmarks are deleted.</li>
+                  <li>Current rental records are preserved for receipts, disputes, and payouts.</li>
                 </ul>
                 <p className="font-medium text-foreground pt-2">
                   Tip: If you just want to stop receiving requests, pause the listing instead.
@@ -568,7 +599,14 @@ export default function MyListings() {
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Yes, delete permanently'}
+              {isDeleting ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Removing...
+                </span>
+              ) : (
+                'Remove listing'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

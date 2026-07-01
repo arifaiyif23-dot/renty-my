@@ -96,7 +96,7 @@ const Header = () => {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel('unread-messages')
+      .channel(`unread-messages-${user.id}`)
       .on(
         'postgres_changes',
         {
