@@ -131,6 +131,7 @@ export default function Messages() {
           },
           (payload) => {
             const newMsg = payload.new as Message;
+            if (!newMsg) return;
             if (
               (newMsg.sender_id === selectedUserId && newMsg.recipient_id === user.id) ||
               (newMsg.sender_id === user.id && newMsg.recipient_id === selectedUserId)
