@@ -82,7 +82,7 @@ export default function MyListings() {
       if (statusFilter !== 'all') {
         query = query.eq('listing_status', statusFilter);
       } else {
-        query = query.neq('listing_status', 'archived');
+        query = query.or('listing_status.is.null,listing_status.neq.archived');
       }
 
       switch (sortBy) {
