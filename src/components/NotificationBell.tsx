@@ -22,10 +22,11 @@ export const NotificationBell = () => {
   useEffect(() => {
     fetchNotifications();
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let isMounted = true;
 
     const fetchAndSubscribe = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !isMounted) return;
 
       // Subscribe to new notifications with user filter
       channel = supabase
@@ -59,6 +60,7 @@ export const NotificationBell = () => {
     fetchAndSubscribe();
 
     return () => {
+      isMounted = false;
       if (channel) {
         supabase.removeChannel(channel);
       }
