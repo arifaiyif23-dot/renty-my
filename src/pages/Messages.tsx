@@ -92,7 +92,7 @@ export default function Messages() {
               changedMessage &&
               (changedMessage.sender_id === user.id || changedMessage.recipient_id === user.id)
             ) {
-              fetchConversations();
+              fetchConversations(true);
             }
           }
         )
@@ -136,7 +136,7 @@ export default function Messages() {
               (newMsg.sender_id === user.id && newMsg.recipient_id === selectedUserId)
             ) {
               upsertMessage(newMsg);
-              fetchConversations();
+              fetchConversations(true);
             }
           }
         )
@@ -152,10 +152,10 @@ export default function Messages() {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages.length, typingUsers.length]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = async (silent = false) => {
     if (!user) return;
 
-    setIsLoadingConversations(true);
+    if (!silent) setIsLoadingConversations(true);
 
     const { data, error } = await supabase
       .from('messages')
@@ -165,7 +165,7 @@ export default function Messages() {
 
     if (error) {
       console.error('Error fetching conversations:', error);
-      setIsLoadingConversations(false);
+      if (!silent) setIsLoadingConversations(false);
       return;
     }
 
@@ -192,7 +192,7 @@ export default function Messages() {
     });
 
     setConversations(Array.from(conversationMap.values()));
-    setIsLoadingConversations(false);
+    if (!silent) setIsLoadingConversations(false);
   };
 
   const fetchMessages = async (otherUserId: string) => {
@@ -217,7 +217,7 @@ export default function Messages() {
     // Mark messages as read
     await supabase
       .from('messages')
-      .update({ is_read: true })
+      .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('sender_id', otherUserId)
       .eq('recipient_id', user.id);
 
@@ -280,7 +280,7 @@ export default function Messages() {
     }
 
     setMessages(prev => prev.map(msg => msg.id === optimisticId ? data : msg));
-    fetchConversations();
+    fetchConversations(true);
   };
 
   const handleTyping = () => {
