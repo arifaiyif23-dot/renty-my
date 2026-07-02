@@ -9,11 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Gift, Home } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import logo from "@/assets/renty-logo.png";
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
 import { checkRateLimit } from '@/utils/securityHelpers';
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
+import { supabase } from '@/integrations/supabase/client';
+
+const TERMS_VERSION = '2026-07-draft';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Invalid email address').toLowerCase(),
@@ -54,6 +58,7 @@ export default function Auth() {
 
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', confirmPassword: '' });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +107,11 @@ export default function Auth() {
       return;
     }
 
+    if (!acceptedTerms) {
+      toast.error('Sila terima Terma & Syarat dan Dasar Privasi untuk teruskan.');
+      return;
+    }
+
     // Check rate limit: max 3 signup attempts per hour
     const withinLimit = await checkRateLimit('signup', 3, 60);
     if (!withinLimit) {
@@ -112,7 +122,22 @@ export default function Auth() {
     setIsLoading(true);
     try {
       await signUp(result.data.email, result.data.password, result.data.fullName);
-      toast.success("Account created! Welcome to RENTY!");
+      // Record T&C acceptance on the newly created profile (best-effort)
+      try {
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        if (newUser) {
+          await supabase
+            .from('profiles')
+            .update({
+              terms_accepted_at: new Date().toISOString(),
+              terms_version: TERMS_VERSION,
+            })
+            .eq('id', newUser.id);
+        }
+      } catch (e) {
+        console.warn('Failed to record T&C acceptance', e);
+      }
+      toast.success("Account created! Welcome to Renty!");
       navigate("/");
     } catch (error: any) {
       const errorMessage = error.message || "Failed to create account";
@@ -295,7 +320,26 @@ export default function Auth() {
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
+                <div className="flex items-start gap-2 pt-1">
+                  <Checkbox
+                    id="signup-terms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(v) => setAcceptedTerms(v === true)}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="signup-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Saya bersetuju dengan{' '}
+                    <Link to="/terms" target="_blank" className="text-primary underline underline-offset-2">
+                      Terma & Syarat
+                    </Link>{' '}
+                    dan{' '}
+                    <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2">
+                      Dasar Privasi
+                    </Link>{' '}
+                    Renty (termasuk pemprosesan data di bawah PDPA).
+                  </Label>
+                </div>
+                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading || !acceptedTerms}>
                   {isLoading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>
