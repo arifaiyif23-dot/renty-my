@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import { StatusStamp } from "@/components/StatusStamp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { SEO } from "@/components/SEO";
+import SEO from "@/components/SEO";
 
 export default function Terms() {
   return (

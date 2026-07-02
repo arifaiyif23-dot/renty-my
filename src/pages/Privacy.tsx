@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Header from "@/components/Header";
-import { SEO } from "@/components/SEO";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Download, Trash2 } from "lucide-react";
