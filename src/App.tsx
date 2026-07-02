@@ -44,6 +44,8 @@ const AdminAutomation = lazy(() => import("./pages/AdminAutomation"));
 const AdminHealth = lazy(() => import("./pages/AdminHealth"));
 const AdminDisputes = lazy(() => import("./pages/AdminDisputes"));
 const Disputes = lazy(() => import("./pages/Disputes"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 // Configure React Query with aggressive caching
 const queryClient = new QueryClient({
@@ -99,6 +101,8 @@ function AppRoutes() {
               <Route path="/disputes" element={<ProtectedRoute><Disputes /></ProtectedRoute>} />
               <Route path="/pwa-settings" element={<PWASettings />} />
               <Route path="/offline" element={<Offline />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </PageTransition>
