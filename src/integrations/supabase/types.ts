@@ -140,6 +140,42 @@ export type Database = {
         }
         Relationships: []
       }
+      data_requests: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          request_type: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_type: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_type?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           created_at: string
@@ -443,6 +479,7 @@ export type Database = {
           maximum_rental_days: number | null
           minimum_rental_days: number | null
           owner_id: string
+          payment_mode: Database["public"]["Enums"]["payment_mode"]
           price_per_day: number
           show_precise_location: boolean | null
           tags: string[] | null
@@ -479,6 +516,7 @@ export type Database = {
           maximum_rental_days?: number | null
           minimum_rental_days?: number | null
           owner_id: string
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
           price_per_day: number
           show_precise_location?: boolean | null
           tags?: string[] | null
@@ -515,6 +553,7 @@ export type Database = {
           maximum_rental_days?: number | null
           minimum_rental_days?: number | null
           owner_id?: string
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
           price_per_day?: number
           show_precise_location?: boolean | null
           tags?: string[] | null
@@ -1125,6 +1164,7 @@ export type Database = {
           approximate_location: string | null
           avatar_url: string | null
           created_at: string | null
+          founding_vendor: boolean
           full_name: string
           id: string
           is_verified: boolean | null
@@ -1133,12 +1173,15 @@ export type Database = {
           longitude: number | null
           phone: string | null
           show_precise_location: boolean | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           updated_at: string | null
         }
         Insert: {
           approximate_location?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          founding_vendor?: boolean
           full_name: string
           id: string
           is_verified?: boolean | null
@@ -1147,12 +1190,15 @@ export type Database = {
           longitude?: number | null
           phone?: string | null
           show_precise_location?: boolean | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           updated_at?: string | null
         }
         Update: {
           approximate_location?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          founding_vendor?: boolean
           full_name?: string
           id?: string
           is_verified?: boolean | null
@@ -1161,6 +1207,8 @@ export type Database = {
           longitude?: number | null
           phone?: string | null
           show_precise_location?: boolean | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1511,7 +1559,11 @@ export type Database = {
           id: string
           is_disputed: boolean | null
           item_id: string
+          manual_payment_confirmed_at: string | null
+          manual_payment_confirmed_by: string | null
+          manual_payment_proof_url: string | null
           owner_id: string
+          payment_mode: Database["public"]["Enums"]["payment_mode"]
           pickup_code: string | null
           renter_id: string
           return_photos: string[] | null
@@ -1530,7 +1582,11 @@ export type Database = {
           id?: string
           is_disputed?: boolean | null
           item_id: string
+          manual_payment_confirmed_at?: string | null
+          manual_payment_confirmed_by?: string | null
+          manual_payment_proof_url?: string | null
           owner_id: string
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
           pickup_code?: string | null
           renter_id: string
           return_photos?: string[] | null
@@ -1549,7 +1605,11 @@ export type Database = {
           id?: string
           is_disputed?: boolean | null
           item_id?: string
+          manual_payment_confirmed_at?: string | null
+          manual_payment_confirmed_by?: string | null
+          manual_payment_proof_url?: string | null
           owner_id?: string
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
           pickup_code?: string | null
           renter_id?: string
           return_photos?: string[] | null
@@ -2323,6 +2383,7 @@ export type Database = {
         | "payment_received"
         | "review_received"
         | "message_received"
+      payment_mode: "escrow" | "manual"
       rental_status:
         | "pending"
         | "approved"
@@ -2491,6 +2552,7 @@ export const Constants = {
         "review_received",
         "message_received",
       ],
+      payment_mode: ["escrow", "manual"],
       rental_status: [
         "pending",
         "approved",
