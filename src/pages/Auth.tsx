@@ -59,6 +59,7 @@ export default function Auth() {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', confirmPassword: '' });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [preferredRole, setPreferredRole] = useState<'renter' | 'vendor'>('renter');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +132,7 @@ export default function Auth() {
             .update({
               terms_accepted_at: new Date().toISOString(),
               terms_version: TERMS_VERSION,
+              preferred_role: preferredRole,
             })
             .eq('id', newUser.id);
         }
@@ -138,7 +140,7 @@ export default function Auth() {
         console.warn('Failed to record T&C acceptance', e);
       }
       toast.success("Account created! Welcome to Renty!");
-      navigate("/");
+      navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : "/");
     } catch (error: any) {
       const errorMessage = error.message || "Failed to create account";
       
@@ -244,6 +246,35 @@ export default function Auth() {
               </Alert>
               
               <form onSubmit={handleSignup} className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Saya nak…</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPreferredRole('renter')}
+                      className={`h-16 rounded-md border-2 text-left px-3 transition ${
+                        preferredRole === 'renter'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-muted-foreground/40'
+                      }`}
+                    >
+                      <div className="font-semibold text-sm">Sewa barang</div>
+                      <div className="text-[11px] text-muted-foreground">Cari & tempah</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreferredRole('vendor')}
+                      className={`h-16 rounded-md border-2 text-left px-3 transition ${
+                        preferredRole === 'vendor'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-muted-foreground/40'
+                      }`}
+                    >
+                      <div className="font-semibold text-sm">Sewakan barang</div>
+                      <div className="text-[11px] text-muted-foreground">Jadi vendor</div>
+                    </button>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-name" className="text-sm font-medium">Full Name</Label>
                   <Input

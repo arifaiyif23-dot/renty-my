@@ -160,7 +160,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         .update({
           title: values.title,
           description: values.description,
-          category: values.category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'other',
+          category: values.category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'fashion' | 'other',
           price_per_day: values.price_per_day,
           location: values.location,
           deposit_amount: values.deposit_amount,
@@ -303,6 +303,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
                           <SelectItem value="tools">Tools</SelectItem>
                           <SelectItem value="sports">Sports</SelectItem>
                           <SelectItem value="party">Party</SelectItem>
+                          <SelectItem value="fashion">Fashion</SelectItem>
                           <SelectItem value="vehicles">Vehicles</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>

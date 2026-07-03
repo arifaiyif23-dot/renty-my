@@ -33,6 +33,9 @@ export default function ListItem() {
     description: '',
     category: 'electronics' as ItemCategory,
     price_per_day: '',
+    price_per_hour: '',
+    deposit_amount: '',
+    payment_mode: 'escrow' as 'escrow' | 'manual',
     location: profile?.location || '',
   });
 
@@ -120,6 +123,9 @@ export default function ListItem() {
           description: sanitizedDescription,
           category: formData.category,
           price_per_day: parseFloat(formData.price_per_day),
+          price_per_hour: formData.price_per_hour ? parseFloat(formData.price_per_hour) : null,
+          deposit_amount: formData.deposit_amount ? parseFloat(formData.deposit_amount) : 0,
+          payment_mode: formData.payment_mode,
           location: sanitizedLocation,
           latitude: profile?.latitude,
           longitude: profile?.longitude,
@@ -257,24 +263,87 @@ export default function ListItem() {
                     <SelectItem value="tools">Tools</SelectItem>
                     <SelectItem value="sports">Sports</SelectItem>
                     <SelectItem value="party">Party</SelectItem>
+                    <SelectItem value="fashion">Fashion</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-sm font-medium">Harga / Hari (RM) *</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.price_per_day}
+                    onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
+                    className="h-12 text-base"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price_hour" className="text-sm font-medium">Harga / Jam (RM)</Label>
+                  <Input
+                    id="price_hour"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.price_per_hour}
+                    onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
+                    className="h-12 text-base"
+                    placeholder="Opsyenal"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-sm font-medium">Price per Day (RM) *</Label>
+                <Label htmlFor="deposit" className="text-sm font-medium">Deposit (RM)</Label>
                 <Input
-                  id="price"
+                  id="deposit"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.price_per_day}
-                  onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
+                  value={formData.deposit_amount}
+                  onChange={(e) => setFormData({ ...formData, deposit_amount: e.target.value })}
                   className="h-12 text-base"
-                  placeholder="0.00"
-                  required
+                  placeholder="0.00 (opsyenal)"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Deposit dipulangkan selepas barang dikembalikan dalam keadaan baik.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Kaedah Bayaran</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, payment_mode: 'escrow' })}
+                    className={`h-16 rounded-md border-2 text-left px-3 transition ${
+                      formData.payment_mode === 'escrow'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border'
+                    }`}
+                  >
+                    <div className="font-semibold text-sm">Escrow (auto)</div>
+                    <div className="text-[11px] text-muted-foreground">Platform tahan bayaran</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, payment_mode: 'manual' })}
+                    className={`h-16 rounded-md border-2 text-left px-3 transition ${
+                      formData.payment_mode === 'manual'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border'
+                    }`}
+                  >
+                    <div className="font-semibold text-sm">Manual (bank)</div>
+                    <div className="text-[11px] text-muted-foreground">Bayar terus ke akaun</div>
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
