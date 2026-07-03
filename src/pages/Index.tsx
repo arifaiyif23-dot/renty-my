@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Recycle, Shield, Clock, TrendingUp, Package, Sparkles,
-  Car, Smartphone, Home, Dumbbell, Music, Wrench, 
+  Car, Smartphone, Home, Dumbbell, Music, Wrench, Shirt, 
   FileCheck, Lock, CreditCard, HeadphonesIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
