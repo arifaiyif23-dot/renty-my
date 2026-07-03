@@ -133,6 +133,7 @@ const MobileFilterDrawer = ({
                   <SelectItem value="tools">Tools</SelectItem>
                   <SelectItem value="sports">Sports</SelectItem>
                   <SelectItem value="party">Party</SelectItem>
+                  <SelectItem value="fashion">Fashion</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

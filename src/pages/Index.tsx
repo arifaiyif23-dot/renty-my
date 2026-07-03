@@ -97,6 +97,7 @@ const Index = () => {
     tools: { icon: Wrench, displayName: "Tools" },
     sports: { icon: Dumbbell, displayName: "Sports" },
     party: { icon: Music, displayName: "Party" },
+    fashion: { icon: Shirt, displayName: "Fashion" },
     other: { icon: Package, displayName: "Other" },
   }), []);
 

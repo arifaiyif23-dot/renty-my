@@ -53,7 +53,7 @@ export function BulkEditModal({ open, onOpenChange, selectedIds, action }: BulkE
           if (!category) throw new Error('Please select a category');
           const { error: categoryError} = await supabase
             .from('items')
-            .update({ category: category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'other' })
+            .update({ category: category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'fashion' | 'other' })
             .in('id', selectedIds);
           if (categoryError) throw categoryError;
           break;
@@ -157,6 +157,7 @@ export function BulkEditModal({ open, onOpenChange, selectedIds, action }: BulkE
                 <SelectItem value="tools">Tools</SelectItem>
                 <SelectItem value="sports">Sports</SelectItem>
                 <SelectItem value="party">Party</SelectItem>
+                <SelectItem value="fashion">Fashion</SelectItem>
                 <SelectItem value="vehicles">Vehicles</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
