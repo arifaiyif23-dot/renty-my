@@ -385,6 +385,44 @@ export type Database = {
         }
         Relationships: []
       }
+      item_blocked_dates: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          item_id: string
+          owner_id: string
+          reason: string | null
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          item_id: string
+          owner_id: string
+          reason?: string | null
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          item_id?: string
+          owner_id?: string
+          reason?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_blocked_dates_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_images: {
         Row: {
           created_at: string | null
@@ -481,6 +519,7 @@ export type Database = {
           owner_id: string
           payment_mode: Database["public"]["Enums"]["payment_mode"]
           price_per_day: number
+          price_per_hour: number | null
           show_precise_location: boolean | null
           tags: string[] | null
           title: string
@@ -518,6 +557,7 @@ export type Database = {
           owner_id: string
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           price_per_day: number
+          price_per_hour?: number | null
           show_precise_location?: boolean | null
           tags?: string[] | null
           title: string
@@ -555,6 +595,7 @@ export type Database = {
           owner_id?: string
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           price_per_day?: number
+          price_per_hour?: number | null
           show_precise_location?: boolean | null
           tags?: string[] | null
           title?: string
@@ -1171,7 +1212,9 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          onboarding_completed_at: string | null
           phone: string | null
+          preferred_role: string | null
           show_precise_location: boolean | null
           terms_accepted_at: string | null
           terms_version: string | null
@@ -1188,7 +1231,9 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          onboarding_completed_at?: string | null
           phone?: string | null
+          preferred_role?: string | null
           show_precise_location?: boolean | null
           terms_accepted_at?: string | null
           terms_version?: string | null
@@ -1205,7 +1250,9 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          onboarding_completed_at?: string | null
           phone?: string | null
+          preferred_role?: string | null
           show_precise_location?: boolean | null
           terms_accepted_at?: string | null
           terms_version?: string | null
@@ -2376,6 +2423,7 @@ export type Database = {
         | "sports"
         | "party"
         | "other"
+        | "fashion"
       notification_type:
         | "rental_request"
         | "rental_approved"
@@ -2543,6 +2591,7 @@ export const Constants = {
         "sports",
         "party",
         "other",
+        "fashion",
       ],
       notification_type: [
         "rental_request",
