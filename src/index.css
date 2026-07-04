@@ -1,61 +1,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Accessibility and Performance Optimizations */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Skip to main content link */
-.skip-to-main {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  padding: 8px;
-  text-decoration: none;
-  border-radius: 0 0 4px 0;
-  z-index: 100;
-}
-
-.skip-to-main:focus {
-  top: 0;
-}
-
-/* High Contrast Mode Support */
-@media (prefers-contrast: high) {
-  * {
-    border-color: currentColor !important;
-  }
-}
+/* ============================================================
+   Renty — Design tokens
+   Palette: Earthy Terracotta + Espresso (see BRAND_IDENTITY.md)
+   Type:    Work Sans (body) / Space Grotesk (heading) / JetBrains Mono (stamps)
+   ============================================================ */
 
 @layer base {
   :root {
-    /* Renty — Earthy Terracotta palette (BRAND_IDENTITY.md) */
-    --background: 36 50% 94%; /* Paper #FAF3E7 */
-    --foreground: 24 24% 14%; /* Espresso ink #2B211A */
+    --background: 36 50% 94%;      /* Paper #FAF3E7 */
+    --foreground: 24 24% 14%;      /* Espresso ink */
 
-    --card: 36 46% 88%; /* Sand #F0E6D2 */
+    --card: 36 46% 88%;            /* Sand */
     --card-foreground: 24 24% 14%;
 
     --popover: 36 50% 96%;
     --popover-foreground: 24 24% 14%;
 
-    --primary: 15 63% 47%; /* Terracotta #C1552C */
+    --primary: 15 63% 47%;         /* Terracotta */
     --primary-foreground: 36 50% 96%;
 
-    --secondary: 120 8% 39%; /* Sage #5C6B5E */
+    --secondary: 120 8% 39%;       /* Sage */
     --secondary-foreground: 36 50% 96%;
 
     --muted: 36 30% 86%;
@@ -64,20 +34,20 @@
     --accent: 36 46% 82%;
     --accent-foreground: 24 24% 14%;
 
-    --destructive: 5 57% 35%; /* Brick #8C2F26 */
+    --destructive: 5 57% 35%;      /* Brick */
     --destructive-foreground: 36 50% 96%;
 
-    --success: 90 22% 37%; /* Moss #5B7048 — confirmed */
+    --success: 90 22% 37%;         /* Moss */
     --success-foreground: 36 50% 96%;
 
-    --warning: 37 63% 48%; /* Ochre #C98A2C — pending */
+    --warning: 37 63% 48%;         /* Ochre */
     --warning-foreground: 24 24% 14%;
 
     --border: 36 25% 78%;
     --input: 36 25% 82%;
     --ring: 15 63% 47%;
 
-    --radius: 0.375rem;
+    --radius: 0.625rem;
 
     --sidebar-background: 36 50% 96%;
     --sidebar-foreground: 24 24% 14%;
@@ -87,10 +57,14 @@
     --sidebar-accent-foreground: 24 24% 14%;
     --sidebar-border: 36 25% 78%;
     --sidebar-ring: 15 63% 47%;
+
+    /* Elevation ramp */
+    --shadow-1: 0 1px 2px rgba(43, 33, 26, 0.05), 0 1px 3px rgba(43, 33, 26, 0.04);
+    --shadow-2: 0 2px 4px rgba(43, 33, 26, 0.06), 0 4px 12px rgba(43, 33, 26, 0.06);
+    --shadow-3: 0 6px 16px rgba(43, 33, 26, 0.10), 0 12px 32px rgba(43, 33, 26, 0.08);
   }
 
   .dark {
-    /* Dark: deep espresso ground, muted terracotta accent */
     --background: 24 20% 8%;
     --foreground: 36 40% 92%;
 
@@ -133,197 +107,184 @@
     --sidebar-accent-foreground: 36 40% 92%;
     --sidebar-border: 24 12% 22%;
     --sidebar-ring: 15 55% 52%;
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-3: 0 6px 16px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
   }
 }
 
+/* ============================================================
+   Base
+   ============================================================ */
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
+
+  html { -webkit-text-size-adjust: 100%; }
 
   body {
-    @apply bg-background text-foreground text-base leading-relaxed;
-    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 0.005em;
     scroll-behavior: smooth;
-    letter-spacing: 0.01em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (min-width: 768px) {
+    body { font-size: 16px; }
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-semibold;
-    color: hsl(var(--foreground));
+    @apply font-heading font-semibold text-foreground;
     letter-spacing: -0.02em;
+    line-height: 1.15;
   }
 
-  h1 { @apply text-3xl md:text-4xl; }
+  h1 { @apply text-3xl md:text-4xl lg:text-5xl; }
   h2 { @apply text-2xl md:text-3xl; }
   h3 { @apply text-xl md:text-2xl; }
-}
+  h4 { @apply text-lg md:text-xl; }
 
-@layer utilities {
-  /* Safe area utilities for mobile devices with notches */
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+  /* Numeric stamps (prices, IDs, countdowns) use JetBrains Mono */
+  .tabular, .mono-stamp {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
+  /* Tap targets */
+  * { -webkit-tap-highlight-color: transparent; }
 
-  /* Mobile-friendly touch targets */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  /* Bottom nav spacing to prevent content overlap */
-  .pb-mobile-nav {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
-
-  @media (min-width: 768px) {
-    .pb-mobile-nav {
-      padding-bottom: 0;
-    }
-  }
-
-  .mb-mobile-nav {
-    margin-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
-
-  @media (min-width: 768px) {
-    .mb-mobile-nav {
-      margin-bottom: 0;
-    }
-  }
-
-  /* Improved focus styles for accessibility */
+  /* Focus ring — single source of truth */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
+}
 
-  button:focus-visible,
-  a:focus-visible,
-  [role="button"]:focus-visible {
-    @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+/* ============================================================
+   Reusable utilities
+   ============================================================ */
+@layer utilities {
+  /* Safe-area helpers for iOS notches */
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-top    { padding-top:    env(safe-area-inset-top); }
+
+  /* Bottom-nav clearance */
+  .pb-mobile-nav { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+  .mb-mobile-nav { margin-bottom:  calc(4.5rem + env(safe-area-inset-bottom)); }
+  @media (min-width: 768px) {
+    .pb-mobile-nav { padding-bottom: 0; }
+    .mb-mobile-nav { margin-bottom: 0; }
   }
 
-  /* Better tap highlight for mobile */
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
+  .touch-target { min-height: 44px; min-width: 44px; }
 
-  /* Smooth transitions */
-  button, a, [role="button"] {
-    @apply transition-colors duration-200;
-  }
+  /* Elevation ramp */
+  .shadow-1 { box-shadow: var(--shadow-1); }
+  .shadow-2 { box-shadow: var(--shadow-2); }
+  .shadow-3 { box-shadow: var(--shadow-3); }
 
-  /* Natural Card System */
-  .card-minimal {
+  /* Surfaces — single source of truth for cards */
+  .surface-1 {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease;
+    box-shadow: var(--shadow-1);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
+  .surface-1:hover { box-shadow: var(--shadow-2); }
 
-  .card-minimal:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
-
-  .card-elevated {
+  .surface-2 {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-2);
   }
 
-  /* Natural shadow system */
-  .shadow-natural {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  /* Back-compat aliases */
+  .card-minimal   { @apply surface-1; }
+  .card-elevated  { @apply surface-2; }
+  .shadow-natural    { box-shadow: var(--shadow-1); }
+  .shadow-natural-md { box-shadow: var(--shadow-2); }
+  .shadow-natural-lg { box-shadow: var(--shadow-3); }
+
+  /* Interactive helpers */
+  .hover-scale { @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]; }
+  .press       { @apply transition-transform duration-150 active:scale-[0.97]; }
+
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
   }
 
-  .shadow-natural-md {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
+  /* Content rhythm */
+  .content-spacing > * + * { margin-top: 1.5rem; }
+}
 
-  .shadow-natural-lg {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
-  }
-
-  /* Content spacing */
-  .content-spacing > * + * {
-    margin-top: 1.5rem;
-  }
-
-  /* Shimmer for skeleton loading only */
-  @keyframes skeleton-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-  }
-
-  /* Page transition animation */
+/* ============================================================
+   Animations
+   ============================================================ */
+@layer utilities {
   @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(6px); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.5; }
   }
 
-  .animate-fade-in {
-    animation: fade-in 0.2s ease-out forwards;
-  }
+  .animate-fade-in { animation: fade-in 0.24s ease-out both; }
+  .animate-fade-out { animation: fade-out 0.2s ease-out both; }
+  .animate-scale-in { animation: scale-in 0.2s ease-out both; }
+  .animate-enter { animation: fade-in 0.24s ease-out both, scale-in 0.2s ease-out both; }
+}
 
-  /* Skip to main content link */
-  .skip-to-main {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    z-index: 999;
-    padding: 1rem 1.5rem;
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    text-decoration: none;
-    border-radius: 0 0 0.5rem 0.5rem;
-  }
+/* ============================================================
+   Skip-to-main (a11y)
+   ============================================================ */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 999;
+  padding: 0.75rem 1.25rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  text-decoration: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  font-weight: 600;
+}
+.skip-to-main:focus { left: 50%; transform: translateX(-50%); }
 
-  .skip-to-main:focus {
-    left: 50%;
-    transform: translateX(-50%);
+/* ============================================================
+   Accessibility preferences
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
 
-  /* Touch target optimization - minimum 44x44px for mobile */
-  @media (pointer: coarse) {
-    button,
-    a,
-    input[type="checkbox"],
-    input[type="radio"],
-    select {
-      min-height: 44px;
-      min-width: 44px;
-    }
-  }
+@media (prefers-contrast: high) {
+  * { border-color: currentColor !important; }
+}
 
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    * {
-      border-width: 2px;
-    }
-  }
-
-  /* Reduce motion support */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
+/* Mobile: enforce 44px minimum touch targets */
+@media (pointer: coarse) {
+  button, a[role="button"], input[type="checkbox"], input[type="radio"], select {
+    min-height: 44px;
   }
 }
