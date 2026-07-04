@@ -54,57 +54,52 @@ export const EnhancedItemCard = memo(({
   );
 
   return (
-    <Link to={`/items/${id}`} aria-label={`View details for ${title}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 group">
+    <Link to={`/items/${id}`} aria-label={`View details for ${title}`} className="block group">
+      <Card className="overflow-hidden transition-all duration-200 hover:shadow-2 hover:-translate-y-0.5">
           <div className="relative">
-            {/* Image */}
-            <div className="relative h-56 overflow-hidden">
+            <div className="relative h-56 overflow-hidden bg-muted">
               <img
                 src={optimizedImage}
                 alt={`${title} - ${category} available for rent in ${location}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 loading="lazy"
                 decoding="async"
               />
             </div>
 
-            {/* Top badges */}
             <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5">
                 {badgeConfig && (
-                  <Badge variant={badgeConfig.variant} className="shadow-lg">
+                  <Badge variant={badgeConfig.variant} className="shadow-1 backdrop-blur">
                     {badgeConfig.text}
                   </Badge>
                 )}
-                <Badge variant="secondary" className="shadow-lg capitalize">
+                <Badge variant="soft" className="capitalize shadow-1 backdrop-blur">
                   {category}
                 </Badge>
               </div>
-              
-              {/* Save button */}
-              <div className="hover:scale-105 transition-transform duration-150">
+
+              <div className="press">
                 <SaveItemButton itemId={id} />
               </div>
             </div>
           </div>
 
           <CardContent className="p-4">
-            {/* Title with verification */}
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="font-semibold text-lg line-clamp-2 flex-1 group-hover:text-primary transition-colors">
+              <h3 className="font-heading font-semibold text-base md:text-lg leading-snug line-clamp-2 flex-1 group-hover:text-primary transition-colors">
                 {title}
               </h3>
               {isOwnerVerified && (
-                <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0" />
+                <ShieldCheck className="w-5 h-5 text-success flex-shrink-0 mt-0.5" aria-label="Verified owner" />
               )}
             </div>
 
-            {/* Rating */}
             {rating > 0 && (
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-primary text-primary" />
-                  <span className="text-sm font-medium">{rating}</span>
+                  <Star className="w-4 h-4 fill-warning text-warning" />
+                  <span className="text-sm font-medium tabular">{rating.toFixed(1)}</span>
                 </div>
                 {reviewCount > 0 && (
                   <span className="text-xs text-muted-foreground">
@@ -114,26 +109,25 @@ export const EnhancedItemCard = memo(({
               </div>
             )}
 
-            {/* Location */}
             <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="truncate">{location}</span>
               {distance && (
-                <span className="text-xs">• {distance}km away</span>
+                <span className="text-xs tabular whitespace-nowrap">· {distance}km</span>
               )}
             </div>
 
-            {/* Price */}
-            <div className="flex items-baseline gap-2 pt-3 border-t">
-              <span className="text-2xl font-bold text-primary">
-                RM {pricePerDay}
+            <div className="flex items-baseline gap-1.5 pt-3 border-t border-border">
+              <span className="text-xl md:text-2xl font-bold text-primary tabular">
+                RM{pricePerDay}
               </span>
-              <span className="text-sm text-muted-foreground">/day</span>
+              <span className="text-xs text-muted-foreground">/hari</span>
             </div>
           </CardContent>
         </Card>
       </Link>
   );
 });
+
 
 EnhancedItemCard.displayName = "EnhancedItemCard";
