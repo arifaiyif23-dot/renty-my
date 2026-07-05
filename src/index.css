@@ -1,116 +1,67 @@
-@import url("https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================================
-   Renty — Design tokens
-   Palette: Earthy Terracotta + Espresso (see BRAND_IDENTITY.md)
-   Type:    Work Sans (body) / Space Grotesk (heading) / JetBrains Mono (stamps)
+   Renty — Design System v2 tokens (dark-only, teal accent, Inter)
+   Source of truth: RENTY_DESIGN_SYSTEM_v2
    ============================================================ */
 
 @layer base {
-  :root {
-    --background: 36 50% 94%;      /* Paper #FAF3E7 */
-    --foreground: 24 24% 14%;      /* Espresso ink */
+  :root,
+  .dark {
+    /* Neutral base */
+    --background: 222 47% 9%;          /* #0B1220 */
+    --foreground: 210 20% 98%;         /* #F9FAFB */
 
-    --card: 36 46% 88%;            /* Sand */
-    --card-foreground: 24 24% 14%;
+    --card: 222 39% 11%;               /* #111827 */
+    --card-foreground: 210 20% 98%;
 
-    --popover: 36 50% 96%;
-    --popover-foreground: 24 24% 14%;
+    --popover: 217 33% 17%;            /* #1F2937 */
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 15 63% 47%;         /* Terracotta */
-    --primary-foreground: 36 50% 96%;
+    /* Sole accent — teal */
+    --primary: 172 66% 40%;            /* #14B8A6 */
+    --primary-foreground: 222 47% 9%;
 
-    --secondary: 120 8% 39%;       /* Sage */
-    --secondary-foreground: 36 50% 96%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 36 30% 86%;
-    --muted-foreground: 24 12% 38%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 220 9% 65%;    /* #9CA3AF */
 
-    --accent: 36 46% 82%;
-    --accent-foreground: 24 24% 14%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 20% 98%;
 
-    --destructive: 5 57% 35%;      /* Brick */
-    --destructive-foreground: 36 50% 96%;
+    --destructive: 0 84% 60%;          /* #EF4444 */
+    --destructive-foreground: 210 20% 98%;
 
-    --success: 90 22% 37%;         /* Moss */
-    --success-foreground: 36 50% 96%;
+    --success: 142 71% 45%;            /* #22C55E */
+    --success-foreground: 222 47% 9%;
 
-    --warning: 37 63% 48%;         /* Ochre */
-    --warning-foreground: 24 24% 14%;
+    --warning: 38 92% 50%;             /* #F59E0B */
+    --warning-foreground: 222 47% 9%;
 
-    --border: 36 25% 78%;
-    --input: 36 25% 82%;
-    --ring: 15 63% 47%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 172 66% 40%;
 
     --radius: 0.625rem;
 
-    --sidebar-background: 36 50% 96%;
-    --sidebar-foreground: 24 24% 14%;
-    --sidebar-primary: 15 63% 47%;
-    --sidebar-primary-foreground: 36 50% 96%;
-    --sidebar-accent: 36 30% 86%;
-    --sidebar-accent-foreground: 24 24% 14%;
-    --sidebar-border: 36 25% 78%;
-    --sidebar-ring: 15 63% 47%;
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-primary: 172 66% 40%;
+    --sidebar-primary-foreground: 222 47% 9%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-border: 217 33% 20%;
+    --sidebar-ring: 172 66% 40%;
 
-    /* Elevation ramp */
-    --shadow-1: 0 1px 2px rgba(43, 33, 26, 0.05), 0 1px 3px rgba(43, 33, 26, 0.04);
-    --shadow-2: 0 2px 4px rgba(43, 33, 26, 0.06), 0 4px 12px rgba(43, 33, 26, 0.06);
-    --shadow-3: 0 6px 16px rgba(43, 33, 26, 0.10), 0 12px 32px rgba(43, 33, 26, 0.08);
-  }
-
-  .dark {
-    --background: 24 20% 8%;
-    --foreground: 36 40% 92%;
-
-    --card: 24 18% 12%;
-    --card-foreground: 36 40% 92%;
-
-    --popover: 24 18% 12%;
-    --popover-foreground: 36 40% 92%;
-
-    --primary: 15 55% 52%;
-    --primary-foreground: 24 20% 8%;
-
-    --secondary: 120 8% 45%;
-    --secondary-foreground: 36 40% 92%;
-
-    --muted: 24 12% 18%;
-    --muted-foreground: 36 18% 65%;
-
-    --accent: 24 15% 20%;
-    --accent-foreground: 36 40% 92%;
-
-    --destructive: 5 55% 45%;
-    --destructive-foreground: 36 40% 92%;
-
-    --success: 90 22% 45%;
-    --success-foreground: 36 40% 92%;
-
-    --warning: 37 55% 52%;
-    --warning-foreground: 24 20% 8%;
-
-    --border: 24 12% 22%;
-    --input: 24 12% 18%;
-    --ring: 15 55% 52%;
-
-    --sidebar-background: 24 20% 10%;
-    --sidebar-foreground: 36 40% 92%;
-    --sidebar-primary: 15 55% 52%;
-    --sidebar-primary-foreground: 24 20% 8%;
-    --sidebar-accent: 24 12% 18%;
-    --sidebar-accent-foreground: 36 40% 92%;
-    --sidebar-border: 24 12% 22%;
-    --sidebar-ring: 15 55% 52%;
-
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-3: 0 6px 16px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.4);
+    /* Minimal shadows — spec: "no heavy shadows" */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.40);
   }
 }
 
@@ -120,60 +71,58 @@
 @layer base {
   * { @apply border-border; }
 
-  html { -webkit-text-size-adjust: 100%; }
+  html {
+    -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
+  }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-    letter-spacing: 0.005em;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  @media (min-width: 768px) {
-    body { font-size: 16px; }
-  }
-
+  /* Type scale — v2 spec */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-semibold text-foreground;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    @apply font-semibold text-foreground;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
   }
 
-  h1 { @apply text-3xl md:text-4xl lg:text-5xl; }
-  h2 { @apply text-2xl md:text-3xl; }
-  h3 { @apply text-xl md:text-2xl; }
-  h4 { @apply text-lg md:text-xl; }
+  h1 { font-size: 32px; font-weight: 700; }
+  h2 { font-size: 24px; font-weight: 600; }
+  h3 { font-size: 20px; font-weight: 600; }
+  h4 { font-size: 18px; font-weight: 600; }
 
-  /* Numeric stamps (prices, IDs, countdowns) use JetBrains Mono */
+  small, .text-small { font-size: 14px; }
+  .text-caption { font-size: 12px; }
+
+  /* Numeric emphasis — Inter tabular-nums (no mono font per v2) */
   .tabular, .mono-stamp {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
 
-  /* Tap targets */
   * { -webkit-tap-highlight-color: transparent; }
 
-  /* Focus ring — single source of truth */
   *:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 
 /* ============================================================
-   Reusable utilities
+   Utilities
    ============================================================ */
 @layer utilities {
-  /* Safe-area helpers for iOS notches */
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .safe-area-top    { padding-top:    env(safe-area-inset-top); }
 
-  /* Bottom-nav clearance */
   .pb-mobile-nav { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
   .mb-mobile-nav { margin-bottom:  calc(4.5rem + env(safe-area-inset-bottom)); }
   @media (min-width: 768px) {
@@ -183,59 +132,53 @@
 
   .touch-target { min-height: 44px; min-width: 44px; }
 
-  /* Elevation ramp */
   .shadow-1 { box-shadow: var(--shadow-1); }
   .shadow-2 { box-shadow: var(--shadow-2); }
   .shadow-3 { box-shadow: var(--shadow-3); }
 
-  /* Surfaces — single source of truth for cards */
   .surface-1 {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
-    box-shadow: var(--shadow-1);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
   }
-  .surface-1:hover { box-shadow: var(--shadow-2); }
+  .surface-1:hover { border-color: hsl(var(--border) / 0.8); }
 
   .surface-2 {
-    background: hsl(var(--card));
+    background: hsl(var(--popover));
     border: 1px solid hsl(var(--border));
-    box-shadow: var(--shadow-2);
   }
 
-  /* Back-compat aliases */
+  /* Back-compat aliases (do not remove — used across app) */
   .card-minimal   { @apply surface-1; }
   .card-elevated  { @apply surface-2; }
   .shadow-natural    { box-shadow: var(--shadow-1); }
   .shadow-natural-md { box-shadow: var(--shadow-2); }
   .shadow-natural-lg { box-shadow: var(--shadow-3); }
 
-  /* Interactive helpers */
-  .hover-scale { @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]; }
+  .hover-scale { @apply transition-transform duration-150 hover:scale-[1.01] active:scale-[0.99]; }
   .press       { @apply transition-transform duration-150 active:scale-[0.97]; }
 
   .story-link {
-    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-150 hover:after:scale-x-100 hover:after:origin-bottom-left;
   }
 
-  /* Content rhythm */
   .content-spacing > * + * { margin-top: 1.5rem; }
 }
 
 /* ============================================================
-   Animations
+   Animations — 120–180ms, ease-out only (v2 spec)
    ============================================================ */
 @layer utilities {
   @keyframes fade-in {
-    from { opacity: 0; transform: translateY(6px); }
+    from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes fade-out {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(6px); }
+    from { opacity: 1; }
+    to   { opacity: 0; }
   }
   @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.96); }
+    from { opacity: 0; transform: scale(0.98); }
     to   { opacity: 1; transform: scale(1); }
   }
   @keyframes skeleton-pulse {
@@ -243,15 +186,13 @@
     50%      { opacity: 0.5; }
   }
 
-  .animate-fade-in { animation: fade-in 0.24s ease-out both; }
-  .animate-fade-out { animation: fade-out 0.2s ease-out both; }
-  .animate-scale-in { animation: scale-in 0.2s ease-out both; }
-  .animate-enter { animation: fade-in 0.24s ease-out both, scale-in 0.2s ease-out both; }
+  .animate-fade-in  { animation: fade-in 0.16s ease-out both; }
+  .animate-fade-out { animation: fade-out 0.14s ease-out both; }
+  .animate-scale-in { animation: scale-in 0.16s ease-out both; }
+  .animate-enter    { animation: fade-in 0.16s ease-out both; }
 }
 
-/* ============================================================
-   Skip-to-main (a11y)
-   ============================================================ */
+/* Skip-to-main (a11y) */
 .skip-to-main {
   position: absolute;
   left: -9999px;
@@ -266,9 +207,7 @@
 }
 .skip-to-main:focus { left: 50%; transform: translateX(-50%); }
 
-/* ============================================================
-   Accessibility preferences
-   ============================================================ */
+/* Accessibility preferences */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
