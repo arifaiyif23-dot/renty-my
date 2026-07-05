@@ -15,7 +15,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Work Sans',
+  				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -24,22 +24,10 @@ export default {
   				'Roboto',
   				'Helvetica Neue',
   				'Arial',
-  				'Noto Sans',
   				'sans-serif'
   			],
-  			heading: [
-  				'Space Grotesk',
-  				'sans-serif'
-  			],
-  			mono: [
-  				'JetBrains Mono',
-  				'ui-monospace',
-  				'SFMono-Regular',
-  				'Menlo',
-  				'Monaco',
-  				'Consolas',
-  				'monospace'
-  			]
+  			heading: ['Inter', 'sans-serif'],
+  			mono: ['Inter', 'ui-monospace', 'monospace']
   		},
   		colors: {
   			border: 'hsl(var(--border))',

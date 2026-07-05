@@ -87,7 +87,7 @@ export const EnhancedItemCard = memo(({
 
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="font-heading font-semibold text-base md:text-lg leading-snug line-clamp-2 flex-1 group-hover:text-primary transition-colors">
+              <h3 className="font-semibold text-base leading-snug line-clamp-1 flex-1 group-hover:text-primary transition-colors">
                 {title}
               </h3>
               {isOwnerVerified && (
