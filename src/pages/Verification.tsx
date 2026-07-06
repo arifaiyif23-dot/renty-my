@@ -28,6 +28,7 @@ export default function Verification() {
   const [livenessFrames, setLivenessFrames] = useState<Blob[]>([]);
   const [useVideoLiveness, setUseVideoLiveness] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0, stage: '' });
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   
@@ -95,45 +96,46 @@ export default function Verification() {
     setCurrentStep(5);
 
     try {
-      // Upload all documents
-      toast.info("Uploading documents...");
-      
-      const uploadPromises = [
-        uploadToStorage(documentFront, 'document-front'),
-        uploadToStorage(selfie, 'selfie')
+      // Build upload queue so we can show real progress
+      type UploadJob = { file: File | Blob; path: string; key: string };
+      const jobs: UploadJob[] = [
+        { file: documentFront, path: 'document-front', key: 'front' },
+        { file: selfie, path: 'selfie', key: 'selfie' },
       ];
-
-      if (documentType === "mykad" && documentBack) {
-        uploadPromises.push(uploadToStorage(documentBack, 'document-back'));
-      }
-
-      // Upload video and frames if available
-      if (livenessVideo) {
-        uploadPromises.push(uploadToStorage(livenessVideo, 'liveness-video'));
-      }
-      if (livenessFrames.length > 0) {
-        livenessFrames.forEach((frame, idx) => {
-          uploadPromises.push(uploadToStorage(frame, `liveness-frame-${idx}`));
-        });
-      }
-
-      const uploadResults = await Promise.all(uploadPromises);
-      const frontUrl = uploadResults[0];
-      const selfieUrl = uploadResults[1];
-      let backUrl = null;
-      let videoUrl = null;
-      let frameUrls: string[] = [];
-
-      let resultIndex = 2;
-      if (documentType === "mykad" && documentBack) {
-        backUrl = uploadResults[resultIndex++];
+      if (documentType === 'mykad' && documentBack) {
+        jobs.push({ file: documentBack, path: 'document-back', key: 'back' });
       }
       if (livenessVideo) {
-        videoUrl = uploadResults[resultIndex++];
+        jobs.push({ file: livenessVideo, path: 'liveness-video', key: 'video' });
       }
-      if (livenessFrames.length > 0) {
-        frameUrls = uploadResults.slice(resultIndex);
+      livenessFrames.forEach((frame, idx) => {
+        jobs.push({ file: frame, path: `liveness-frame-${idx}`, key: `frame-${idx}` });
+      });
+
+      setUploadProgress({ done: 0, total: jobs.length, stage: 'Uploading documents' });
+
+      const uploaded: Record<string, string> = {};
+      // Sequential upload for accurate progress + graceful failure messaging
+      for (let i = 0; i < jobs.length; i++) {
+        const job = jobs[i];
+        try {
+          uploaded[job.key] = await uploadToStorage(job.file, job.path);
+        } catch (err: any) {
+          throw new Error(`Upload failed at ${job.path}: ${err?.message || 'unknown error'}`);
+        }
+        setUploadProgress({ done: i + 1, total: jobs.length, stage: 'Uploading documents' });
       }
+
+      const frontUrl = uploaded['front'];
+      const selfieUrl = uploaded['selfie'];
+      const backUrl = uploaded['back'] ?? null;
+      const videoUrl = uploaded['video'] ?? null;
+      const frameUrls = Object.keys(uploaded)
+        .filter((k) => k.startsWith('frame-'))
+        .sort()
+        .map((k) => uploaded[k]);
+
+      setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'Submitting for review' });
 
       // Hash IC number if available (MyKad only)
       let icNumberHash = null;
@@ -427,8 +429,23 @@ export default function Verification() {
                 {loading ? (
                   <>
                     <Loader2 className="h-16 w-16 mx-auto animate-spin text-primary" />
-                    <h3 className="text-lg font-semibold">Verifying Your Identity</h3>
-                    <p className="text-muted-foreground">AI is analyzing your documents... This may take up to 30 seconds.</p>
+                    <h3 className="text-lg font-semibold">
+                      {uploadProgress.stage || 'Submitting your verification'}
+                    </h3>
+                    {uploadProgress.total > 0 && (
+                      <>
+                        <p className="text-muted-foreground">
+                          {uploadProgress.done} of {uploadProgress.total} files uploaded
+                        </p>
+                        <Progress
+                          value={(uploadProgress.done / uploadProgress.total) * 100}
+                          className="h-2 max-w-sm mx-auto"
+                        />
+                      </>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Please keep this page open until submission completes.
+                    </p>
                   </>
                 ) : result ? (
                   <>
