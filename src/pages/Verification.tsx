@@ -429,8 +429,23 @@ export default function Verification() {
                 {loading ? (
                   <>
                     <Loader2 className="h-16 w-16 mx-auto animate-spin text-primary" />
-                    <h3 className="text-lg font-semibold">Verifying Your Identity</h3>
-                    <p className="text-muted-foreground">AI is analyzing your documents... This may take up to 30 seconds.</p>
+                    <h3 className="text-lg font-semibold">
+                      {uploadProgress.stage || 'Submitting your verification'}
+                    </h3>
+                    {uploadProgress.total > 0 && (
+                      <>
+                        <p className="text-muted-foreground">
+                          {uploadProgress.done} of {uploadProgress.total} files uploaded
+                        </p>
+                        <Progress
+                          value={(uploadProgress.done / uploadProgress.total) * 100}
+                          className="h-2 max-w-sm mx-auto"
+                        />
+                      </>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Please keep this page open until submission completes.
+                    </p>
                   </>
                 ) : result ? (
                   <>
