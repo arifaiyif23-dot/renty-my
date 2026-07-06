@@ -9,10 +9,16 @@ const corsHeaders = {
 
 const getFromEmail = () => {
   const customFrom = Deno.env.get('RESEND_FROM_EMAIL');
-  if (customFrom) {
-    return `Renty <${customFrom}>`;
+  if (!customFrom) return 'Renty <onboarding@resend.dev>';
+  const trimmed = customFrom.trim();
+  // If secret already includes display-name format ("Name <email>"), use as-is.
+  if (trimmed.includes('<') && trimmed.includes('>')) return trimmed;
+  // Basic email validation before wrapping
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    console.warn(`Invalid RESEND_FROM_EMAIL value; falling back to default. Got: ${trimmed}`);
+    return 'Renty <onboarding@resend.dev>';
   }
-  return 'Renty <onboarding@resend.dev>';
+  return `Renty <${trimmed}>`;
 };
 
 // Helper function to log email to database
