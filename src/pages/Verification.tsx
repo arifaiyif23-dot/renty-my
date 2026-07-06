@@ -28,6 +28,7 @@ export default function Verification() {
   const [livenessFrames, setLivenessFrames] = useState<Blob[]>([]);
   const [useVideoLiveness, setUseVideoLiveness] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0, stage: '' });
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   
