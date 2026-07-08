@@ -206,7 +206,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     if (validUrls.length > 0) {
       sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
     }
-  }, [images, maxImages, onImagesChange, toast]);
+  }, [images, maxImages, onImagesChange, toast, user]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

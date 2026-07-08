@@ -140,7 +140,7 @@ export default function AdminDisputes() {
                   {d.evidence_urls && d.evidence_urls.length > 0 && (
                     <div className="flex gap-2 flex-wrap">
                       {d.evidence_urls.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noreferrer">
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
                           <img src={url} alt={`Evidence ${i + 1}`} className="h-20 w-20 object-cover rounded border" />
                         </a>
                       ))}

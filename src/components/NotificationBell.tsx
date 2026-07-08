@@ -13,69 +13,55 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { Notification } from "@/types";
 import { soundPlayer } from "@/utils/sounds";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const NotificationBell = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user) return;
     fetchNotifications();
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    let isMounted = true;
 
-    const fetchAndSubscribe = async () => {
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
-        if (!user || !isMounted) return;
-      } catch (err) {
-        console.error('Failed to get user for notifications:', err);
-        return;
-      }
-
-      // Subscribe to new notifications with user filter
-      channel = supabase
-        .channel(`notifications-${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const newNotification = payload.new as Notification;
-            setNotifications(prev => [newNotification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            
-            // Play sound based on notification type
-            if (newNotification.type === 'rental_request' || newNotification.type === 'rental_approved') {
-              soundPlayer.playOrder();
-            } else {
-              soundPlayer.playNotification();
-            }
-            
-            toast.info(newNotification.title);
+    // Subscribe to new notifications with user filter
+    channel = supabase
+      .channel(`notifications-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotification = payload.new as Notification;
+          setNotifications(prev => [newNotification, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          
+          if (newNotification.type === 'rental_request' || newNotification.type === 'rental_approved') {
+            soundPlayer.playOrder();
+          } else {
+            soundPlayer.playNotification();
           }
-        )
-        .subscribe();
-    };
-
-    fetchAndSubscribe();
+          
+          toast.info(newNotification.title);
+        }
+      )
+      .subscribe();
 
     return () => {
-      isMounted = false;
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, []);
+  }, [user]);
 
   const fetchNotifications = async () => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) return;
+    if (!user) return;
 
     const { data, error } = await supabase
       .from('notifications')

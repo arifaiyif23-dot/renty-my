@@ -1,15 +1,15 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 export function usePullToRefresh(onRefresh: () => Promise<void>, enabled = true) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const pullDistanceRef = useRef(0);
 
   const triggerRefresh = useCallback(async () => {
     if (isRefreshing) return;
     
     setIsRefreshing(true);
     
-    // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(20);
     }
@@ -49,7 +49,7 @@ export function usePullToRefresh(onRefresh: () => Promise<void>, enabled = true)
     };
 
     const handleTouchEnd = async () => {
-      if (pullDistance > 80) {
+      if (pullDistanceRef.current > 80) {
         await triggerRefresh();
       } else {
         setPullDistance(0);
@@ -67,7 +67,10 @@ export function usePullToRefresh(onRefresh: () => Promise<void>, enabled = true)
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [pullDistance, enabled, triggerRefresh, isRefreshing]);
+  }, [enabled, triggerRefresh, isRefreshing]);
+
+  // Keep ref in sync
+  useEffect(() => { pullDistanceRef.current = pullDistance; }, [pullDistance]);
 
   return { isRefreshing, pullDistance };
 }
