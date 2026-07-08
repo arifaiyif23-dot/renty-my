@@ -62,7 +62,7 @@ export default function MyListings() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');
 
-  const { data: items, isLoading, refetch } = useQuery({
+  const { data: items, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['my-listings', user?.id, statusFilter, sortBy],
     queryFn: async () => {
       if (!user) return [];
@@ -109,17 +109,21 @@ export default function MyListings() {
     queryFn: async () => {
       if (!user) return null;
       
-      const { data: items } = await supabase
+      const { data: items, error: itemsError } = await supabase
         .from('items')
         .select('id, view_count, booking_count')
         .eq('owner_id', user.id)
         .eq('listing_status', 'active');
 
-      const { data: rentals } = await supabase
+      if (itemsError) throw itemsError;
+
+      const { data: rentals, error: rentalsError } = await supabase
         .from('rentals')
         .select('total_price')
         .eq('owner_id', user.id)
         .eq('status', 'completed');
+
+      if (rentalsError) throw rentalsError;
 
       const totalViews = items?.reduce((sum, item) => sum + (item.view_count || 0), 0) || 0;
       const totalRevenue = rentals?.reduce((sum, r) => sum + Number(r.total_price), 0) || 0;
@@ -432,6 +436,12 @@ export default function MyListings() {
               {[...Array(6)].map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
+            </div>
+          ) : isError ? (
+            <div className="text-center py-12">
+              <p className="text-destructive font-medium mb-2">Failed to load listings</p>
+              <p className="text-sm text-muted-foreground mb-4">{(error as any)?.message || "An unexpected error occurred"}</p>
+              <Button variant="outline" onClick={() => refetch()}>Try Again</Button>
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (
             <EnhancedEmptyState

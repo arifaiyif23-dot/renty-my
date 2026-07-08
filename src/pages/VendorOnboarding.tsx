@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Camera, ShieldCheck, Wallet, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
+import { toast } from "sonner";
 
 const STEPS = [
   {
@@ -44,7 +45,6 @@ export default function VendorOnboarding() {
     if (!user) {
       toast.error("Please sign in to continue");
       navigate("/auth");
-      return;
     }
     setLoading(true);
     try {

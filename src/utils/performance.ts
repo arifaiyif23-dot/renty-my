@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 /**
  * Performance utilities for mobile optimization
  */
@@ -32,3 +34,13 @@ export const getImageQuality = (): 'low' | 'high' => {
   const quality = getNetworkQuality();
   return quality === 'slow' ? 'low' : 'high';
 };
+
+// Safe date formatting that never crashes on invalid dates
+export function safeFormat(dateStr: string | null | undefined, fmt: string, fallback = "—"): string {
+  if (!dateStr) return fallback;
+  try {
+    return format(new Date(dateStr), fmt);
+  } catch {
+    return fallback;
+  }
+}

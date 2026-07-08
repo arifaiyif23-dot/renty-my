@@ -18,7 +18,8 @@ export const SocialProof = ({ itemId }: SocialProofProps) => {
 
   const trackView = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
+      const user = data?.user;
       
       await supabase
         .from('item_views')

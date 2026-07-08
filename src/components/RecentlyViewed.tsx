@@ -107,7 +107,6 @@ export function RecentlyViewed() {
               location={item.location}
               owner={item.owner}
               images={item.images}
-              {...item}
             />
           ))}
         </div>

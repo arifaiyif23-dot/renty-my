@@ -57,13 +57,13 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
       const filePath = `avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('item-images')
+        .from('avatars')
         .upload(filePath, optimizedFile);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('item-images')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);

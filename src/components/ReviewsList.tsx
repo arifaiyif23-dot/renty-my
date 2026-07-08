@@ -233,9 +233,11 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                       <div className="mt-3 pl-4 border-l-2 border-muted">
                         <p className="text-xs font-semibold mb-1">Owner Response:</p>
                         <p className="text-sm text-muted-foreground">{review.owner_response}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(review.owner_response_at).toLocaleDateString()}
-                        </p>
+                        {review.owner_response_at && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(review.owner_response_at).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                     )}
 

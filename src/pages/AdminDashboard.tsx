@@ -807,6 +807,9 @@ export default function AdminDashboard() {
               )}
             </div>
           </TabsContent>
+          <TabsContent value="email">
+            <EmailAnalytics />
+          </TabsContent>
         </Tabs>
 
         {/* Bulk Action Dialog */}
@@ -863,10 +866,6 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Email Tab */}
-        <TabsContent value="email">
-          <EmailAnalytics />
-        </TabsContent>
       </div>
     </>
   );

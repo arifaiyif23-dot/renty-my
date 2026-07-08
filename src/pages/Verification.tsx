@@ -92,8 +92,8 @@ export default function Verification() {
   };
 
   const handleSubmit = async () => {
-    if (!documentFront || !selfie) {
-      toast.error("Please upload all required documents");
+    if (!documentFront || (!selfie && !livenessVideo)) {
+      toast.error("Please upload all required documents (front of document and either a selfie or liveness video)");
       return;
     }
 

@@ -174,6 +174,7 @@ export default function Messages() {
     if (error) {
       console.error('Error fetching conversations:', error);
       if (!silent) setIsLoadingConversations(false);
+      toast.error("Failed to load conversations");
       return;
     }
 
@@ -217,6 +218,7 @@ export default function Messages() {
     if (error) {
       console.error('Error fetching messages:', error);
       setIsLoadingMessages(false);
+      toast.error("Failed to load messages");
       return;
     }
 
@@ -594,6 +596,27 @@ export default function Messages() {
                                     : 'bg-muted'
                                 }`}
                               >
+                                {msg.attachment_url && (
+                                  <div className="mb-2">
+                                    {msg.attachment_type === 'image' ? (
+                                      <img 
+                                        src={msg.attachment_url} 
+                                        alt="Attachment" 
+                                        className="rounded-lg max-w-full h-auto"
+                                      />
+                                    ) : (
+                                      <a 
+                                        href={msg.attachment_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-sm underline"
+                                      >
+                                        <FileIcon className="h-4 w-4" />
+                                        View Document
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
                                 <div className="text-base break-words">{msg.content}</div>
                                 <div className="text-xs opacity-70 mt-1">
                                   {new Date(msg.created_at).toLocaleTimeString()}
@@ -619,11 +642,15 @@ export default function Messages() {
                         <div className="flex gap-2">
                           <Input
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
+                            onChange={(e) => {
+                              setNewMessage(e.target.value);
+                              handleTyping();
+                            }}
                             placeholder="Type a message..."
                             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                             className="min-h-[44px]"
                           />
+                          <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
                           <Button 
                             onClick={sendMessage} 
                             size="icon"

@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  error: string | null;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Listen for auth changes FIRST
@@ -38,7 +40,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     // THEN check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data?.session ?? null;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -48,6 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }).catch((err) => {
       console.error('Failed to get session:', err);
+      setError('Unable to connect. Please check your connection and try again.');
       setLoading(false);
     });
 
@@ -78,12 +82,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setError('Failed to load profile.');
     } finally {
       setLoading(false);
     }
@@ -131,11 +136,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, error, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

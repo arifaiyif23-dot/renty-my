@@ -284,7 +284,7 @@ export default function AdminPayouts() {
                             RM {parseFloat(payout.payout_amount.toString()).toFixed(2)}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            Owner: {payout.owner.full_name}
+                            Owner: {payout.owner?.full_name || "Unknown"}
                           </div>
                         </div>
                         {getStatusBadge(payout.status)}

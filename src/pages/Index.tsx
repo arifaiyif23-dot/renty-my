@@ -10,6 +10,7 @@ import SkeletonCard from "@/components/SkeletonCard";
 import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Package, Car, Smartphone, Dumbbell, Music, Wrench, Shirt,
 } from "lucide-react";
@@ -97,7 +98,7 @@ const Index = () => {
         return {
           id: item.id,
           title: item.title,
-          image: item.item_images[0]?.image_url || 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
+          image: (item.item_images ?? [])[0]?.image_url || 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
           pricePerDay: Number(item.price_per_day),
           category: item.category,
           rating: Math.round(rating * 10) / 10,
@@ -132,6 +133,7 @@ const Index = () => {
       setCategories(categoryData);
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error('Failed to load listings. Please try again.');
     } finally {
       setLoading(false);
     }
