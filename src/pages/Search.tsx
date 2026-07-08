@@ -218,12 +218,12 @@ export default function Search() {
     setInitialLoading(true);
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
-  // Turn off initial loading once the hook starts loading or has items
+  // Turn off initial loading once items arrive (not when loading starts — avoids empty flash)
   useEffect(() => {
-    if ((loading || items.length > 0) && initialLoading) {
+    if (items.length > 0 && initialLoading) {
       setInitialLoading(false);
     }
-  }, [loading, items.length, initialLoading]);
+  }, [items.length, initialLoading]);
 
   // Pull to refresh
   const { isRefreshing, pullDistance } = usePullToRefresh(async () => {

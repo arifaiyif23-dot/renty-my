@@ -78,7 +78,8 @@ export default function AdminDisputes() {
 
     // Clear dispute flag and release payout if releasing to owner
     if (action === "release_owner") {
-      await supabase.from("rentals").update({ is_disputed: false, status: "completed" }).eq("id", selected.rental_id);
+      const { error: rentalError } = await supabase.from("rentals").update({ is_disputed: false, status: "completed" }).eq("id", selected.rental_id);
+      if (rentalError) toast.error("Failed to update rental: " + rentalError.message);
     }
 
     toast.success("Dispute resolved");

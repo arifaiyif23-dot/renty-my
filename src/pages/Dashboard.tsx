@@ -80,24 +80,17 @@ export default function Dashboard() {
   const { isRefreshing, pullDistance } = usePullToRefresh(fetchRentals);
 
   const updateRentalStatus = async (rentalId: string, status: Rental['status']) => {
-    try {
-      const rental = rentals.find(r => r.id === rentalId);
-      if (!rental) throw new Error('Rental not found');
+    const rental = rentals.find(r => r.id === rentalId);
+    if (!rental) throw new Error('Rental not found');
 
-      // Update rental status
-      const { error } = await supabase
-        .from('rentals')
-        .update({ status })
-        .eq('id', rentalId);
+    const { error } = await supabase
+      .from('rentals')
+      .update({ status })
+      .eq('id', rentalId);
 
-      if (error) throw error;
-      toast.success(`Rental ${status}`);
-      
-      fetchRentals();
-    } catch (error: any) {
-      toast.error('Failed to update rental');
-      console.error(error);
-    }
+    if (error) throw error;
+    
+    fetchRentals();
   };
 
   const filterRentals = (status: string[]) => {
@@ -117,23 +110,27 @@ export default function Dashboard() {
   };
 
   const handleBulkComplete = async () => {
-    const confirmations = Array.from(selectedRentals).map(async (rentalId) => {
-      await updateRentalStatus(rentalId, 'completed');
-    });
-    
-    await Promise.all(confirmations);
+    const ids = Array.from(selectedRentals);
+    const results = await Promise.allSettled(
+      ids.map((rentalId) => updateRentalStatus(rentalId, 'completed'))
+    );
+    const succeeded = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
     setSelectedRentals(new Set());
-    toast.success(`${selectedRentals.size} rentals marked for completion`);
+    if (succeeded > 0) toast.success(`${succeeded} rental(s) marked as completed`);
+    if (failed > 0) toast.error(`${failed} rental(s) failed to update`);
   };
 
   const handleBulkCancel = async () => {
-    const cancellations = Array.from(selectedRentals).map(async (rentalId) => {
-      await updateRentalStatus(rentalId, 'cancelled');
-    });
-    
-    await Promise.all(cancellations);
+    const ids = Array.from(selectedRentals);
+    const results = await Promise.allSettled(
+      ids.map((rentalId) => updateRentalStatus(rentalId, 'cancelled'))
+    );
+    const succeeded = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
     setSelectedRentals(new Set());
-    toast.success(`${selectedRentals.size} rentals cancelled`);
+    if (succeeded > 0) toast.success(`${succeeded} rental(s) cancelled`);
+    if (failed > 0) toast.error(`${failed} rental(s) failed to cancel`);
   };
 
   if (loading) {

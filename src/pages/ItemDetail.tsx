@@ -50,6 +50,7 @@ export default function ItemDetail() {
   const { t } = useTranslation();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isBooking, setIsBooking] = useState(false);
   const [similarItems, setSimilarItems] = useState<any[]>([]);
@@ -59,11 +60,13 @@ export default function ItemDetail() {
 
   useEffect(() => {
     if (id) {
+      setLoadError(null);
       // Validate UUID format before fetching
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(id)) {
         setItem(null);
         setLoading(false);
+        setLoadError("Invalid item ID");
         return;
       }
       
@@ -109,6 +112,7 @@ export default function ItemDetail() {
         fetchSimilarItems(data.category, data.id);
       }
     } catch (error: any) {
+      setLoadError(error.message || 'Failed to load item');
       toast.error('Failed to load item');
       console.error(error);
     } finally {
@@ -295,12 +299,12 @@ export default function ItemDetail() {
   if (!item) {
     return (
       <>
-        <Header />
+          <Header />
         <div className="container mx-auto p-4 pb-mobile-nav">
           <EmptyState
             icon={Package}
-            title="Item Not Found"
-            description="The item you're looking for doesn't exist or has been removed."
+            title={loadError ? "Failed to Load Item" : "Item Not Found"}
+            description={loadError || "The item you're looking for doesn't exist or has been removed."}
             actionLabel="Browse Items"
             onAction={() => navigate('/search')}
           />
