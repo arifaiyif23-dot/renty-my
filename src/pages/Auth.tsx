@@ -71,15 +71,14 @@ export default function Auth() {
       return;
     }
 
-    // Check rate limit: max 5 login attempts per 15 minutes
-    const withinLimit = await checkRateLimit('login', 5, 15);
-    if (!withinLimit) {
-      toast.error('Too many login attempts. Please try again in 15 minutes.');
-      return;
-    }
-    
     setIsLoading(true);
     try {
+      // Check rate limit: max 5 login attempts per 15 minutes
+      const withinLimit = await checkRateLimit('login', 5, 15);
+      if (!withinLimit) {
+        toast.error('Too many login attempts. Please try again in 15 minutes.');
+        return;
+      }
       await signIn(result.data.email, result.data.password);
       toast.success('Welcome back!');
       navigate('/');
@@ -113,15 +112,14 @@ export default function Auth() {
       return;
     }
 
-    // Check rate limit: max 3 signup attempts per hour
-    const withinLimit = await checkRateLimit('signup', 3, 60);
-    if (!withinLimit) {
-      toast.error('Too many signup attempts. Please try again later.');
-      return;
-    }
-    
     setIsLoading(true);
     try {
+      // Check rate limit: max 3 signup attempts per hour
+      const withinLimit = await checkRateLimit('signup', 3, 60);
+      if (!withinLimit) {
+        toast.error('Too many signup attempts. Please try again later.');
+        return;
+      }
       await signUp(result.data.email, result.data.password, result.data.fullName);
       // Record T&C acceptance on the newly created profile (best-effort)
       try {
@@ -175,7 +173,7 @@ export default function Auth() {
       </div>
       
       {/* Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-4 pb-mobile-nav">
+      <div className="flex-1 flex items-center justify-center p-4 pb-mobile-nav scroll-pb-40">
         <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Welcome to RENTY</CardTitle>

@@ -32,6 +32,9 @@ serve(async (req) => {
     }
     
     const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
+    if (!rentalId && (!itemId || !renterId || !ownerId || !startDate || !endDate || totalPrice == null)) {
+      throw new Error('Missing required fields');
+    }
     
     let rental;
     

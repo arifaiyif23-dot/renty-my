@@ -66,6 +66,26 @@ export default function ListItem() {
       return;
     }
 
+    // Validate price is a positive number
+    const pricePerDay = parseFloat(formData.price_per_day);
+    if (!formData.price_per_day || isNaN(pricePerDay) || pricePerDay <= 0) {
+      toast.error('Please enter a valid price per day');
+      return;
+    }
+
+    // Validate optional numeric fields
+    const pricePerHour = formData.price_per_hour ? parseFloat(formData.price_per_hour) : null;
+    if (formData.price_per_hour && (isNaN(pricePerHour!) || pricePerHour! < 0)) {
+      toast.error('Please enter a valid hourly price');
+      return;
+    }
+
+    const depositAmount = formData.deposit_amount ? parseFloat(formData.deposit_amount) : 0;
+    if (formData.deposit_amount && (isNaN(depositAmount) || depositAmount < 0)) {
+      toast.error('Please enter a valid deposit amount');
+      return;
+    }
+
     // Check if user is verified
     if (!profile?.is_verified) {
       toast.error('Verification required to list items', {
@@ -101,8 +121,12 @@ export default function ListItem() {
 
       if (validationError) {
         console.error('Validation error:', validationError);
-        // Continue with submission if validation service fails (fallback to client-side)
-      } else if (validationData && !validationData.isValid) {
+        toast.error('Content validation unavailable. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (validationData && !validationData.isValid) {
         toast.error('Listing blocked', {
           description: validationData.reason || 'Content not allowed',
         });
@@ -122,9 +146,9 @@ export default function ListItem() {
           title: sanitizedTitle,
           description: sanitizedDescription,
           category: formData.category,
-          price_per_day: parseFloat(formData.price_per_day),
-          price_per_hour: formData.price_per_hour ? parseFloat(formData.price_per_hour) : null,
-          deposit_amount: formData.deposit_amount ? parseFloat(formData.deposit_amount) : 0,
+          price_per_day: pricePerDay,
+          price_per_hour: pricePerHour,
+          deposit_amount: depositAmount,
           payment_mode: formData.payment_mode,
           location: sanitizedLocation,
           latitude: profile?.latitude,
@@ -238,6 +262,7 @@ export default function ListItem() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="min-h-[120px] text-base resize-none"
                   placeholder="Describe your item in detail..."
+                  maxLength={1000}
                   required
                 />
                 <p className="text-xs text-muted-foreground text-right">

@@ -41,12 +41,25 @@ export default function VendorOnboarding() {
   }, [user, navigate]);
 
   const finish = async () => {
+    if (!user) {
+      toast.error("Please sign in to continue");
+      navigate("/auth");
+      return;
+    }
     setLoading(true);
-    await supabase
-      .from("profiles")
-      .update({ onboarding_completed_at: new Date().toISOString() })
-      .eq("id", user!.id);
-    navigate("/list-item");
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ onboarding_completed_at: new Date().toISOString() })
+        .eq("id", user.id);
+      if (error) throw error;
+      navigate("/list-item");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to complete onboarding");
+      console.error("Onboarding error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

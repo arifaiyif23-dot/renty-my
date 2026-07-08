@@ -40,26 +40,36 @@ export const DeliveryScheduler = ({ itemLocation, onDeliverySelect }: DeliverySc
   const selectedProvider = DELIVERY_PROVIDERS.find(p => p.value === provider);
   const deliveryFee = deliveryMethod === 'delivery' ? selectedProvider?.baseFee || 15 : 0;
 
-  const handleMethodChange = (method: 'self_pickup' | 'delivery') => {
-    setDeliveryMethod(method);
-    updateDeliveryDetails(method);
-  };
+  const getDeliveryDetails = (overrides?: { method?: 'self_pickup' | 'delivery'; provider?: string }) => {
+    const effMethod = overrides?.method ?? deliveryMethod;
+    const effProvider = overrides?.provider ?? provider;
+    const effFee = effMethod === 'delivery'
+      ? (DELIVERY_PROVIDERS.find(p => p.value === effProvider)?.baseFee || 15)
+      : 0;
 
-  const updateDeliveryDetails = (method = deliveryMethod) => {
     const details: DeliveryDetails = {
-      method,
-      fee: method === 'delivery' ? deliveryFee : 0,
+      method: effMethod,
+      fee: effFee,
     };
 
-    if (method === 'delivery') {
-      details.provider = provider as any;
+    if (effMethod === 'delivery') {
+      details.provider = effProvider as any;
       details.pickupAddress = pickupAddress;
       details.pickupTime = pickupTime;
       details.returnTime = returnTime;
       details.instructions = instructions;
     }
 
-    onDeliverySelect(details);
+    return details;
+  };
+
+  const handleMethodChange = (method: 'self_pickup' | 'delivery') => {
+    setDeliveryMethod(method);
+    onDeliverySelect(getDeliveryDetails({ method }));
+  };
+
+  const updateDeliveryDetails = (overrides?: { method?: 'self_pickup' | 'delivery'; provider?: string }) => {
+    onDeliverySelect(getDeliveryDetails(overrides));
   };
 
   return (
@@ -119,7 +129,7 @@ export const DeliveryScheduler = ({ itemLocation, onDeliverySelect }: DeliverySc
           {/* Delivery Provider */}
           <div className="space-y-2">
             <Label>Delivery Provider</Label>
-            <Select value={provider} onValueChange={(v) => { setProvider(v); updateDeliveryDetails(); }}>
+            <Select value={provider} onValueChange={(v) => { setProvider(v); updateDeliveryDetails({ provider: v }); }}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

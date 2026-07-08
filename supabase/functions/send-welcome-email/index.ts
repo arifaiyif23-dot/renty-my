@@ -10,7 +10,8 @@ const corsHeaders = {
 const getFromEmail = () => {
   const customFrom = Deno.env.get('RESEND_FROM_EMAIL');
   if (customFrom) {
-    return `Renty <${customFrom}>`;
+    // If already formatted as "Name <email>", use as-is; otherwise wrap it
+    return customFrom.includes('<') ? customFrom : `Renty <${customFrom}>`;
   }
   return 'Renty <onboarding@resend.dev>';
 };

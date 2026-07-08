@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil, MessageCircle } from 'lucide-react';
+import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil, MessageCircle, Loader2 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -32,6 +32,16 @@ import SEO from '@/components/SEO';
 import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { SaveItemButton } from '@/components/SaveItemButton';
 import { SocialProof } from '@/components/SocialProof';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -44,6 +54,8 @@ export default function ItemDetail() {
   const [isBooking, setIsBooking] = useState(false);
   const [similarItems, setSimilarItems] = useState<any[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -113,15 +125,46 @@ export default function ItemDetail() {
           *,
           images:item_images(*)
         `)
-        .eq('category', category as any)
+        .eq('category', category)
         .eq('is_available', true)
         .neq('id', currentItemId)
         .limit(4);
 
       if (error) throw error;
-      setSimilarItems(data || []);
+
+      // Fetch ratings for similar items
+      const itemIds = (data || []).map(i => i.id);
+      if (itemIds.length > 0) {
+        const { data: allReviews } = await supabase
+          .from('rentals')
+          .select('item_id, reviews(rating)')
+          .in('item_id', itemIds);
+
+        const reviewsByItem = new Map<string, number[]>();
+        allReviews?.forEach((rental: any) => {
+          if (rental.reviews?.length) {
+            const existing = reviewsByItem.get(rental.item_id) || [];
+            reviewsByItem.set(rental.item_id, [...existing, ...rental.reviews.map((r: any) => r.rating)]);
+          }
+        });
+
+        const itemsWithRatings = (data || []).map(item => {
+          const ratings = reviewsByItem.get(item.id) || [];
+          const count = ratings.length;
+          return {
+            ...item,
+            rating: count > 0 ? ratings.reduce((s, r) => s + r, 0) / count : 0,
+            reviewCount: count,
+          };
+        });
+
+        setSimilarItems(itemsWithRatings);
+      } else {
+        setSimilarItems([]);
+      }
     } catch (error) {
       console.error('Failed to load similar items:', error);
+      setSimilarItems([]);
     } finally {
       setLoadingSimilar(false);
     }
@@ -156,24 +199,20 @@ export default function ItemDetail() {
       return;
     }
 
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!item || !user || !dateRange?.from || !dateRange?.to) return;
+
+    setConfirming(true);
     setIsBooking(true);
+    setShowConfirmDialog(false);
+
     try {
       const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-      const rentalPrice = days * (item?.price_per_day || 0);
+      const rentalPrice = days * item.price_per_day;
 
-      const confirmed = window.confirm(
-        `Booking Request Summary:\n\n` +
-        `Rental Amount: RM ${rentalPrice.toFixed(2)}\n` +
-        `${days} day(s) rental\n\n` +
-        `Send booking request to owner?`
-      );
-
-      if (!confirmed) {
-        setIsBooking(false);
-        return;
-      }
-
-      // NEW FLOW: Only create booking request, no payment yet
       const { data, error } = await supabase.functions.invoke('request-booking', {
         body: {
           itemId: item.id,
@@ -191,13 +230,13 @@ export default function ItemDetail() {
         description: 'You will be notified when the owner responds to your request.'
       });
       
-      // Navigate to dashboard to show pending requests
       navigate('/dashboard');
 
     } catch (error: any) {
       toast.error(error.message || 'Failed to send booking request');
       console.error(error);
     } finally {
+      setConfirming(false);
       setIsBooking(false);
     }
   };
@@ -298,7 +337,7 @@ export default function ItemDetail() {
                       </Button>
                     )}
                     <SaveItemButton itemId={item.id} />
-                    <Button variant="ghost" size="icon" onClick={() => {
+                    <Button variant="ghost" size="icon" aria-label="Share this item" onClick={() => {
                       navigator.share?.({ 
                         title: item.title, 
                         url: window.location.href 
@@ -333,7 +372,7 @@ export default function ItemDetail() {
                 </div>
                 
                 <div className="text-2xl font-bold mb-4">
-                  RM {item.price_per_day}/day
+                  {new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', minimumFractionDigits: 0 }).format(item.price_per_day)}/day
                 </div>
                 
                 {user?.id === item.owner_id && <ListingAnalytics itemId={item.id} />}
@@ -359,8 +398,8 @@ export default function ItemDetail() {
                           image={similarItem.images?.[0]?.image_url || ''}
                           pricePerDay={similarItem.price_per_day}
                           category={similarItem.category}
-                          rating={4.5}
-                          reviewCount={0}
+                          rating={similarItem.rating || 0}
+                          reviewCount={similarItem.reviewCount || 0}
                           location={similarItem.location}
                           owner_id={similarItem.owner_id}
                         />
@@ -405,14 +444,14 @@ export default function ItemDetail() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>
-                          RM {item.price_per_day} × {differenceInDays(dateRange.to, dateRange.from) + 1} days
+                          {new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', minimumFractionDigits: 0 }).format(item.price_per_day)} × {differenceInDays(dateRange.to, dateRange.from) + 1} days
                         </span>
-                        <span>RM {calculatePrice()}</span>
+                        <span>{new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(calculatePrice())}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between font-semibold">
                         <span>Total</span>
-                        <span>RM {calculatePrice()}</span>
+                        <span>{new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(calculatePrice())}</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Platform fee (10%) will be deducted from owner's payout
@@ -448,6 +487,60 @@ export default function ItemDetail() {
           </div>
         </div>
       </div>
+
+      {/* Booking Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Booking Request</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>Please review your booking details before sending the request.</p>
+                {dateRange?.from && dateRange?.to && item && (
+                  <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration</span>
+                      <span className="font-medium">
+                        {differenceInDays(dateRange.to, dateRange.from) + 1} day(s)
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Price</span>
+                      <span className="font-medium">
+                        RM {item.price_per_day} × {differenceInDays(dateRange.to, dateRange.from) + 1}
+                      </span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-base">
+                      <span>Total</span>
+                      <span>RM {calculatePrice()}</span>
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground pt-1">
+                  The owner will review and approve your request. You'll be notified once they respond.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleConfirmBooking(); }}
+              disabled={confirming}
+            >
+              {confirming ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending Request...
+                </span>
+              ) : (
+                'Send Booking Request'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

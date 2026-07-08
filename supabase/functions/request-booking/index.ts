@@ -13,6 +13,9 @@ serve(async (req) => {
 
   try {
     const { itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
+    if (!itemId || !startDate || !endDate || !renterId || !ownerId || totalPrice == null) {
+      throw new Error('Missing required fields: itemId, startDate, endDate, renterId, ownerId, totalPrice');
+    }
     
     console.log('Creating rental request:', { itemId, renterId, ownerId, startDate, endDate, totalPrice });
     

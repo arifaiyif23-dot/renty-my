@@ -42,24 +42,34 @@ export default function AdminHealth() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: s, error: se }, { data: l }] = await Promise.all([
-      supabase.rpc("get_system_health_stats"),
-      supabase.from("payment_flow_logs").select("*").order("created_at", { ascending: false }).limit(15),
-    ]);
-    if (se) toast.error(se.message);
-    setStats(s as Stats | null);
-    setLogs(((l as unknown) as FlowLog[]) || []);
-    setLoading(false);
+    try {
+      const [{ data: s, error: se }, { data: l }] = await Promise.all([
+        supabase.rpc("get_system_health_stats"),
+        supabase.from("payment_flow_logs").select("*").order("created_at", { ascending: false }).limit(15),
+      ]);
+      if (se) toast.error(se.message);
+      setStats(s as Stats | null);
+      setLogs(((l as unknown) as FlowLog[]) || []);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load health data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
 
   const runCleanup = async () => {
     setCleanupRunning(true);
-    const { error } = await supabase.rpc("cleanup_expired_payments");
-    setCleanupRunning(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Expired payments cleaned"); load(); }
+    try {
+      const { error } = await supabase.rpc("cleanup_expired_payments");
+      if (error) toast.error(error.message);
+      else { toast.success("Expired payments cleaned"); load(); }
+    } catch (e: any) {
+      toast.error(e.message || "Cleanup failed");
+    } finally {
+      setCleanupRunning(false);
+    }
   };
 
   const sendTestEmail = async () => {

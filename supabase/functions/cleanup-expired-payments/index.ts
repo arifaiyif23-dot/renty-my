@@ -77,7 +77,7 @@ serve(async (req) => {
     
     if (rentals) {
       for (const rental of rentals) {
-        await supabase
+        const { error: notifError } = await supabase
           .from('notifications')
           .insert({
             user_id: rental.renter_id,
@@ -86,6 +86,9 @@ serve(async (req) => {
             message: 'Your payment has expired. Please create a new booking to rent this item.',
             link: `/item/${rental.item_id}`
           });
+        if (notifError) {
+          console.error(`Failed to send notification to renter ${rental.renter_id}:`, notifError);
+        }
       }
     }
     

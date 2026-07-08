@@ -275,7 +275,7 @@ export default function MyListings() {
             <div className="min-w-0">
               <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'listings' | 'requests')} className="mt-3 w-full">
-                <TabsList className="grid w-full grid-cols-2 md:inline-flex md:w-auto">
+                <TabsList className="grid grid-cols-2 md:inline-flex">
                   <TabsTrigger value="listings" className="text-sm">My Listings</TabsTrigger>
                   <TabsTrigger value="requests" className="gap-2 text-sm">
                     <Inbox className="h-4 w-4" />
@@ -552,7 +552,7 @@ export default function MyListings() {
         )
       ) : (
         <IncomingRequests 
-          rentals={(incomingRequests || []) as any} 
+          rentals={incomingRequests || []} 
           onUpdate={() => {
             refetch();
           }} 

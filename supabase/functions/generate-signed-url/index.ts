@@ -37,12 +37,23 @@ Deno.serve(async (req) => {
       throw new Error('Missing path parameter');
     }
 
-    // Verify user has access to this document
-    // For verification documents, only the user or admins can access
-    const bucket = path.split('/')[0];
+    // Sanitize path: prevent path traversal attacks
+    const sanitizedPath = path.replace(/\.\.\//g, '').replace(/\\/g, '/').replace(/^\/+/, '');
+    const bucket = sanitizedPath.split('/')[0];
     
+    // Validate bucket is a known name (not empty or malformed)
+    const allowedBuckets = ['verification-documents', 'item-images', 'receipts', 'rental-evidence'];
+    if (!allowedBuckets.includes(bucket)) {
+      throw new Error(`Invalid bucket: ${bucket}`);
+    }
+
+    // For verification documents, only the user or admins can access
     if (bucket === 'verification-documents') {
-      const userId = path.split('/')[1];
+      const userId = sanitizedPath.split('/')[1];
+      
+      if (!userId) {
+        throw new Error('Invalid document path');
+      }
       
       // Check if user is accessing their own documents
       const isOwnDocument = userId === user.id;
@@ -60,15 +71,37 @@ Deno.serve(async (req) => {
       if (!isOwnDocument && !isAdmin) {
         throw new Error('Forbidden: You do not have access to this document');
       }
-      
-      // Log access to sensitive verification documents
-      console.log(`Document access: user=${user.id}, document_owner=${userId}, is_admin=${isAdmin}`);
     }
+
+    // For item-images, verify user is the owner or admin (enforce ownership)
+    if (bucket === 'item-images') {
+      const { data: item } = await supabase
+        .from('items')
+        .select('owner_id')
+        .eq('id', sanitizedPath.split('/')[1])
+        .single();
+      
+      const isOwner = item?.owner_id === user.id;
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      const isAdmin = !!roles;
+      
+      if (!isOwner && !isAdmin) {
+        throw new Error('Forbidden: You do not have access to this image');
+      }
+    }
+
+    // Extract the file path within the bucket (remove bucket prefix)
+    const filePath = sanitizedPath.substring(bucket.length + 1);
 
     // Generate signed URL with capped expiration
     const { data, error } = await supabase.storage
       .from(bucket)
-      .createSignedUrl(path.replace(`${bucket}/`, ''), cappedExpiresIn);
+      .createSignedUrl(filePath, cappedExpiresIn);
 
     if (error) {
       console.error('Error generating signed URL:', error);

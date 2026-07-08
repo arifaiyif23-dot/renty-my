@@ -296,7 +296,12 @@
     "noRentalsDesc": "Mula terokai item untuk disewa atau senaraikan item anda sendiri",
     "browseItems": "Layari Item",
     "viewTimeline": "Lihat Garis Masa",
-    "calendarView": "Paparan Kalendar"
+    "calendarView": "Paparan Kalendar",
+    "rentalTimeline": "Garis Masa Sewaan",
+    "rentalCalendar": "Kalendar Sewaan",
+    "noActiveRentals": "Tiada sewaan aktif",
+    "noPendingRentals": "Tiada sewaan menunggu",
+    "noPastRentals": "Tiada sewaan lepas"
   },
   "profile": {
     "myProfile": "Profil Saya",

@@ -170,7 +170,12 @@
     "noRentalsDesc": "开始探索要租赁的物品或列出您自己的物品",
     "browseItems": "浏览物品",
     "viewTimeline": "查看时间线",
-    "calendarView": "日历视图"
+    "calendarView": "日历视图",
+    "rentalTimeline": "租赁时间线",
+    "rentalCalendar": "租赁日历",
+    "noActiveRentals": "暂无活跃租赁",
+    "noPendingRentals": "暂无待处理租赁",
+    "noPastRentals": "暂无历史租赁"
   },
   "analytics": {
     "overview": "概览",

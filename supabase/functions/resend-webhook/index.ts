@@ -6,18 +6,92 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature',
 };
 
+async function verifyWebhookSignature(
+  payload: string,
+  svixId: string,
+  svixTimestamp: string,
+  svixSignature: string,
+  secret: string
+): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  );
+
+  const signedContent = `${svixId}.${svixTimestamp}.${payload}`;
+  const expectedSignatures = svixSignature.split(' ').map(s => s.trim());
+
+  for (const sig of expectedSignatures) {
+    try {
+      const sigBytes = Uint8Array.from(atob(sig), c => c.charCodeAt(0));
+      const isValid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(signedContent));
+      if (isValid) return true;
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Read body once (stream can only be consumed once)
+    const rawBody = await req.text();
+
+    // Verify webhook signature
+    const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET');
+    if (webhookSecret) {
+      const svixId = req.headers.get('svix-id');
+      const svixTimestamp = req.headers.get('svix-timestamp');
+      const svixSignature = req.headers.get('svix-signature');
+
+      if (!svixId || !svixTimestamp || !svixSignature) {
+        console.error('Missing webhook signature headers');
+        return new Response(
+          JSON.stringify({ error: 'Missing webhook signature headers' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check timestamp is within 5 minutes to prevent replay attacks
+      const timestamp = parseInt(svixTimestamp, 10);
+      const now = Math.floor(Date.now() / 1000);
+      if (Math.abs(now - timestamp) > 300) {
+        console.error('Webhook timestamp outside tolerance');
+        return new Response(
+          JSON.stringify({ error: 'Webhook timestamp too old' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const isValid = await verifyWebhookSignature(
+        rawBody, svixId, svixTimestamp, svixSignature, webhookSecret
+      );
+
+      if (!isValid) {
+        console.error('Invalid webhook signature');
+        return new Response(
+          JSON.stringify({ error: 'Invalid webhook signature' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    const payload = JSON.parse(rawBody);
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const payload = await req.json();
     console.log('Resend webhook received:', JSON.stringify(payload, null, 2));
 
     const { type, data } = payload;
@@ -36,7 +110,7 @@ serve(async (req) => {
       .from('email_logs')
       .select('*')
       .eq('resend_email_id', emailId)
-      .single();
+      .maybeSingle();
 
     if (findError || !emailLog) {
       console.log(`Email log not found for id: ${emailId}`);
@@ -47,7 +121,7 @@ serve(async (req) => {
     }
 
     // Update based on event type
-    let updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     switch (type) {
       case 'email.sent':
@@ -97,10 +171,9 @@ serve(async (req) => {
 
     console.log(`Email log updated: ${emailId} -> ${updateData.status}`);
 
-    // If email bounced, we might want to alert admins
+    // Log bounce but avoid logging PII
     if (type === 'email.bounced') {
-      console.warn(`ALERT: Email bounced for ${emailLog.to_email}`);
-      // Could add notification to admins here
+      console.warn('Email bounced for recipient');
     }
 
     return new Response(
@@ -110,12 +183,12 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Resend webhook error:', error);
-    
+
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        status: error.message?.includes('signature') ? 401 : 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

@@ -81,7 +81,7 @@ serve(async (req) => {
       .from('rentals')
       .select('id, renter_id, owner_id, item_id, end_date')
       .eq('status', 'active')
-      .lt('end_date', today);
+      .lte('end_date', today);
 
     if (fetchCompleteError) {
       console.error('Error fetching rentals to complete:', fetchCompleteError);

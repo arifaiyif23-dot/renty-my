@@ -66,17 +66,17 @@ const SearchBar = () => {
               <MapPin className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <label className="block text-xs font-medium text-muted-foreground">
+              <label htmlFor="search-location" className="block text-xs font-medium text-muted-foreground">
                 Location
               </label>
               <div className="flex items-center gap-1">
                 <Input
+                  id="search-location"
                   type="text"
                   placeholder="City or area"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="border-0 p-0 h-auto focus-visible:ring-0 text-sm font-medium bg-transparent placeholder:text-muted-foreground/60"
-                  aria-label="Enter location"
                 />
                 <Button
                   type="button"

@@ -18,13 +18,14 @@ import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { useProfileStatsQuery, useVerificationStatusQuery } from "@/hooks/use-profile-query";
+import { useAdminCheck } from "@/hooks/use-admin-check";
 
 export default function Profile() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { data: isAdmin } = useAdminCheck(user?.id);
   const isMobile = useIsMobile();
 
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useProfileStatsQuery(user?.id);
@@ -38,22 +39,6 @@ export default function Profile() {
     await refreshProfile();
     toast.success('Profile updated');
   }, isMobile);
-
-  useEffect(() => {
-    if (user) {
-      checkAdminRole();
-    }
-  }, [user]);
-
-  const checkAdminRole = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-admin');
-      setIsAdmin(!error && data?.isAdmin === true);
-    } catch (error) {
-      console.error("Error checking admin role:", error);
-      setIsAdmin(false);
-    }
-  };
 
   if (statsLoading || !profile) {
     return (

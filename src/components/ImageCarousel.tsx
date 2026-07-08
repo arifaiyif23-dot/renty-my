@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ interface ImageCarouselProps {
 
 export default function ImageCarousel({ images, title }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   if (!images || images.length === 0) {
     return (
@@ -27,10 +29,27 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) goToNext();
+      else goToPrevious();
+    }
+  };
+
   return (
     <div className="relative group">
       {/* Main Image */}
-      <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+      <div
+        className="aspect-video bg-muted rounded-lg overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <img
           src={images[currentIndex].image_url}
           alt={`${title} - Image ${currentIndex + 1}`}
@@ -46,7 +65,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
+            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -54,7 +73,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
+            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
             onClick={goToNext}
           >
             <ChevronRight className="h-5 w-5" />

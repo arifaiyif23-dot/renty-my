@@ -68,7 +68,7 @@ export function AIAnalysisCard({ analysis, compact = false }: AIAnalysisCardProp
       case 'high':
         return <Badge className="bg-green-500">High Match</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-500 text-black">Medium Match</Badge>;
+        return <Badge className="bg-yellow-500 text-yellow-900">Medium Match</Badge>;
       case 'low':
         return <Badge className="bg-orange-500">Low Match</Badge>;
       default:

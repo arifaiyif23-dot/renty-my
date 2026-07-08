@@ -45,8 +45,9 @@ export function useInfiniteScroll<T>({
     }
   }, []);
 
+  // Create observer AND observe sentinel in one effect so observation is always paired
   useEffect(() => {
-    observerRef.current = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
           loadMore();
@@ -54,28 +55,17 @@ export function useInfiniteScroll<T>({
       },
       { rootMargin: `${threshold}px` }
     );
+    observerRef.current = observer;
 
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [hasMore, loading, loadMore, threshold]);
-
-  useEffect(() => {
-    const currentSentinel = sentinelRef.current;
-    const currentObserver = observerRef.current;
-
-    if (currentSentinel && currentObserver) {
-      currentObserver.observe(currentSentinel);
+    const sentinel = sentinelRef.current;
+    if (sentinel) {
+      observer.observe(sentinel);
     }
 
     return () => {
-      if (currentSentinel && currentObserver) {
-        currentObserver.unobserve(currentSentinel);
-      }
+      observer.disconnect();
     };
-  }, []);
+  }, [hasMore, loading, loadMore, threshold, sentinelRef.current]);
 
   const reset = useCallback(() => {
     setItems([]);

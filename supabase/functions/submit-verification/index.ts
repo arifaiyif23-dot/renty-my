@@ -76,7 +76,9 @@ serve(async (req) => {
         documentBackUrl: verification.document_back_url,
         selfieUrl: verification.selfie_url,
         documentType: verification.document_type,
-        fullNameOnDocument: verification.full_name_on_document
+        fullNameOnDocument: verification.full_name_on_document,
+        livenessVideoUrl: verification.video_liveness_url,
+        livenessVideoFrames: verification.liveness_video_frames
       })
     });
 

@@ -11,6 +11,8 @@ interface VerificationRequest {
   selfieUrl: string;
   documentType: string;
   fullNameOnDocument?: string;
+  livenessVideoUrl?: string;
+  livenessVideoFrames?: string[];
 }
 
 interface AIAnalysisResult {
@@ -56,7 +58,7 @@ serve(async (req) => {
     }
 
     const body: VerificationRequest = await req.json();
-    const { documentFrontUrl, documentBackUrl, selfieUrl, documentType, fullNameOnDocument } = body;
+    const { documentFrontUrl, documentBackUrl, selfieUrl, documentType, fullNameOnDocument, livenessVideoUrl, livenessVideoFrames } = body;
 
     console.log('Starting AI verification for document type:', documentType);
     console.log('Document front URL:', documentFrontUrl?.substring(0, 50) + '...');
@@ -67,7 +69,7 @@ serve(async (req) => {
     }
 
     // Build the analysis prompt
-    const analysisPrompt = buildAnalysisPrompt(documentType, fullNameOnDocument, !!documentBackUrl);
+    const analysisPrompt = buildAnalysisPrompt(documentType, fullNameOnDocument, !!documentBackUrl, !!livenessVideoUrl, !!livenessVideoFrames?.length);
 
     // Prepare images for the multimodal request
     const messageContent: any[] = [
@@ -93,6 +95,17 @@ serve(async (req) => {
       type: "image_url",
       image_url: { url: selfieUrl }
     });
+
+    // Add liveness video frames if available (max 4 to stay within token limits)
+    if (livenessVideoFrames?.length) {
+      const frameCount = Math.min(livenessVideoFrames.length, 4);
+      for (let i = 0; i < frameCount; i++) {
+        messageContent.push({
+          type: "image_url",
+          image_url: { url: livenessVideoFrames[i] }
+        });
+      }
+    }
 
     console.log('Calling Lovable AI Gateway for document analysis...');
 
@@ -271,7 +284,7 @@ Always respond with valid JSON only, no markdown formatting or code blocks.`
   }
 });
 
-function buildAnalysisPrompt(documentType: string, fullNameOnDocument?: string, hasBackImage?: boolean): string {
+function buildAnalysisPrompt(documentType: string, fullNameOnDocument?: string, hasBackImage?: boolean, hasLivenessVideo?: boolean, hasLivenessFrames?: boolean): string {
   const docTypeLabels: Record<string, string> = {
     'mykad': 'Malaysian MyKad (identity card)',
     'passport': 'Passport',
@@ -280,7 +293,7 @@ function buildAnalysisPrompt(documentType: string, fullNameOnDocument?: string, 
 
   const docLabel = docTypeLabels[documentType] || 'identity document';
 
-  let prompt = `Please analyze the following identity verification submission:
+  const prompt = `Please analyze the following identity verification submission. CRITICAL: You MUST respond with valid JSON only using the document_verification_result tool. Do NOT include markdown, code blocks, or any text outside the JSON tool call.
 
 **Document Type:** ${docLabel}
 ${fullNameOnDocument ? `**Expected Name:** ${fullNameOnDocument}` : ''}
@@ -303,11 +316,13 @@ ${hasBackImage ? '2. Document back image\n3. Selfie photo' : '2. Selfie photo'}
    - Extract the date of birth if visible
    - Extract expiry date if visible
 
-3. **Face Matching:**
+3. **Face Matching & Liveness Detection:**
    - Compare the photo on the document with the selfie
    - Rate the similarity from 0-100
    - Assess if the selfie appears to be a live person (not a printed photo or screen)
    - Rate liveness confidence from 0-100
+   ${hasLivenessFrames ? '- Additional liveness video frames are provided as extra images. Analyze these frames for depth, motion, and lighting consistency to verify liveness. Check for signs of replayed video or static images.\n   - Use the multiple frames to detect if the person blinked, moved naturally, or if it appears to be a static image.' : ''}
+   ${hasLivenessVideo ? '- A liveness video URL is available for reference.' : ''}
 
 4. **Fraud Detection:**
    - Check for signs of document manipulation

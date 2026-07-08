@@ -1,12 +1,17 @@
--- Add OpenAI metadata to verification_requests
-ALTER TABLE verification_requests 
-ADD COLUMN openai_model VARCHAR(50),
-ADD COLUMN ai_processing_time_ms INTEGER,
-ADD COLUMN fraud_risk_score INTEGER CHECK (fraud_risk_score >= 0 AND fraud_risk_score <= 100),
-ADD COLUMN video_liveness_url TEXT,
-ADD COLUMN liveness_video_frames TEXT[],
-ADD COLUMN document_back_analyzed BOOLEAN DEFAULT false,
-ADD COLUMN additional_documents JSONB;
+-- Add OpenAI metadata to verification_requests (cols already exist in fresh schema, this handles upgrades)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'verification_requests') THEN
+    ALTER TABLE verification_requests 
+    ADD COLUMN IF NOT EXISTS openai_model VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS ai_processing_time_ms INTEGER,
+    ADD COLUMN IF NOT EXISTS fraud_risk_score INTEGER CHECK (fraud_risk_score >= 0 AND fraud_risk_score <= 100),
+    ADD COLUMN IF NOT EXISTS video_liveness_url TEXT,
+    ADD COLUMN IF NOT EXISTS liveness_video_frames TEXT[],
+    ADD COLUMN IF NOT EXISTS document_back_analyzed BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS additional_documents JSONB;
+  END IF;
+END $$;
 
 -- Add AI analysis to items
 ALTER TABLE items 

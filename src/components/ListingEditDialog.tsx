@@ -179,7 +179,12 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         throw new Error(`Failed to update item: ${itemError.message}`);
       }
 
-      // Update images: delete old ones and insert new ones with correct order
+      // Update images: save old ones for rollback, delete, then insert new ones
+      const { data: oldImages } = await supabase
+        .from('item_images')
+        .select('*')
+        .eq('item_id', listing.id);
+
       const { error: deleteError } = await supabase
         .from('item_images')
         .delete()
@@ -204,6 +209,10 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       
       if (imageError) {
         console.error('Image insert error:', imageError);
+        // Rollback: restore old images
+        if (oldImages?.length) {
+          await supabase.from('item_images').insert(oldImages);
+        }
         throw new Error(`Failed to save images: ${imageError.message}`);
       }
       

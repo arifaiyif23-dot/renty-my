@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +48,7 @@ export default function Messages() {
     return [user.id, selectedUserId].sort().join('_');
   }, [selectedUserId, user?.id]);
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId, user?.id || '');
-  const [typingTimeout, setTypingTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const upsertMessage = (incomingMessage: any) => {
     setMessages(prev => {
@@ -64,9 +64,8 @@ export default function Messages() {
     });
   };
 
-  // Handle recipient from navigation state
   useEffect(() => {
-    const state = location.state as any;
+    const state = location.state as { recipientId?: string } | null;
     if (state?.recipientId && user) {
       setSelectedUserId(state.recipientId);
       setShowThread(true);
@@ -87,7 +86,7 @@ export default function Messages() {
             table: 'messages',
           },
           (payload) => {
-            const changedMessage = (payload.new || payload.old) as any;
+            const changedMessage = (payload.new || payload.old) as { sender_id?: string; recipient_id?: string } | null;
             if (
               changedMessage &&
               (changedMessage.sender_id === user.id || changedMessage.recipient_id === user.id)
@@ -96,7 +95,11 @@ export default function Messages() {
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.error('Messages channel error');
+          }
+        });
 
       return () => {
         supabase.removeChannel(channel);
@@ -118,7 +121,7 @@ export default function Messages() {
           .is('read_at', null);
       };
 
-      markMessagesRead();
+      markMessagesRead().catch(err => console.error('Failed to mark messages read:', err));
       
       const channel = supabase
         .channel(`messages-thread-${user.id}-${selectedUserId}`)
@@ -141,7 +144,11 @@ export default function Messages() {
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.error('Messages thread channel error');
+          }
+        });
 
       return () => {
         supabase.removeChannel(channel);
@@ -228,9 +235,8 @@ export default function Messages() {
   const sendMessage = async () => {
     if (!user || !selectedUserId || isSending || (!newMessage.trim() && !attachmentUrl)) return;
 
-    // Stop typing indicator
     stopTyping();
-    if (typingTimeout) clearTimeout(typingTimeout);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
     // Sanitize message content to prevent XSS
     const sanitizedContent = newMessage.trim() 
@@ -287,17 +293,13 @@ export default function Messages() {
   const handleTyping = () => {
     startTyping();
     
-    // Clear existing timeout
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
     
-    // Set new timeout to stop typing after 2 seconds of inactivity
-    const timeout = setTimeout(() => {
+    typingTimeoutRef.current = setTimeout(() => {
       stopTyping();
     }, 2000);
-    
-    setTypingTimeout(timeout);
   };
 
   if (!user) {

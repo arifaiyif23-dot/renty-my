@@ -142,17 +142,18 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
 
       setCapturedFrames(frames);
 
-      // Stop recording
-      mediaRecorder.stop();
-      setIsRecording(false);
-      setInstruction("Processing...");
-
+      // Set onstop handler BEFORE calling stop to avoid race condition
       mediaRecorder.onstop = () => {
         const videoBlob = new Blob(chunksRef.current, { type: 'video/webm' });
         stopCamera();
         toast.success("Liveness check completed!");
         onCapture(videoBlob, frames);
       };
+
+      // Stop recording
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setInstruction("Processing...");
 
     } catch (error) {
       console.error("Liveness check error:", error);
@@ -184,7 +185,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
           {isRecording && (
             <div className="absolute top-4 left-4 z-10">
               <div className="flex items-center gap-2 bg-destructive/90 text-white px-3 py-2 rounded-full">
-                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
                 <span className="text-sm font-medium">Recording</span>
               </div>
             </div>

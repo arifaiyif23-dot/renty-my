@@ -19,7 +19,11 @@ export function useTypingIndicator(conversationId: string, userId: string) {
           .filter(id => id !== userId);
         setTypingUsers(users);
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Typing indicator channel error');
+        }
+      });
 
     setChannel(typingChannel);
 

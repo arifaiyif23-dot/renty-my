@@ -231,7 +231,9 @@ export default function Dashboard() {
         
         <div {...(isMobile ? swipeHandlers : {})} className="touch-pan-y">
         <TabsContent value="active" className="space-y-4 mt-4">
-          {filterRentals(['paid', 'active']).map(rental => (
+          {filterRentals(['paid', 'active']).length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">{t('dashboard.noActiveRentals')}</p>
+          ) : filterRentals(['paid', 'active']).map(rental => (
             <div key={rental.id} className="relative">
               <div className="absolute left-4 top-4 z-10">
                 <Checkbox
@@ -260,7 +262,9 @@ export default function Dashboard() {
         </TabsContent>
         
         <TabsContent value="pending" className="space-y-4 mt-4">
-          {filterRentals(['pending_approval', 'approved']).map(rental => (
+          {filterRentals(['pending_approval', 'approved']).length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">{t('dashboard.noPendingRentals')}</p>
+          ) : filterRentals(['pending_approval', 'approved']).map(rental => (
             <RentalCard 
               key={rental.id} 
               rental={rental}
@@ -272,7 +276,9 @@ export default function Dashboard() {
         </TabsContent>
         
         <TabsContent value="past" className="space-y-4 mt-4">
-          {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
+          {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">{t('dashboard.noPastRentals')}</p>
+          ) : filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
             <RentalCard 
               key={rental.id} 
               rental={rental}
@@ -298,7 +304,7 @@ export default function Dashboard() {
       <Dialog open={!!selectedRentalTimeline} onOpenChange={() => setSelectedRentalTimeline(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Rental Timeline</DialogTitle>
+            <DialogTitle>{t('dashboard.rentalTimeline')}</DialogTitle>
           </DialogHeader>
           {selectedRentalTimeline && (
             <div className="space-y-4">
@@ -319,7 +325,7 @@ export default function Dashboard() {
       <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Rental Calendar</DialogTitle>
+            <DialogTitle>{t('dashboard.rentalCalendar')}</DialogTitle>
           </DialogHeader>
           <RentalCalendarView rentals={rentals} />
         </DialogContent>

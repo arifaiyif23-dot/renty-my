@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Star, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,14 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const previewUrlsRef = useRef<string[]>([]);
+  previewUrlsRef.current = previewUrls;
+
+  useEffect(() => {
+    return () => {
+      previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -64,12 +72,10 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
 
       if (reviewError) throw reviewError;
 
-      // Upload images if any
       if (images.length > 0) {
         toast.info("Compressing and uploading images...");
         
         for (const image of images) {
-          // Optimize each image before upload
           const optimizedBlob = await optimizeImage(image);
           const optimizedFile = new File([optimizedBlob], `${image.name.split('.')[0]}.webp`, {
             type: 'image/webp'
@@ -95,6 +101,7 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
       }
 
       toast.success("Review submitted successfully!");
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
       setRating(0);
       setComment("");
       setImages([]);
@@ -125,7 +132,7 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
                 className={`h-8 w-8 ${
                   star <= (hoveredRating || rating)
                     ? 'fill-yellow-400 text-yellow-400'
-                    : 'text-gray-300'
+                    : 'text-muted'
                 }`}
               />
             </button>

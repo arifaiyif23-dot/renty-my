@@ -63,6 +63,11 @@ export function AutocompleteSearch({ value, onChange, onSelect }: AutocompleteSe
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
+            role="combobox"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            aria-controls="search-suggestions"
+            aria-activedescendant={undefined}
             value={value}
             onChange={(e) => {
               onChange(e.target.value);
@@ -74,7 +79,7 @@ export function AutocompleteSearch({ value, onChange, onSelect }: AutocompleteSe
           />
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      <PopoverContent id="search-suggestions" className="w-[var(--radix-popover-trigger-width)] p-0" align="start" role="listbox">
         <Command>
           <CommandList>
             {recentSearches.length > 0 && !value && (

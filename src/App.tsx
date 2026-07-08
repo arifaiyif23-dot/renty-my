@@ -1,8 +1,8 @@
 import { Suspense, lazy } from "react";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "next-themes";
@@ -48,18 +48,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const VendorOnboarding = lazy(() => import("./pages/VendorOnboarding"));
 
-// Configure React Query with aggressive caching
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      retry: 1,
-    },
-  },
-});
+
 
 function AppRoutes() {
   useScrollToTop();
@@ -80,32 +69,32 @@ function AppRoutes() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/install" element={<Install />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/list-item" element={<ProtectedRoute><ListItem /></ProtectedRoute>} />
-              <Route path="/vendor-onboarding" element={<ProtectedRoute><VendorOnboarding /></ProtectedRoute>} />
-              <Route path="/items/:id" element={<ItemDetail />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-              <Route path="/my-listings" element={<ProtectedRoute><MyListings /></ProtectedRoute>} />
-              <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
-              <Route path="/admin/payouts" element={<ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute>} />
-              <Route path="/admin/verifications" element={<ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute>} />
-              <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
-              <Route path="/admin/automation" element={<ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute>} />
-              <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute>} />
-              <Route path="/admin/disputes" element={<ProtectedRoute><AdminRoute><AdminDisputes /></AdminRoute></ProtectedRoute>} />
-              <Route path="/disputes" element={<ProtectedRoute><Disputes /></ProtectedRoute>} />
-              <Route path="/pwa-settings" element={<PWASettings />} />
-              <Route path="/offline" element={<Offline />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/install" element={<ErrorBoundary><Install /></ErrorBoundary>} />
+              <Route path="/dashboard" element={<ErrorBoundary><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/list-item" element={<ErrorBoundary><ProtectedRoute><ListItem /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/vendor-onboarding" element={<ErrorBoundary><ProtectedRoute><VendorOnboarding /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/items/:id" element={<ErrorBoundary><ItemDetail /></ErrorBoundary>} />
+              <Route path="/search" element={<ErrorBoundary><Search /></ErrorBoundary>} />
+              <Route path="/messages" element={<ErrorBoundary><ProtectedRoute><Messages /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/profile" element={<ErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/wishlist" element={<ErrorBoundary><ProtectedRoute><Wishlist /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/my-listings" element={<ErrorBoundary><ProtectedRoute><MyListings /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/verification" element={<ErrorBoundary><ProtectedRoute><Verification /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/payment-success" element={<ErrorBoundary><PaymentSuccess /></ErrorBoundary>} />
+              <Route path="/earnings" element={<ErrorBoundary><ProtectedRoute><Earnings /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/payouts" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/verifications" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/settings" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/automation" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/health" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/disputes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDisputes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/pwa-settings" element={<ErrorBoundary><PWASettings /></ErrorBoundary>} />
+              <Route path="/offline" element={<ErrorBoundary><Offline /></ErrorBoundary>} />
+              <Route path="/terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
+              <Route path="/privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
+              <Route path="*" element={<ErrorBoundary><NotFound /></ErrorBoundary>} />
             </Routes>
           </PageTransition>
         </main>
@@ -117,9 +106,8 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
       <ErrorBoundary>
-        <Toaster />
         <Sonner />
         <BrowserRouter>
           <TooltipProvider>

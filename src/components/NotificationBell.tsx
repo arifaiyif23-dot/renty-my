@@ -104,7 +104,7 @@ export const NotificationBell = () => {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+    markAsRead(notification.id).catch(() => {});
     if (notification.link) {
       navigate(notification.link);
     }

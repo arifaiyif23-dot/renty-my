@@ -298,7 +298,12 @@
     "noRentalsDesc": "Start exploring items to rent or list your own",
     "browseItems": "Browse Items",
     "viewTimeline": "View Timeline",
-    "calendarView": "Calendar View"
+    "calendarView": "Calendar View",
+    "rentalTimeline": "Rental Timeline",
+    "rentalCalendar": "Rental Calendar",
+    "noActiveRentals": "No active rentals",
+    "noPendingRentals": "No pending rentals",
+    "noPastRentals": "No past rentals"
   },
   "profile": {
     "myProfile": "My Profile",

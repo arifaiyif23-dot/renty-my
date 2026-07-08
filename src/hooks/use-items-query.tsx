@@ -48,7 +48,13 @@ export const useItemsQuery = (params: FetchItemsParams) => {
       }
 
       if (params.verifiedOnly) {
-        query = query.eq('owner.is_verified', true);
+        // Use subquery approach since PostgREST does not support filtering on embedded joins
+        const { data: verifiedIds } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('is_verified', true);
+        const ids = verifiedIds?.map(p => p.id) || [];
+        query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
       }
 
       if (params.instantBookOnly) {

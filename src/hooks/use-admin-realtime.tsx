@@ -107,7 +107,10 @@ export function useAdminRealtime() {
         });
     };
 
-    setupRealtime();
+    setupRealtime().catch((err) => {
+      console.error('Failed to setup admin realtime:', err);
+      setConnectionState('disconnected');
+    });
 
     return () => {
       if (verificationChannel) {

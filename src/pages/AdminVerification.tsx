@@ -130,10 +130,9 @@ export default function AdminVerification() {
       
       const uniqueUserIds = [...new Set(userIds)];
 
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', uniqueUserIds);
+      const { data: profilesData } = uniqueUserIds.length > 0
+        ? await supabase.from('profiles').select('id, full_name').in('id', uniqueUserIds)
+        : { data: [] };
 
       const profileMap = new Map(
         profilesData?.map(p => [p.id, p.full_name]) || []
@@ -236,7 +235,7 @@ export default function AdminVerification() {
         updateData.admin_notes = adminNotes;
       }
 
-      const { error: updateError } = await (supabase as any)
+      const { error: updateError } = await supabase
         .from('verification_requests')
         .update(updateData)
         .eq('id', selectedVerification.id);
@@ -252,7 +251,7 @@ export default function AdminVerification() {
       }
 
       // Create notification
-      await (supabase as any).from('notifications').insert({
+      await supabase.from('notifications').insert({
         user_id: selectedVerification.user_id,
         type: actionType === 'approve' ? 'verification_approved' : 'verification_rejected',
         title: actionType === 'approve' ? 'Verification Approved!' : 'Verification Rejected',
@@ -263,7 +262,7 @@ export default function AdminVerification() {
       });
 
       // Create audit log
-      await (supabase as any).from('verification_audit_log').insert({
+      await supabase.from('verification_audit_log').insert({
         verification_id: selectedVerification.id,
         action: actionType === 'approve' ? 'approved' : 'rejected',
         performed_by: user?.id,
@@ -310,23 +309,37 @@ export default function AdminVerification() {
 
     setProcessing(true);
     try {
-      const updates = Array.from(selectedIds).map(id => 
-        (supabase as any)
+      const approvalData = {
+        status: 'approved',
+        verified_by: user?.id,
+        verified_at: new Date().toISOString()
+      };
+
+      const updates = Array.from(selectedIds).map(id =>
+        supabase
           .from('verification_requests')
-          .update({
-            status: 'approved',
-            verified_by: user?.id,
-            verified_at: new Date().toISOString()
-          })
+          .update(approvalData)
           .eq('id', id)
       );
 
       await Promise.all(updates);
 
+      // Update profiles.is_verified for each approved user
+      const userIds = selectedIds
+        .map(id => verifications.find(v => v.id === id)?.user_id)
+        .filter(Boolean) as string[];
+
+      if (userIds.length > 0) {
+        await supabase
+          .from('profiles')
+          .update({ is_verified: true })
+          .in('id', userIds);
+      }
+
       // Create notifications
-      const notifications = Array.from(selectedIds).map(id => {
+      const notifications = selectedIds.map(id => {
         const verification = verifications.find(v => v.id === id);
-        return (supabase as any).from('notifications').insert({
+        return supabase.from('notifications').insert({
           user_id: verification?.user_id,
           type: 'verification_approved',
           title: 'Verification Approved!',
@@ -595,8 +608,8 @@ export default function AdminVerification() {
                 </div>
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <Select value={filterRiskLevel} onValueChange={setFilterRiskLevel}>
-                    <SelectTrigger className="w-[200px]">
-                      <ShieldAlert className="h-4 w-4 mr-2" />
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <ShieldAlert className="h-4 w-4 mr-2 shrink-0" />
                       <SelectValue placeholder="Risk Level" />
                     </SelectTrigger>
                     <SelectContent>
@@ -830,7 +843,7 @@ export default function AdminVerification() {
                           variant="outline"
                           onClick={async () => {
                             try {
-                              await (supabase as any)
+                              await supabase
                                 .from('fraud_alerts')
                                 .update({ status: 'reviewed', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
                                 .eq('id', alert.id);
@@ -848,7 +861,7 @@ export default function AdminVerification() {
                           variant="destructive"
                           onClick={async () => {
                             try {
-                              await (supabase as any)
+                              await supabase
                                 .from('fraud_alerts')
                                 .update({ status: 'escalated', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
                                 .eq('id', alert.id);

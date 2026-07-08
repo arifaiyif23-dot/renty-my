@@ -47,7 +47,8 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
       .maybeSingle()
       .then(({ data }) => {
         if (active && data?.expires_at) setPendingExpiresAt(data.expires_at);
-      });
+      })
+      .catch(() => {});
     return () => { active = false; };
   }, [rental.id]);
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,16 +38,26 @@ export default function Verification() {
 
   const progress = (currentStep / 5) * 100;
 
+  const frontUrl = useMemo(() => documentFront ? URL.createObjectURL(documentFront) : null, [documentFront]);
+  const backUrl = useMemo(() => documentBack ? URL.createObjectURL(documentBack) : null, [documentBack]);
+  const selfieUrl = useMemo(() => selfie ? URL.createObjectURL(selfie) : null, [selfie]);
+
+  useEffect(() => {
+    return () => {
+      if (frontUrl) URL.revokeObjectURL(frontUrl);
+      if (backUrl) URL.revokeObjectURL(backUrl);
+      if (selfieUrl) URL.revokeObjectURL(selfieUrl);
+    };
+  }, [frontUrl, backUrl, selfieUrl]);
+
   const handleFileSelect = (file: File | null, type: 'front' | 'back' | 'selfie') => {
     if (!file) return;
     
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("File size must be less than 5MB");
       return;
     }
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error("Please upload an image file");
       return;
@@ -137,17 +147,10 @@ export default function Verification() {
 
       setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'Submitting for review' });
 
-      // Hash IC number if available (MyKad only)
-      let icNumberHash = null;
-      if (documentType === "mykad") {
-        // Note: IC number would be extracted by admin or AI, we just store the hash
-        // For now, we'll let the admin/AI system handle this
-      }
-
-      // Create verification request for manual admin review
-      toast.info("Submitting documents for admin review...");
+      // Create verification request
+      toast.info("Creating verification request...");
       
-      const { data: verification, error: createError } = await (supabase as any)
+      const { data: verification, error: createError } = await supabase
         .from('verification_requests')
         .insert({
           user_id: user?.id,
@@ -157,9 +160,7 @@ export default function Verification() {
           selfie_url: selfieUrl,
           video_liveness_url: videoUrl,
           liveness_video_frames: frameUrls.length > 0 ? frameUrls : null,
-          ic_number_hash: icNumberHash,
           status: 'pending',
-          full_name_on_document: 'Pending Review'
         })
         .select()
         .single();
@@ -168,15 +169,36 @@ export default function Verification() {
 
       setVerificationId(verification.id);
 
-      // All verifications go through manual admin review
-      toast.success("Documents submitted successfully! An admin will review your verification shortly.");
-      
-      setResult({
-        success: true,
-        autoApproved: false,
-        confidence: 0,
-        details: { message: "Submitted for manual admin review" }
+      // Call AI verification edge function
+      toast.info("Running AI document analysis...");
+      setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'AI analysis in progress' });
+
+      const { data: aiResult, error: aiError } = await supabase.functions.invoke('submit-verification', {
+        body: { verificationId: verification.id }
       });
+
+      if (aiError) {
+        console.error('AI verification error:', aiError);
+        toast.warning("Documents saved but AI analysis failed. An admin will review manually.");
+      }
+
+      if (aiResult?.autoApproved) {
+        toast.success("Verification approved automatically!");
+        setResult({
+          success: true,
+          autoApproved: true,
+          confidence: aiResult.confidence || 0,
+          details: { message: "Auto-approved by AI" }
+        });
+      } else {
+        toast.success("Documents submitted successfully! An admin will review your verification shortly.");
+        setResult({
+          success: true,
+          autoApproved: false,
+          confidence: aiResult?.confidence || 0,
+          details: { message: "Submitted for manual admin review" }
+        });
+      }
 
 
     } catch (error: any) {
@@ -291,7 +313,7 @@ export default function Verification() {
                   {documentFront ? (
                     <div className="space-y-4">
                       <img 
-                        src={URL.createObjectURL(documentFront)} 
+                        src={frontUrl}
                         alt="Document front" 
                         className="max-h-64 mx-auto rounded"
                       />
@@ -334,7 +356,7 @@ export default function Verification() {
                   {documentBack ? (
                     <div className="space-y-4">
                       <img 
-                        src={URL.createObjectURL(documentBack)} 
+                        src={backUrl}
                         alt="Document back" 
                         className="max-h-64 mx-auto rounded"
                       />
@@ -394,7 +416,7 @@ export default function Verification() {
                       {selfie ? (
                         <div className="space-y-4">
                           <img 
-                            src={URL.createObjectURL(selfie)} 
+                            src={selfieUrl}
                             alt="Selfie" 
                             className="max-h-64 mx-auto rounded"
                           />

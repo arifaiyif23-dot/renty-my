@@ -36,15 +36,23 @@ export default function Disputes() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data, error } = await supabase
-        .from("disputes")
-        .select("*")
-        .or(`filed_by.eq.${user.id},filed_against.eq.${user.id}`)
-        .order("created_at", { ascending: false });
-      if (!error) setDisputes((data as unknown as Dispute[]) || []);
+    if (!user) {
       setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("disputes")
+          .select("*")
+          .or(`filed_by.eq.${user.id},filed_against.eq.${user.id}`)
+          .order("created_at", { ascending: false });
+        if (!error) setDisputes((data as unknown as Dispute[]) || []);
+      } catch (err) {
+        console.error("Failed to load disputes:", err);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [user]);
 

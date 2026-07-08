@@ -46,6 +46,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setLoading(false);
       }
+    }).catch((err) => {
+      console.error('Failed to get session:', err);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

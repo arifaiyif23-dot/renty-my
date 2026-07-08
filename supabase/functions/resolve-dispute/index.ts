@@ -63,13 +63,16 @@ Deno.serve(async (req) => {
 
     console.log('Resolving dispute:', validatedData.disputeId);
 
-    // Get dispute details
+    // Get dispute details with rental and payment info
     const { data: dispute, error: disputeError } = await supabaseAdmin
       .from('disputes')
       .select(`
         *,
         rental:rentals!inner(
           id, owner_id, renter_id, total_price
+        ),
+        payment:payments(
+          id, total_amount, rental_amount, platform_fee, status
         )
       `)
       .eq('id', validatedData.disputeId)
@@ -83,37 +86,16 @@ Deno.serve(async (req) => {
       throw new Error('Dispute already resolved');
     }
 
-    // Get escrow account
-    const { data: escrowAccount, error: escrowError } = await supabaseAdmin
-      .from('escrow_accounts')
-      .select('*')
-      .eq('rental_id', dispute.rental_id)
-      .single();
-
-    if (escrowError || !escrowAccount) {
-      throw new Error('Escrow account not found');
+    const payment = dispute.payment;
+    if (!payment) {
+      throw new Error('No payment found for this dispute');
     }
 
-    if (escrowAccount.status !== 'disputed') {
-      throw new Error('Escrow is not in disputed state');
+    if (payment.status !== 'paid') {
+      throw new Error('Payment is not in a resolvable state');
     }
 
-    // Get wallets
-    const { data: ownerWallet } = await supabaseAdmin
-      .from('wallets')
-      .select('id')
-      .eq('user_id', dispute.rental.owner_id)
-      .single();
-
-    const { data: renterWallet } = await supabaseAdmin
-      .from('wallets')
-      .select('id')
-      .eq('user_id', dispute.rental.renter_id)
-      .single();
-
-    if (!ownerWallet || !renterWallet) {
-      throw new Error('Wallets not found');
-    }
+    const totalAmount = payment.total_amount || dispute.rental.total_price || 0;
 
     let ownerAmount = 0;
     let renterAmount = 0;
@@ -122,15 +104,15 @@ Deno.serve(async (req) => {
     // Calculate amounts based on resolution type
     switch (validatedData.resolutionType) {
       case 'full_refund':
-        renterAmount = escrowAccount.total_amount;
+        renterAmount = totalAmount;
         resolutionSplit = { owner: 0, renter: 1 };
         break;
-      
+
       case 'full_release':
-        ownerAmount = escrowAccount.owner_payout;
+        ownerAmount = totalAmount;
         resolutionSplit = { owner: 1, renter: 0 };
         break;
-      
+
       case 'partial_split':
         if (!validatedData.ownerPercentage || !validatedData.renterPercentage) {
           throw new Error('Percentages required for partial split');
@@ -138,85 +120,41 @@ Deno.serve(async (req) => {
         if (validatedData.ownerPercentage + validatedData.renterPercentage !== 100) {
           throw new Error('Percentages must sum to 100');
         }
-        ownerAmount = (escrowAccount.total_amount * validatedData.ownerPercentage) / 100;
-        renterAmount = (escrowAccount.total_amount * validatedData.renterPercentage) / 100;
+        ownerAmount = (totalAmount * validatedData.ownerPercentage) / 100;
+        renterAmount = (totalAmount * validatedData.renterPercentage) / 100;
         resolutionSplit = {
           owner: validatedData.ownerPercentage / 100,
           renter: validatedData.renterPercentage / 100
         };
         break;
-      
+
       case 'custom':
         if (!validatedData.customAmount) {
           throw new Error('Custom amount required');
         }
-        // Custom amount goes to renter, rest to owner
         renterAmount = validatedData.customAmount;
-        ownerAmount = escrowAccount.total_amount - validatedData.customAmount;
+        ownerAmount = totalAmount - validatedData.customAmount;
         if (ownerAmount < 0) {
-          throw new Error('Custom amount exceeds total escrow');
+          throw new Error('Custom amount exceeds total payment');
         }
         resolutionSplit = {
-          owner: ownerAmount / escrowAccount.total_amount,
-          renter: renterAmount / escrowAccount.total_amount
+          owner: ownerAmount / totalAmount,
+          renter: renterAmount / totalAmount
         };
         break;
     }
 
     console.log('Resolution amounts:', { ownerAmount, renterAmount });
 
-    // Transfer funds
-    if (ownerAmount > 0) {
-      await supabaseAdmin.rpc('increment_wallet_balance', {
-        p_user_id: dispute.rental.owner_id,
-        p_amount: ownerAmount
-      });
-
-      await supabaseAdmin.from('escrow_transactions').insert({
-        escrow_account_id: escrowAccount.id,
-        transaction_type: 'partial_release',
-        amount: ownerAmount,
-        to_wallet_id: ownerWallet.id,
-        executed_by: user.id,
-        notes: `Dispute resolution: ${validatedData.resolutionType}`
-      });
-
-      await supabaseAdmin.from('wallet_transactions').insert({
-        wallet_id: ownerWallet.id,
-        type: 'rental_earning',
-        amount: ownerAmount,
-        description: `Dispute resolved - ${validatedData.resolutionType}`,
-        status: 'completed',
-        reference_id: dispute.rental_id,
-        completed_at: new Date().toISOString()
-      });
-    }
-
-    if (renterAmount > 0) {
-      await supabaseAdmin.rpc('increment_wallet_balance', {
-        p_user_id: dispute.rental.renter_id,
-        p_amount: renterAmount
-      });
-
-      await supabaseAdmin.from('escrow_transactions').insert({
-        escrow_account_id: escrowAccount.id,
-        transaction_type: 'refund',
-        amount: renterAmount,
-        to_wallet_id: renterWallet.id,
-        executed_by: user.id,
-        notes: `Dispute resolution: ${validatedData.resolutionType}`
-      });
-
-      await supabaseAdmin.from('wallet_transactions').insert({
-        wallet_id: renterWallet.id,
-        type: 'refund',
-        amount: renterAmount,
-        description: `Dispute resolved - refund`,
-        status: 'completed',
-        reference_id: dispute.rental_id,
-        completed_at: new Date().toISOString()
-      });
-    }
+    // Update payment status
+    const paymentStatus = renterAmount > 0 ? 'refunded' : 'released';
+    await supabaseAdmin
+      .from('payments')
+      .update({
+        status: paymentStatus,
+        refunded_at: renterAmount > 0 ? new Date().toISOString() : null,
+      })
+      .eq('id', payment.id);
 
     // Update dispute
     await supabaseAdmin
@@ -231,34 +169,32 @@ Deno.serve(async (req) => {
       })
       .eq('id', validatedData.disputeId);
 
-    // Update escrow
+    // Update rental status
+    const rentalStatus = renterAmount > 0 ? 'cancelled' : 'completed';
     await supabaseAdmin
-      .from('escrow_accounts')
-      .update({
-        status: 'released',
-        released_at: new Date().toISOString()
-      })
-      .eq('id', escrowAccount.id);
+      .from('rentals')
+      .update({ status: rentalStatus })
+      .eq('id', dispute.rental.id);
 
     // Send notifications
     await supabaseAdmin.from('notifications').insert([
       {
         user_id: dispute.rental.owner_id,
-        type: 'rental_approved',
+        type: 'payment_received',
         title: 'Dispute Resolved',
-        message: ownerAmount > 0 
-          ? `Dispute resolved. RM ${ownerAmount.toFixed(2)} released to your wallet.`
+        message: ownerAmount > 0
+          ? `Dispute resolved. RM ${ownerAmount.toFixed(2)} released to you.`
           : 'Dispute resolved in favor of renter.',
-        link: `/rentals/${dispute.rental_id}`
+        link: `/rentals/${dispute.rental.id}`
       },
       {
         user_id: dispute.rental.renter_id,
-        type: 'rental_approved',
+        type: 'payment_received',
         title: 'Dispute Resolved',
         message: renterAmount > 0
-          ? `Dispute resolved. RM ${renterAmount.toFixed(2)} refunded to your wallet.`
+          ? `Dispute resolved. RM ${renterAmount.toFixed(2)} refunded.`
           : 'Dispute resolved in favor of owner.',
-        link: `/rentals/${dispute.rental_id}`
+        link: `/rentals/${dispute.rental.id}`
       }
     ]);
 
@@ -279,10 +215,14 @@ Deno.serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Resolve dispute error:', error);
+    const status = errorMessage === 'Unauthorized' ? 401
+      : errorMessage === 'Admin access required' ? 403
+      : errorMessage.includes('not found') ? 404
+      : 400;
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
-      { 
-        status: 400,
+      {
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

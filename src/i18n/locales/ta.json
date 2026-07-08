@@ -170,7 +170,12 @@
     "noRentalsDesc": "வாடகைக்கு பொருட்களை ஆராயத் தொடங்குங்கள் அல்லது உங்கள் சொந்தத்தை பட்டியலிடுங்கள்",
     "browseItems": "பொருட்களை உலாவவும்",
     "viewTimeline": "காலவரிசையைப் பார்க்கவும்",
-    "calendarView": "நாட்காட்டி பார்வை"
+    "calendarView": "நாட்காட்டி பார்வை",
+    "rentalTimeline": "வாடகை காலவரிசை",
+    "rentalCalendar": "வாடகை நாட்காட்டி",
+    "noActiveRentals": "செயலில் வாடகைகள் இல்லை",
+    "noPendingRentals": "நிலுவையில் வாடகைகள் இல்லை",
+    "noPastRentals": "கடந்த வாடகைகள் இல்லை"
   },
   "analytics": {
     "overview": "மேலோட்டம்",

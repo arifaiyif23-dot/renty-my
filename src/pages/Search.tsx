@@ -56,12 +56,12 @@ export default function Search() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const persisted = (typeof window !== 'undefined') ? loadFilters() : {};
-  const [category, setCategory] = useState<ItemCategory | 'all'>((persisted.category as any) || 'all');
+  const [category, setCategory] = useState<ItemCategory | 'all'>((persisted.category as ItemCategory | 'all') || 'all');
   const [minPrice, setMinPrice] = useState(persisted.minPrice || '');
   const [maxPrice, setMaxPrice] = useState(persisted.maxPrice || '');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [userLocation, setUserLocation] = useState<string>(persisted.userLocation || '');
-  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>(persisted.sortBy || 'newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>((persisted.sortBy as 'newest' | 'price_low' | 'price_high') || 'newest');
   const [verifiedOnly, setVerifiedOnly] = useState(!!persisted.verifiedOnly);
   const [instantBookOnly, setInstantBookOnly] = useState(!!persisted.instantBookOnly);
   const [itemCondition, setItemCondition] = useState<string>(persisted.itemCondition || 'all');
@@ -76,7 +76,7 @@ export default function Search() {
       category, minPrice, maxPrice, userLocation, sortBy,
       verifiedOnly, instantBookOnly, itemCondition, maxDistance,
     };
-    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload)); } catch {}
+    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload)); } catch { /* localStorage not available */ }
   }, [category, minPrice, maxPrice, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, maxDistance]);
 
   useEffect(() => {
@@ -145,7 +145,12 @@ export default function Search() {
     }
 
     if (verifiedOnly) {
-      query = query.eq('owner.is_verified', true);
+      const { data: verifiedIds } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_verified', true);
+      const ids = verifiedIds?.map(p => p.id) || [];
+      query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
     }
 
     if (instantBookOnly) {
@@ -168,16 +173,24 @@ export default function Search() {
 
     if (error) throw error;
 
-    if (dateRange?.from && dateRange?.to) {
-      const availableItems = [];
-      for (const item of data || []) {
-        const { data: rentals } = await supabase
-          .from('rentals')
-          .select('start_date, end_date')
-          .eq('item_id', item.id)
-          .in('status', ['pending_approval', 'approved', 'paid', 'active']);
+    if (dateRange?.from && dateRange?.to && data?.length) {
+      const itemIds = data.map(item => item.id);
+      const { data: allRentals } = await supabase
+        .from('rentals')
+        .select('item_id, start_date, end_date')
+        .in('item_id', itemIds)
+        .in('status', ['pending_approval', 'approved', 'paid', 'active']);
 
-        const isAvailable = !rentals?.some(rental => {
+      const rentalsByItem = new Map<string, { start_date: string; end_date: string }[]>();
+      allRentals?.forEach(rental => {
+        const existing = rentalsByItem.get(rental.item_id) || [];
+        existing.push(rental);
+        rentalsByItem.set(rental.item_id, existing);
+      });
+
+      const availableItems = data.filter(item => {
+        const itemRentals = rentalsByItem.get(item.id) || [];
+        return !itemRentals.some(rental => {
           const rentalStart = new Date(rental.start_date);
           const rentalEnd = new Date(rental.end_date);
           return (
@@ -186,11 +199,8 @@ export default function Search() {
             (dateRange.from! <= rentalStart && dateRange.to! >= rentalEnd)
           );
         });
+      });
 
-        if (isAvailable) {
-          availableItems.push(item);
-        }
-      }
       return availableItems;
     }
 
@@ -206,11 +216,14 @@ export default function Search() {
   useEffect(() => {
     reset();
     setInitialLoading(true);
-    fetchItemsPage(1, 12).then(newItems => {
-      // The hook will handle setting items
-      setInitialLoading(false);
-    });
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
+
+  // Turn off initial loading once the hook starts loading or has items
+  useEffect(() => {
+    if ((loading || items.length > 0) && initialLoading) {
+      setInitialLoading(false);
+    }
+  }, [loading, items.length, initialLoading]);
 
   // Pull to refresh
   const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
@@ -222,6 +235,7 @@ export default function Search() {
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
     const location = searchParams.get('location');
+    const categoryParam = searchParams.get('category');
     
     if (startDate && endDate) {
       setDateRange({
@@ -231,6 +245,9 @@ export default function Search() {
     }
     if (location) {
       setUserLocation(location);
+    }
+    if (categoryParam) {
+      setCategory(categoryParam as ItemCategory | 'all');
     }
   }, [searchParams]);
 
@@ -402,8 +419,8 @@ export default function Search() {
               </Select>
             </div>
 
-            <div className="flex gap-3">
-              <div className="flex gap-2 flex-1">
+            <div className="flex flex-wrap gap-3">
+              <div className="flex gap-2 flex-1 min-w-[200px]">
                 <Input
                   type="number"
                   placeholder="Min RM"
@@ -443,8 +460,8 @@ export default function Search() {
               </Popover>
               
               <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="w-[180px]">
-                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <ArrowUpDown className="h-4 w-4 mr-2 shrink-0" />
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>

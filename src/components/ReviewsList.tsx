@@ -19,15 +19,17 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<any[]>([]);
   const [averageRating, setAverageRating] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest'>('recent');
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [ownerResponse, setOwnerResponse] = useState("");
 
   useEffect(() => {
-    fetchReviews();
+    fetchReviews().catch((err) => console.error('Failed to fetch reviews:', err));
   }, [itemId, userId, sortBy]);
 
   const fetchReviews = async () => {
+    setLoading(true);
     let query = supabase
       .from('reviews')
       .select(`
@@ -46,6 +48,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
 
     if (error) {
       console.error('Error fetching reviews:', error);
+      setLoading(false);
       return;
     }
 
@@ -63,6 +66,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
     }
 
     setReviews(filteredData);
+    setLoading(false);
 
     if (filteredData.length > 0) {
       const avg = filteredData.reduce((sum, review) => sum + review.rating, 0) / filteredData.length;
@@ -111,6 +115,26 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       fetchReviews();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3 animate-pulse">
+                <div className="w-10 h-10 rounded-full bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-32 bg-muted rounded" />
+                  <div className="h-3 w-48 bg-muted rounded" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   if (reviews.length === 0) {
     return (
@@ -165,7 +189,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                             className={`h-4 w-4 ${
                               i < review.rating
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
+                                : 'text-muted'
                             }`}
                           />
                         ))}

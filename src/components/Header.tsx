@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { haptics } from "@/utils/haptics";
+import { useAdminCheck } from "@/hooks/use-admin-check";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,7 +39,6 @@ const Header = () => {
   const isMobile = useIsMobile();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
 
   const handleSignOut = () => {
@@ -58,25 +58,7 @@ const Header = () => {
     .join("")
     .toUpperCase() || "U";
 
-  // Check admin status using server-side verification
-  useEffect(() => {
-    if (!user) {
-      setIsAdmin(false);
-      return;
-    }
-
-    const checkAdminStatus = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('verify-admin');
-        setIsAdmin(!error && data?.isAdmin === true);
-      } catch (error) {
-        console.error('Admin verification error:', error);
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
+  const { data: isAdminUser } = useAdminCheck(user?.id);
 
   // Fetch unread message count
   useEffect(() => {
@@ -109,7 +91,11 @@ const Header = () => {
           fetchUnreadCount();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Unread messages channel error');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -150,7 +136,7 @@ const Header = () => {
                     {t('nav.myRentals')}
                   </Link>
                   <Link to="/messages" className="text-sm font-medium text-foreground hover:text-primary transition-colors relative">
-                    Messages
+                    {t('nav.messages')}
                     {unreadCount > 0 && (
                       <Badge 
                         variant="destructive" 
@@ -230,7 +216,7 @@ const Header = () => {
                             My Earnings
                           </Link>
                         </DropdownMenuItem>
-                        {isAdmin && (
+                        {isAdminUser && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
