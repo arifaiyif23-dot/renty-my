@@ -8,15 +8,24 @@ export const OfflineIndicator = () => {
   const [showReconnected, setShowReconnected] = useState(false);
 
   useEffect(() => {
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handleOnline = () => {
       setIsOnline(true);
       setShowReconnected(true);
-      setTimeout(() => setShowReconnected(false), 3000);
+      reconnectTimer = setTimeout(() => {
+        setShowReconnected(false);
+        reconnectTimer = null;
+      }, 3000);
     };
 
     const handleOffline = () => {
       setIsOnline(false);
       setShowReconnected(false);
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
     };
 
     window.addEventListener('online', handleOnline);
@@ -25,6 +34,7 @@ export const OfflineIndicator = () => {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (reconnectTimer) clearTimeout(reconnectTimer);
     };
   }, []);
 

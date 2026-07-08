@@ -181,12 +181,17 @@ export default function ItemDetail() {
       return;
     }
 
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('is_verified')
       .eq('id', user.id)
       .single();
     
+    if (profileError) {
+      toast.error('Failed to verify account status');
+      return;
+    }
+
     if (!profileData?.is_verified) {
       toast.error('Verification required to book items');
       navigate('/verification');

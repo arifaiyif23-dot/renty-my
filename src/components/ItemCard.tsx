@@ -44,19 +44,26 @@ const ItemCard = ({
 
   useEffect(() => {
     if (owner_id && !initialIsOwnerVerified) {
+      let cancelled = false;
       const checkOwnerVerification = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_verified')
-          .eq('id', owner_id)
-          .single();
-        
-        if (data?.is_verified) {
-          setIsOwnerVerified(true);
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('is_verified')
+            .eq('id', owner_id)
+            .single();
+          
+          if (error) throw error;
+          if (!cancelled && data?.is_verified) {
+            setIsOwnerVerified(true);
+          }
+        } catch (err) {
+          console.error('Failed to check owner verification:', err);
         }
       };
 
       checkOwnerVerification();
+      return () => { cancelled = true; };
     }
   }, [owner_id, initialIsOwnerVerified]);
 

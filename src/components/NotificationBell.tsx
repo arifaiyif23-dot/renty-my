@@ -25,8 +25,14 @@ export const NotificationBell = () => {
     let isMounted = true;
 
     const fetchAndSubscribe = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !isMounted) return;
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user || !isMounted) return;
+      } catch (err) {
+        console.error('Failed to get user for notifications:', err);
+        return;
+      }
 
       // Subscribe to new notifications with user filter
       channel = supabase
@@ -68,8 +74,8 @@ export const NotificationBell = () => {
   }, []);
 
   const fetchNotifications = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) return;
 
     const { data, error } = await supabase
       .from('notifications')

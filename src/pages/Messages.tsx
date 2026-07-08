@@ -195,8 +195,8 @@ export default function Messages() {
           unreadCount: isUnreadForMe ? 1 : 0,
         });
       } else if (isUnreadForMe) {
-        const conversation = conversationMap.get(otherUserId)!;
-        conversation.unreadCount += 1;
+        const conversation = conversationMap.get(otherUserId);
+        if (conversation) conversation.unreadCount += 1;
       }
     });
 
@@ -225,11 +225,13 @@ export default function Messages() {
     setMessages(data || []);
 
     // Mark messages as read
-    await supabase
+    const { error: readError } = await supabase
       .from('messages')
       .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('sender_id', otherUserId)
       .eq('recipient_id', user.id);
+
+    if (readError) console.error('Failed to mark messages as read:', readError);
 
     setIsLoadingMessages(false);
   };

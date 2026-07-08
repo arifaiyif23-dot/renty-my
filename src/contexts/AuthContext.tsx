@@ -23,15 +23,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let profileTimer: ReturnType<typeof setTimeout> | null = null;
+
     // Listen for auth changes FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       // Defer fetchProfile to prevent deadlock
+      if (profileTimer) clearTimeout(profileTimer);
       if (session?.user) {
-        setTimeout(() => {
+        profileTimer = setTimeout(() => {
           fetchProfile(session.user.id);
+          profileTimer = null;
         }, 0);
       } else {
         setProfile(null);
@@ -55,7 +59,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      if (profileTimer) clearTimeout(profileTimer);
+    };
   }, []);
 
   // Realtime: keep profile in sync so verified badge / permissions update without refresh

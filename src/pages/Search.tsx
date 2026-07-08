@@ -145,10 +145,11 @@ export default function Search() {
     }
 
     if (verifiedOnly) {
-      const { data: verifiedIds } = await supabase
+      const { data: verifiedIds, error: verifiedError } = await supabase
         .from('profiles')
         .select('id')
         .eq('is_verified', true);
+      if (verifiedError) throw verifiedError;
       const ids = verifiedIds?.map(p => p.id) || [];
       query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
     }
@@ -174,12 +175,15 @@ export default function Search() {
     if (error) throw error;
 
     if (dateRange?.from && dateRange?.to && data?.length) {
+      const from = dateRange.from;
+      const to = dateRange.to;
       const itemIds = data.map(item => item.id);
-      const { data: allRentals } = await supabase
+      const { data: allRentals, error: rentalsError } = await supabase
         .from('rentals')
         .select('item_id, start_date, end_date')
         .in('item_id', itemIds)
         .in('status', ['pending_approval', 'approved', 'paid', 'active']);
+      if (rentalsError) throw rentalsError;
 
       const rentalsByItem = new Map<string, { start_date: string; end_date: string }[]>();
       allRentals?.forEach(rental => {
@@ -194,9 +198,9 @@ export default function Search() {
           const rentalStart = new Date(rental.start_date);
           const rentalEnd = new Date(rental.end_date);
           return (
-            (dateRange.from! >= rentalStart && dateRange.from! <= rentalEnd) ||
-            (dateRange.to! >= rentalStart && dateRange.to! <= rentalEnd) ||
-            (dateRange.from! <= rentalStart && dateRange.to! >= rentalEnd)
+            (from >= rentalStart && from <= rentalEnd) ||
+            (to >= rentalStart && to <= rentalEnd) ||
+            (from <= rentalStart && to >= rentalEnd)
           );
         });
       });

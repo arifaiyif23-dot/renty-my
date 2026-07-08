@@ -180,10 +180,15 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       }
 
       // Update images: save old ones for rollback, delete, then insert new ones
-      const { data: oldImages } = await supabase
+      const { data: oldImages, error: oldImagesError } = await supabase
         .from('item_images')
         .select('*')
         .eq('item_id', listing.id);
+
+      if (oldImagesError) {
+        console.error('Failed to save old images for rollback:', oldImagesError);
+        throw new Error(`Failed to read existing images: ${oldImagesError.message}`);
+      }
 
       const { error: deleteError } = await supabase
         .from('item_images')
@@ -211,7 +216,8 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         console.error('Image insert error:', imageError);
         // Rollback: restore old images
         if (oldImages?.length) {
-          await supabase.from('item_images').insert(oldImages);
+          const { error: rollbackError } = await supabase.from('item_images').insert(oldImages);
+          if (rollbackError) console.error('Rollback insert failed:', rollbackError);
         }
         throw new Error(`Failed to save images: ${imageError.message}`);
       }

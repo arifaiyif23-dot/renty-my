@@ -65,13 +65,18 @@ const Header = () => {
     if (!user) return;
 
     const fetchUnreadCount = async () => {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-      
-      setUnreadCount(count || 0);
+      try {
+        const { count, error } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .eq('is_read', false);
+        
+        if (error) throw error;
+        setUnreadCount(count || 0);
+      } catch (err) {
+        console.error('Failed to fetch unread count:', err);
+      }
     };
 
     fetchUnreadCount();

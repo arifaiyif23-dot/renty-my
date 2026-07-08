@@ -296,7 +296,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 <Button 
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(rental.handover_photos![0], '_blank')}
+                  onClick={() => window.open(rental.handover_photos[0], '_blank')}
                 >
                   {t('rental.viewHandoverPhotos')} ({rental.handover_photos.length})
                 </Button>
@@ -465,7 +465,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               <Button 
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(rental.handover_photos![0], '_blank')}
+                onClick={() => window.open(rental.handover_photos[0], '_blank')}
               >
                 View Handover Photos ({rental.handover_photos.length})
               </Button>

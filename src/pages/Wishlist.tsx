@@ -57,7 +57,7 @@ export default function Wishlist() {
 
     try {
       await removeItemMutation.mutateAsync({
-        userId: user!.id,
+        userId: user?.id || '',
         itemId,
         isSaved: true,
       });

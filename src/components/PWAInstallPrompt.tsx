@@ -28,13 +28,16 @@ export const PWAInstallPrompt = () => {
       if (daysSince < 7) return; // Don't show again for 7 days
     }
 
+    let promptTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       
       // Show prompt after 30 seconds of usage
-      setTimeout(() => {
+      promptTimer = setTimeout(() => {
         setShowPrompt(true);
+        promptTimer = null;
       }, 30000);
     };
 
@@ -42,6 +45,7 @@ export const PWAInstallPrompt = () => {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      if (promptTimer) clearTimeout(promptTimer);
     };
   }, []);
 

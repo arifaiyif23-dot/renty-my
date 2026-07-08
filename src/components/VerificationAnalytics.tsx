@@ -102,7 +102,7 @@ export function VerificationAnalytics() {
       let totalHours = 0;
       processedVerifications.forEach(v => {
         const created = new Date(v.created_at);
-        const verified = new Date(v.verified_at!);
+        const verified = new Date(v.verified_at);
         totalHours += (verified.getTime() - created.getTime()) / (1000 * 60 * 60);
       });
       const avgProcessingHours = processedVerifications.length > 0 

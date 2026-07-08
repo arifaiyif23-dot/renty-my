@@ -281,7 +281,7 @@ export function DocumentViewerModal({
                   }}
                 >
                   <img 
-                    src={getCurrentUrl()!} 
+                    src={getCurrentUrl() || ''} 
                     alt={`Document ${activeTab}`}
                     className="max-h-[60vh] max-w-full object-contain rounded-lg shadow-lg"
                   />

@@ -75,7 +75,7 @@ export default function ListItem() {
 
     // Validate optional numeric fields
     const pricePerHour = formData.price_per_hour ? parseFloat(formData.price_per_hour) : null;
-    if (formData.price_per_hour && (isNaN(pricePerHour!) || pricePerHour! < 0)) {
+    if (pricePerHour !== null && (isNaN(pricePerHour) || pricePerHour < 0)) {
       toast.error('Please enter a valid hourly price');
       return;
     }

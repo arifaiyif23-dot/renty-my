@@ -950,11 +950,11 @@ export default function AdminVerification() {
           verification={selectedVerification}
           onApprove={selectedVerification?.status === 'pending' ? () => {
             setShowDocViewer(false);
-            openActionDialog(selectedVerification!, 'approve');
+            openActionDialog(selectedVerification, 'approve');
           } : undefined}
           onReject={selectedVerification?.status === 'pending' ? () => {
             setShowDocViewer(false);
-            openActionDialog(selectedVerification!, 'reject');
+            openActionDialog(selectedVerification, 'reject');
           } : undefined}
         />
       </div>
