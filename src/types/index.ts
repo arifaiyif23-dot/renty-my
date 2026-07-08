@@ -3,6 +3,8 @@ export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid'
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
 export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
 
+export type VerificationLevel = 'unverified' | 'email' | 'basic' | 'kyc' | 'premium';
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -12,6 +14,17 @@ export interface Profile {
   latitude?: number;
   longitude?: number;
   is_verified: boolean;
+  verification_level?: VerificationLevel;
+  identity_number?: string;
+  identity_number_hash?: string;
+  trust_score?: number;
+  ekyc_provider?: string;
+  ekyc_session_id?: string;
+  ekyc_verified_at?: string;
+  total_rentals_completed?: number;
+  total_reviews_received?: number;
+  response_rate?: number;
+  last_active_at?: string;
   created_at: string;
   updated_at: string;
 }

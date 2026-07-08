@@ -6,18 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Camera, Upload, CheckCircle, XCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, FileText, User } from "lucide-react";
+import { Camera, Upload, CheckCircle, XCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, FileText, User, IdCard } from "lucide-react";
 import Header from "@/components/Header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { VideoLivenessCapture } from "@/components/VideoLivenessCapture";
+import { validateMyKad } from "@/utils/validation/mykad";
+import { UserTrustBadge } from "@/components/trust/UserTrustBadge";
 
 type DocumentType = "mykad" | "passport" | "driving_license";
 
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 export default function Verification() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [documentType, setDocumentType] = useState<DocumentType>("mykad");
@@ -31,12 +34,15 @@ export default function Verification() {
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0, stage: '' });
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
+  const [identityNumber, setIdentityNumber] = useState('');
+  const [identityNumberError, setIdentityNumberError] = useState('');
+  const [useEkyc, setUseEkyc] = useState(false);
   
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
-  const progress = (currentStep / 5) * 100;
+  const progress = (currentStep / 6) * 100;
 
   const frontUrl = useMemo(() => documentFront ? URL.createObjectURL(documentFront) : null, [documentFront]);
   const backUrl = useMemo(() => documentBack ? URL.createObjectURL(documentBack) : null, [documentBack]);
@@ -103,7 +109,7 @@ export default function Verification() {
     }
 
     setLoading(true);
-    setCurrentStep(5);
+    setCurrentStep(6);
 
     try {
       // Build upload queue so we can show real progress
@@ -149,19 +155,31 @@ export default function Verification() {
 
       // Create verification request
       toast.info("Creating verification request...");
-      
+
+      const insertPayload: Record<string, any> = {
+        user_id: user?.id,
+        document_type: documentType,
+        document_front_url: frontUrl,
+        document_back_url: backUrl,
+        selfie_url: selfieUrl,
+        video_liveness_url: videoUrl,
+        liveness_video_frames: frameUrls.length > 0 ? frameUrls : null,
+        status: 'pending',
+      };
+
+      if (identityNumber && documentType === 'mykad') {
+        insertPayload.identity_number = identityNumber;
+        insertPayload.identity_number_validated = true;
+        insertPayload.verification_level = 'kyc';
+        if (useEkyc) {
+          insertPayload.ekyc_provider = 'manual';
+          insertPayload.verification_level = 'kyc';
+        }
+      }
+
       const { data: verification, error: createError } = await supabase
         .from('verification_requests')
-        .insert({
-          user_id: user?.id,
-          document_type: documentType,
-          document_front_url: frontUrl,
-          document_back_url: backUrl,
-          selfie_url: selfieUrl,
-          video_liveness_url: videoUrl,
-          liveness_video_frames: frameUrls.length > 0 ? frameUrls : null,
-          status: 'pending',
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
@@ -204,7 +222,7 @@ export default function Verification() {
     } catch (error: any) {
       console.error("Verification error:", error);
       toast.error(error.message || "Failed to submit verification");
-      setCurrentStep(4);
+      setCurrentStep(5);
     } finally {
       setLoading(false);
     }
@@ -227,19 +245,47 @@ export default function Verification() {
       toast.error("Please complete selfie or video liveness check");
       return;
     }
+    if (currentStep === 5 && useEkyc && !identityNumber) {
+      toast.error("Please enter your MyKad number");
+      return;
+    }
 
     if (currentStep === 3 && documentType !== "mykad") {
-      setCurrentStep(4 as Step);
-    } else if (currentStep < 5) {
+      setCurrentStep(5 as Step);
+    } else if (currentStep === 4 && documentType !== "mykad") {
+      setCurrentStep(6 as Step);
+    } else if (currentStep === 5 && !useEkyc) {
+      setCurrentStep(6 as Step);
+    } else if (currentStep < 6) {
       setCurrentStep((currentStep + 1) as Step);
     }
   };
 
   const prevStep = () => {
-    if (currentStep === 4 && documentType !== "mykad") {
+    if (currentStep === 5 && documentType !== "mykad") {
       setCurrentStep(2 as Step);
+    } else if (currentStep === 6 && documentType === "mykad") {
+      setCurrentStep(5 as Step);
+    } else if (currentStep === 6 && documentType !== "mykad") {
+      setCurrentStep(4 as Step);
+    } else if (currentStep === 5 && !useEkyc) {
+      setCurrentStep(4 as Step);
     } else if (currentStep > 1) {
       setCurrentStep((currentStep - 1) as Step);
+    }
+  };
+
+  const handleIdentityNumberChange = (value: string) => {
+    setIdentityNumber(value);
+    if (value.length >= 12) {
+      const result = validateMyKad(value);
+      if (!result.isValid) {
+        setIdentityNumberError('Invalid MyKad number format (expected: 12 digits)');
+      } else {
+        setIdentityNumberError('');
+      }
+    } else {
+      setIdentityNumberError('');
     }
   };
 
@@ -264,7 +310,7 @@ export default function Verification() {
               </div>
             </div>
             <Progress value={progress} className="h-2" />
-            <p className="text-sm text-muted-foreground mt-2">Step {currentStep} of 5</p>
+            <p className="text-sm text-muted-foreground mt-2">Step {currentStep} of 6</p>
           </CardHeader>
 
           <CardContent>
@@ -445,8 +491,86 @@ export default function Verification() {
               </div>
             )}
 
-            {/* Step 5: Processing/Results */}
-            {currentStep === 5 && (
+            {/* Step 5: eKYC / Identity Number (MyKad only) */}
+            {currentStep === 5 && documentType === "mykad" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <IdCard className="h-5 w-5" />
+                  <h3 className="text-lg font-semibold">MyKad Number (eKYC)</h3>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Enhanced Identity Verification</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Enter your MyKad number to unlock enhanced trust level. This adds
+                    an additional layer of verification to your profile.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">MyKad Number (optional)</label>
+                  <Input
+                    value={identityNumber}
+                    onChange={(e) => handleIdentityNumberChange(e.target.value)}
+                    placeholder="e.g. 990101-10-1234"
+                    maxLength={16}
+                  />
+                  {identityNumber && identityNumberError && (
+                    <p className="text-sm text-destructive">{identityNumberError}</p>
+                  )}
+                  {identityNumber && !identityNumberError && identityNumber.length >= 12 && (
+                    <div className="text-sm text-green-600 space-y-1">
+                      <p>Valid format</p>
+                      {(() => {
+                        const info = validateMyKad(identityNumber);
+                        return info.isValid ? (
+                          <>
+                            <p>DOB: {info.birthDate.toLocaleDateString()}</p>
+                            <p>Gender: {info.gender}</p>
+                            <p>State: {info.birthPlace}</p>
+                          </>
+                        ) : null;
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input
+                    type="checkbox"
+                    id="useEkyc"
+                    checked={useEkyc}
+                    onChange={(e) => setUseEkyc(e.target.checked)}
+                    className="rounded border-muted-foreground"
+                  />
+                  <label htmlFor="useEkyc" className="text-sm text-muted-foreground">
+                    Use eKYC for enhanced verification with third-party provider
+                  </label>
+                </div>
+
+                {useEkyc && (
+                  <div className="border border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 p-4 rounded-lg">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      eKYC will verify your identity through a secure third-party provider.
+                      You will be redirected to complete the verification process.
+                    </p>
+                  </div>
+                )}
+
+                {profile && profile.verification_level && profile.verification_level !== 'unverified' && (
+                  <div className="border border-muted p-3 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">Current trust level:</p>
+                    <UserTrustBadge
+                      level={profile.verification_level}
+                      trustScore={profile.trust_score}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 6: Processing/Results */}
+            {currentStep === 6 && (
               <div className="space-y-6 text-center py-8">
                 {loading ? (
                   <>
@@ -504,7 +628,7 @@ export default function Verification() {
             )}
 
             {/* Navigation Buttons */}
-            {currentStep < 5 && (
+            {currentStep < 6 && (
               <div className="flex gap-4 mt-6">
                 {currentStep > 1 && (
                   <Button variant="outline" onClick={prevStep} disabled={loading}>
@@ -512,7 +636,7 @@ export default function Verification() {
                     Previous
                   </Button>
                 )}
-                {currentStep < 4 ? (
+                {currentStep < 5 ? (
                   <Button onClick={nextStep} disabled={loading} className="ml-auto">
                     Next
                     <ArrowRight className="h-4 w-4 ml-2" />

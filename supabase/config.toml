@@ -36,6 +36,9 @@ verify_jwt = true
 [functions.payment-callback]
 verify_jwt = false
 
+[functions.verify-ekyc]
+verify_jwt = true
+
 [functions.cleanup-expired-payments]
 verify_jwt = false
 

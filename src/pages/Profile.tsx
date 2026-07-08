@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks, RefreshCw } from "lucide-react";
+import { UserTrustBadge, TrustScoreRing } from "@/components/trust/UserTrustBadge";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { ReferralSystem } from "@/components/ReferralSystem";
@@ -138,12 +139,11 @@ export default function Profile() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-                  {profile.is_verified && (
-                    <Badge variant="secondary" className="gap-1">
-                      <ShieldCheck className="h-4 w-4 text-green-500" />
-                      ID Verified
-                    </Badge>
-                  )}
+                  <UserTrustBadge
+                    level={profile.verification_level}
+                    trustScore={profile.trust_score}
+                    size="md"
+                  />
                 </div>
 
                 {profile.location && (
@@ -241,6 +241,26 @@ export default function Profile() {
               </div>
               <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
                 <Star className="h-6 w-6 md:h-8 md:w-8 text-yellow-600 dark:text-yellow-400 fill-yellow-600 dark:fill-yellow-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="min-h-[140px]">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Trust Score</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold" style={{ color: (profile.trust_score ?? 0) >= 80 ? '#22c55e' : (profile.trust_score ?? 0) >= 50 ? '#f59e0b' : '#ef4444' }}>
+                    {profile.trust_score ?? 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground">/100</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {profile.total_rentals_completed || 0} rentals completed
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <TrustScoreRing score={profile.trust_score ?? 0} size={56} />
               </div>
             </CardContent>
           </Card>
