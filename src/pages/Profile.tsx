@@ -7,7 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, ListChecks, RefreshCw, Trash2, Bell, Search, HelpCircle, Loader2 } from "lucide-react";
 import { UserTrustBadge, TrustScoreRing } from "@/components/trust/UserTrustBadge";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
@@ -269,6 +280,36 @@ export default function Profile() {
         {/* Referral System Section */}
         <ReferralSystem />
 
+        {/* Settings & Preferences */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/notification-settings">
+                <Bell className="h-4 w-4 mr-3" />
+                Notification Preferences
+              </Link>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/saved-searches">
+                <Search className="h-4 w-4 mr-3" />
+                Saved Searches
+              </Link>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/help">
+                <HelpCircle className="h-4 w-4 mr-3" />
+                Help & FAQ
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Account Deletion */}
+        <AccountDeletionSection userId={profile.id} />
+
         {/* Edit Profile Dialog */}
         <ProfileEditDialog
           open={editDialogOpen}
@@ -276,6 +317,83 @@ export default function Profile() {
           onSuccess={refetchStats}
         />
       </div>
+    </>
+  );
+}
+
+function AccountDeletionSection({ userId }: { userId: string }) {
+  const [showDialog, setShowDialog] = useState(false);
+  const [confirmation, setConfirmation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signOut } = useAuth();
+
+  const handleDelete = async () => {
+    if (confirmation !== "DELETE") return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account", {
+        body: { confirmation },
+      });
+      if (error) throw new Error(error.message);
+      await signOut();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete account");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <Card className="mb-6 border-destructive/20">
+        <CardHeader>
+          <CardTitle className="text-destructive flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Danger Zone
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+          <Button variant="destructive" onClick={() => setShowDialog(true)}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Account
+          </Button>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your account. You will lose all your listings, reviews, and data.
+              Active rentals must be completed or cancelled before deletion.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm font-medium">
+              Type <span className="font-bold text-destructive">DELETE</span> to confirm:
+            </p>
+            <Input
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+              placeholder="Type DELETE"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={confirmation !== "DELETE" || loading}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Permanently Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

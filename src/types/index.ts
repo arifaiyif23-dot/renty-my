@@ -3,6 +3,55 @@ export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid'
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
 export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
 
+export type ReportTargetType = 'item' | 'user' | 'message';
+export type ReportStatus = 'pending' | 'investigating' | 'resolved' | 'dismissed';
+
+export interface Report {
+  id: string;
+  reporter_id: string;
+  target_type: ReportTargetType;
+  target_id: string;
+  reason: string;
+  description?: string;
+  status: ReportStatus;
+  resolved_by?: string;
+  resolution_note?: string;
+  created_at: string;
+  updated_at: string;
+  reporter?: Profile;
+}
+
+export interface NotificationPreference {
+  id: string;
+  user_id: string;
+  rental_requests: boolean;
+  rental_updates: boolean;
+  messages: boolean;
+  reviews: boolean;
+  payment_updates: boolean;
+  verification_updates: boolean;
+  marketing: boolean;
+  push_enabled: boolean;
+  email_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedSearch {
+  id: string;
+  user_id: string;
+  query_text?: string;
+  category?: string;
+  location?: string;
+  min_price?: number;
+  max_price?: number;
+  sort_by?: string;
+  label?: string;
+  notify_on_new: boolean;
+  last_notified_at?: string;
+  created_at: string;
+}
+
 export type VerificationLevel = 'unverified' | 'email' | 'basic' | 'kyc' | 'premium';
 
 export interface Profile {

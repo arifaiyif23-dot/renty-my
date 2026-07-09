@@ -1,0 +1,138 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight, Search, Mail, MessageCircle, ExternalLink } from "lucide-react";
+import Header from "@/components/Header";
+import { Link } from "react-router-dom";
+
+const FAQS = [
+  {
+    q: "How do I rent an item?",
+    a: "Browse listings, select an item, choose your rental dates, and send a booking request. The owner will review and approve your request. Once approved, you can proceed with payment.",
+  },
+  {
+    q: "How do I list an item for rent?",
+    a: "Go to your Profile and click 'List an Item'. Fill in the details including photos, description, pricing, and availability. Submit for review and once approved, your item will be visible in search results.",
+  },
+  {
+    q: "How does payment work?",
+    a: "Rentals are paid through our secure payment gateway (ToyyibPay). Payment is collected upfront before the rental period begins. Owners receive payouts after the rental is completed and confirmed.",
+  },
+  {
+    q: "What is the verification process?",
+    a: "We verify your identity through document upload (MyKad/Passport) combined with a selfie or video liveness check. Higher verification levels unlock premium features and build trust with the community.",
+  },
+  {
+    q: "How do I cancel a booking?",
+    a: "Go to your Dashboard, find the rental, and use the cancel option. Cancellation policies vary — please check the specific listing's terms. Contact support if you have issues.",
+  },
+  {
+    q: "What if an item is damaged?",
+    a: "Inspect the item at handover and report any issues immediately. Our dispute resolution team can help if there's a disagreement. Always take photos during handover and return.",
+  },
+  {
+    q: "How do I contact support?",
+    a: "You can reach us via the contact form below or email support@renty.my. We aim to respond within 24 hours during business days.",
+  },
+  {
+    q: "Is my personal information safe?",
+    a: "Yes. We use industry-standard encryption, secure authentication, and never share your data with third parties. See our Privacy Policy for details.",
+  },
+  {
+    q: "How do I become a vendor?",
+    a: "Complete the vendor onboarding process from your profile. You'll need to provide business details and verify your identity. Approved vendors can list multiple items and access analytics.",
+  },
+  {
+    q: "What are the platform fees?",
+    a: "A small platform fee is deducted from each rental to cover payment processing, insurance, and platform operations. The exact percentage is shown before you confirm a booking.",
+  },
+];
+
+export default function Help() {
+  const [search, setSearch] = useState("");
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const filtered = FAQS.filter(
+    (faq) =>
+      faq.q.toLowerCase().includes(search.toLowerCase()) ||
+      faq.a.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <>
+      <Header />
+      <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+        <h1 className="text-3xl font-bold mb-2">Help Center</h1>
+        <p className="text-muted-foreground mb-6">Find answers to common questions</p>
+
+        <div className="relative mb-8">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search FAQs..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <div className="space-y-2 mb-8">
+          {filtered.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No results found</p>
+          ) : (
+            filtered.map((faq, i) => (
+              <Card
+                key={i}
+                className="cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-medium text-sm">{faq.q}</h3>
+                    {openIndex === i ? (
+                      <ChevronDown className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
+                    )}
+                  </div>
+                  {openIndex === i && (
+                    <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{faq.a}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Still Need Help?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Mail className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Email Us</p>
+                <a href="mailto:support@renty.my" className="text-sm text-primary hover:underline">
+                  support@renty.my
+                </a>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <ExternalLink className="h-5 w-5 text-primary" />
+              <div>
+                <Button variant="link" className="p-0 h-auto" asChild>
+                  <Link to="/terms">Terms of Service</Link>
+                </Button>
+                <span className="text-muted-foreground mx-2">|</span>
+                <Button variant="link" className="p-0 h-auto" asChild>
+                  <Link to="/privacy">Privacy Policy</Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}

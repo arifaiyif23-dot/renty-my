@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Item, ItemCategory } from '@/types';
 import ItemCard from '@/components/ItemCard';
@@ -15,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw, SlidersHorizontal, Mic, MicOff } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw, SlidersHorizontal, Mic, MicOff, BookmarkPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
@@ -51,6 +52,7 @@ function loadFilters(): PersistedFilters {
 
 export default function Search() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const [initialLoading, setInitialLoading] = useState(true);
@@ -541,6 +543,34 @@ export default function Search() {
         <p className="text-sm text-muted-foreground">
           {loading ? 'Searching...' : `${items.length} items found`}
         </p>
+        {user && (searchQuery || category !== 'all' || minPrice || maxPrice || userLocation) && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                const { error } = await supabase.from('saved_searches').insert({
+                  user_id: user.id,
+                  query_text: searchQuery || null,
+                  category: category !== 'all' ? category : null,
+                  location: userLocation || null,
+                  min_price: minPrice ? parseFloat(minPrice) : null,
+                  max_price: maxPrice ? parseFloat(maxPrice) : null,
+                  sort_by: sortBy,
+                  label: searchQuery || `${category !== 'all' ? category : 'all'} items`,
+                  notify_on_new: false,
+                });
+                if (error) throw error;
+                toast.success('Search saved!');
+              } catch (err: any) {
+                toast.error(err.message || 'Failed to save search');
+              }
+            }}
+          >
+            <BookmarkPlus className="h-4 w-4 mr-1" />
+            Save Search
+          </Button>
+        )}
       </div>
 
       {initialLoading ? (
