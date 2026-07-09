@@ -92,7 +92,6 @@ serve(async (req) => {
         ekyc_provider: provider,
         ekyc_session_id: sessionId,
         ekyc_result: result.rawResult ?? null,
-        identity_number: identityNumber,
         notes: `eKYC ${provider} verification failed`,
       });
 
@@ -109,7 +108,6 @@ serve(async (req) => {
       ekyc_provider: provider,
       ekyc_session_id: sessionId,
       ekyc_result: result.rawResult ?? null,
-      identity_number: identityNumber,
       verification_level: result.verificationLevel,
       verified_at: new Date().toISOString(),
     });
@@ -123,7 +121,6 @@ serve(async (req) => {
         ekyc_verified_at: new Date().toISOString(),
         is_verified: true,
         trust_score: result.trustScore ?? 70,
-        identity_number: identityNumber,
       })
       .eq('id', userId);
 

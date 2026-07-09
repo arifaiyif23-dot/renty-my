@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { ReportDialog } from '@/components/trust/ReportDialog';
+import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { ReviewsList } from '@/components/ReviewsList';
 import { ListingAnalytics } from '@/components/ListingAnalytics';
@@ -17,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil, MessageCircle, Loader2 } from 'lucide-react';
+import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil, MessageCircle, Loader2, Flag } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -58,6 +59,7 @@ export default function ItemDetail() {
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -372,12 +374,29 @@ export default function ItemDetail() {
                 
                 <div className="flex items-center gap-2 text-sm mb-4">
                   <User className="w-4 h-4" />
-                  <span>{item.owner?.full_name}</span>
+                  {item.owner ? (
+                    <Link to={`/users/${item.owner_id}`} className="hover:underline font-medium">
+                      {item.owner.full_name}
+                    </Link>
+                  ) : (
+                    <span>Unknown</span>
+                  )}
                   {item.owner?.is_verified && (
                     <Badge variant="secondary" className="gap-1">
                       <ShieldCheck className="h-3 w-3" />
                       Verified
                     </Badge>
+                  )}
+                  {item.owner_id !== user?.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs ml-auto"
+                      onClick={() => setShowReport(true)}
+                    >
+                      <Flag className="h-3 w-3 mr-1" />
+                      Report
+                    </Button>
                   )}
                 </div>
                 
@@ -551,6 +570,13 @@ export default function ItemDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ReportDialog
+        open={showReport}
+        onOpenChange={setShowReport}
+        targetType="item"
+        targetId={id || ""}
+      />
     </>
   );
 }

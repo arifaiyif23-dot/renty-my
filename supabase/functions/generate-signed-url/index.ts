@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -38,7 +38,18 @@ Deno.serve(async (req) => {
     }
 
     // Sanitize path: prevent path traversal attacks
-    const sanitizedPath = path.replace(/\.\.\//g, '').replace(/\\/g, '/').replace(/^\/+/, '');
+    // Use iterative replacement to catch nested traversal like ....//
+    let sanitizedPath = path;
+    while (sanitizedPath.includes('..')) {
+      sanitizedPath = sanitizedPath.replace(/\.\.\//g, '').replace(/\.\.\\/g, '');
+    }
+    sanitizedPath = sanitizedPath.replace(/\\/g, '/').replace(/^\/+/, '');
+    
+    // Check no path traversal remains after sanitization
+    if (sanitizedPath.includes('..')) {
+      throw new Error('Invalid path: path traversal detected');
+    }
+    
     const bucket = sanitizedPath.split('/')[0];
     
     // Validate bucket is a known name (not empty or malformed)
@@ -108,7 +119,7 @@ Deno.serve(async (req) => {
       throw error;
     }
     
-    console.log(`Signed URL generated: path=${path}, expires_in=${cappedExpiresIn}s, user=${user.id}`);
+    console.log(`Signed URL generated: path=${path}, expires_in=${cappedExpiresIn}s`);
 
     return new Response(
       JSON.stringify({ signedUrl: data.signedUrl }),

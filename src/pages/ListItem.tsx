@@ -53,8 +53,7 @@ export default function ListItem() {
     }
   }, [debouncedTitle, debouncedDescription]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (listingStatus: 'active' | 'draft') => {
     if (!user) {
       toast.error('Please sign in to list an item');
       navigate('/auth');
@@ -86,8 +85,8 @@ export default function ListItem() {
       return;
     }
 
-    // Check if user is verified
-    if (!profile?.is_verified) {
+    // Skip verification check for drafts
+    if (listingStatus === 'active' && !profile?.is_verified) {
       toast.error('Verification required to list items', {
         description: 'Please complete ID verification to start listing',
         action: {
@@ -95,6 +94,58 @@ export default function ListItem() {
           onClick: () => navigate('/verification')
         }
       });
+      return;
+    }
+
+    // Skip content moderation for drafts
+    if (listingStatus === 'draft') {
+      setIsLoading(true);
+      try {
+        const sanitizedTitle = validateUserInput(formData.title, 200);
+        const sanitizedDescription = validateUserInput(formData.description, 5000);
+        const sanitizedLocation = validateUserInput(formData.location, 200);
+
+        const { data, error } = await supabase
+          .from('items')
+          .insert({
+            owner_id: user.id,
+            title: sanitizedTitle,
+            description: sanitizedDescription,
+            category: formData.category,
+            price_per_day: pricePerDay,
+            price_per_hour: pricePerHour,
+            deposit_amount: depositAmount,
+            payment_mode: formData.payment_mode,
+            location: sanitizedLocation,
+            latitude: profile?.latitude,
+            longitude: profile?.longitude,
+            listing_status: 'draft',
+            is_available: false,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        const imageInserts = imageUrls.map((url, index) => ({
+          item_id: data.id,
+          image_url: url,
+          is_primary: index === 0,
+          display_order: index,
+        }));
+
+        if (imageInserts.length > 0) {
+          const { error: imageError } = await supabase.from('item_images').insert(imageInserts);
+          if (imageError) throw imageError;
+        }
+
+        toast.success('Draft saved!');
+        navigate(`/items/${data.id}`);
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to save draft');
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -153,6 +204,7 @@ export default function ListItem() {
           location: sanitizedLocation,
           latitude: profile?.latitude,
           longitude: profile?.longitude,
+          listing_status: 'active',
         })
         .select()
         .single();
@@ -233,7 +285,7 @@ export default function ListItem() {
             <CardTitle>List Your Item</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmit('active'); }} className="space-y-5">
               <div className="space-y-2">
                 <Label>Item Images *</Label>
                 <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
@@ -383,14 +435,25 @@ export default function ListItem() {
                 />
               </div>
 
-              <div className="sticky bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-medium" 
-                  disabled={isLoading || moderationResult?.isBlocked || !profile?.is_verified}
-                >
-                  {isLoading ? 'Listing...' : moderationResult?.isBlocked ? 'Content Blocked' : 'List Item'}
-                </Button>
+              <div className="sticky bottom-16 md:bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 h-12 text-base"
+                    disabled={isLoading}
+                    onClick={() => handleSubmit('draft')}
+                  >
+                    {isLoading ? 'Saving...' : 'Save as Draft'}
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 h-12 text-base font-medium"
+                    disabled={isLoading || moderationResult?.isBlocked}
+                  >
+                    {isLoading ? 'Publishing...' : moderationResult?.isBlocked ? 'Content Blocked' : 'Publish'}
+                  </Button>
+                </div>
               </div>
             </form>
           </CardContent>

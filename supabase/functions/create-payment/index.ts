@@ -37,6 +37,7 @@ serve(async (req) => {
     }
     
     let rental;
+    let lockAcquired = false;
     
     // NEW FLOW: Check if rental already exists (for approved rentals)
     if (rentalId) {
@@ -98,6 +99,17 @@ serve(async (req) => {
     }
     
     console.log('Creating payment for rental:', rental.id);
+    
+    // Acquire payment lock to prevent race conditions
+    const { data: acquired } = await supabase.rpc('acquire_payment_lock', {
+      p_rental_id: rental.id,
+      p_user_id: user.id
+    });
+    
+    if (!acquired) {
+      throw new Error('Payment is already being processed for this rental');
+    }
+    lockAcquired = true;
     
     // Get current platform fee percentage
     const { data: feeSetting } = await supabase
@@ -239,6 +251,10 @@ serve(async (req) => {
       details: { billCode: billData[0].BillCode, billUrl, amount: billAmount }
     });
     
+    // Release payment lock on success
+    await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
+    lockAcquired = false;
+    
     return new Response(
       JSON.stringify({
         success: true,
@@ -253,6 +269,11 @@ serve(async (req) => {
     
   } catch (error: any) {
     console.error('Payment creation error:', error);
+    if (lockAcquired) {
+      try {
+        await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
+      } catch { /* ignore release errors */ }
+    }
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

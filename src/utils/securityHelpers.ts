@@ -13,9 +13,10 @@ export async function checkRateLimit(
   windowMinutes: number = 15
 ): Promise<boolean> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase.rpc('check_rate_limit_enhanced', {
-      p_user_id: null, // Will use IP-based rate limiting for unauthenticated
-      p_ip_address: null, // Supabase will use inet_client_addr()
+      p_user_id: user?.id || null,
+      p_ip_address: null,
       p_action: action,
       p_max_attempts: maxAttempts,
       p_window_minutes: windowMinutes
@@ -23,13 +24,14 @@ export async function checkRateLimit(
 
     if (error) {
       console.error('Rate limit check error:', error);
-      return true; // Allow on error to prevent legitimate users from being blocked
+      return false;
     }
 
-    return data === true;
+    if (!data || !data.length) return false;
+    return data[0].allowed === true;
   } catch (error) {
     console.error('Rate limit check failed:', error);
-    return true; // Allow on error
+    return false;
   }
 }
 
@@ -114,20 +116,14 @@ export function approximateCoordinate(coord: number | null): number | null {
  * @returns Promise<string> - Hashed IC number
  */
 export async function hashIcNumber(icNumber: string): Promise<string> {
-  try {
-    const { data, error } = await supabase.rpc('hash_ic_number', {
-      ic: icNumber
-    });
+  const { data, error } = await supabase.rpc('hash_ic_number', {
+    ic: icNumber
+  });
 
-    if (error) throw error;
-    return data;
-  } catch (error) {
+  if (error) {
     console.error('Failed to hash IC number:', error);
-    // Fallback to client-side hashing
-    const encoder = new TextEncoder();
-    const data = encoder.encode(icNumber + 'salt-change-this');
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    throw new Error('Identity number hashing failed. Please try again.');
   }
+
+  return data;
 }

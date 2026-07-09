@@ -82,8 +82,12 @@ export default function Search() {
   }, [category, minPrice, maxPrice, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, maxDistance]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('recentSearches');
-    if (saved) setRecentSearches(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem('recentSearches');
+      if (saved) setRecentSearches(JSON.parse(saved));
+    } catch {
+      localStorage.removeItem('recentSearches');
+    }
   }, []);
 
   useEffect(() => {
@@ -213,7 +217,7 @@ export default function Search() {
     return data || [];
   };
 
-  const { items, loading, hasMore, sentinelRef, reset } = useInfiniteScroll({
+  const { items, loading, hasMore, setSentinelRef, reset } = useInfiniteScroll({
     fetchFunction: fetchItemsPage,
     pageSize: 12,
   });
@@ -613,7 +617,7 @@ export default function Search() {
         )}
         
         {/* Infinite scroll sentinel */}
-        <div ref={sentinelRef} className="h-10 w-full" />
+        <div ref={setSentinelRef} className="h-10 w-full" />
         
         {loading && hasMore && (
           <div className="flex justify-center py-8">

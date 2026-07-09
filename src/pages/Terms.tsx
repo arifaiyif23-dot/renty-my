@@ -157,7 +157,7 @@ export default function Terms() {
         </article>
 
         <p className="text-xs text-muted-foreground mt-10 font-mono">
-          Renty T&C — versi draft 2026-07 · terakhir dikemas kini {new Date().toLocaleDateString("ms-MY")}
+          Renty T&C — versi draft 2026-07 · terakhir dikemas kini <time dateTime="2026-07">Julai 2026</time>
         </p>
       </main>
     </div>

@@ -15,8 +15,9 @@ export function useInfiniteScroll<T>({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const initialLoadDone = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const sentinelCallbackRef = useRef<HTMLDivElement | null>(null);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -24,7 +25,7 @@ export function useInfiniteScroll<T>({
     setLoading(true);
     try {
       const newItems = await fetchFunction(page, pageSize);
-      
+
       if (newItems.length < pageSize) {
         setHasMore(false);
       }
@@ -38,14 +39,13 @@ export function useInfiniteScroll<T>({
     }
   }, [fetchFunction, page, pageSize, loading, hasMore]);
 
-  // Initial load on mount
   useEffect(() => {
-    if (items.length === 0 && !loading) {
+    if (!initialLoadDone.current && items.length === 0 && !loading) {
+      initialLoadDone.current = true;
       loadMore();
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Create observer AND observe sentinel in one effect so observation is always paired
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -57,7 +57,7 @@ export function useInfiniteScroll<T>({
     );
     observerRef.current = observer;
 
-    const sentinel = sentinelRef.current;
+    const sentinel = sentinelCallbackRef.current;
     if (sentinel) {
       observer.observe(sentinel);
     }
@@ -65,19 +65,29 @@ export function useInfiniteScroll<T>({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, loading, loadMore, threshold, sentinelRef.current]);
+  }, [hasMore, loading, loadMore, threshold]);
+
+  const setSentinelRef = useCallback((node: HTMLDivElement | null) => {
+    sentinelCallbackRef.current = node;
+    if (observerRef.current && node) {
+      observerRef.current.disconnect();
+      observerRef.current.observe(node);
+    }
+  }, []);
 
   const reset = useCallback(() => {
     setItems([]);
     setPage(1);
     setHasMore(true);
+    initialLoadDone.current = false;
   }, []);
 
   return {
     items,
     loading,
     hasMore,
-    sentinelRef,
+    sentinelRef: sentinelCallbackRef,
+    setSentinelRef,
     reset,
   };
 }

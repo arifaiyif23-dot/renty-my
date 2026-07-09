@@ -1,6 +1,7 @@
 export type AppRole = 'admin' | 'moderator' | 'user';
 export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid' | 'pending' | 'active' | 'completed' | 'cancelled' | 'disputed';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
+export type ListingStatus = 'active' | 'paused' | 'draft' | 'archived';
 export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
 
 export type ReportTargetType = 'item' | 'user' | 'message';
@@ -64,7 +65,6 @@ export interface Profile {
   longitude?: number;
   is_verified: boolean;
   verification_level?: VerificationLevel;
-  identity_number?: string;
   identity_number_hash?: string;
   trust_score?: number;
   ekyc_provider?: string;
@@ -96,6 +96,7 @@ export interface Item {
   latitude?: number;
   longitude?: number;
   is_available: boolean;
+  listing_status?: ListingStatus;
   created_at: string;
   updated_at: string;
   owner?: Profile;

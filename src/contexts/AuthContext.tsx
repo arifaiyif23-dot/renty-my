@@ -74,10 +74,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload) => {
-          setProfile((prev) => ({ ...(prev as Profile), ...(payload.new as Profile) }));
+          const newData = payload.new as Record<string, unknown>;
+          if (newData && typeof newData === 'object' && 'full_name' in newData) {
+            setProfile((prev) => prev ? { ...prev, ...newData } as Profile : prev);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') {
+          console.error('Failed to subscribe to profile changes:', status);
+        }
+      });
     return () => {
       supabase.removeChannel(channel);
     };

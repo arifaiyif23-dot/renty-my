@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import Header from "@/components/Header";
+import { AdminLayout } from "@/components/AdminLayout";
 import { 
   Activity, 
   Clock, 
@@ -127,9 +127,8 @@ export default function AdminAutomation() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
+      <div className="px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Automation & Monitoring</h1>
@@ -384,6 +383,6 @@ export default function AdminAutomation() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

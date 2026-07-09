@@ -154,7 +154,7 @@ export default function Verification() {
       setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'Submitting for review' });
 
       // Create verification request
-      toast.info("Creating verification request...");
+      toast.loading("Creating verification request...");
 
       const insertPayload: Record<string, any> = {
         user_id: user?.id,
@@ -168,7 +168,6 @@ export default function Verification() {
       };
 
       if (identityNumber && documentType === 'mykad') {
-        insertPayload.identity_number = identityNumber;
         insertPayload.identity_number_validated = true;
         insertPayload.verification_level = 'kyc';
         if (useEkyc) {
@@ -188,7 +187,7 @@ export default function Verification() {
       setVerificationId(verification.id);
 
       // Call AI verification edge function
-      toast.info("Running AI document analysis...");
+      toast.loading("Running AI document analysis...");
       setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'AI analysis in progress' });
 
       const { data: aiResult, error: aiError } = await supabase.functions.invoke('submit-verification', {

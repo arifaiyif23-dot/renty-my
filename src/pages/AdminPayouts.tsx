@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { DollarSign, Loader2, CheckCircle, XCircle, Clock, Filter } from 'lucide-react';
-import Header from '@/components/Header';
+import { AdminLayout } from '@/components/AdminLayout';
+import { invokeAdminOperation } from '@/lib/adminOperations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,16 +87,7 @@ export default function AdminPayouts() {
 
     setProcessing(true);
     try {
-      const { error } = await supabase
-        .from('payouts')
-        .update({
-          status: 'completed',
-          transaction_reference: transactionRef,
-          processed_at: new Date().toISOString()
-        })
-        .eq('id', selectedPayout.id);
-
-      if (error) throw error;
+      await invokeAdminOperation({ action: 'process_payout', payoutId: selectedPayout.id, status: 'completed', transactionReference: transactionRef });
 
       toast.success('Payout marked as completed');
       setShowCompleteDialog(false);
@@ -118,16 +110,7 @@ export default function AdminPayouts() {
 
     setProcessing(true);
     try {
-      const { error } = await supabase
-        .from('payouts')
-        .update({
-          status: 'failed',
-          failure_reason: failureReason,
-          processed_at: new Date().toISOString()
-        })
-        .eq('id', selectedPayout.id);
-
-      if (error) throw error;
+      await invokeAdminOperation({ action: 'process_payout', payoutId: selectedPayout.id, status: 'failed', failureReason });
 
       toast.success('Payout marked as failed');
       setShowFailDialog(false);
@@ -176,20 +159,17 @@ export default function AdminPayouts() {
 
   if (loading) {
     return (
-      <>
-        <Header />
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   return (
-    <AdminRoute>
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
+      <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <DollarSign className="h-8 w-8" />
@@ -442,7 +422,6 @@ export default function AdminPayouts() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-    </AdminRoute>
+      </AdminLayout>
   );
 }

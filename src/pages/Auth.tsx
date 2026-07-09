@@ -223,6 +223,7 @@ export default function Auth() {
                     value={loginData.email}
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     className="h-12 text-base"
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -235,6 +236,7 @@ export default function Auth() {
                       value={loginData.password}
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       className="h-12 text-base pr-12"
+                      autoComplete="current-password"
                       required
                     />
                     <Button
@@ -243,6 +245,7 @@ export default function Auth() {
                       size="icon"
                       className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
                     >
                       {showLoginPassword ? (
                         <EyeOff className="h-5 w-5 text-muted-foreground" />
@@ -308,6 +311,7 @@ export default function Auth() {
                     value={signupData.fullName}
                     onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
                     className="h-12 text-base"
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -320,6 +324,7 @@ export default function Auth() {
                     value={signupData.email}
                     onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                     className="h-12 text-base"
+                    autoComplete="email"
                     required
                   />
                 </div>
@@ -332,6 +337,7 @@ export default function Auth() {
                       value={signupData.password}
                       onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                       className="h-12 text-base pr-12"
+                      autoComplete="new-password"
                       required
                     />
                     <Button
@@ -340,6 +346,7 @@ export default function Auth() {
                       size="icon"
                       className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
                       onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
                     >
                       {showSignupPassword ? (
                         <EyeOff className="h-5 w-5 text-muted-foreground" />
@@ -358,6 +365,7 @@ export default function Auth() {
                       value={signupData.confirmPassword}
                       onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                       className="h-12 text-base pr-12"
+                      autoComplete="new-password"
                       required
                     />
                     <Button
@@ -366,6 +374,7 @@ export default function Auth() {
                       size="icon"
                       className="absolute right-0 top-0 h-12 w-12 hover:bg-transparent"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-5 w-5 text-muted-foreground" />

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 import { CheckCircle, XCircle, Loader2, Eye, Search, Filter, AlertTriangle, ShieldAlert, Brain, Sparkles, RefreshCw, Keyboard } from "lucide-react";
-import Header from "@/components/Header";
+import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import { VerificationAnalytics } from "@/components/VerificationAnalytics";
 import { useAdminKeyboardShortcuts } from "@/hooks/use-admin-keyboard-shortcuts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { invokeAdminOperation } from "@/lib/adminOperations";
 
 interface VerificationRequest {
   id: string;
@@ -30,7 +31,6 @@ interface VerificationRequest {
   document_back_url: string | null;
   selfie_url: string;
   full_name_on_document: string;
-  ic_number: string | null;
   date_of_birth: string | null;
   document_quality_score: number | null;
   face_match_score: number | null;
@@ -221,55 +221,13 @@ export default function AdminVerification() {
     setProcessing(true);
 
     try {
-      const updateData: any = {
+      await invokeAdminOperation({
+        action: 'verify_identity',
+        verificationId: selectedVerification.id,
         status: actionType === 'approve' ? 'approved' : 'rejected',
-        verified_by: user?.id,
-        verified_at: new Date().toISOString(),
-      };
-
-      if (actionType === 'reject') {
-        updateData.rejection_reason = rejectionReason;
-      }
-
-      if (adminNotes) {
-        updateData.admin_notes = adminNotes;
-      }
-
-      const { error: updateError } = await supabase
-        .from('verification_requests')
-        .update(updateData)
-        .eq('id', selectedVerification.id);
-
-      if (updateError) throw updateError;
-
-      // Update user profile verification status if approved
-      if (actionType === 'approve') {
-        await supabase
-          .from('profiles')
-          .update({ is_verified: true })
-          .eq('id', selectedVerification.user_id);
-      }
-
-      // Create notification
-      await supabase.from('notifications').insert({
-        user_id: selectedVerification.user_id,
-        type: actionType === 'approve' ? 'verification_approved' : 'verification_rejected',
-        title: actionType === 'approve' ? 'Verification Approved!' : 'Verification Rejected',
-        message: actionType === 'approve' 
-          ? 'Your identity has been verified successfully.' 
-          : `Your verification was rejected: ${rejectionReason}`,
-        link: '/profile'
-      });
-
-      // Create audit log
-      await supabase.from('verification_audit_log').insert({
-        verification_id: selectedVerification.id,
-        action: actionType === 'approve' ? 'approved' : 'rejected',
-        performed_by: user?.id,
-        details: {
-          rejection_reason: rejectionReason,
-          admin_notes: adminNotes
-        }
+        userId: selectedVerification.user_id,
+        rejectionReason: rejectionReason || undefined,
+        adminNotes: adminNotes || undefined,
       });
 
       // Send email notification
@@ -309,46 +267,11 @@ export default function AdminVerification() {
 
     setProcessing(true);
     try {
-      const approvalData = {
+      await invokeAdminOperation({
+        action: 'batch_verify_identity',
+        ids: Array.from(selectedIds),
         status: 'approved',
-        verified_by: user?.id,
-        verified_at: new Date().toISOString()
-      };
-
-      const updates = Array.from(selectedIds).map(id =>
-        supabase
-          .from('verification_requests')
-          .update(approvalData)
-          .eq('id', id)
-      );
-
-      await Promise.all(updates);
-
-      // Update profiles.is_verified for each approved user
-      const userIds = selectedIds
-        .map(id => verifications.find(v => v.id === id)?.user_id)
-        .filter(Boolean) as string[];
-
-      if (userIds.length > 0) {
-        await supabase
-          .from('profiles')
-          .update({ is_verified: true })
-          .in('id', userIds);
-      }
-
-      // Create notifications
-      const notifications = selectedIds.map(id => {
-        const verification = verifications.find(v => v.id === id);
-        return supabase.from('notifications').insert({
-          user_id: verification?.user_id,
-          type: 'verification_approved',
-          title: 'Verification Approved!',
-          message: 'Your identity has been verified successfully.',
-          link: '/profile'
-        });
       });
-
-      await Promise.all(notifications);
 
       toast.success(`${selectedIds.size} verifications approved successfully`);
       setSelectedIds(new Set());
@@ -396,7 +319,6 @@ export default function AdminVerification() {
     const query = searchQuery.toLowerCase();
     return (
       v.full_name_on_document?.toLowerCase().includes(query) ||
-      v.ic_number?.toLowerCase().includes(query) ||
       v.profiles?.full_name?.toLowerCase().includes(query)
     );
   });
@@ -447,21 +369,16 @@ export default function AdminVerification() {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-7xl pb-mobile-nav">
+    <AdminLayout>
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
@@ -720,12 +637,6 @@ export default function AdminVerification() {
                       <p className="text-sm font-medium mb-1">Document Type</p>
                       <p className="text-sm text-muted-foreground capitalize">{verification.document_type}</p>
                     </div>
-                    {verification.ic_number && (
-                      <div>
-                        <p className="text-sm font-medium mb-1">IC Number</p>
-                        <p className="text-sm text-muted-foreground">{verification.ic_number.slice(0, 6)}**-****</p>
-                      </div>
-                    )}
                     {verification.date_of_birth && (
                       <div>
                         <p className="text-sm font-medium mb-1">Date of Birth</p>
@@ -843,10 +754,7 @@ export default function AdminVerification() {
                           variant="outline"
                           onClick={async () => {
                             try {
-                              await supabase
-                                .from('fraud_alerts')
-                                .update({ status: 'reviewed', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
-                                .eq('id', alert.id);
+                              await invokeAdminOperation({ action: 'fraud_alert_action', alertId: alert.id, status: 'reviewed' });
                               toast.success("Alert marked as reviewed");
                               fetchData();
                             } catch (error) {
@@ -861,10 +769,7 @@ export default function AdminVerification() {
                           variant="destructive"
                           onClick={async () => {
                             try {
-                              await supabase
-                                .from('fraud_alerts')
-                                .update({ status: 'escalated', reviewed_by: user?.id, reviewed_at: new Date().toISOString() })
-                                .eq('id', alert.id);
+                              await invokeAdminOperation({ action: 'fraud_alert_action', alertId: alert.id, status: 'escalated' });
                               toast.success("Alert escalated");
                               fetchData();
                             } catch (error) {
@@ -957,7 +862,6 @@ export default function AdminVerification() {
             openActionDialog(selectedVerification, 'reject');
           } : undefined}
         />
-      </div>
-    </>
+    </AdminLayout>
   );
 }

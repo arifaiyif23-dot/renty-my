@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign, LogOut } from "lucide-react";
+import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign, LogOut, LayoutDashboard, Users, Flag, TicketPercent, AlertTriangle, Zap, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
@@ -225,21 +225,63 @@ const Header = () => {
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
+                              <Link to="/admin" className="flex items-center cursor-pointer">
+                                <LayoutDashboard className="h-4 w-4 mr-2" />
+                                Admin: Dashboard
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
                               <Link to="/admin/verifications" className="flex items-center cursor-pointer">
                                 <Shield className="h-4 w-4 mr-2" />
                                 Admin: Verifications
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/settings" className="flex items-center cursor-pointer">
-                                <Settings className="h-4 w-4 mr-2" />
-                                Admin: Settings
+                              <Link to="/admin/users" className="flex items-center cursor-pointer">
+                                <Users className="h-4 w-4 mr-2" />
+                                Admin: Users
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/reports" className="flex items-center cursor-pointer">
+                                <Flag className="h-4 w-4 mr-2" />
+                                Admin: Reports
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/promo-codes" className="flex items-center cursor-pointer">
+                                <TicketPercent className="h-4 w-4 mr-2" />
+                                Admin: Promo Codes
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link to="/admin/payouts" className="flex items-center cursor-pointer">
                                 <DollarSign className="h-4 w-4 mr-2" />
                                 Admin: Payouts
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/disputes" className="flex items-center cursor-pointer">
+                                <AlertTriangle className="h-4 w-4 mr-2" />
+                                Admin: Disputes
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/automation" className="flex items-center cursor-pointer">
+                                <Zap className="h-4 w-4 mr-2" />
+                                Admin: Automation
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/health" className="flex items-center cursor-pointer">
+                                <Activity className="h-4 w-4 mr-2" />
+                                Admin: Health
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/admin/settings" className="flex items-center cursor-pointer">
+                                <Settings className="h-4 w-4 mr-2" />
+                                Admin: Settings
                               </Link>
                             </DropdownMenuItem>
                           </>

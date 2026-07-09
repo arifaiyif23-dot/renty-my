@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Search, Shield, ShieldOff, Loader2, Ban, CheckCircle, AlertTriangle, User as UserIcon } from "lucide-react";
-import Header from "@/components/Header";
+import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
+import { invokeAdminOperation } from "@/lib/adminOperations";
 import type { Profile } from "@/types";
 
 const ROLE_OPTIONS = [
@@ -69,16 +70,7 @@ export default function AdminUsers() {
     if (!suspendUser) return;
     setProcessing(suspendUser.id);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          is_suspended: true,
-          suspended_at: new Date().toISOString(),
-          suspension_reason: suspendReason || null,
-        })
-        .eq("id", suspendUser.id);
-
-      if (error) throw error;
+      await invokeAdminOperation({ action: 'suspend_user', userId: suspendUser.id, reason: suspendReason || 'No reason provided' });
 
       setUsers((prev) =>
         prev.map((u) =>
@@ -100,12 +92,7 @@ export default function AdminUsers() {
   const handleUnsuspend = async (user: Profile) => {
     setProcessing(user.id);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_suspended: false, suspended_at: null, suspension_reason: null })
-        .eq("id", user.id);
-
-      if (error) throw error;
+      await invokeAdminOperation({ action: 'unsuspend_user', userId: user.id });
 
       setUsers((prev) =>
         prev.map((u) =>
@@ -133,9 +120,8 @@ export default function AdminUsers() {
   });
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-6xl pb-mobile-nav">
+    <AdminLayout>
+      <div className="max-w-6xl">
         <div className="flex items-center gap-3 mb-6">
           <Shield className="h-6 w-6 text-primary" />
           <div>
@@ -301,6 +287,6 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </AdminLayout>
   );
 }

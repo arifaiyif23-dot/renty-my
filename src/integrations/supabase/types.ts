@@ -47,12 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          id: string
+          session_id: string
+          role: string
+          content: string
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          role: string
+          content: string
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          role?: string
+          content?: string
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       chat_sessions: {
         Row: {
           created_at: string
           escalated_to_human: boolean | null
           id: string
-          messages: Json[]
           resolved: boolean | null
           sentiment: string | null
           updated_at: string
@@ -62,7 +95,6 @@ export type Database = {
           created_at?: string
           escalated_to_human?: boolean | null
           id?: string
-          messages?: Json[]
           resolved?: boolean | null
           sentiment?: string | null
           updated_at?: string
@@ -72,7 +104,6 @@ export type Database = {
           created_at?: string
           escalated_to_human?: boolean | null
           id?: string
-          messages?: Json[]
           resolved?: boolean | null
           sentiment?: string | null
           updated_at?: string

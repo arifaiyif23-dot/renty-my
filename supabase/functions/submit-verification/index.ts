@@ -134,9 +134,6 @@ serve(async (req) => {
     if (aiData.extractedInfo?.fullName) {
       updateData.full_name_on_document = aiData.extractedInfo.fullName;
     }
-    if (aiData.extractedInfo?.documentNumber) {
-      updateData.ic_number = aiData.extractedInfo.documentNumber;
-    }
     if (aiData.extractedInfo?.dateOfBirth) {
       updateData.date_of_birth = aiData.extractedInfo.dateOfBirth;
     }

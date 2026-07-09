@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Loader2, Save, Settings, DollarSign, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
-import Header from '@/components/Header';
+import { AdminLayout } from '@/components/AdminLayout';
+import { invokeAdminOperation } from '@/lib/adminOperations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,12 +82,7 @@ export default function AdminSettings() {
       }));
 
       for (const update of updates) {
-        const { error } = await supabase
-          .from('platform_settings')
-          .update({ value: update.value, updated_at: update.updated_at })
-          .eq('key', update.key);
-
-        if (error) throw error;
+        await invokeAdminOperation({ action: 'update_platform_setting', key: update.key, value: String(update.value) });
       }
 
       toast.success('Settings updated successfully');
@@ -107,20 +103,20 @@ export default function AdminSettings() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
     );
   }
 
   const hasChanges = Object.keys(pendingChanges).length > 0;
 
   return (
-    <AdminRoute>
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="flex items-center justify-between mb-8">
+    <AdminLayout>
+      <div className="max-w-4xl">
+        <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Settings className="h-8 w-8" />
@@ -319,7 +315,6 @@ export default function AdminSettings() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-    </AdminRoute>
+      </AdminLayout>
   );
 }

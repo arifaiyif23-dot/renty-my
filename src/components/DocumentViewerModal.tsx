@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { getSignedUrl } from "@/utils/signedUrls";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeAdminOperation } from "@/lib/adminOperations";
 import { toast } from "sonner";
 
 interface DocumentViewerModalProps {
@@ -97,12 +98,10 @@ export function DocumentViewerModal({
 
       setSignedUrls({ front: frontUrl, back: backUrl, selfie: selfieUrl });
 
-      // Log access
-      await supabase.from('sensitive_data_access_log').insert({
-        user_id: verification.user_id,
-        resource_type: 'verification_document',
-        resource_id: verification.id,
-        access_type: 'admin_view_modal'
+      await invokeAdminOperation({
+        action: 'log_sensitive_access',
+        resourceType: 'verification_document',
+        resourceId: verification.id,
       });
     } catch (error) {
       console.error("Failed to load signed URLs:", error);

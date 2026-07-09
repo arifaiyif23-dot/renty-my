@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import Header from "@/components/Header";
+import { AdminLayout } from "@/components/AdminLayout";
+import { invokeAdminOperation } from "@/lib/adminOperations";
 import { Loader2, ShieldAlert, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -59,28 +60,14 @@ export default function AdminDisputes() {
     setSaving(true);
     const amount = action === "release_owner" ? 0 : parseFloat(refundAmount || "0");
 
-    const { error } = await supabase
-      .from("disputes")
-      .update({
-        status: "resolved",
-        resolution_notes: notes,
-        resolution_amount: amount,
-        resolution_split: { action, refund_to_renter: amount },
-        resolved_at: new Date().toISOString(),
-      })
-      .eq("id", selected.id);
-
-    if (error) {
-      toast.error(error.message);
-      setSaving(false);
-      return;
-    }
-
-    // Clear dispute flag and release payout if releasing to owner
-    if (action === "release_owner") {
-      const { error: rentalError } = await supabase.from("rentals").update({ is_disputed: false, status: "completed" }).eq("id", selected.rental_id);
-      if (rentalError) toast.error("Failed to update rental: " + rentalError.message);
-    }
+    await invokeAdminOperation({
+      action: 'resolve_dispute',
+      disputeId: selected.id,
+      rentalId: selected.rental_id,
+      resolutionNotes: notes,
+      resolutionAmount: amount,
+      resolutionSplit: { action, refund_to_renter: amount },
+    });
 
     toast.success("Dispute resolved");
     setSelected(null);
@@ -91,9 +78,8 @@ export default function AdminDisputes() {
   };
 
   return (
-    <>
-      <Header />
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
+    <AdminLayout>
+      <main className="px-4 py-6 max-w-6xl">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -209,6 +195,6 @@ export default function AdminDisputes() {
           </div>
         )}
       </main>
-    </>
+    </AdminLayout>
   );
 }

@@ -21,8 +21,9 @@ import {
   FileCheck,
   Mail
 } from "lucide-react";
-import Header from "@/components/Header";
+import { AdminLayout } from "@/components/AdminLayout";
 import EmailAnalytics from "@/components/EmailAnalytics";
+import { invokeAdminOperation } from "@/lib/adminOperations";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -54,7 +55,6 @@ interface VerificationRequest {
   document_back_url: string | null;
   selfie_url: string;
   full_name_on_document: string;
-  ic_number: string | null;
   date_of_birth: string | null;
   document_quality_score: number | null;
   face_match_score: number | null;
@@ -217,16 +217,7 @@ export default function AdminDashboard() {
 
   const handleFraudAlertAction = async (alertId: string, action: 'reviewed' | 'dismissed') => {
     try {
-      const { error } = await (supabase as any)
-        .from('fraud_alerts')
-        .update({
-          status: action,
-          reviewed_by: user?.id,
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', alertId);
-
-      if (error) throw error;
+      await invokeAdminOperation({ action: 'fraud_alert_action', alertId, status: action });
 
       toast.success(`Alert ${action} successfully`);
       fetchFraudAlerts();
@@ -250,53 +241,12 @@ export default function AdminDashboard() {
     try {
       const verificationIds = Array.from(selectedVerifications);
       
-      // Update all selected verifications
-      const updateData: any = {
+      await invokeAdminOperation({
+        action: 'batch_verify_identity',
+        ids: verificationIds,
         status: bulkAction === 'approve' ? 'approved' : 'rejected',
-        verified_by: user?.id,
-        verified_at: new Date().toISOString(),
-      };
-
-      if (bulkAction === 'reject') {
-        updateData.rejection_reason = bulkRejectionReason;
-      }
-
-      const { error: updateError } = await (supabase as any)
-        .from('verification_requests')
-        .update(updateData)
-        .in('id', verificationIds);
-
-      if (updateError) throw updateError;
-
-      // Create notifications for each user
-      const verificationsToNotify = verifications.filter(v => 
-        selectedVerifications.has(v.id)
-      );
-
-      const notifications = verificationsToNotify.map(v => ({
-        user_id: v.user_id,
-        type: bulkAction === 'approve' ? 'verification_approved' : 'verification_rejected',
-        title: bulkAction === 'approve' ? 'Verification Approved!' : 'Verification Rejected',
-        message: bulkAction === 'approve' 
-          ? 'Your identity has been verified successfully.' 
-          : `Your verification was rejected: ${bulkRejectionReason}`,
-        link: '/profile'
-      }));
-
-      await (supabase as any).from('notifications').insert(notifications);
-
-      // Create audit logs
-      const auditLogs = verificationIds.map(id => ({
-        verification_id: id,
-        action: bulkAction === 'approve' ? 'bulk_approved' : 'bulk_rejected',
-        performed_by: user?.id,
-        details: {
-          rejection_reason: bulkRejectionReason,
-          bulk_count: verificationIds.length
-        }
-      }));
-
-      await (supabase as any).from('verification_audit_log').insert(auditLogs);
+        rejectionReason: bulkRejectionReason || undefined,
+      });
 
       toast.success(`${verificationIds.length} verifications ${bulkAction === 'approve' ? 'approved' : 'rejected'} successfully`);
       
@@ -349,7 +299,6 @@ export default function AdminDashboard() {
     const query = verificationSearchQuery.toLowerCase();
     return (
       v.full_name_on_document?.toLowerCase().includes(query) ||
-      v.ic_number?.toLowerCase().includes(query) ||
       v.profiles?.full_name?.toLowerCase().includes(query)
     );
   });
@@ -376,21 +325,17 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4">
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-      </>
+      </AdminLayout>
     );
   }
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-7xl pb-mobile-nav">
+    <AdminLayout>
+      <div className="max-w-7xl">
         <div className="mb-6 flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
@@ -737,12 +682,6 @@ export default function AdminDashboard() {
                           <p className="text-sm font-medium mb-1">Document Type</p>
                           <p className="text-sm text-muted-foreground capitalize">{verification.document_type}</p>
                         </div>
-                        {verification.ic_number && (
-                          <div>
-                            <p className="text-sm font-medium mb-1">IC Number</p>
-                            <p className="text-sm text-muted-foreground">{verification.ic_number.slice(0, 6)}**-****</p>
-                          </div>
-                        )}
                         {verification.date_of_birth && (
                           <div>
                             <p className="text-sm font-medium mb-1">Date of Birth</p>
@@ -867,6 +806,6 @@ export default function AdminDashboard() {
         </Dialog>
 
       </div>
-    </>
+    </AdminLayout>
   );
 }

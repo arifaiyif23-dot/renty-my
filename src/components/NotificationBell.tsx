@@ -96,7 +96,7 @@ export const NotificationBell = () => {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id).catch(() => {});
+    markAsRead(notification.id).catch((err) => console.error('Failed to mark notification as read:', err));
     if (notification.link) {
       navigate(notification.link);
     }

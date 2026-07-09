@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, CheckCircle2, RefreshCw, Mail, CreditCard, Database, Shield } from "lucide-react";
-import Header from "@/components/Header";
+import { AdminLayout } from "@/components/AdminLayout";
 import { toast } from "sonner";
+import { invokeAdminOperation } from "@/lib/adminOperations";
 
 type Stats = {
   payments_today: number;
@@ -62,9 +63,9 @@ export default function AdminHealth() {
   const runCleanup = async () => {
     setCleanupRunning(true);
     try {
-      const { error } = await supabase.rpc("cleanup_expired_payments");
-      if (error) toast.error(error.message);
-      else { toast.success("Expired payments cleaned"); load(); }
+      await invokeAdminOperation({ action: 'cleanup_payments' });
+      toast.success("Expired payments cleaned");
+      load();
     } catch (e: any) {
       toast.error(e.message || "Cleanup failed");
     } finally {
@@ -101,9 +102,8 @@ export default function AdminHealth() {
     : null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto py-6 px-4 space-y-6">
+    <AdminLayout>
+      <main className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">System Health</h1>
@@ -214,7 +214,7 @@ export default function AdminHealth() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </AdminLayout>
   );
 }
 

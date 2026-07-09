@@ -63,7 +63,6 @@ serve(async (req) => {
         is_verified: false,
         is_deleted: true,
         deleted_at: new Date().toISOString(),
-        identity_number: null,
         identity_number_hash: null,
       })
       .eq('id', user.id);
@@ -77,7 +76,10 @@ serve(async (req) => {
     });
 
     // Admin alert
-    const adminEmail = Deno.env.get('ADMIN_EMAIL') || 'admin@renty.my';
+    const adminEmail = Deno.env.get('ADMIN_EMAIL');
+    if (!adminEmail) {
+      console.error('ADMIN_EMAIL environment variable not set');
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: 'Account deletion initiated' }),

@@ -51,6 +51,9 @@ const Help = lazy(() => import("./pages/Help"));
 const NotificationSettings = lazy(() => import("./pages/NotificationSettings"));
 const SavedSearches = lazy(() => import("./pages/SavedSearches"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminReports = lazy(() => import("./pages/AdminReports"));
+const AdminPromoCodes = lazy(() => import("./pages/AdminPromoCodes"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
 
 
 
@@ -94,6 +97,9 @@ function AppRoutes() {
               <Route path="/admin/health" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/disputes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDisputes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/users" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/reports" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminReports /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/promo-codes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPromoCodes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/users/:id" element={<ErrorBoundary><UserProfile /></ErrorBoundary>} />
               <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
               <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />
               <Route path="/notification-settings" element={<ErrorBoundary><ProtectedRoute><NotificationSettings /></ProtectedRoute></ErrorBoundary>} />

@@ -48,7 +48,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
       .then(({ data }) => {
         if (active && data?.expires_at) setPendingExpiresAt(data.expires_at);
       })
-      .catch(() => {});
+      .catch((err) => console.error('Failed to check pending payment:', err));
     return () => { active = false; };
   }, [rental.id]);
 
