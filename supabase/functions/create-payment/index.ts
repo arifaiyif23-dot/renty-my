@@ -212,7 +212,7 @@ serve(async (req) => {
     
     const billData = await toyyibPayResponse.json();
     
-    console.log('ToyyibPay response:', billData);
+    console.log('ToyyibPay bill created: code=' + billData[0]?.BillCode + ', status=' + billData[0]?.Status);
     
     if (!billData[0]?.BillCode) {
       console.error('ToyyibPay bill creation failed:', billData);

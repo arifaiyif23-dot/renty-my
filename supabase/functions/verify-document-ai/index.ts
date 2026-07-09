@@ -61,8 +61,6 @@ serve(async (req) => {
     const { documentFrontUrl, documentBackUrl, selfieUrl, documentType, fullNameOnDocument, livenessVideoUrl, livenessVideoFrames } = body;
 
     console.log('Starting AI verification for document type:', documentType);
-    console.log('Document front URL:', documentFrontUrl?.substring(0, 50) + '...');
-    console.log('Selfie URL:', selfieUrl?.substring(0, 50) + '...');
 
     if (!documentFrontUrl || !selfieUrl) {
       throw new Error("Missing required document or selfie URL");

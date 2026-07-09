@@ -7,11 +7,12 @@ const corsHeaders = {
 };
 
 interface EkycRequest {
-  provider: 'idenfy' | 'veriff' | 'shuftipro' | 'manual';
+  provider: 'idenfy' | 'veriff' | 'shuftipro' | 'kenal' | 'manual';
   sessionId?: string;
   userId: string;
   identityNumber?: string;
   identityNumberHash?: string;
+  fullName?: string;
 }
 
 interface EkycResult {
@@ -67,6 +68,11 @@ serve(async (req) => {
       case 'shuftipro': {
         if (!sessionId) throw new Error('sessionId required for ShuftiPro');
         result = await verifyWithShuftiPro(sessionId);
+        break;
+      }
+      case 'kenal': {
+        if (!sessionId && !identityNumberHash) throw new Error('sessionId or identityNumberHash required for Kenal.io');
+        result = await verifyWithKenal(sessionId || identityNumberHash!, body.fullName);
         break;
       }
       case 'manual': {
@@ -231,6 +237,40 @@ async function verifyWithShuftiPro(sessionId: string): Promise<EkycResult> {
     livenessPassed: data.liveness?.passed ?? false,
     faceMatchScore: data.face?.confidence ?? undefined,
     trustScore: passed ? 88 : 50,
+    rawResult: data,
+  };
+}
+
+async function verifyWithKenal(refId: string, fullName?: string): Promise<EkycResult> {
+  const apiKey = Deno.env.get('KENAL_API_KEY');
+  if (!apiKey) throw new Error('KENAL_API_KEY not configured');
+
+  const response = await fetch('https://app.kenal.io/api/v1/startEKYC', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify({
+      Name: fullName || '',
+      IDNumber: refId.replace(/-/g, ''),
+      RefID: crypto.randomUUID ? crypto.randomUUID() : refId,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(`Kenal.io API error: ${data.message || response.status}`);
+
+  const passed = data.status === 'success';
+
+  return {
+    success: passed,
+    verificationLevel: passed ? 'kyc' : 'kyc',
+    provider: 'kenal',
+    sessionId: refId,
+    identityVerified: passed,
+    livenessPassed: false,
+    trustScore: passed ? 75 : 50,
     rawResult: data,
   };
 }

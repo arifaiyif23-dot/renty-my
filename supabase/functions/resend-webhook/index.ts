@@ -92,7 +92,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    console.log('Resend webhook received:', JSON.stringify(payload, null, 2));
+    console.log('Resend webhook received: event_type=' + (data?.event_type || type) + ', email_id=' + (data?.email_id || 'unknown'));
 
     const { type, data } = payload;
     const emailId = data?.email_id;
