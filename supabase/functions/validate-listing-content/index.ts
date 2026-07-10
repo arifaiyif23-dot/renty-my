@@ -186,6 +186,17 @@ serve(async (req) => {
       );
     }
 
+    // Check if user is suspended
+    const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
+      p_user_id: user.id
+    });
+    if (suspendError) {
+      return new Response(
+        JSON.stringify({ error: 'Your account has been suspended. Contact support for assistance.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { title, description } = await req.json();
     
     if (!title || !description) {

@@ -87,14 +87,13 @@ serve(async (req) => {
     }
 
     const payload = JSON.parse(rawBody);
+    const { type, data } = payload;
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     console.log('Resend webhook received: event_type=' + (data?.event_type || type) + ', email_id=' + (data?.email_id || 'unknown'));
-
-    const { type, data } = payload;
     const emailId = data?.email_id;
 
     if (!emailId) {

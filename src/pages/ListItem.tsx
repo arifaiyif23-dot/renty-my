@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSuspensionCheck } from '@/hooks/use-suspension-check';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,12 +54,16 @@ export default function ListItem() {
     }
   }, [debouncedTitle, debouncedDescription]);
 
+  const { checkNotSuspended } = useSuspensionCheck();
+
   const handleSubmit = async (listingStatus: 'active' | 'draft') => {
     if (!user) {
       toast.error('Please sign in to list an item');
       navigate('/auth');
       return;
     }
+
+    if (!checkNotSuspended('create a listing')) return;
 
     if (imageUrls.length === 0) {
       toast.error('Please upload at least one image');

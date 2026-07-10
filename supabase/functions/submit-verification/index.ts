@@ -29,6 +29,14 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
+    // Check if user is suspended
+    const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
+      p_user_id: user.id
+    });
+    if (suspendError) {
+      throw new Error('Your account has been suspended. Contact support for assistance.');
+    }
+
     console.log('Processing verification for user:', user.id);
 
     const { verificationId } = await req.json();

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -236,8 +237,11 @@ export default function Messages() {
     setIsLoadingMessages(false);
   };
 
+  const { checkNotSuspended } = useSuspensionCheck();
+
   const sendMessage = async () => {
     if (!user || !selectedUserId || isSending || (!newMessage.trim() && !attachmentUrl)) return;
+    if (!checkNotSuspended('send a message')) return;
 
     stopTyping();
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);

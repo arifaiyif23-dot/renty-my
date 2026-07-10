@@ -44,6 +44,14 @@ serve(async (req) => {
       throw new Error('Forbidden: Cannot create booking for another user');
     }
 
+    // Check if user is suspended
+    const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
+      p_user_id: user.id
+    });
+    if (suspendError) {
+      throw new Error('Your account has been suspended. Contact support for assistance.');
+    }
+
     // Verify renter is verified
     const { data: profile, error: profileError } = await supabase
       .from('profiles')

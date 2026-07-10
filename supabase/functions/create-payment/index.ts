@@ -30,6 +30,14 @@ serve(async (req) => {
     if (authError || !user) {
       throw new Error('Unauthorized: Invalid token');
     }
+
+    // Check if user is suspended
+    const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
+      p_user_id: user.id
+    });
+    if (suspendError) {
+      throw new Error('Your account has been suspended. Contact support for assistance.');
+    }
     
     const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
     if (!rentalId && (!itemId || !renterId || !ownerId || !startDate || !endDate || totalPrice == null)) {

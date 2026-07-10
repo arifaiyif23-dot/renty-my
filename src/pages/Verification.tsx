@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,10 @@ export default function Verification() {
     toast.success("Video liveness check completed!");
   };
 
+  const { checkNotSuspended } = useSuspensionCheck();
+
   const handleSubmit = async () => {
+    if (!checkNotSuspended('submit verification documents')) return;
     if (!documentFront || (!selfie && !livenessVideo)) {
       toast.error("Please upload all required documents (front of document and either a selfie or liveness video)");
       return;
