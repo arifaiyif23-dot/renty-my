@@ -136,8 +136,10 @@ serve(async (req) => {
     
   } catch (error: any) {
     console.error('Booking request error:', error);
+    const message = error.message || 'An unexpected error occurred';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must') || message.startsWith('Item is not') || message.startsWith('Failed to check');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

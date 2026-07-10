@@ -282,8 +282,10 @@ serve(async (req) => {
         await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
       } catch { /* ignore release errors */ }
     }
+    const message = error.message || 'Payment processing failed';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('User is not') || message.startsWith('Your account');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

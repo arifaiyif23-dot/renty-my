@@ -221,9 +221,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Submit verification error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    const isExpected = message.startsWith("Unauthorized") || message.startsWith("verificationId") || message.startsWith("Verification") || message.startsWith("Your account");
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: isExpected ? message : "An unexpected error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

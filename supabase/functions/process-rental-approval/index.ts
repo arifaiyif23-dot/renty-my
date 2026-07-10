@@ -136,8 +136,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Rental approval processing error:', error);
+    const message = error.message || 'An error occurred while processing the rental';
+    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
