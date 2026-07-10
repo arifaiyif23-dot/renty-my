@@ -14,9 +14,7 @@ import {
   XCircle, 
   AlertCircle,
   RefreshCw,
-  TrendingUp,
   DollarSign,
-  Users,
   ShoppingCart
 } from "lucide-react";
 import { format } from "date-fns";

@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { TicketPercent, Loader2, Plus, Search, Users } from "lucide-react";
+import { TicketPercent, Loader2, Plus, Search } from "lucide-react";
 import { format } from "date-fns";
 import type { PromoCode } from "@/types";
 

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
-import { Loader2, Save, Settings, DollarSign, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Loader2, Save, Settings, DollarSign, ArrowDownToLine, ArrowUpFromLine, AlertTriangle } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 import { invokeAdminOperation } from '@/lib/adminOperations';
 import {
@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface PlatformSetting {
   id: string;
@@ -106,6 +107,33 @@ export default function AdminSettings() {
       <AdminLayout>
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (Object.keys(settings).length === 0) {
+    return (
+      <AdminLayout>
+        <div className="max-w-4xl">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <Settings className="h-8 w-8" />
+                Platform Settings
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Configure platform fees, limits, and operational parameters
+              </p>
+            </div>
+          </div>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>No platform settings found</AlertTitle>
+            <AlertDescription>
+              The platform_settings table appears to be empty. Run the database seed to create default settings.
+            </AlertDescription>
+          </Alert>
         </div>
       </AdminLayout>
     );

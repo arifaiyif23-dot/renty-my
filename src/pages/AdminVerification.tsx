@@ -22,6 +22,12 @@ import { useAdminKeyboardShortcuts } from "@/hooks/use-admin-keyboard-shortcuts"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { invokeAdminOperation } from "@/lib/adminOperations";
 
+interface AiAnalysisResult {
+  autoApprove?: boolean;
+  confidence?: number;
+  [key: string]: unknown;
+}
+
 interface VerificationRequest {
   id: string;
   user_id: string;
@@ -37,7 +43,8 @@ interface VerificationRequest {
   liveness_score: number | null;
   overall_confidence_score: number | null;
   fraud_risk_score: number | null;
-  ai_analysis_result: any;
+  verified_at?: string;
+  ai_analysis_result: AiAnalysisResult | null;
   created_at: string;
   profiles: {
     full_name: string;
@@ -50,7 +57,7 @@ interface FraudAlert {
   alert_type: string;
   risk_score: number;
   status: string;
-  details: any;
+  details: Record<string, unknown>;
   created_at: string;
   profiles: {
     full_name: string;
@@ -166,7 +173,7 @@ export default function AdminVerification() {
       ).length || 0;
       const aiSuggestedApprove = verificationsWithProfiles?.filter(v => 
         v.status === 'pending' && 
-        (v.ai_analysis_result as any)?.autoApprove === true
+        v.ai_analysis_result?.autoApprove === true
       ).length || 0;
       const avgScore = verificationsWithProfiles?.reduce((acc, v) => 
         acc + (v.overall_confidence_score || 0), 0
@@ -186,7 +193,7 @@ export default function AdminVerification() {
       if (filterStatus === "ai_suggested") {
         filtered = filtered.filter(v => 
           v.status === 'pending' && 
-          (v.ai_analysis_result as any)?.autoApprove === true
+          v.ai_analysis_result?.autoApprove === true
         );
       } else if (filterStatus !== "all") {
         filtered = filtered.filter(v => v.status === filterStatus);

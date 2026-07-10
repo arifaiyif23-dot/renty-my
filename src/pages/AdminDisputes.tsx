@@ -46,7 +46,7 @@ export default function AdminDisputes() {
     if (filter !== "all") q = q.eq("status", filter);
     const { data, error } = await q;
     if (error) toast.error(error.message);
-    setDisputes((data as unknown as AdminDispute[]) || []);
+    setDisputes((data || []) as AdminDispute[]);
     setLoading(false);
   };
 

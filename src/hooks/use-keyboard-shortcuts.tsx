@@ -31,8 +31,6 @@ export function useKeyboardShortcuts() {
 
       // ? to show help
       if (e.key === '?' && !e.shiftKey) {
-        // Could trigger a help modal in the future
-        console.log('Keyboard shortcuts: Cmd/Ctrl+K (Search), Cmd/Ctrl+H (Home), Cmd/Ctrl+L (List Item)');
       }
     };
 

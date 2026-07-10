@@ -40,7 +40,6 @@ export function useAdminRealtime() {
             table: 'verification_requests',
           },
           (payload) => {
-            console.log('New verification request:', payload);
             const verification = payload.new as any;
             
             setStats(prev => ({
@@ -57,7 +56,6 @@ export function useAdminRealtime() {
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             setConnectionState('connected');
-            console.log('Admin verification realtime connected');
           } else if (status === 'CLOSED') {
             setConnectionState('disconnected');
           } else if (status === 'CHANNEL_ERROR') {
@@ -77,7 +75,6 @@ export function useAdminRealtime() {
             table: 'fraud_alerts',
           },
           (payload) => {
-            console.log('New fraud alert:', payload);
             const alert = payload.new as any;
             
             setStats(prev => ({
@@ -102,7 +99,6 @@ export function useAdminRealtime() {
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
-            console.log('Admin fraud alerts realtime connected');
           }
         });
     };

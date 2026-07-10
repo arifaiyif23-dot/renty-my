@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
 import Header from '@/components/Header';
+import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import {
   Dialog,
   DialogContent,
@@ -143,6 +144,10 @@ export default function Earnings() {
   const handleSaveBankAccount = async () => {
     if (!bankForm.bank_name || !bankForm.account_number || !bankForm.account_holder_name) {
       toast.error('Please fill in all bank details');
+      return;
+    }
+    if (!/^\d{6,20}$/.test(bankForm.account_number.replace(/\s/g, ''))) {
+      toast.error('Account number must be 6-20 digits');
       return;
     }
 
@@ -399,11 +404,11 @@ export default function Earnings() {
           </CardHeader>
           <CardContent>
             {payouts.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>No payouts yet</p>
-                <p className="text-sm mt-1">Payouts are created automatically when rentals complete</p>
-              </div>
+              <EnhancedEmptyState
+                icon={DollarSign}
+                title="No payouts yet"
+                description="Payouts are created automatically when rentals complete"
+              />
             ) : (
               <div className="space-y-4">
                 {payouts.map((payout) => (

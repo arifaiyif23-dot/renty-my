@@ -30,7 +30,7 @@ type FlowLog = {
   stage: string;
   created_at: string;
   rental_id: string | null;
-  details?: any;
+  details?: Record<string, unknown>;
 };
 
 export default function AdminHealth() {

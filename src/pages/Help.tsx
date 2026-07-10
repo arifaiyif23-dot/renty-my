@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Search, Mail, MessageCircle, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Mail, ExternalLink } from "lucide-react";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 

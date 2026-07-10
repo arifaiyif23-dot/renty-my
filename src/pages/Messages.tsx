@@ -32,7 +32,7 @@ export default function Messages() {
   const location = useLocation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [showThread, setShowThread] = useState(false);
   const [attachmentUrl, setAttachmentUrl] = useState("");
@@ -50,7 +50,7 @@ export default function Messages() {
   const { typingUsers, startTyping, stopTyping } = useTypingIndicator(conversationId, user?.id || '');
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const upsertMessage = (incomingMessage: any) => {
+  const upsertMessage = (incomingMessage: Message) => {
     setMessages(prev => {
       const exists = prev.some(msg => msg.id === incomingMessage.id);
       if (exists) {
@@ -180,7 +180,7 @@ export default function Messages() {
 
     const conversationMap = new Map<string, Conversation>();
     
-    data?.forEach((msg: any) => {
+    data?.forEach((msg: Message & { sender?: { full_name: string; avatar_url?: string }; recipient?: { full_name: string; avatar_url?: string } }) => {
       const otherUserId = msg.sender_id === user.id ? msg.recipient_id : msg.sender_id;
       const otherUser = msg.sender_id === user.id ? msg.recipient : msg.sender;
       const isUnreadForMe = msg.recipient_id === user.id && !msg.is_read;

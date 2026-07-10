@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Bell, BellOff, Loader2, ArrowLeft, Save } from "lucide-react";
+import { Bell, Loader2, ArrowLeft, Save } from "lucide-react";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import type { NotificationPreference } from "@/types";

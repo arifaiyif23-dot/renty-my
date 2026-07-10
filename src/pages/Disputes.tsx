@@ -47,7 +47,7 @@ export default function Disputes() {
           .select("*")
           .or(`filed_by.eq.${user.id},filed_against.eq.${user.id}`)
           .order("created_at", { ascending: false });
-        if (!error) setDisputes((data as unknown as Dispute[]) || []);
+        if (!error) setDisputes((data || []) as Dispute[]);
       } catch (err) {
         console.error("Failed to load disputes:", err);
       } finally {

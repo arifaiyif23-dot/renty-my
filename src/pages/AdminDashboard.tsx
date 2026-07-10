@@ -38,7 +38,7 @@ interface FraudAlert {
   alert_type: string;
   risk_score: number;
   status: string;
-  details: any;
+  details: Record<string, unknown>;
   created_at: string;
   profiles?: {
     full_name: string;
@@ -61,7 +61,7 @@ interface VerificationRequest {
   liveness_score: number | null;
   overall_confidence_score: number | null;
   fraud_risk_score: number | null;
-  ai_analysis_result: any;
+  ai_analysis_result: Record<string, unknown> | null;
   created_at: string;
   profiles: {
     full_name: string;
@@ -132,24 +132,24 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       // Get pending verifications count
-      const { count: pendingCount } = await (supabase as any)
+      const { count: pendingCount } = await supabase
         .from('verification_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
 
       // Get pending fraud alerts count
-      const { count: fraudCount } = await (supabase as any)
+      const { count: fraudCount } = await supabase
         .from('fraud_alerts')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
 
       // Get total verifications
-      const { count: totalCount } = await (supabase as any)
+      const { count: totalCount } = await supabase
         .from('verification_requests')
         .select('*', { count: 'exact', head: true });
 
       // Get approved verifications
-      const { count: approvedCount } = await (supabase as any)
+      const { count: approvedCount } = await supabase
         .from('verification_requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'approved');
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
 
   const fetchFraudAlerts = async () => {
     try {
-      let query = (supabase as any)
+      let query = supabase
         .from('fraud_alerts')
         .select(`
           *,
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
 
   const fetchVerifications = async () => {
     try {
-      let query = (supabase as any)
+      let query = supabase
         .from('verification_requests')
         .select(`
           *,

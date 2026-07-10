@@ -14,10 +14,15 @@ import { ReportDialog } from "@/components/trust/ReportDialog";
 import { format } from "date-fns";
 import type { Profile, Item } from "@/types";
 
+interface ItemWithRating extends Item {
+  _rating: number;
+  _reviewCount: number;
+}
+
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReport, setShowReport] = useState(false);
 
@@ -60,15 +65,18 @@ export default function UserProfile() {
           statsMap.set(r.item_id, curr);
         });
 
-        (itemsList as any).forEach((item: any) => {
+        const itemsWithRating: ItemWithRating[] = itemsList.map((item) => {
           const stats = statsMap.get(item.id);
-          item._rating = stats ? Math.round((stats.sum / stats.count) * 10) / 10 : 0;
-          item._reviewCount = stats?.count || 0;
+          return {
+            ...item,
+            _rating: stats ? Math.round((stats.sum / stats.count) * 10) / 10 : 0,
+            _reviewCount: stats?.count || 0,
+          };
         });
+        setItems(itemsWithRating);
       }
 
       setProfile(profileRes.data);
-      setItems(itemsList);
     } catch (err) {
       console.error(err);
     } finally {
@@ -174,8 +182,8 @@ export default function UserProfile() {
                 image={item.images?.[0]?.image_url || "/placeholder.svg"}
                 pricePerDay={Number(item.price_per_day)}
                 category={item.category}
-                rating={(item as any)._rating || 0}
-                reviewCount={(item as any)._reviewCount || 0}
+                rating={item._rating}
+                reviewCount={item._reviewCount}
                 location={item.location}
               />
             ))}

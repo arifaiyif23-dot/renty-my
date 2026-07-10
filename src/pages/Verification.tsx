@@ -33,7 +33,7 @@ export default function Verification() {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0, stage: '' });
   const [verificationId, setVerificationId] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ success: boolean; autoApproved: boolean; confidence: number; details: Record<string, unknown> } | null>(null);
   const [identityNumber, setIdentityNumber] = useState('');
   const [identityNumberError, setIdentityNumberError] = useState('');
   const [useEkyc, setUseEkyc] = useState(false);

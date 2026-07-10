@@ -55,7 +55,7 @@ function SortableImage({ id, url, isPrimary, onSetPrimary, onRemove }: SortableI
   return (
     <div ref={setNodeRef} style={style} className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-colors">
-        <img src={url} alt="" className="w-full h-full object-cover" />
+        <img src={url} alt="Listing image" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Button size="icon" variant="ghost" {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
             <GripVertical className="h-4 w-4 text-white" />
@@ -75,7 +75,7 @@ function SortableImage({ id, url, isPrimary, onSetPrimary, onRemove }: SortableI
 interface ListingEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  listing: any;
+  listing: Record<string, unknown> & { id: string; title?: string; description?: string; category?: string; price_per_day?: number; location?: string; deposit_amount?: number; minimum_rental_days?: number; maximum_rental_days?: number | null; instant_book_enabled?: boolean; auto_approve_bookings?: boolean; item_condition?: string; cancellation_policy?: string; tags?: string[]; item_images?: Array<{ id: string; image_url: string; is_primary: boolean }> };
 }
 
 export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDialogProps) {
@@ -140,8 +140,6 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
   const updateMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
-      console.log('Saving listing with values:', values);
-      console.log('Current images:', images);
       
       // Validate images
       if (images.length === 0) {
@@ -222,7 +220,6 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         throw new Error(`Failed to save images: ${imageError.message}`);
       }
       
-      console.log('Listing saved successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-listings'] });
@@ -266,7 +263,6 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit((values) => {
-              console.log('Form submitted with values:', values);
               updateMutation.mutate(values);
             }, (errors) => {
               console.error('Form validation errors:', errors);

@@ -74,8 +74,8 @@ function AppRoutes() {
         <main id="main-content">
           <PageTransition key={location.pathname}>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+              <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
               <Route path="/install" element={<ErrorBoundary><Install /></ErrorBoundary>} />
               <Route path="/dashboard" element={<ErrorBoundary><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
               <Route path="/list-item" element={<ErrorBoundary><ProtectedRoute><ListItem /></ProtectedRoute></ErrorBoundary>} />
