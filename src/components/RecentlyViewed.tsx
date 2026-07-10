@@ -30,7 +30,7 @@ export function RecentlyViewed() {
           viewed_at,
           item:items(
             *,
-            owner:profiles(*),
+            owner:profiles(id, full_name, avatar_url, is_verified, verification_level),
             images:item_images(*)
           )
         `)

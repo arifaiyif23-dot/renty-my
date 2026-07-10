@@ -330,7 +330,7 @@ export function DocumentViewerModal({
                   {extractedData.icNumber && (
                     <div className="bg-muted/50 rounded-lg p-3">
                       <p className="text-xs text-muted-foreground mb-1">IC Number</p>
-                      <p className="font-medium font-mono">{extractedData.icNumber}</p>
+                      <p className="font-medium font-mono">****{extractedData.icNumber.slice(-4)}</p>
                     </div>
                   )}
                   

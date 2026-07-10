@@ -35,7 +35,7 @@ export default function UserProfile() {
     setLoading(true);
     try {
       const [profileRes, itemsRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("id, full_name, avatar_url, is_verified, verification_level, trust_score, location, bio, created_at, is_suspended").eq("id", id).maybeSingle(),
         supabase
           .from("items")
           .select("*, images:item_images(*)")

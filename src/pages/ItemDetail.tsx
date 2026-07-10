@@ -101,7 +101,7 @@ export default function ItemDetail() {
         .from('items')
         .select(`
           *,
-          owner:profiles(*),
+          owner:profiles(id, full_name, avatar_url, is_verified, verification_level),
           images:item_images(*)
         `)
         .eq('id', id)

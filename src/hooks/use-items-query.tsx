@@ -22,7 +22,7 @@ export const useItemsQuery = (params: FetchItemsParams) => {
         .from('items')
         .select(`
           *,
-          owner:profiles(*),
+          owner:profiles(id, full_name, avatar_url, is_verified, verification_level),
           images:item_images(*)
         `)
         .eq('is_available', true);
@@ -48,11 +48,10 @@ export const useItemsQuery = (params: FetchItemsParams) => {
       }
 
       if (params.verifiedOnly) {
-        // Use subquery approach since PostgREST does not support filtering on embedded joins
         const { data: verifiedIds } = await supabase
           .from('profiles')
           .select('id')
-          .eq('is_verified', true);
+          .in('verification_level', ['basic', 'kyc', 'premium']);
         const ids = verifiedIds?.map(p => p.id) || [];
         query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
       }

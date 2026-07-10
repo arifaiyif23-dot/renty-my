@@ -109,7 +109,7 @@ export default function AdminVerification() {
       // Fetch verifications without profile join
       const { data: verificationsData, error: verError } = await supabase
         .from('verification_requests')
-        .select('*')
+        .select('id, user_id, document_type, status, created_at, updated_at, rejection_reason, document_quality_score, face_match_score, liveness_score, overall_confidence_score, fraud_risk_score, ai_analysis_result')
         .order('created_at', { ascending: false });
 
       if (verError) {

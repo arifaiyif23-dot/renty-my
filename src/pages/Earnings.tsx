@@ -429,7 +429,7 @@ export default function Earnings() {
                           <p>Processed: {format(new Date(payout.processed_at), 'PPp')}</p>
                         )}
                         {payout.bank_name && (
-                          <p>Bank: {payout.bank_name} - {payout.account_number}</p>
+                          <p>Bank: {payout.bank_name} - {payout.account_number ? '****' + payout.account_number.slice(-4) : 'N/A'}</p>
                         )}
                         {payout.failure_reason && (
                           <p className="text-destructive">Reason: {payout.failure_reason}</p>

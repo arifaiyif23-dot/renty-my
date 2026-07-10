@@ -65,7 +65,7 @@ export default function AdminPayouts() {
         .from('payouts')
         .select(`
           *,
-          owner:profiles!payouts_owner_id_fkey(full_name, phone)
+          owner:profiles!payouts_owner_id_fkey(full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -285,7 +285,7 @@ export default function AdminPayouts() {
                         </div>
                         <div>
                           <span className="text-muted-foreground">Account:</span>
-                          <span className="ml-2 font-mono text-xs">{payout.account_number || 'N/A'}</span>
+                          <span className="ml-2 font-mono text-xs">{payout.account_number ? '****' + payout.account_number.slice(-4) : 'N/A'}</span>
                         </div>
                         <div className="col-span-2">
                           <span className="text-muted-foreground">Account Holder:</span>

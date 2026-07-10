@@ -196,7 +196,7 @@ export default function AdminDashboard() {
       let query = supabase
         .from('verification_requests')
         .select(`
-          *,
+          id, user_id, document_type, status, created_at,
           profiles!inner(full_name)
         `)
         .order('created_at', { ascending: false });

@@ -63,22 +63,47 @@ export const DisputeCenter = ({ rentalId }: DisputeCenterProps) => {
       }
     }
 
-    // Create notification for user (you'd need a disputes table in production)
-    const { error } = await supabase.from("notifications").insert([{
+    // Look up rental to find the owner being disputed against
+    const { data: rental } = await supabase
+      .from("rentals")
+      .select("owner_id")
+      .eq("id", rentalId)
+      .single();
+
+    if (!rental) {
+      toast.error("Rental not found");
+      setLoading(false);
+      return;
+    }
+
+    // Create dispute record
+    const { error: disputeError } = await supabase.from("disputes").insert({
+      rental_id: rentalId,
+      filed_by: user.id,
+      filed_against: rental.owner_id,
+      dispute_type: reason,
+      description,
+      evidence_urls: evidenceUrls.length > 0 ? evidenceUrls : null,
+      severity: "medium",
+      status: "open"
+    });
+
+    if (disputeError) {
+      toast.error("Failed to submit dispute");
+      setLoading(false);
+      return;
+    }
+
+    // Notify the user
+    await supabase.from("notifications").insert({
       user_id: user.id,
       type: "rental_request",
       title: "Dispute Filed",
       message: `Your dispute regarding rental ${rentalId} has been submitted and is under review.`,
       link: `/dashboard`,
-    }]);
+    });
 
     setLoading(false);
-
-    if (error) {
-      toast.error("Failed to submit dispute");
-      return;
-    }
-
     toast.success("Dispute submitted successfully. Our team will review it within 24 hours.");
     setOpen(false);
     setReason("");
