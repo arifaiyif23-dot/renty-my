@@ -73,6 +73,9 @@ export interface Profile {
   total_rentals_completed?: number;
   total_reviews_received?: number;
   response_rate?: number;
+  is_suspended?: boolean;
+  suspension_reason?: string;
+  suspended_at?: string;
   last_active_at?: string;
   created_at: string;
   updated_at: string;

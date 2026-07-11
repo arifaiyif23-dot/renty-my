@@ -166,7 +166,7 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
         {previewUrls.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-3">
             {previewUrls.map((url, index) => (
-              <div key={index} className="relative group">
+              <div key={url} className="relative group">
                 <img
                   src={url}
                   alt={`Preview ${index + 1}`}

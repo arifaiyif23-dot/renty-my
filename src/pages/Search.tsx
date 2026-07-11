@@ -307,7 +307,7 @@ export default function Search() {
             <div className="flex flex-wrap gap-2">
               {recentSearches.map((search, idx) => (
                 <button
-                  key={idx}
+                  key={search}
                   onClick={() => { 
                     setSearchQuery(search);
                     saveSearch(search);

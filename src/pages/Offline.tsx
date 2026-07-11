@@ -29,7 +29,7 @@ export default function Offline() {
 
   const handleRetry = () => {
     if (navigator.onLine) {
-      window.location.reload();
+      navigate(0);
     }
   };
 

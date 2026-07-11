@@ -1,6 +1,6 @@
 import { Shield, ShieldCheck, ShieldHalf, BadgeCheck, Loader2 } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import type { VerificationLevel } from '../../types';
+import { cn } from '@/lib/utils';
+import type { VerificationLevel } from '@/types';
 import {
   Tooltip,
   TooltipContent,

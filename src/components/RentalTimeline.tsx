@@ -48,7 +48,7 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
         const isLast = index === timelineSteps.length - 1;
 
         return (
-          <div key={index} className="flex gap-4 pb-8 relative">
+          <div key={step.label} className="flex gap-4 pb-8 relative">
             {/* Line connector */}
             {!isLast && (
               <div

@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast as sonnerToast } from "sonner";
+import { toast } from "sonner";
 import { optimizeImage } from "@/utils/imageOptimization";
 
 interface ImageUploadProps {
@@ -25,7 +24,6 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [primaryIndex, setPrimaryIndex] = useState(0);
-  const { toast } = useToast();
   const { user } = useAuth();
   const isInitializedRef = useRef(false);
   const prevInitialImagesRef = useRef<string>('');
@@ -51,10 +49,8 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
 
   const uploadImage = async (file: File, progressIndex: number): Promise<string | null> => {
     if (!user) {
-      toast({
-        title: "Authentication required",
+      toast.error("Authentication required", {
         description: "Please sign in to upload images",
-        variant: "destructive",
       });
       return null;
     }
@@ -134,10 +130,8 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
         return updated;
       });
       
-      toast({
-        title: "Upload failed",
+      toast.error("Upload failed", {
         description: error.message || "We couldn't upload that photo. Please check your connection and try again.",
-        variant: "destructive",
       });
       return null;
     }
@@ -147,10 +141,8 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     const files = Array.from(e.target.files || []);
     
     if (files.length + images.length > maxImages) {
-      toast({
-        title: "Too many images",
+      toast.error("Too many images", {
         description: `You can only upload up to ${maxImages} images`,
-        variant: "destructive",
       });
       return;
     }
@@ -171,7 +163,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     setTimeout(() => setUploadProgress([]), 1000);
 
     if (validUrls.length > 0) {
-      sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
+      toast.success(`${validUrls.length} image(s) uploaded and optimized`);
     }
   };
 
@@ -180,10 +172,8 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     
     if (files.length + images.length > maxImages) {
-      toast({
-        title: "Too many images",
+      toast.error("Too many images", {
         description: `You can only upload up to ${maxImages} images`,
-        variant: "destructive",
       });
       return;
     }
@@ -204,9 +194,9 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     setTimeout(() => setUploadProgress([]), 1000);
 
     if (validUrls.length > 0) {
-      sonnerToast.success(`${validUrls.length} image(s) uploaded and optimized`);
+      toast.success(`${validUrls.length} image(s) uploaded and optimized`);
     }
-  }, [images, maxImages, onImagesChange, toast, user]);
+  }, [images, maxImages, onImagesChange, user]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -230,7 +220,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     setImages(newImages);
     setPrimaryIndex(0);
     onImagesChange(newImages);
-    sonnerToast.success("Cover image updated");
+    toast.success("Cover image updated");
   };
 
   return (
@@ -273,7 +263,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
         {uploadProgress.length > 0 && (
           <div className="space-y-2 mb-4">
             {uploadProgress.map((progress, index) => (
-              <div key={index} className="text-left">
+              <div key={progress.fileName} className="text-left">
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span className="truncate max-w-[200px]">{progress.fileName}</span>
                   <span>
@@ -329,7 +319,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {images.map((url, index) => (
             <div 
-              key={index} 
+              key={url} 
               className="relative group aspect-square cursor-pointer"
               onClick={() => setPrimary(index)}
             >

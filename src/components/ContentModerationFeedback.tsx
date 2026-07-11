@@ -25,7 +25,7 @@ export function ContentModerationFeedback({ result }: ContentModerationFeedbackP
             <div className="flex flex-wrap gap-1 mt-2">
               <span className="text-sm font-medium">Detected:</span>
               {allDetected.slice(0, 5).map((keyword, index) => (
-                <Badge key={index} variant="destructive" className="text-xs">
+                <Badge key={keyword} variant="destructive" className="text-xs">
                   {keyword}
                 </Badge>
               ))}
@@ -54,7 +54,7 @@ export function ContentModerationFeedback({ result }: ContentModerationFeedbackP
           <p>Your listing contains words that may be flagged. Please ensure you are listing a physical item for rent, not a service.</p>
           <div className="flex flex-wrap gap-1 mt-2">
             {result.detectedKeywords.slice(0, 3).map((keyword, index) => (
-              <Badge key={index} variant="outline" className="text-xs border-yellow-500 text-yellow-700">
+              <Badge key={keyword} variant="outline" className="text-xs border-yellow-500 text-yellow-700">
                 {keyword}
               </Badge>
             ))}
