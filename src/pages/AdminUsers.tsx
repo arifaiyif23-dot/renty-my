@@ -57,7 +57,7 @@ export default function AdminUsers() {
       }));
 
       setUsers(enriched);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -82,8 +82,8 @@ export default function AdminUsers() {
       toast.success("User suspended");
       setSuspendUser(null);
       setSuspendReason("");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to suspend user");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setProcessing(null);
     }
@@ -100,8 +100,8 @@ export default function AdminUsers() {
         )
       );
       toast.success("User unsuspended");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to unsuspend user");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setProcessing(null);
     }

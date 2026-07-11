@@ -60,7 +60,7 @@ export default function NotificationSettings() {
         if (createError) throw createError;
         if (newPrefs) setPrefs(newPrefs);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to load notification preferences");
     } finally {
       setLoading(false);
@@ -94,8 +94,8 @@ export default function NotificationSettings() {
 
       if (error) throw error;
       toast.success("Notification preferences saved");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save preferences");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to save preferences");
     } finally {
       setSaving(false);
     }

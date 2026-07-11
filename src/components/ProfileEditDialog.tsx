@@ -68,8 +68,8 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
 
       setAvatarUrl(publicUrl);
       toast.success("Avatar uploaded and optimized!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to upload avatar");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to upload avatar");
     } finally {
       setUploading(false);
     }
@@ -95,8 +95,8 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
       toast.success("Profile updated successfully");
       onSuccess?.();
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update profile");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setSaving(false);
     }

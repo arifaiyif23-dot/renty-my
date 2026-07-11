@@ -90,8 +90,8 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
       toast.success('Rental Started Successfully! 🎉');
       onSuccess();
       handleOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to start rental');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to start rental');
     } finally {
       setIsProcessing(false);
     }

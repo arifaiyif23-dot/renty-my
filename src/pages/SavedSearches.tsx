@@ -36,7 +36,7 @@ export default function SavedSearches() {
 
       if (error) throw error;
       setSearches(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to load saved searches");
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ export default function SavedSearches() {
         prev.map((s) => (s.id === search.id ? { ...s, notify_on_new: !s.notify_on_new } : s))
       );
       toast.success(search.notify_on_new ? "Notifications disabled" : "Notifications enabled");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to update");
     }
   };
@@ -67,7 +67,7 @@ export default function SavedSearches() {
       if (error) throw error;
       setSearches((prev) => prev.filter((s) => s.id !== deleteId));
       toast.success("Search deleted");
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to delete");
     } finally {
       setDeleteId(null);
@@ -88,7 +88,7 @@ export default function SavedSearches() {
       );
       toast.success("Label updated");
       setEditSearch(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error("Failed to update label");
     }
   };

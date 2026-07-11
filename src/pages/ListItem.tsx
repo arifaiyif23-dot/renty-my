@@ -146,8 +146,8 @@ export default function ListItem() {
 
         toast.success('Draft saved!');
         navigate(`/items/${data.id}`);
-      } catch (error: any) {
-        toast.error(error.message || 'Failed to save draft');
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : 'An error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -246,8 +246,8 @@ export default function ListItem() {
       
       toast.success('Item listed successfully!');
       navigate(`/items/${data.id}`);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to list item');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
       console.error(error);
     } finally {
       setIsLoading(false);

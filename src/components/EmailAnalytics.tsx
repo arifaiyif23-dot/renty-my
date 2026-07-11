@@ -77,7 +77,7 @@ export default function EmailAnalytics() {
     setLoading(true);
     try {
       // Fetch all email logs
-      const { data: emails, error } = await (supabase as any)
+      const { data: emails, error } = await supabase
         .from('email_logs')
         .select('*')
         .order('created_at', { ascending: false });

@@ -100,7 +100,7 @@ export const ReferralSystem = () => {
         })
       );
 
-      setReferrals(referralsWithProfiles as any);
+      setReferrals(referralsWithProfiles as Referral[]);
 
       // Calculate stats
       const completed = data?.filter(r => r.status === 'rewarded').length || 0;

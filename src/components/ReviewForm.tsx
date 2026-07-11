@@ -107,8 +107,8 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
       setImages([]);
       setPreviewUrls([]);
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit review");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to submit review");
     } finally {
       setIsSubmitting(false);
     }

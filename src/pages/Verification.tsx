@@ -140,8 +140,9 @@ export default function Verification() {
         const job = jobs[i];
         try {
           uploaded[job.key] = await uploadToStorage(job.file, job.path);
-        } catch (err: any) {
-          throw new Error(`Upload failed at ${job.path}: ${err?.message || 'unknown error'}`);
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : 'unknown error';
+          throw new Error(`Upload failed at ${job.path}: ${msg}`);
         }
         setUploadProgress({ done: i + 1, total: jobs.length, stage: 'Uploading documents' });
       }
@@ -222,9 +223,9 @@ export default function Verification() {
       }
 
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Verification error:", error);
-      toast.error(error.message || "Failed to submit verification");
+      toast.error(error instanceof Error ? error.message : "Failed to submit verification");
       setCurrentStep(5);
     } finally {
       setLoading(false);

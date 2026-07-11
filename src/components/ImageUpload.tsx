@@ -120,7 +120,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
       });
 
       return publicUrl;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading image:', error);
       
       // Update progress: Error
@@ -131,7 +131,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
       });
       
       toast.error("Upload failed", {
-        description: error.message || "We couldn't upload that photo. Please check your connection and try again.",
+        description: error instanceof Error ? error.message : "We couldn't upload that photo. Please check your connection and try again.",
       });
       return null;
     }

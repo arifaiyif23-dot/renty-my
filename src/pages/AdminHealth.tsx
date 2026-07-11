@@ -51,8 +51,8 @@ export default function AdminHealth() {
       if (se) toast.error(se.message);
       setStats(s as Stats | null);
       setLogs(((l as unknown) as FlowLog[]) || []);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load health data");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -66,8 +66,8 @@ export default function AdminHealth() {
       await invokeAdminOperation({ action: 'cleanup_payments' });
       toast.success("Expired payments cleaned");
       load();
-    } catch (e: any) {
-      toast.error(e.message || "Cleanup failed");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setCleanupRunning(false);
     }
@@ -90,8 +90,8 @@ export default function AdminHealth() {
       });
       if (error) throw error;
       toast.success("Test email sent. Check the recipient inbox and Email Analytics.");
-    } catch (e: any) {
-      toast.error(e.message || "Failed to send test email");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setTestEmailSending(false);
     }

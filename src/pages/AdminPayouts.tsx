@@ -94,9 +94,9 @@ export default function AdminPayouts() {
       setTransactionRef('');
       setSelectedPayout(null);
       fetchPayouts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error completing payout:', error);
-      toast.error(error.message || 'Failed to complete payout');
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setProcessing(false);
     }
@@ -117,9 +117,9 @@ export default function AdminPayouts() {
       setFailureReason('');
       setSelectedPayout(null);
       fetchPayouts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error failing payout:', error);
-      toast.error(error.message || 'Failed to update payout');
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setProcessing(false);
     }

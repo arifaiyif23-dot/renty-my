@@ -178,9 +178,9 @@ export default function Earnings() {
       toast.success('Bank account details saved successfully');
       setShowBankDialog(false);
       fetchData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving bank account:', error);
-      toast.error(error.message || 'Failed to save bank account');
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setSaving(false);
     }

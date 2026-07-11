@@ -82,11 +82,11 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
         toast.success('Added to wishlist');
       }
       setOptimisticState(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Rollback on error
       setIsSaved(previousState);
       setOptimisticState(null);
-      toast.error(error.message || 'Failed to update wishlist');
+      toast.error(error instanceof Error ? error.message : 'Failed to update wishlist');
       setLoading(true);
       setTimeout(() => setLoading(false), 300);
     }

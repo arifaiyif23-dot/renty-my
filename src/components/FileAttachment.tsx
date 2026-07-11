@@ -50,7 +50,7 @@ export function FileAttachment({ onFileSelect, disabled }: FileAttachmentProps) 
       setPreview({ url: publicUrl, type: fileType });
       onFileSelect(publicUrl, fileType);
       toast.success('File uploaded');
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to upload file');
       console.error(error);
     } finally {

@@ -220,8 +220,8 @@ export default function MyListings() {
 
       if (deleteTarget.bulk) setSelectedItems([]);
       refetch();
-    } catch (error: any) {
-      toast.error(error.message || t('common.error'));
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t('common.error'));
     } finally {
       setIsDeleting(false);
       setDeleteTarget(null);
@@ -440,7 +440,7 @@ export default function MyListings() {
           ) : isError ? (
             <div className="text-center py-12">
               <p className="text-destructive font-medium mb-2">Failed to load listings</p>
-              <p className="text-sm text-muted-foreground mb-4">{(error as any)?.message || "An unexpected error occurred"}</p>
+              <p className="text-sm text-muted-foreground mb-4">{error?.message || "An unexpected error occurred"}</p>
               <Button variant="outline" onClick={() => refetch()}>Try Again</Button>
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (

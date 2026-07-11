@@ -90,9 +90,9 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
       // Redirect to ToyyibPay
       window.location.href = data.paymentUrl;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       haptics.error();
-      toast.error(error.message || 'Failed to create payment');
+      toast.error(error instanceof Error ? error.message : 'Failed to create payment');
       console.error(error);
       setIsProcessing(false);
     }

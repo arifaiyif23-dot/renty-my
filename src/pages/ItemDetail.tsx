@@ -114,8 +114,8 @@ export default function ItemDetail() {
       if (data) {
         fetchSimilarItems(data.category, data.id);
       }
-    } catch (error: any) {
-      setLoadError(error.message || 'Failed to load item');
+    } catch (error: unknown) {
+      setLoadError(error instanceof Error ? error.message : 'An error occurred');
       toast.error('Failed to load item');
       console.error(error);
     } finally {
@@ -244,8 +244,8 @@ export default function ItemDetail() {
       
       navigate('/dashboard');
 
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send booking request');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
       console.error(error);
     } finally {
       setConfirming(false);

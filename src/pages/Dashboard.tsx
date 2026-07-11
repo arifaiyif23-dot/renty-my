@@ -68,7 +68,7 @@ export default function Dashboard() {
 
       if (error) throw error;
       setRentals((data || []) as Rental[]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Failed to load rentals');
       console.error(error);
     } finally {

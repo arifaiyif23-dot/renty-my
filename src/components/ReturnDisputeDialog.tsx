@@ -76,8 +76,8 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
       onSuccess();
       onOpenChange(false);
       resetState();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to complete rental');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to complete rental');
     } finally {
       setIsProcessing(false);
     }
@@ -122,8 +122,8 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
       onSuccess();
       onOpenChange(false);
       resetState();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to raise dispute');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to raise dispute');
     } finally {
       setIsProcessing(false);
     }

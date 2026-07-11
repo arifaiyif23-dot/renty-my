@@ -42,9 +42,9 @@ export function ForgotPasswordDialog() {
 
       setEmailSent(true);
       toast.success('Password reset link sent!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password reset error:', error);
-      toast.error(error.message || 'Failed to send reset link');
+      toast.error(error instanceof Error ? error.message : 'Failed to send reset link');
     } finally {
       setIsLoading(false);
     }

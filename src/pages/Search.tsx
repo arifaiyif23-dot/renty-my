@@ -566,8 +566,8 @@ export default function Search() {
                 });
                 if (error) throw error;
                 toast.success('Search saved!');
-              } catch (err: any) {
-                toast.error(err.message || 'Failed to save search');
+              } catch (error: unknown) {
+                toast.error(error instanceof Error ? error.message : 'Failed to save search');
               }
             }}
           >

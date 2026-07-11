@@ -49,8 +49,8 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
       });
       
       onUpdate();
-    } catch (error: any) {
-      toast.error(error.message || `Failed to ${action} booking`);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : `Failed to ${action} booking`);
       console.error(error);
     } finally {
       setProcessingId(null);

@@ -77,7 +77,7 @@ export function VerificationAnalytics() {
         }) || [];
 
         const dayAiApproved = dayApproved.filter(v => 
-          (v.ai_analysis_result as any)?.autoApprove === true
+          (v.ai_analysis_result as { autoApprove?: boolean })?.autoApprove === true
         );
 
         return {
@@ -94,7 +94,7 @@ export function VerificationAnalytics() {
       const approved = verifications?.filter(v => v.status === 'approved').length || 0;
       const rejected = verifications?.filter(v => v.status === 'rejected').length || 0;
       const aiApproved = verifications?.filter(v => 
-        v.status === 'approved' && (v.ai_analysis_result as any)?.autoApprove === true
+        v.status === 'approved' && (v.ai_analysis_result as { autoApprove?: boolean })?.autoApprove === true
       ).length || 0;
 
       // Calculate average processing time

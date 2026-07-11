@@ -54,9 +54,10 @@ export default function VendorOnboarding() {
         .eq("id", user.id);
       if (error) throw error;
       navigate("/list-item");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to complete onboarding");
-      console.error("Onboarding error:", err);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to complete onboarding";
+      toast.error(message);
+      console.error("Onboarding error:", error);
     } finally {
       setLoading(false);
     }

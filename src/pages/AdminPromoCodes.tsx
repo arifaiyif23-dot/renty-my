@@ -69,7 +69,7 @@ export default function AdminPromoCodes() {
       setShowCreate(false);
       setForm({ code: "", discount_amount: "", discount_type: "percentage", max_uses: "", valid_from: "", valid_until: "" });
       loadCodes();
-    } catch (err: any) { toast.error(err.message || "Failed to create"); }
+    } catch (error: unknown) { toast.error(error instanceof Error ? error.message : 'An error occurred'); }
     finally { setSaving(false); }
   };
 

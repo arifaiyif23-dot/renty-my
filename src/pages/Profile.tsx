@@ -336,8 +336,8 @@ function AccountDeletionSection({ userId }: { userId: string }) {
       });
       if (error) throw new Error(error.message);
       await signOut();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete account");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete account");
       setLoading(false);
     }
   };

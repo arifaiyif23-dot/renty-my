@@ -40,7 +40,7 @@ export function useAdminRealtime() {
             table: 'verification_requests',
           },
           (payload) => {
-            const verification = payload.new as any;
+            const verification = payload.new as { full_name_on_document: string; document_type: string };
             
             setStats(prev => ({
               ...prev,
@@ -75,7 +75,7 @@ export function useAdminRealtime() {
             table: 'fraud_alerts',
           },
           (payload) => {
-            const alert = payload.new as any;
+            const alert = payload.new as { risk_score: number; alert_type: string };
             
             setStats(prev => ({
               ...prev,

@@ -77,7 +77,7 @@ export const NotificationBell = () => {
 
     // Filter out legacy payment_received notifications
     const filteredData = (data || []).filter(n => n.type !== 'payment_received');
-    setNotifications(filteredData as any);
+    setNotifications(filteredData as Notification[]);
     setUnreadCount(filteredData.filter(n => !n.is_read).length || 0);
   };
 

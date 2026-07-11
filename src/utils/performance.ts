@@ -13,7 +13,7 @@ export const prefersReducedMotion = () => {
 export const getNetworkQuality = (): 'slow' | 'fast' | 'unknown' => {
   if (!('connection' in navigator)) return 'unknown';
   
-  const connection = (navigator as any).connection;
+  const connection = (navigator as { connection?: { effectiveType?: string } }).connection;
   const effectiveType = connection?.effectiveType;
   
   if (effectiveType === 'slow-2g' || effectiveType === '2g') {

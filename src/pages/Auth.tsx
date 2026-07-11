@@ -82,8 +82,8 @@ export default function Auth() {
       await signIn(result.data.email, result.data.password);
       toast.success('Welcome back!');
       navigate('/');
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to sign in";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       
       if (errorMessage.includes("Invalid login credentials")) {
         toast.error("Invalid email or password. Please try again.");
@@ -141,8 +141,8 @@ export default function Auth() {
       }
       toast.success("Account created! Welcome to Renty!");
       navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : "/");
-    } catch (error: any) {
-      const errorMessage = error.message || "Failed to create account";
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       
       if (errorMessage.includes("User already registered")) {
         toast.error("This email is already registered. Try logging in instead.");

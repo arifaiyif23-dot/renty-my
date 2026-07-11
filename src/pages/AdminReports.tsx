@@ -46,7 +46,7 @@ export default function AdminReports() {
       const { data, error } = await query;
       if (error) throw error;
       setReports(data || []);
-    } catch (err: any) {
+    } catch (error: unknown) {
       toast.error("Failed to load reports");
     } finally {
       setLoading(false);
@@ -66,8 +66,8 @@ export default function AdminReports() {
       toast.success(`Report ${status}`);
       setSelectedReport(null);
       setResolutionNote("");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update report");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setProcessing(null);
     }

@@ -71,8 +71,8 @@ export function RentalModificationDialog({ rental, type, open, onOpenChange, onS
       );
       onOpenChange(false);
       onSuccess();
-    } catch (error: any) {
-      toast.error('Failed to submit request: ' + error.message);
+    } catch (error: unknown) {
+      toast.error('Failed to submit request: ' + (error instanceof Error ? error.message : 'An error occurred'));
     } finally {
       setSubmitting(false);
     }
