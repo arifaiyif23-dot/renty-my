@@ -215,12 +215,13 @@ Deno.serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Resolve dispute error:', error);
+    const isExpected = errorMessage === 'Unauthorized' || errorMessage === 'Admin access required' || errorMessage.includes('not found') || errorMessage.includes('already');
     const status = errorMessage === 'Unauthorized' ? 401
       : errorMessage === 'Admin access required' ? 403
       : errorMessage.includes('not found') ? 404
       : 400;
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: isExpected ? errorMessage : 'An unexpected error occurred. Please try again.' }),
       {
         status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

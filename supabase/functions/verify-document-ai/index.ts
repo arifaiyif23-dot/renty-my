@@ -270,11 +270,12 @@ Always respond with valid JSON only, no markdown formatting or code blocks.`
     console.error("Document verification error:", error);
     
     const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    const isExpected = errorMessage.startsWith("Unauthorized") || errorMessage.startsWith("Missing") || errorMessage.startsWith("Invalid") || errorMessage.startsWith("Document");
     
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: errorMessage,
+        error: isExpected ? errorMessage : "An unexpected error occurred. Please try again.",
         processingTimeMs 
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

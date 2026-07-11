@@ -64,52 +64,30 @@ serve(async (req) => {
       throw new Error('Renter must be verified to create booking requests');
     }
 
-    // Check for overlapping rentals (correct AND logic: existing rental overlaps if it starts before requested ends AND ends after requested starts)
-    console.log('Checking for overlapping rentals:', { itemId, startDate, endDate });
-    
-    const { data: existingRentals, error: overlapError } = await supabase
-      .from('rentals')
-      .select('id, status, start_date, end_date')
-      .eq('item_id', itemId)
-      .in('status', ['pending_approval', 'approved', 'paid', 'active'])
-      .lte('start_date', endDate)
-      .gte('end_date', startDate);
+    // Atomically check overlap and create rental (prevents TOCTOU race condition)
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('create_rental_with_overlap_check', {
+      p_item_id: itemId,
+      p_renter_id: renterId,
+      p_owner_id: ownerId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+      p_total_price: totalPrice
+    });
 
-    if (overlapError) {
-      console.error('Overlap check error:', overlapError);
+    if (rpcError) {
+      console.error('Rental creation error:', rpcError);
       throw new Error('Failed to check availability');
     }
 
-    if (existingRentals && existingRentals.length > 0) {
-      console.log('Overlapping rentals found:', existingRentals);
+    if (!rpcResult.success) {
       throw new Error('Item is not available for the selected dates');
     }
     
-    // Create rental record with pending_approval status
-    const { data: rental, error: rentalError } = await supabase
-      .from('rentals')
-      .insert({
-        item_id: itemId,
-        renter_id: renterId,
-        owner_id: ownerId,
-        start_date: startDate,
-        end_date: endDate,
-        total_price: totalPrice,
-        status: 'pending_approval' // New: Request-Approval-Payment flow
-      })
-      .select()
-      .single();
-    
-    if (rentalError) {
-      console.error('Rental creation error:', rentalError);
-      throw rentalError;
-    }
-    
-    console.log('Rental request created:', rental.id);
+    console.log('Rental request created:', rpcResult.rental_id);
     
     // Log rental request creation
     await supabase.from('payment_flow_logs').insert({
-      rental_id: rental.id,
+      rental_id: rpcResult.rental_id,
       stage: 'rental_requested',
       status: 'success',
       details: { itemId, renterId, ownerId, startDate, endDate, totalPrice }
@@ -127,7 +105,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        rentalId: rental.id,
+        rentalId: rpcResult.rental_id,
         status: 'pending_approval',
         message: 'Booking request sent successfully'
       }),

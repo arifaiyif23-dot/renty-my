@@ -66,7 +66,7 @@ serve(async (req) => {
     console.log(`Using FROM email: ${fromEmail}`);
 
     const payload = await req.json();
-    console.log('Webhook payload received:', payload);
+    console.log('Webhook payload received (type):', payload.type);
 
     // --- Direct test-email path (used by Admin Health "Send test email") ---
     if (payload?.type === 'test' && payload?.to) {
@@ -83,7 +83,7 @@ serve(async (req) => {
         });
       } catch (err: any) {
         await logEmail(supabase, null, payload.to, payload.subject || 'Renty — Test email', 'test', {}, err.message);
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: 'Test email failed. Check server logs for details.' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -280,12 +280,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Email notification error:', error);
-    
+    const message = error.message || 'Failed to send email notification';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized');
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.response || null 
-      }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

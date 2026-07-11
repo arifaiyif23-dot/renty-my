@@ -89,8 +89,10 @@ export default function Auth() {
         toast.error("Invalid email or password. Please try again.");
       } else if (errorMessage.includes("Email not confirmed")) {
         toast.error("Please check your email to confirm your account");
+      } else if (errorMessage.includes("suspended") || errorMessage.includes("disabled")) {
+        toast.error("Your account has been suspended. Please contact support.");
       } else {
-        toast.error(errorMessage);
+        toast.error("Sign in failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -149,7 +151,7 @@ export default function Auth() {
       } else if (errorMessage.includes("Invalid email")) {
         toast.error("Please enter a valid email address");
       } else {
-        toast.error(errorMessage);
+        toast.error("Failed to create account. Please try again.");
       }
     } finally {
       setIsLoading(false);

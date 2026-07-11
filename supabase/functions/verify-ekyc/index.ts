@@ -142,8 +142,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('eKYC verification error:', error);
+    const message = error.message || 'Verification failed';
+    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Missing') || message.startsWith('Verification');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -128,14 +128,14 @@ async function handleVerifyIdentity(
     .from('verification_requests')
     .update(updateData)
     .eq('id', verificationId);
-  if (verifError) return json({ error: verifError.message }, 500);
+  if (verifError) { console.error('Verify identity error:', verifError); return json({ error: 'Failed to update verification' }, 500); }
 
   if (isApproved) {
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ is_verified: true })
       .eq('id', userId);
-    if (profileError) return json({ error: profileError.message }, 500);
+    if (profileError) { console.error('Verify identity profile error:', profileError); return json({ error: 'Failed to update profile' }, 500); }
   }
 
   await supabase.from('notifications').insert({
@@ -181,14 +181,14 @@ async function handleBatchVerifyIdentity(
     .from('verification_requests')
     .update(updateData)
     .in('id', ids);
-  if (verifError) return json({ error: verifError.message }, 500);
+  if (verifError) { console.error('Batch verify error:', verifError); return json({ error: 'Failed to update verifications' }, 500); }
 
   if (isApproved) {
     const { data: requests, error: fetchError } = await supabase
       .from('verification_requests')
       .select('user_id')
       .in('id', ids);
-    if (fetchError) return json({ error: fetchError.message }, 500);
+    if (fetchError) { console.error('Batch fetch error:', fetchError); return json({ error: 'Failed to fetch user IDs' }, 500); }
 
     const userIds = [...new Set(requests.map((r: { user_id: string }) => r.user_id))];
 
@@ -196,7 +196,7 @@ async function handleBatchVerifyIdentity(
       .from('profiles')
       .update({ is_verified: true })
       .in('id', userIds);
-    if (profileError) return json({ error: profileError.message }, 500);
+    if (profileError) { console.error('Batch profile update error:', profileError); return json({ error: 'Failed to update profiles' }, 500); }
 
     const notifications = userIds.map((uid: string) => ({
       user_id: uid,
@@ -248,7 +248,7 @@ async function handleFraudAlertAction(
     .update({ status, reviewed_by: adminUserId, reviewed_at: new Date().toISOString() })
     .eq('id', alertId);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Fraud alert error:', error); return json({ error: 'Failed to update fraud alert' }, 500); }
   return json({ success: true });
 }
 
@@ -269,7 +269,7 @@ async function handleSuspendUser(
     })
     .eq('id', userId);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Suspend user error:', error); return json({ error: 'Failed to suspend user' }, 500); }
   return json({ success: true });
 }
 
@@ -284,7 +284,7 @@ async function handleUnsuspendUser(
     .update({ is_suspended: false, suspended_at: null, suspension_reason: null })
     .eq('id', userId);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Unsuspend user error:', error); return json({ error: 'Failed to unsuspend user' }, 500); }
   return json({ success: true });
 }
 
@@ -313,14 +313,14 @@ async function handleResolveDispute(
     })
     .eq('id', disputeId);
 
-  if (disputeError) return json({ error: disputeError.message }, 500);
+  if (disputeError) { console.error('Dispute update error:', disputeError); return json({ error: 'Failed to update dispute' }, 500); }
 
   const { error: rentalError } = await supabase
     .from('rentals')
     .update({ is_disputed: false, status: 'completed' })
     .eq('id', rentalId);
 
-  if (rentalError) return json({ error: rentalError.message }, 500);
+  if (rentalError) { console.error('Rental update error:', rentalError); return json({ error: 'Failed to update rental' }, 500); }
 
   return json({ success: true });
 }
@@ -338,7 +338,7 @@ async function handleTogglePromoCode(
     .update({ is_active: isActive })
     .eq('id', id);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Toggle promo error:', error); return json({ error: 'Failed to toggle promo code' }, 500); }
   return json({ success: true });
 }
 
@@ -369,7 +369,7 @@ async function handleCreatePromoCode(
     .select()
     .single();
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Create promo error:', error); return json({ error: 'Failed to create promo code' }, 500); }
   return json({ success: true, data });
 }
 
@@ -386,7 +386,7 @@ async function handleUpdatePlatformSetting(
     .update({ value, updated_at: new Date().toISOString() })
     .eq('key', key);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Platform setting error:', error); return json({ error: 'Failed to update platform setting' }, 500); }
   return json({ success: true });
 }
 
@@ -412,7 +412,7 @@ async function handleProcessPayout(
     .update(updateData)
     .eq('id', payoutId);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Process payout error:', error); return json({ error: 'Failed to process payout' }, 500); }
   return json({ success: true });
 }
 
@@ -433,7 +433,7 @@ async function handleResolveReport(
     .update({ status, resolution_note: resolutionNote || null })
     .eq('id', reportId);
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Resolve report error:', error); return json({ error: 'Failed to resolve report' }, 500); }
   return json({ success: true });
 }
 
@@ -441,7 +441,7 @@ async function handleResolveReport(
 
 async function handleCleanupPayments(supabase: ReturnType<typeof createClient>) {
   const { data, error } = await supabase.rpc('cleanup_expired_payments');
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Cleanup payments error:', error); return json({ error: 'Failed to cleanup payments' }, 500); }
   return json({ success: true, data });
 }
 
@@ -464,6 +464,6 @@ async function handleLogSensitiveAccess(
     access_type: 'admin_view',
   });
 
-  if (error) return json({ error: error.message }, 500);
+  if (error) { console.error('Log access error:', error); return json({ error: 'Failed to log access' }, 500); }
   return json({ success: true });
 }

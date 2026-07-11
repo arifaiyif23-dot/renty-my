@@ -37,7 +37,7 @@ serve(async (req) => {
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://renty.my';
 
     const { userId, email, fullName } = await req.json();
-    console.log('Sending welcome email to:', email);
+    console.log('Sending welcome email to user:', userId);
 
     if (!email) {
       throw new Error('Email is required');
@@ -126,9 +126,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Welcome email error:', error);
-    
+    const message = error.message || 'Failed to send welcome email';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

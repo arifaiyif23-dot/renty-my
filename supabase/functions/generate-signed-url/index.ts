@@ -129,8 +129,9 @@ Deno.serve(async (req) => {
   } catch (error: any) {
     console.error('Error in generate-signed-url:', error);
     const errorMessage = error?.message || 'Unknown error';
+    const isExpected = errorMessage === 'Unauthorized' || errorMessage.startsWith('Forbidden') || errorMessage.startsWith('Missing');
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: isExpected ? errorMessage : 'An unexpected error occurred. Please try again.' }),
       { 
         status: errorMessage === 'Unauthorized' ? 401 : 
                 errorMessage.startsWith('Forbidden') ? 403 : 500,

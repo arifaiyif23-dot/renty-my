@@ -132,8 +132,10 @@ serve(async (req) => {
       console.error('Failed to log error:', logError);
     }
     
+    const message = error.message || 'Cleanup failed';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

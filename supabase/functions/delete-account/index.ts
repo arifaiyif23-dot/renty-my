@@ -87,8 +87,10 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
+    const message = error.message || 'Account deletion failed';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Account');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

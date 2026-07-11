@@ -182,11 +182,13 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Resend webhook error:', error);
+    const message = error.message || 'Webhook processing failed';
+    const isExpected = message.startsWith('Unauthorized') || message.includes('signature') || message.startsWith('Webhook');
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       {
-        status: error.message?.includes('signature') ? 401 : 500,
+        status: message?.includes('signature') ? 401 : 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

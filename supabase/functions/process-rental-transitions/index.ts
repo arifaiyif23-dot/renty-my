@@ -171,8 +171,10 @@ serve(async (req) => {
       console.error('Failed to log error:', logError);
     }
     
+    const message = error.message || 'An unexpected error occurred';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Invalid');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

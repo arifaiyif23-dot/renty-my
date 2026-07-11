@@ -223,12 +223,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Verification email error:', error);
-    
+    const message = error.message || 'Failed to send verification email';
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Verification');
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.response || null 
-      }),
+      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
