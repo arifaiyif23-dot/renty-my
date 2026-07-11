@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign, LogOut, LayoutDashboard, Users, Flag, TicketPercent, AlertTriangle, Zap, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logo from "@/assets/renty-logo.png";
+import logoSvg from "@/assets/renty-logo-horizontal.svg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNav from "@/components/MobileNav";
@@ -126,7 +126,7 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center" aria-label="Go to RENTY homepage">
-                <img src={logo} alt="RENTY - Malaysia's Rental Marketplace" className="h-8 md:h-10 w-auto" loading="eager" />
+                <img src={logoSvg} alt="RENTY - Malaysia's Rental Marketplace" className="h-8 md:h-9 w-auto" loading="eager" />
               </Link>
             </div>
 

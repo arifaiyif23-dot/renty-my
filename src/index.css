@@ -4,64 +4,67 @@
 @tailwind utilities;
 
 /* ============================================================
-   Renty — Design System v2 tokens (dark-only, teal accent, Inter)
-   Source of truth: RENTY_DESIGN_SYSTEM_v2
+   Renty — Design System v3 | Dark Premium Black-Green + Gold
    ============================================================ */
 
 @layer base {
   :root,
   .dark {
-    /* Neutral base */
-    --background: 222 47% 9%;          /* #0B1220 */
-    --foreground: 210 20% 98%;         /* #F9FAFB */
+    /* Neutral base — pitch black with green undertone */
+    --background: 160 15% 4%;          /* #070D0B */
+    --foreground: 40 10% 92%;          /* #F0EDE8 warm white */
 
-    --card: 222 39% 11%;               /* #111827 */
-    --card-foreground: 210 20% 98%;
+    --card: 160 15% 6%;                /* #0C1411 */
+    --card-foreground: 40 10% 92%;
 
-    --popover: 217 33% 17%;            /* #1F2937 */
-    --popover-foreground: 210 20% 98%;
+    --popover: 160 12% 10%;            /* #151C19 */
+    --popover-foreground: 40 10% 88%;
 
-    /* Sole accent — teal */
-    --primary: 172 66% 40%;            /* #14B8A6 */
-    --primary-foreground: 222 47% 9%;
+    /* Primary — dark green (luxury, trust) */
+    --primary: 164 38% 16%;            /* #1A3C34 */
+    --primary-foreground: 40 20% 92%;  /* light text on dark green */
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 160 12% 14%;
+    --secondary-foreground: 40 10% 90%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 220 9% 65%;    /* #9CA3AF */
+    --muted: 160 10% 12%;
+    --muted-foreground: 40 8% 60%;     /* #9C9A92 warm gray */
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 160 12% 14%;
+    --accent-foreground: 40 10% 90%;
 
-    --destructive: 0 84% 60%;          /* #EF4444 */
-    --destructive-foreground: 210 20% 98%;
+    --destructive: 0 60% 45%;          /* #BA3B3B muted red */
+    --destructive-foreground: 40 10% 92%;
 
-    --success: 142 71% 45%;            /* #22C55E */
-    --success-foreground: 222 47% 9%;
+    --success: 152 40% 30%;            /* #2E6B4B rich green */
+    --success-foreground: 40 10% 92%;
 
-    --warning: 38 92% 50%;             /* #F59E0B */
-    --warning-foreground: 222 47% 9%;
+    --warning: 40 48% 61%;             /* #C8A96E gold */
+    --warning-foreground: 160 15% 4%;
 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 172 66% 40%;
+    /* Gold accent for premium highlights */
+    --color-gold: 40 48% 61%;          /* #C8A96E */
+    --color-gold-light: 40 30% 90%;    /* #F0E6D0 */
+
+    --border: 160 12% 14%;
+    --input: 160 12% 18%;
+    --ring: 164 38% 16%;
 
     --radius: 0.625rem;
 
-    --sidebar-background: 222 47% 9%;
-    --sidebar-foreground: 210 20% 98%;
-    --sidebar-primary: 172 66% 40%;
-    --sidebar-primary-foreground: 222 47% 9%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 20% 98%;
-    --sidebar-border: 217 33% 20%;
-    --sidebar-ring: 172 66% 40%;
+    --sidebar-background: 160 15% 4%;
+    --sidebar-foreground: 40 10% 92%;
+    --sidebar-primary: 164 38% 16%;
+    --sidebar-primary-foreground: 40 20% 92%;
+    --sidebar-accent: 160 12% 14%;
+    --sidebar-accent-foreground: 40 10% 92%;
+    --sidebar-border: 160 12% 14%;
+    --sidebar-ring: 164 38% 16%;
 
-    /* Minimal shadows — spec: "no heavy shadows" */
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35);
-    --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.35);
-    --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.40);
+    /* Minimal shadows */
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -88,7 +91,6 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Type scale — v2 spec */
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold text-foreground;
     letter-spacing: -0.015em;
@@ -103,7 +105,6 @@
   small, .text-small { font-size: 14px; }
   .text-caption { font-size: 12px; }
 
-  /* Numeric emphasis — Inter tabular-nums (no mono font per v2) */
   .tabular, .mono-stamp {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
@@ -148,7 +149,6 @@
     border: 1px solid hsl(var(--border));
   }
 
-  /* Back-compat aliases (do not remove — used across app) */
   .card-minimal   { @apply surface-1; }
   .card-elevated  { @apply surface-2; }
   .shadow-natural    { box-shadow: var(--shadow-1); }
@@ -166,7 +166,7 @@
 }
 
 /* ============================================================
-   Animations — 120–180ms, ease-out only (v2 spec)
+   Animations — 120–180ms, ease-out only
    ============================================================ */
 @layer utilities {
   @keyframes fade-in {
@@ -207,7 +207,6 @@
 }
 .skip-to-main:focus { left: 50%; transform: translateX(-50%); }
 
-/* Accessibility preferences */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -221,7 +220,6 @@
   * { border-color: currentColor !important; }
 }
 
-/* Mobile: enforce 44px minimum touch targets */
 @media (pointer: coarse) {
   button, a[role="button"], input[type="checkbox"], input[type="radio"], select {
     min-height: 44px;
