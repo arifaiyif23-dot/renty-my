@@ -58,10 +58,10 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from('rentals')
         .select(`
-          *,
-          item:items(*),
-          renter:profiles!rentals_renter_id_fkey(*),
-          owner:profiles!rentals_owner_id_fkey(*)
+          id, status, start_date, end_date, total_price, owner_id, renter_id, pickup_code, dispute_reason, handover_photos, created_at,
+          item:items(id, title, images:item_images(image_url)),
+          renter:profiles!rentals_renter_id_fkey(full_name, avatar_url),
+          owner:profiles!rentals_owner_id_fkey(full_name, avatar_url)
         `)
         .or(`renter_id.eq.${user?.id},owner_id.eq.${user?.id}`)
         .order('created_at', { ascending: false });

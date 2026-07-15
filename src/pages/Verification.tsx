@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
@@ -529,7 +529,7 @@ export default function Verification() {
                         const info = validateMyKad(identityNumber);
                         return info.isValid ? (
                           <>
-                            <p>DOB: {info.birthDate.toLocaleDateString()}</p>
+                            <p>DOB: {isNaN(info.birthDate.getTime()) ? '—' : info.birthDate.toLocaleDateString()}</p>
                             <p>Gender: {info.gender}</p>
                             <p>State: {info.birthPlace}</p>
                           </>

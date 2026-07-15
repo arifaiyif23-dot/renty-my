@@ -3,8 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, ShieldCheck } from "lucide-react";
 import { SaveItemButton } from "./SaveItemButton";
-import { useEffect, useState, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 import { getOptimizedImageUrl } from "@/utils/imageOptimization";
 
 interface ItemCardProps {
@@ -18,7 +17,6 @@ interface ItemCardProps {
   location: string;
   distance?: string;
   isOwnerVerified?: boolean;
-  owner_id?: string;
 }
 
 const ItemCard = ({
@@ -31,41 +29,13 @@ const ItemCard = ({
   reviewCount,
   location,
   distance,
-  isOwnerVerified: initialIsOwnerVerified = false,
-  owner_id,
+  isOwnerVerified = false,
 }: ItemCardProps) => {
-  const [isOwnerVerified, setIsOwnerVerified] = useState(initialIsOwnerVerified);
-
   // Optimize image URL based on network quality
   const optimizedImage = useMemo(
     () => getOptimizedImageUrl(image, { width: 600, quality: 75 }),
     [image]
   );
-
-  useEffect(() => {
-    if (owner_id && !initialIsOwnerVerified) {
-      let cancelled = false;
-      const checkOwnerVerification = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('is_verified')
-            .eq('id', owner_id)
-            .single();
-          
-          if (error) throw error;
-          if (!cancelled && data?.is_verified) {
-            setIsOwnerVerified(true);
-          }
-        } catch (err) {
-          console.error('Failed to check owner verification:', err);
-        }
-      };
-
-      checkOwnerVerification();
-      return () => { cancelled = true; };
-    }
-  }, [owner_id, initialIsOwnerVerified]);
 
   return (
     <Link to={`/items/${id}`}>

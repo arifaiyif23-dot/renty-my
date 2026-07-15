@@ -172,10 +172,11 @@ export default function AdminDashboard() {
       let query = supabase
         .from('fraud_alerts')
         .select(`
-          *,
+          id, user_id, status, alert_type, created_at,
           profiles(full_name, avatar_url)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (fraudFilterStatus !== "all") {
         query = query.eq('status', fraudFilterStatus);
@@ -199,7 +200,8 @@ export default function AdminDashboard() {
           id, user_id, document_type, status, created_at,
           profiles!inner(full_name)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (verificationFilterStatus !== "all") {
         query = query.eq('status', verificationFilterStatus);

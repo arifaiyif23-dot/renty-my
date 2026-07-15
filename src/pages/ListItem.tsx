@@ -292,7 +292,7 @@ export default function ListItem() {
           <CardContent>
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit('active'); }} className="space-y-5">
               <div className="space-y-2">
-                <Label>Item Images *</Label>
+                <Label htmlFor="item-images">Item Images *</Label>
                 <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
                 <p className="text-xs text-muted-foreground">
                   Upload up to 5 images. First image will be the primary photo.
@@ -336,7 +336,7 @@ export default function ListItem() {
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value as ItemCategory })}
                 >
-                  <SelectTrigger className="h-12 text-base">
+                  <SelectTrigger id="category" className="h-12 text-base">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -399,8 +399,8 @@ export default function ListItem() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Kaedah Bayaran</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <Label htmlFor="payment-method" className="text-sm font-medium">Kaedah Bayaran</Label>
+                <div id="payment-method" className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, payment_mode: 'escrow' })}

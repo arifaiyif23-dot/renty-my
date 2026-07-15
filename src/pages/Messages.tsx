@@ -16,6 +16,7 @@ import type { Message, Profile } from "@/types";
 import Header from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { sanitizeMessage } from "@/utils/sanitize";
+import { safeFormatDate } from "@/utils/securityHelpers";
 import { useTypingIndicator } from "@/hooks/use-typing-indicator";
 
 
@@ -60,7 +61,7 @@ export default function Messages() {
 
       const withoutOptimistic = prev.filter(msg => !(msg.pending && msg.content === incomingMessage.content));
       return [...withoutOptimistic, incomingMessage].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        (a, b) => { try { return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); } catch { return 0; } }
       );
     });
   };
@@ -168,7 +169,7 @@ export default function Messages() {
 
     const { data, error } = await supabase
       .from('messages')
-      .select('*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
+      .select('id, sender_id, recipient_id, content, created_at, is_read, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
       .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
 
@@ -207,12 +208,17 @@ export default function Messages() {
 
   const fetchMessages = async (otherUserId: string) => {
     if (!user) return;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(otherUserId)) {
+      console.error('Invalid user ID format');
+      setIsLoadingMessages(false);
+      return;
+    }
 
     setIsLoadingMessages(true);
 
     const { data, error } = await supabase
       .from('messages')
-      .select('*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
+      .select('id, sender_id, recipient_id, content, created_at, is_read, read_at, attachment_url, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
       .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
       .order('created_at', { ascending: true });
 
@@ -369,12 +375,12 @@ export default function Messages() {
                                 {conv.lastMessage}
                               </div>
                               <div className="text-xs text-muted-foreground mt-1">
-                                {new Date(conv.lastMessageTime).toLocaleString('en-MY', { 
+                                {safeFormatDate(conv.lastMessageTime, (d) => d.toLocaleString('en-MY', { 
                                   month: 'short', 
                                   day: 'numeric',
                                   hour: '2-digit',
                                   minute: '2-digit'
-                                })}
+                                }))}
                               </div>
                             </div>
                             {conv.unreadCount > 0 && (
@@ -452,10 +458,10 @@ export default function Messages() {
                           <div className="text-base break-words">{msg.content}</div>
                           <div className="text-xs opacity-70 mt-1 flex items-center gap-1">
                             <span>
-                              {new Date(msg.created_at).toLocaleTimeString('en-MY', { 
+                              {safeFormatDate(msg.created_at, (d) => d.toLocaleTimeString('en-MY', { 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
-                              })}
+                              }))}
                             </span>
                             {msg.sender_id === user.id && (
                               <span className="ml-1">
@@ -625,7 +631,7 @@ export default function Messages() {
                                 )}
                                 <div className="text-base break-words">{msg.content}</div>
                                 <div className="text-xs opacity-70 mt-1">
-                                  {new Date(msg.created_at).toLocaleTimeString()}
+                                  {safeFormatDate(msg.created_at, (d) => d.toLocaleTimeString())}
                                   {msg.sender_id === user.id && (
                                     <span className="ml-2">{msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}</span>
                                   )}

@@ -14,8 +14,10 @@ export async function checkRateLimit(
 ): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return true;
+
     const { data, error } = await supabase.rpc('check_rate_limit_enhanced', {
-      p_user_id: user?.id || null,
+      p_user_id: user.id,
       p_ip_address: null,
       p_action: action,
       p_max_attempts: maxAttempts,
@@ -41,89 +43,13 @@ export async function checkRateLimit(
  * @param resourceId - ID of the resource
  * @param accessType - Type of access (e.g., 'view', 'download', 'edit')
  */
-export async function logSensitiveAccess(
-  resourceType: string,
-  resourceId: string,
-  accessType: string
-): Promise<void> {
+export function safeFormatDate(dateStr: string | null | undefined, formatter: (d: Date) => string, fallback = "—"): string {
+  if (!dateStr) return fallback;
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    await supabase.rpc('log_sensitive_access', {
-      p_user_id: user.id,
-      p_resource_type: resourceType,
-      p_resource_id: resourceId,
-      p_access_type: accessType
-    });
-  } catch (error) {
-    console.error('Failed to log sensitive access:', error);
-    // Don't throw - logging failure shouldn't block the operation
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return fallback;
+    return formatter(d);
+  } catch {
+    return fallback;
   }
-}
-
-/**
- * Get signed URL for a file in storage
- * @param bucket - Storage bucket name
- * @param path - File path
- * @param expiresIn - Expiration time in seconds (default 1 hour)
- * @returns Promise<string | null> - Signed URL or null on error
- */
-export async function getSignedUrl(
-  bucket: string,
-  path: string,
-  expiresIn: number = 3600
-): Promise<string | null> {
-  try {
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .createSignedUrl(path, expiresIn);
-
-    if (error) throw error;
-    return data.signedUrl;
-  } catch (error) {
-    console.error('Failed to generate signed URL:', error);
-    return null;
-  }
-}
-
-/**
- * Mask account number to show only last 4 digits
- * @param accountNumber - Full account number
- * @returns Masked account number (e.g., "****1234")
- */
-export function maskAccountNumber(accountNumber: string | null): string {
-  if (!accountNumber || accountNumber.length < 4) {
-    return '****';
-  }
-  return '*'.repeat(accountNumber.length - 4) + accountNumber.slice(-4);
-}
-
-/**
- * Approximate coordinates for privacy (rounds to 2 decimal places ~1km accuracy)
- * @param coord - Coordinate value (latitude or longitude)
- * @returns Approximated coordinate
- */
-export function approximateCoordinate(coord: number | null): number | null {
-  if (coord === null) return null;
-  return Math.round(coord * 100) / 100;
-}
-
-/**
- * Hash IC number for storage (client-side implementation)
- * Note: This is a fallback. Prefer server-side hashing via database function
- * @param icNumber - IC number to hash
- * @returns Promise<string> - Hashed IC number
- */
-export async function hashIcNumber(icNumber: string): Promise<string> {
-  const { data, error } = await supabase.rpc('hash_ic_number', {
-    ic: icNumber
-  });
-
-  if (error) {
-    console.error('Failed to hash IC number:', error);
-    throw new Error('Identity number hashing failed. Please try again.');
-  }
-
-  return data;
 }

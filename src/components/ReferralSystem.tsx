@@ -84,21 +84,23 @@ export const ReferralSystem = () => {
 
       if (error) throw error;
 
-      // Fetch referee profiles separately
-      const referralsWithProfiles = await Promise.all(
-        (data || []).map(async (referral) => {
-          if (referral.referee_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', referral.referee_id)
-              .single();
-            
-            return { ...referral, profiles: profile };
-          }
-          return { ...referral, profiles: null };
-        })
-      );
+      // Batch fetch referee profiles
+      const refereeIds = data?.map(r => r.referee_id).filter(Boolean) || [];
+      let profileMap: Record<string, { full_name: string }> = {};
+      if (refereeIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', refereeIds);
+        profileMap = Object.fromEntries(
+          (profiles || []).map(p => [p.id, { full_name: p.full_name }])
+        );
+      }
+
+      const referralsWithProfiles = (data || []).map(referral => ({
+        ...referral,
+        profiles: referral.referee_id ? profileMap[referral.referee_id] || null : null
+      }));
 
       setReferrals(referralsWithProfiles as Referral[]);
 

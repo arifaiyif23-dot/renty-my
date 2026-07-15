@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { Notification } from "@/types";
 import { soundPlayer } from "@/utils/sounds";
+import { safeFormatDate } from "@/utils/securityHelpers";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const NotificationBell = () => {
@@ -65,7 +66,7 @@ export const NotificationBell = () => {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('*')
+      .select('id, title, message, type, is_read, created_at, link')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10);
@@ -136,7 +137,7 @@ export const NotificationBell = () => {
                 {notification.message}
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {new Date(notification.created_at).toLocaleDateString()}
+                {safeFormatDate(notification.created_at, (d) => d.toLocaleDateString())}
               </div>
             </DropdownMenuItem>
           ))

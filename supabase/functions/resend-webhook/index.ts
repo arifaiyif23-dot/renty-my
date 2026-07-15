@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature',
 };
 
@@ -49,41 +49,48 @@ serve(async (req) => {
 
     // Verify webhook signature
     const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET');
-    if (webhookSecret) {
-      const svixId = req.headers.get('svix-id');
-      const svixTimestamp = req.headers.get('svix-timestamp');
-      const svixSignature = req.headers.get('svix-signature');
-
-      if (!svixId || !svixTimestamp || !svixSignature) {
-        console.error('Missing webhook signature headers');
-        return new Response(
-          JSON.stringify({ error: 'Missing webhook signature headers' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Check timestamp is within 5 minutes to prevent replay attacks
-      const timestamp = parseInt(svixTimestamp, 10);
-      const now = Math.floor(Date.now() / 1000);
-      if (Math.abs(now - timestamp) > 300) {
-        console.error('Webhook timestamp outside tolerance');
-        return new Response(
-          JSON.stringify({ error: 'Webhook timestamp too old' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const isValid = await verifyWebhookSignature(
-        rawBody, svixId, svixTimestamp, svixSignature, webhookSecret
+    if (!webhookSecret) {
+      const errMsg = 'RESEND_WEBHOOK_SECRET is not configured. Refusing to process webhook.';
+      console.error(errMsg);
+      return new Response(
+        JSON.stringify({ error: errMsg }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
 
-      if (!isValid) {
-        console.error('Invalid webhook signature');
-        return new Response(
-          JSON.stringify({ error: 'Invalid webhook signature' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    const svixId = req.headers.get('svix-id');
+    const svixTimestamp = req.headers.get('svix-timestamp');
+    const svixSignature = req.headers.get('svix-signature');
+
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      console.error('Missing webhook signature headers');
+      return new Response(
+        JSON.stringify({ error: 'Missing webhook signature headers' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check timestamp is within 5 minutes to prevent replay attacks
+    const timestamp = parseInt(svixTimestamp, 10);
+    const now = Math.floor(Date.now() / 1000);
+    if (Math.abs(now - timestamp) > 300) {
+      console.error('Webhook timestamp outside tolerance');
+      return new Response(
+        JSON.stringify({ error: 'Webhook timestamp too old' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const isValid = await verifyWebhookSignature(
+      rawBody, svixId, svixTimestamp, svixSignature, webhookSecret
+    );
+
+    if (!isValid) {
+      console.error('Invalid webhook signature');
+      return new Response(
+        JSON.stringify({ error: 'Invalid webhook signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const payload = JSON.parse(rawBody);

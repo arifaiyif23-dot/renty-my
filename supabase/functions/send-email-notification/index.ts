@@ -2,8 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 
+const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://renty.my';
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': FRONTEND_URL,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -51,6 +53,12 @@ serve(async (req) => {
   }
 
   try {
+    const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
+    const requestSecret = req.headers.get('x-webhook-secret');
+    if (webhookSecret && (!requestSecret || requestSecret !== webhookSecret)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) {
       throw new Error('RESEND_API_KEY is not configured');

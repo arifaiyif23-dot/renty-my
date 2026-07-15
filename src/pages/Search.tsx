@@ -131,7 +131,8 @@ export default function Search() {
       .range(start, end);
 
     if (debouncedSearchQuery) {
-      query = query.or(`title.ilike.%${debouncedSearchQuery}%,description.ilike.%${debouncedSearchQuery}%`);
+      const sanitized = debouncedSearchQuery.replace(/[,()%]/g, '');
+      query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
     }
 
     if (category !== 'all') {
@@ -154,7 +155,7 @@ export default function Search() {
       const { data: verifiedIds, error: verifiedError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('is_verified', true);
+        .in('verification_level', ['basic', 'kyc', 'premium']);
       if (verifiedError) throw verifiedError;
       const ids = verifiedIds?.map(p => p.id) || [];
       query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
@@ -217,7 +218,7 @@ export default function Search() {
     return data || [];
   };
 
-  const { items, loading, hasMore, setSentinelRef, reset } = useInfiniteScroll({
+  const { items, loading, hasMore, error, setSentinelRef, reset } = useInfiniteScroll({
     fetchFunction: fetchItemsPage,
     pageSize: 12,
   });
@@ -577,7 +578,18 @@ export default function Search() {
         )}
       </div>
 
-      {initialLoading ? (
+      {error ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="text-destructive mb-4">
+            <Package className="h-12 w-12 mx-auto mb-2" />
+            <h3 className="text-lg font-semibold">Something went wrong</h3>
+            <p className="text-sm text-muted-foreground mt-1">{error}</p>
+          </div>
+          <Button variant="outline" onClick={reset}>
+            Try Again
+          </Button>
+        </div>
+      ) : initialLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <SkeletonCard key={i} />

@@ -40,7 +40,7 @@ export default function AdminUsers() {
     try {
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, email, phone, avatar_url, is_verified, verification_level, is_suspended, trust_score, created_at")
         .order("created_at", { ascending: false })
         .limit(200);
 

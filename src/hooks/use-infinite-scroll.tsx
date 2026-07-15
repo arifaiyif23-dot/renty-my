@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
-interface UseInfiniteScrollProps<T> {
+export interface UseInfiniteScrollProps<T> {
   fetchFunction: (page: number, pageSize: number) => Promise<T[]>;
   pageSize?: number;
   threshold?: number;
@@ -15,6 +15,7 @@ export function useInfiniteScroll<T>({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const initialLoadDone = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelCallbackRef = useRef<HTMLDivElement | null>(null);
@@ -32,8 +33,8 @@ export function useInfiniteScroll<T>({
 
       setItems(prev => [...prev, ...newItems]);
       setPage(prev => prev + 1);
-    } catch (error) {
-      console.error('Error loading more items:', error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -79,6 +80,7 @@ export function useInfiniteScroll<T>({
     setItems([]);
     setPage(1);
     setHasMore(true);
+    setError(null);
     initialLoadDone.current = false;
   }, []);
 
@@ -86,6 +88,7 @@ export function useInfiniteScroll<T>({
     items,
     loading,
     hasMore,
+    error,
     sentinelRef: sentinelCallbackRef,
     setSentinelRef,
     reset,

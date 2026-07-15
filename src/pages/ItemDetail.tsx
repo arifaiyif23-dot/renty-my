@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -60,6 +60,11 @@ export default function ItemDetail() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -96,6 +101,7 @@ export default function ItemDetail() {
   };
 
   const fetchItem = async () => {
+    if (!mountedRef.current) return;
     try {
       const { data, error } = await supabase
         .from('items')
@@ -124,6 +130,7 @@ export default function ItemDetail() {
   };
 
   const fetchSimilarItems = async (category: string, currentItemId: string) => {
+    if (!mountedRef.current) return;
     setLoadingSimilar(true);
     try {
       const { data, error } = await supabase

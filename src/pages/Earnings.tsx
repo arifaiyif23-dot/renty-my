@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,12 +73,18 @@ export default function Earnings() {
     }
   }, [user]);
 
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const fetchData = async () => {
+    if (!mountedRef.current) return;
     try {
       // Fetch payouts
       const { data: payoutsData, error: payoutsError } = await supabase
         .from('payouts')
-        .select('*')
+        .select('id, payout_amount, status, created_at')
         .eq('owner_id', user?.id)
         .order('created_at', { ascending: false });
 
@@ -108,7 +114,7 @@ export default function Earnings() {
       // Fetch bank account
       const { data: bankData, error: bankError } = await supabase
         .from('owner_bank_accounts')
-        .select('*')
+        .select('id, account_number, bank_name, account_holder_name')
         .eq('user_id', user?.id)
         .single();
 

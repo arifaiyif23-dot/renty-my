@@ -28,7 +28,8 @@ export const useItemsQuery = (params: FetchItemsParams) => {
         .eq('is_available', true);
 
       if (params.searchQuery) {
-        query = query.or(`title.ilike.%${params.searchQuery}%,description.ilike.%${params.searchQuery}%`);
+        const sanitized = params.searchQuery.replace(/[,()%]/g, '');
+        query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
       }
 
       if (params.category && params.category !== 'all') {
