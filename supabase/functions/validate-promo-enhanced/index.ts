@@ -7,7 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Input validation schema
 const promoEnhancedSchema = z.object({
   code: z.string().min(1).max(50).regex(/^[A-Z0-9-]+$/i),
   rentalAmount: z.number().positive().finite(),
@@ -41,7 +40,6 @@ serve(async (req) => {
       );
     }
 
-    // Parse and validate request body
     const body = await req.json();
     const validationResult = promoEnhancedSchema.safeParse(body);
     
@@ -81,7 +79,6 @@ serve(async (req) => {
       );
     }
 
-    // Fetch promo code
     const { data: promo, error: promoError } = await supabaseServiceClient
       .from('promo_codes')
       .select('*')
@@ -89,7 +86,6 @@ serve(async (req) => {
       .eq('is_active', true)
       .single();
 
-    // Log attempt
     await supabaseServiceClient.from('promo_attempt_log').insert({
       user_id: user.id,
       promo_code: code.toUpperCase(),
@@ -104,7 +100,6 @@ serve(async (req) => {
       );
     }
 
-    // Check validity period
     const now = new Date();
     if (promo.valid_from && new Date(promo.valid_from) > now) {
       return new Response(
@@ -120,7 +115,6 @@ serve(async (req) => {
       );
     }
 
-    // Check usage limit
     if (promo.max_uses && promo.current_uses >= promo.max_uses) {
       return new Response(
         JSON.stringify({ valid: false, error: "Promo code fully redeemed" }),
@@ -128,7 +122,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if user already used this code
     const { data: existingUsage } = await supabaseServiceClient
       .from('user_promo_usage')
       .select('id')
@@ -143,7 +136,6 @@ serve(async (req) => {
       );
     }
 
-    // Calculate discount
     let discountAmount = 0;
     if (promo.discount_type === 'percentage') {
       discountAmount = (rentalAmount * promo.discount_amount) / 100;
@@ -163,6 +155,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('Enhanced promo validation error:', error);
     return new Response(
       JSON.stringify({ 
         valid: false, 

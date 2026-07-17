@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
-import ItemCard from "@/components/ItemCard";
+import { ListingCard } from "@/components/ListingCard";
 import SkeletonCard from "@/components/SkeletonCard";
 import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import SEO from "@/components/SEO";
@@ -127,7 +127,7 @@ function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDele
   } = useSwipeToDelete({ onDelete, threshold: 120 });
 
   if (!isMobile) {
-    return <ItemCard {...item} />;
+    return <ListingCard {...item} />;
   }
 
   return (
@@ -144,7 +144,7 @@ function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDele
         onTouchEnd={handleTouchEnd}
         className="relative"
       >
-        <ItemCard {...item} />
+        <ListingCard {...item} />
       </div>
       
       {swipeDistance > 0 && (

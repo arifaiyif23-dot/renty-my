@@ -1,4 +1,4 @@
-import { CheckCircle, Circle, Clock, Package, Truck, XCircle } from 'lucide-react';
+import { CheckCircle, Circle, Clock, Package, Truck, XCircle, AlertTriangle } from 'lucide-react';
 import { Rental } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -7,7 +7,14 @@ interface RentalTimelineProps {
   rental: Rental;
 }
 
+const TERMINAL_FAILED = ['rejected', 'cancelled'];
+const TERMINAL_DISPUTED = ['disputed'];
+
 export function RentalTimeline({ rental }: RentalTimelineProps) {
+  const isFailed = TERMINAL_FAILED.includes(rental.status);
+  const isDisputed = TERMINAL_DISPUTED.includes(rental.status);
+  const isTerminal = isFailed || isDisputed;
+
   const timelineSteps = [
     {
       label: 'Booking Created',
@@ -16,28 +23,28 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
       icon: Package,
     },
     {
-      label: 'Approved',
-      date: rental.status === 'pending' ? null : rental.created_at,
-      status: rental.status === 'pending' ? 'pending' : rental.status === 'rejected' ? 'failed' : 'completed' as const,
-      icon: CheckCircle,
+      label: isFailed ? 'Request Declined' : isDisputed ? 'Disputed' : 'Approved',
+      date: isTerminal ? null : rental.created_at,
+      status: isFailed || isDisputed ? 'failed' as const : 'completed' as const,
+      icon: isFailed ? XCircle : isDisputed ? AlertTriangle : CheckCircle,
     },
     {
       label: 'Rental Started',
-      date: new Date() >= new Date(rental.start_date) ? rental.start_date : null,
-      status: new Date() >= new Date(rental.start_date) ? 'completed' : 'pending' as const,
+      date: rental.actual_start_at || (new Date() >= new Date(rental.start_date) ? rental.start_date : null),
+      status: isTerminal ? 'pending' as const : rental.actual_start_at ? 'completed' as const : new Date() >= new Date(rental.start_date) ? 'completed' as const : 'pending' as const,
       icon: Truck,
     },
     {
       label: 'Rental Ended',
       date: new Date() >= new Date(rental.end_date) ? rental.end_date : null,
-      status: rental.status === 'completed' ? 'completed' : new Date() >= new Date(rental.end_date) ? 'pending' : 'pending' as const,
+      status: isTerminal ? 'pending' as const : rental.status === 'completed' || rental.status === 'disputed' ? 'completed' as const : new Date() >= new Date(rental.end_date) ? 'completed' as const : 'pending' as const,
       icon: Clock,
     },
     {
-      label: 'Completed',
+      label: isDisputed ? 'Under Review' : isFailed ? 'Not Completed' : 'Completed',
       date: rental.status === 'completed' ? rental.end_date : null,
-      status: rental.status === 'completed' ? 'completed' : rental.status === 'cancelled' ? 'failed' : 'pending' as const,
-      icon: rental.status === 'cancelled' ? XCircle : CheckCircle,
+      status: rental.status === 'completed' ? 'completed' as const : isFailed ? 'failed' as const : isDisputed ? 'failed' as const : 'pending' as const,
+      icon: isFailed || isDisputed ? XCircle : CheckCircle,
     },
   ];
 
@@ -49,7 +56,6 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
 
         return (
           <div key={step.label} className="flex gap-4 pb-8 relative">
-            {/* Line connector */}
             {!isLast && (
               <div
                 className={cn(
@@ -59,7 +65,6 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
               />
             )}
 
-            {/* Icon */}
             <div className={cn(
               "relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 flex-shrink-0",
               step.status === 'completed' && 'bg-primary border-primary text-primary-foreground',
@@ -73,7 +78,6 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
               )}
             </div>
 
-            {/* Content */}
             <div className="flex-1">
               <div className="font-medium">{step.label}</div>
               {step.date && (

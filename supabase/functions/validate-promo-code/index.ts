@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Input validation schema
 const promoValidationSchema = z.object({
   code: z.string().min(1).max(50).regex(/^[A-Z0-9-]+$/i),
   userId: z.string().uuid(),
@@ -18,7 +17,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify authentication first
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -56,7 +54,6 @@ Deno.serve(async (req) => {
 
     const { code, userId } = validationResult.data;
 
-    // Verify userId matches the authenticated user
     if (userId !== user.id) {
       return new Response(
         JSON.stringify({ error: 'User ID mismatch' }),
@@ -64,7 +61,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch promo code
     const { data: promoCode, error: promoError } = await supabase
       .from('promo_codes')
       .select('*')
@@ -79,7 +75,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if expired
     if (promoCode.valid_until && new Date(promoCode.valid_until) < new Date()) {
       return new Response(
         JSON.stringify({ error: 'Promo code has expired' }),
@@ -87,7 +82,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if max uses reached
     if (promoCode.max_uses && promoCode.current_uses >= promoCode.max_uses) {
       return new Response(
         JSON.stringify({ error: 'Promo code usage limit reached' }),
@@ -95,7 +89,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check if user already used this code
     const { data: existingUsage } = await supabase
       .from('user_promo_usage')
       .select('id')
@@ -123,6 +116,7 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    console.error('Promo code validation error:', error);
     return new Response(
       JSON.stringify({ error: 'Validation failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

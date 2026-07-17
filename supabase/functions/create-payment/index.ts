@@ -1,10 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const createPaymentSchema = z.object({
+  rentalId: z.string().uuid().optional(),
+  itemId: z.string().uuid().optional(),
+  startDate: z.string().min(1).optional(),
+  endDate: z.string().min(1).optional(),
+  renterId: z.string().uuid().optional(),
+  ownerId: z.string().uuid().optional(),
+  totalPrice: z.number().positive().optional(),
+  promoCodeId: z.string().uuid().nullable().optional(),
+  discountAmount: z.number().min(0).optional(),
+  originalAmount: z.number().positive().optional(),
+}).refine(
+  (data) => data.rentalId || (data.itemId && data.startDate && data.endDate && data.renterId && data.ownerId && data.totalPrice != null),
+  { message: 'Provide either rentalId (for existing rental) or all fields: itemId, startDate, endDate, renterId, ownerId, totalPrice' }
+);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,7 +29,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify user authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('Unauthorized: No authorization header');
@@ -25,13 +41,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    // Verify the user's identity
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       throw new Error('Unauthorized: Invalid token');
     }
 
-    // Check if user is suspended
     const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
       p_user_id: user.id
     });
@@ -39,10 +53,16 @@ serve(async (req) => {
       throw new Error('Your account has been suspended. Contact support for assistance.');
     }
     
-    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice } = await req.json();
-    if (!rentalId && (!itemId || !renterId || !ownerId || !startDate || !endDate || totalPrice == null)) {
-      throw new Error('Missing required fields');
+    const body = await req.json();
+    const validationResult = createPaymentSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Payment creation validation failed:', validationResult.error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice, promoCodeId, discountAmount, originalAmount } = validationResult.data;
     
     let rental;
     let lockAcquired = false;
@@ -61,12 +81,10 @@ serve(async (req) => {
         throw new Error('Rental not found');
       }
       
-      // Verify rental is approved
       if (existingRental.status !== 'approved') {
         throw new Error(`Rental must be approved before payment. Current status: ${existingRental.status}`);
       }
       
-      // Verify the authenticated user is the renter
       if (existingRental.renter_id !== user.id) {
         throw new Error('Forbidden: You can only create payments for your own rentals');
       }
@@ -119,7 +137,6 @@ serve(async (req) => {
     }
     lockAcquired = true;
     
-    // Get current platform fee percentage
     const { data: feeSetting } = await supabase
       .from('platform_settings')
       .select('value')
@@ -132,7 +149,6 @@ serve(async (req) => {
     
     console.log('Creating payment:', { totalPrice: rental.total_price, platformFee, totalAmount, feePercentage });
     
-    // Check if payment already exists for this rental
     const { data: existingPayment } = await supabase
       .from('payments')
       .select('id, status')
@@ -143,7 +159,6 @@ serve(async (req) => {
       throw new Error('Payment already exists for this rental');
     }
     
-    // Create payment record
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
     
@@ -156,7 +171,10 @@ serve(async (req) => {
         platform_fee_percentage: feePercentage,
         total_amount: totalAmount,
         status: 'pending',
-        expires_at: expiresAt.toISOString()
+        expires_at: expiresAt.toISOString(),
+        promo_code_id: promoCodeId || rental.promo_code_id || null,
+        discount_amount: discountAmount || rental.discount_amount || 0,
+        original_amount: originalAmount || rental.original_total_price || rental.total_price,
       })
       .select()
       .single();
@@ -185,14 +203,13 @@ serve(async (req) => {
       details: { totalAmount, platformFee, expiresAt: expiresAt.toISOString() }
     });
     
-    // Create ToyyibPay bill
     const billAmount = (Math.round(totalAmount * 100) / 100).toFixed(2);
     
     const toyyibPayParams = new URLSearchParams({
       userSecretKey: Deno.env.get('TOYYIBPAY_SECRET_KEY')!,
       categoryCode: Deno.env.get('TOYYIBPAY_CATEGORY_CODE')!,
       billName: `Rental Payment`,
-      billDescription: `Rental from ${startDate} to ${endDate}`,
+      billDescription: `Rental from ${rental.start_date} to ${rental.end_date}`,
       billPriceSetting: '1',
       billPayorInfo: '0',
       billAmount: billAmount,
@@ -236,7 +253,6 @@ serve(async (req) => {
       throw new Error('Failed to create ToyyibPay bill');
     }
     
-    // Update payment with ToyyibPay details
     // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
     const billUrl = `https://toyyibpay.com/${billData[0].BillCode}`;
     
@@ -275,15 +291,15 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Payment creation error:', error);
     if (lockAcquired) {
       try {
         await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
       } catch { /* ignore release errors */ }
     }
-    const message = error.message || 'Payment processing failed';
-    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('User is not') || message.startsWith('Your account');
+    const message = error instanceof Error ? error.message : 'Payment processing failed';
+    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 

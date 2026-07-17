@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +20,9 @@ import {
   Filter,
   RefreshCw,
   FileCheck,
-  Mail
+  Mail,
+  Package,
+  Flag
 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import EmailAnalytics from "@/components/EmailAnalytics";
@@ -73,17 +76,32 @@ interface DashboardStats {
   pendingFraudAlerts: number;
   totalVerifications: number;
   approvalRate: number;
+  totalUsers: number;
+  activeListings: number;
+  activeRentals: number;
+  completedRentals: number;
+  platformRevenue: number;
+  totalReports: number;
+  openDisputes: number;
 }
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({
     pendingVerifications: 0,
     pendingFraudAlerts: 0,
     totalVerifications: 0,
-    approvalRate: 0
+    approvalRate: 0,
+    totalUsers: 0,
+    activeListings: 0,
+    activeRentals: 0,
+    completedRentals: 0,
+    platformRevenue: 0,
+    totalReports: 0,
+    openDisputes: 0,
   });
   
   // Fraud Alerts State
@@ -131,36 +149,35 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Get pending verifications count
-      const { count: pendingCount } = await supabase
-        .from('verification_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      // Get pending fraud alerts count
-      const { count: fraudCount } = await supabase
-        .from('fraud_alerts')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-
-      // Get total verifications
-      const { count: totalCount } = await supabase
-        .from('verification_requests')
-        .select('*', { count: 'exact', head: true });
-
-      // Get approved verifications
-      const { count: approvedCount } = await supabase
-        .from('verification_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'approved');
+      const [{ count: pendingCount }, { count: fraudCount }, { count: totalCount }, { count: approvedCount }, { count: totalUsers }, { count: activeListings }, { count: activeRentals }, { count: completedRentals }, { count: totalReports }, { count: openDisputes }, { data: revenueData }] = await Promise.all([
+        supabase.from('verification_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('fraud_alerts').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('verification_requests').select('*', { count: 'exact', head: true }),
+        supabase.from('verification_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('items').select('*', { count: 'exact', head: true }).eq('is_available', true),
+        supabase.from('rentals').select('*', { count: 'exact', head: true }).in('status', ['paid', 'active', 'approved']),
+        supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+        supabase.from('reports').select('*', { count: 'exact', head: true }).neq('status', 'dismissed'),
+        supabase.from('disputes').select('*', { count: 'exact', head: true }).neq('status', 'resolved').neq('status', 'closed'),
+        supabase.from('payments').select('platform_fee').eq('status', 'completed'),
+      ]);
 
       const approvalRate = totalCount ? ((approvedCount || 0) / totalCount) * 100 : 0;
+      const platformRevenue = (revenueData || []).reduce((sum, p) => sum + Number(p.platform_fee), 0);
 
       setStats({
         pendingVerifications: pendingCount || 0,
         pendingFraudAlerts: fraudCount || 0,
         totalVerifications: totalCount || 0,
-        approvalRate: Math.round(approvalRate)
+        approvalRate: Math.round(approvalRate),
+        totalUsers: totalUsers || 0,
+        activeListings: activeListings || 0,
+        activeRentals: activeRentals || 0,
+        completedRentals: completedRentals || 0,
+        platformRevenue,
+        totalReports: totalReports || 0,
+        openDisputes: openDisputes || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -380,48 +397,92 @@ export default function AdminDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Verifications</CardTitle>
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.pendingVerifications}</div>
-                  <p className="text-xs text-muted-foreground">Require review</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Fraud Alerts</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.pendingFraudAlerts}</div>
-                  <p className="text-xs text-muted-foreground">Need attention</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Verifications</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalVerifications}</div>
+                  <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                  <p className="text-xs text-muted-foreground">Registered</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.activeListings}</div>
+                  <p className="text-xs text-muted-foreground">Available to rent</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Rentals</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.activeRentals}</div>
+                  <p className="text-xs text-muted-foreground">In progress</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Completed Rentals</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.completedRentals}</div>
                   <p className="text-xs text-muted-foreground">All time</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Approval Rate</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.approvalRate}%</div>
-                  <p className="text-xs text-muted-foreground">Success rate</p>
+                  <div className="text-2xl font-bold">RM{stats.platformRevenue.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">From completed payments</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.pendingVerifications + stats.totalReports + stats.openDisputes}</div>
+                  <p className="text-xs text-muted-foreground">Verifications + Reports + Disputes</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Open Reports</CardTitle>
+                  <Flag className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.totalReports}</div>
+                  <p className="text-xs text-muted-foreground">Pending review</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Open Disputes</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.openDisputes}</div>
+                  <p className="text-xs text-muted-foreground">Need resolution</p>
                 </CardContent>
               </Card>
             </div>
@@ -451,6 +512,30 @@ export default function AdminDashboard() {
                   <Button 
                     className="w-full justify-start" 
                     variant="outline"
+                    onClick={() => navigate("/admin/listings")}
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    Manage Listings ({stats.activeListings})
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => navigate("/admin/rentals")}
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    View Rentals
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => navigate("/admin/payments")}
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Payment Monitoring
+                  </Button>
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
                     onClick={fetchAllData}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
@@ -461,12 +546,29 @@ export default function AdminDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle>Pending Items</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Platform activity and security monitoring
-                  </p>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Verifications</span>
+                    <span className="font-bold">{stats.pendingVerifications}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Fraud Alerts</span>
+                    <span className="font-bold">{stats.pendingFraudAlerts}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Open Reports</span>
+                    <span className="font-bold">{stats.totalReports}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Open Disputes</span>
+                    <span className="font-bold">{stats.openDisputes}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm border-t pt-2 mt-2">
+                    <span className="font-medium">Total Pending</span>
+                    <span className="font-bold">{stats.pendingVerifications + stats.pendingFraudAlerts + stats.totalReports + stats.openDisputes}</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>

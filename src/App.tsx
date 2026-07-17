@@ -54,8 +54,10 @@ const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminReports = lazy(() => import("./pages/AdminReports"));
 const AdminPromoCodes = lazy(() => import("./pages/AdminPromoCodes"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
-
-
+const AdminListings = lazy(() => import("./pages/AdminListings"));
+const AdminRentals = lazy(() => import("./pages/AdminRentals"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const AdminUserDetail = lazy(() => import("./pages/AdminUserDetail"));
 
 function AppRoutes() {
   useScrollToTop();
@@ -99,6 +101,10 @@ function AppRoutes() {
               <Route path="/admin/users" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/reports" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminReports /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/promo-codes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPromoCodes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/listings" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminListings /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/rentals" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminRentals /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/payments" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/users/:id" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUserDetail /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/users/:id" element={<ErrorBoundary><UserProfile /></ErrorBoundary>} />
               <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
               <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />

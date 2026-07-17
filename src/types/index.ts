@@ -100,6 +100,15 @@ export interface Item {
   longitude?: number;
   is_available: boolean;
   listing_status?: ListingStatus;
+  view_count?: number;
+  cancellation_policy?: string;
+  deposit_amount?: number;
+  item_condition?: string;
+  minimum_rental_days?: number;
+  maximum_rental_days?: number;
+  instant_book_enabled?: boolean;
+  auto_approve_bookings?: boolean;
+  specifications?: Record<string, string>;
   created_at: string;
   updated_at: string;
   owner?: Profile;
@@ -123,6 +132,9 @@ export interface Rental {
   start_date: string;
   end_date: string;
   total_price: number;
+  original_total_price?: number;
+  discount_amount?: number;
+  promo_code_id?: string;
   status: RentalStatus;
   created_at: string;
   updated_at: string;

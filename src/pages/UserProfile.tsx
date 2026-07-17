@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Calendar, Package, Star, ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import Header from "@/components/Header";
-import ItemCard from "@/components/ItemCard";
+import { ListingCard } from "@/components/ListingCard";
 import { ReviewsList } from "@/components/ReviewsList";
 import { UserTrustBadge } from "@/components/trust/UserTrustBadge";
 import { ReportDialog } from "@/components/trust/ReportDialog";
@@ -175,7 +175,7 @@ export default function UserProfile() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {items.map((item) => (
-              <ItemCard
+              <ListingCard
                 key={item.id}
                 id={item.id}
                 title={item.title}
@@ -185,6 +185,7 @@ export default function UserProfile() {
                 rating={item._rating}
                 reviewCount={item._reviewCount}
                 location={item.location}
+                isOwnerVerified={profile?.is_verified || false}
               />
             ))}
           </div>

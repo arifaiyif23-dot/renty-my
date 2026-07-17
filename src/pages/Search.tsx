@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Item, ItemCategory } from '@/types';
-import ItemCard from '@/components/ItemCard';
+import { ListingCard } from '@/components/ListingCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import EmptyState from '@/components/EmptyState';
 import SEO from '@/components/SEO';
@@ -344,7 +344,7 @@ export default function Search() {
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <MobileFilterDrawer
                 category={category}
                 setCategory={setCategory}
@@ -535,7 +535,7 @@ export default function Search() {
                     setUserLocation('');
                     setDateRange(undefined);
                   }}
-                  className="h-7 text-xs min-h-[44px]"
+                  className="text-xs min-h-[44px]"
                   aria-label="Clear all filters"
                 >
                   Clear All
@@ -611,18 +611,17 @@ export default function Search() {
           }}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {items.map((item) => (
-            <ItemCard
+            <ListingCard
               key={item.id}
               id={item.id}
               title={item.title}
               image={item.images?.[0]?.image_url || '/placeholder.svg'}
               pricePerDay={Number(item.price_per_day)}
               category={item.category}
-              rating={0}
-              reviewCount={0}
               location={item.location}
+              isOwnerVerified={item.owner?.is_verified || false}
             />
             ))}
           </div>

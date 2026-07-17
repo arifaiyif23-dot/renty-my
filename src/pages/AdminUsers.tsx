@@ -13,7 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, Shield, ShieldOff, Loader2, Ban, CheckCircle, AlertTriangle, User as UserIcon } from "lucide-react";
+import { Search, Shield, ShieldOff, Loader2, Ban, CheckCircle, AlertTriangle, User as UserIcon, ExternalLink } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
 import { invokeAdminOperation } from "@/lib/adminOperations";
@@ -40,7 +40,7 @@ export default function AdminUsers() {
     try {
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, phone, avatar_url, is_verified, verification_level, is_suspended, trust_score, created_at")
+        .select("id, full_name, phone, avatar_url, is_verified, verification_level, is_suspended, trust_score, created_at")
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -218,6 +218,13 @@ export default function AdminUsers() {
                           )}
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
+                          <a
+                            href={`/admin/users/${u.id}`}
+                            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted transition-colors"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">View</span>
+                          </a>
                           {u.is_suspended ? (
                             <Button
                               size="sm"

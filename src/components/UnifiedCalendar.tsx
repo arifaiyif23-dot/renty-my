@@ -44,7 +44,7 @@ export function UnifiedCalendar({
         .from('rentals')
         .select('start_date, end_date')
         .eq('item_id', itemId)
-        .in('status', ['pending_approval', 'approved', 'paid', 'active']);
+        .in('status', ['pending_approval', 'approved', 'paid', 'active', 'disputed']);
 
       if (error) throw error;
 

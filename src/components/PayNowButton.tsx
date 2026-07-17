@@ -14,7 +14,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Separator } from '@/components/ui/separator';
 import { haptics } from '@/utils/haptics';
+import { differenceInDays } from 'date-fns';
 
 interface PayNowButtonProps {
   rental: Rental;
@@ -34,7 +36,6 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
   const [pendingExpiresAt, setPendingExpiresAt] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
 
-  // Look for an existing pending payment for this rental to show countdown
   useEffect(() => {
     let active = true;
     supabase
@@ -52,7 +53,6 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
     return () => { active = false; };
   }, [rental.id]);
 
-  // Tick every second while countdown is visible
   useEffect(() => {
     if (!pendingExpiresAt) return;
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -62,6 +62,10 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
   const remainingMs = pendingExpiresAt ? new Date(pendingExpiresAt).getTime() - now : 0;
   const hasActiveBill = !!pendingExpiresAt && remainingMs > 0;
 
+  const rentalDays = Math.max(1, differenceInDays(new Date(rental.end_date), new Date(rental.start_date)) + 1);
+  const hasPromo = !!rental.discount_amount && rental.discount_amount > 0 && !!rental.original_total_price;
+  const originalPrice = hasPromo ? (rental.original_total_price ?? rental.total_price) : rental.total_price;
+
   const handleConfirmPayment = async () => {
     haptics.medium();
     setShowConfirmDialog(false);
@@ -69,16 +73,18 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
     try {
       toast.info('Creating payment link...');
 
-      // Call create-payment edge function with the approved rental
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
-          rentalId: rental.id, // Use existing rental ID
+          rentalId: rental.id,
           itemId: rental.item_id,
           startDate: rental.start_date,
           endDate: rental.end_date,
           renterId: rental.renter_id,
           ownerId: rental.owner_id,
-          totalPrice: rental.total_price
+          totalPrice: rental.total_price,
+          promoCodeId: rental.promo_code_id,
+          discountAmount: rental.discount_amount,
+          originalAmount: rental.original_total_price,
         }
       });
 
@@ -86,8 +92,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
 
       haptics.success();
       toast.success('Redirecting to payment...');
-      
-      // Redirect to ToyyibPay
+
       window.location.href = data.paymentUrl;
 
     } catch (error: unknown) {
@@ -133,19 +138,43 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Ready to pay for this rental?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <div className="p-4 bg-muted rounded-lg space-y-2">
+            <AlertDialogTitle>Review your payment</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <div className="space-y-1 text-sm text-muted-foreground">
+                <p><span className="font-medium text-foreground">{rental.item?.title}</span></p>
+                <p>{new Date(rental.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} — {new Date(rental.end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })} · {rentalDays} {rentalDays === 1 ? 'day' : 'days'}</p>
+              </div>
+
+              <div className="bg-muted rounded-lg p-3 space-y-1.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-foreground">Amount:</span>
-                  <span className="font-semibold text-foreground">RM {rental.total_price}</span>
+                  <span>Rental total</span>
+                  <span>RM {originalPrice.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-foreground">Item:</span>
-                  <span className="font-medium text-foreground">{rental.item?.title}</span>
+                {hasPromo && (
+                  <div className="flex justify-between text-green-600 dark:text-green-400">
+                    <span>Promo discount</span>
+                    <span>-RM {Number(rental.discount_amount).toFixed(2)}</span>
+                  </div>
+                )}
+                <Separator className="my-1" />
+                <div className="flex justify-between font-semibold text-base">
+                  <span>Total payable now</span>
+                  <span>RM {rental.total_price.toFixed(2)}</span>
                 </div>
               </div>
-              <p className="text-sm">You'll be redirected to ToyyibPay to complete payment securely.</p>
+
+              <div className="text-xs text-muted-foreground space-y-1.5">
+                {Number(rental.item?.deposit_amount || 0) > 0 && (
+                  <p>Security deposit: RM{Math.round(Number(rental.item!.deposit_amount!))} — collect at pickup, refunded upon safe return. Not charged here.</p>
+                )}
+                <p>Platform fee (10%) is deducted from the owner's payout, not from your payment.</p>
+                <p>Refund policy: If you cancel before the rental starts, a refund may be available depending on the owner's cancellation policy.</p>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                <p className="font-medium">Secure payment via ToyyibPay</p>
+                <p>You'll be redirected to ToyyibPay (a Malaysian payment gateway) to complete payment. Accepted methods: FPX (all banks) and credit/debit cards. Your payment is protected by escrow — funds are only released to the owner after the rental period.</p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

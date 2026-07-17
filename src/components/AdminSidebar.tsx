@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, ShieldCheck, Settings, DollarSign,
   Activity, Users, Flag, TicketPercent, AlertTriangle, Zap,
-  ChevronLeft, Gauge,
+  ChevronLeft, Gauge, Package, CalendarCheck, CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +13,9 @@ const NAV_ITEMS = [
   { label: "Dashboard", icon: Gauge, path: "/admin" },
   { label: "Verifications", icon: ShieldCheck, path: "/admin/verifications" },
   { label: "Users", icon: Users, path: "/admin/users" },
+  { label: "Listings", icon: Package, path: "/admin/listings" },
+  { label: "Rentals", icon: CalendarCheck, path: "/admin/rentals" },
+  { label: "Payments", icon: CreditCard, path: "/admin/payments" },
   { label: "Reports", icon: Flag, path: "/admin/reports" },
   { label: "Promo Codes", icon: TicketPercent, path: "/admin/promo-codes" },
   { label: "Payouts", icon: DollarSign, path: "/admin/payouts" },

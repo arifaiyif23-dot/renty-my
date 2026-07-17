@@ -157,7 +157,6 @@ function validateContent(title: string, description: string): ValidationResult {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -167,7 +166,6 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -186,7 +184,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is suspended
     const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
       p_user_id: user.id
     });

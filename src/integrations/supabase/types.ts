@@ -1019,12 +1019,15 @@ export type Database = {
       payments: {
         Row: {
           created_at: string | null
+          discount_amount: number | null
           expires_at: string | null
           id: string
+          original_amount: number | null
           paid_at: string | null
           payment_verified_at: string | null
           platform_fee: number
           platform_fee_percentage: number
+          promo_code_id: string | null
           rental_amount: number
           rental_id: string
           status: string
@@ -1037,12 +1040,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          discount_amount?: number | null
           expires_at?: string | null
           id?: string
+          original_amount?: number | null
           paid_at?: string | null
           payment_verified_at?: string | null
           platform_fee: number
           platform_fee_percentage: number
+          promo_code_id?: string | null
           rental_amount: number
           rental_id: string
           status?: string
@@ -1055,12 +1061,15 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          discount_amount?: number | null
           expires_at?: string | null
           id?: string
+          original_amount?: number | null
           paid_at?: string | null
           payment_verified_at?: string | null
           platform_fee?: number
           platform_fee_percentage?: number
+          promo_code_id?: string | null
           rental_amount?: number
           rental_id?: string
           status?: string
@@ -1072,6 +1081,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignNameKey: "payments_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_rental_id_fkey"
             columns: ["rental_id"]
@@ -1630,6 +1646,7 @@ export type Database = {
         Row: {
           actual_start_at: string | null
           created_at: string | null
+          discount_amount: number | null
           dispute_reason: string | null
           dispute_status: string | null
           end_date: string
@@ -1640,9 +1657,11 @@ export type Database = {
           manual_payment_confirmed_at: string | null
           manual_payment_confirmed_by: string | null
           manual_payment_proof_url: string | null
+          original_total_price: number | null
           owner_id: string
           payment_mode: Database["public"]["Enums"]["payment_mode"]
           pickup_code: string | null
+          promo_code_id: string | null
           renter_id: string
           return_photos: string[] | null
           start_date: string
@@ -1653,6 +1672,7 @@ export type Database = {
         Insert: {
           actual_start_at?: string | null
           created_at?: string | null
+          discount_amount?: number | null
           dispute_reason?: string | null
           dispute_status?: string | null
           end_date: string
@@ -1663,9 +1683,11 @@ export type Database = {
           manual_payment_confirmed_at?: string | null
           manual_payment_confirmed_by?: string | null
           manual_payment_proof_url?: string | null
+          original_total_price?: number | null
           owner_id: string
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           pickup_code?: string | null
+          promo_code_id?: string | null
           renter_id: string
           return_photos?: string[] | null
           start_date: string
@@ -1676,6 +1698,7 @@ export type Database = {
         Update: {
           actual_start_at?: string | null
           created_at?: string | null
+          discount_amount?: number | null
           dispute_reason?: string | null
           dispute_status?: string | null
           end_date?: string
@@ -1686,9 +1709,11 @@ export type Database = {
           manual_payment_confirmed_at?: string | null
           manual_payment_confirmed_by?: string | null
           manual_payment_proof_url?: string | null
+          original_total_price?: number | null
           owner_id?: string
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           pickup_code?: string | null
+          promo_code_id?: string | null
           renter_id?: string
           return_photos?: string[] | null
           start_date?: string

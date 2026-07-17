@@ -20,6 +20,8 @@ import { detectBannedContent, ModerationResult } from '@/utils/contentModeration
 import { VerificationRequiredBanner } from '@/components/VerificationRequiredBanner';
 import { ContentModerationFeedback } from '@/components/ContentModerationFeedback';
 import { useDebounce } from '@/hooks/use-debounce';
+import { Switch } from '@/components/ui/switch';
+import { categorySpecLabels } from '@/components/SpecificationsSection';
 
 export default function ListItem() {
   const { t } = useTranslation();
@@ -38,6 +40,9 @@ export default function ListItem() {
     deposit_amount: '',
     payment_mode: 'escrow' as 'escrow' | 'manual',
     location: profile?.location || '',
+    instant_book_enabled: false,
+    auto_approve_bookings: false,
+    specifications: {} as Record<string, string>,
   });
 
   // Debounced values for real-time content moderation
@@ -110,6 +115,9 @@ export default function ListItem() {
         const sanitizedDescription = validateUserInput(formData.description, 5000);
         const sanitizedLocation = validateUserInput(formData.location, 200);
 
+        const specs = Object.fromEntries(
+          Object.entries(formData.specifications).filter(([, v]) => v.trim())
+        );
         const { data, error } = await supabase
           .from('items')
           .insert({
@@ -126,6 +134,9 @@ export default function ListItem() {
             longitude: profile?.longitude,
             listing_status: 'draft',
             is_available: false,
+            instant_book_enabled: formData.instant_book_enabled,
+            auto_approve_bookings: formData.auto_approve_bookings,
+            specifications: specs,
           })
           .select()
           .single();
@@ -195,6 +206,9 @@ export default function ListItem() {
       const sanitizedDescription = validateUserInput(formData.description, 5000);
       const sanitizedLocation = validateUserInput(formData.location, 200);
 
+      const specs = Object.fromEntries(
+        Object.entries(formData.specifications).filter(([, v]) => v.trim())
+      );
       const { data, error } = await supabase
         .from('items')
         .insert({
@@ -210,6 +224,9 @@ export default function ListItem() {
           latitude: profile?.latitude,
           longitude: profile?.longitude,
           listing_status: 'active',
+          instant_book_enabled: formData.instant_book_enabled,
+          auto_approve_bookings: formData.auto_approve_bookings,
+          specifications: specs,
         })
         .select()
         .single();
@@ -438,6 +455,50 @@ export default function ListItem() {
                   placeholder="City, State"
                   required
                 />
+              </div>
+
+              {/* Instant Booking */}
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Instant Booking</Label>
+                  <p className="text-xs text-muted-foreground">Allow renters to book instantly without waiting for approval</p>
+                </div>
+                <Switch
+                  checked={formData.instant_book_enabled}
+                  onCheckedChange={(checked) => setFormData({ ...formData, instant_book_enabled: checked })}
+                />
+              </div>
+
+              {formData.instant_book_enabled && (
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Auto-approve Bookings</Label>
+                    <p className="text-xs text-muted-foreground">Automatically approve all incoming booking requests</p>
+                  </div>
+                  <Switch
+                    checked={formData.auto_approve_bookings}
+                    onCheckedChange={(checked) => setFormData({ ...formData, auto_approve_bookings: checked })}
+                  />
+                </div>
+              )}
+
+              {/* Specifications */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Specifications</Label>
+                {categorySpecLabels[formData.category].map((field) => (
+                  <div key={field.key} className="grid grid-cols-2 gap-2 items-center">
+                    <Label className="text-xs text-muted-foreground">{field.label}</Label>
+                    <Input
+                      value={formData.specifications[field.key] || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        specifications: { ...formData.specifications, [field.key]: e.target.value }
+                      })}
+                      className="h-9 text-sm"
+                      placeholder={field.label}
+                    />
+                  </div>
+                ))}
               </div>
 
               <div className="sticky bottom-16 md:bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">

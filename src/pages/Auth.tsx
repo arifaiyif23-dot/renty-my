@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,8 @@ export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as any)?.redirectTo;
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -81,7 +83,7 @@ export default function Auth() {
       }
       await signIn(result.data.email, result.data.password);
       toast.success('Welcome back!');
-      navigate('/');
+      navigate(redirectTo || '/');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       
@@ -140,7 +142,7 @@ export default function Auth() {
         console.warn('Failed to record T&C acceptance', e);
       }
       toast.success("Account created! Welcome to Renty!");
-      navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : "/");
+      navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : (redirectTo || "/"));
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       

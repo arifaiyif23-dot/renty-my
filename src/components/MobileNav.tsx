@@ -41,14 +41,14 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-[280px] sm:w-[320px]">
-        <SheetHeader>
+      <SheetContent side="left" className="w-[85vw] max-w-[320px] flex flex-col p-0 gap-0">
+        <SheetHeader className="px-6 pt-6 pb-0">
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
 
         {/* User Profile Section */}
         {user && profile && (
-          <div className="flex items-center gap-3 py-6 border-b">
+          <div className="flex items-center gap-3 px-6 py-6 border-b">
             <Avatar className="h-12 w-12">
               <AvatarImage src={profile.avatar_url} />
               <AvatarFallback className="text-lg">{userInitials}</AvatarFallback>
@@ -60,34 +60,35 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
           </div>
         )}
 
-        {/* Navigation Items */}
-        <nav className="flex flex-col gap-2 py-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => onOpenChange(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors touch-target"
-            >
-              <item.icon className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
+        {/* Navigation Items + Sign Out */}
+        <div className="flex flex-col flex-1 min-h-0">
+          <nav className="flex flex-col gap-2 py-6 overflow-y-auto px-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+              >
+                <item.icon className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            ))}
+          </nav>
 
-        {/* Sign Out Button */}
-        {user && (
-          <div className="absolute bottom-6 left-4 right-4">
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-3"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-5 w-5" />
-              Sign Out
-            </Button>
-          </div>
-        )}
+          {user && (
+            <div className="mt-auto px-6 pb-6">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
+              </Button>
+            </div>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );

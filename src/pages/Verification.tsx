@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,8 @@ type Step = 1 | 2 | 3 | 4 | 5 | 6;
 export default function Verification() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as any)?.redirectTo;
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [documentType, setDocumentType] = useState<DocumentType>("mykad");
   const [documentFront, setDocumentFront] = useState<File | null>(null);
@@ -298,7 +300,7 @@ export default function Verification() {
       <Header />
       <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate('/profile')}>
+          <Button variant="ghost" onClick={() => navigate(redirectTo || '/profile')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile
           </Button>
@@ -607,7 +609,7 @@ export default function Verification() {
                         <Badge variant="secondary" className="text-lg py-2 px-4">
                           Confidence Score: {result.confidence}%
                         </Badge>
-                        <Button onClick={() => navigate('/profile')} className="mt-4">
+                        <Button onClick={() => navigate(redirectTo || '/profile')} className="mt-4">
                           Return to Profile
                         </Button>
                       </>
@@ -621,7 +623,7 @@ export default function Verification() {
                         <Badge variant="secondary" className="text-lg py-2 px-4">
                           Confidence Score: {result.confidence}%
                         </Badge>
-                        <Button onClick={() => navigate('/profile')} className="mt-4">
+                        <Button onClick={() => navigate(redirectTo || '/profile')} className="mt-4">
                           Return to Profile
                         </Button>
                       </>
