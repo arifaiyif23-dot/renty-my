@@ -61,7 +61,7 @@ interface DailyStats {
   bounced: number;
 }
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280'];
+const COLORS = ['hsl(var(--success))', 'hsl(var(--primary))', 'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--muted-foreground))'];
 
 export default function EmailAnalytics() {
   const [stats, setStats] = useState<EmailStats | null>(null);
@@ -145,11 +145,11 @@ export default function EmailAnalytics() {
       case 'sent':
         return <Badge variant="secondary">Sent</Badge>;
       case 'delivered':
-        return <Badge className="bg-blue-500">Delivered</Badge>;
+        return <Badge className="bg-primary">Delivered</Badge>;
       case 'opened':
-        return <Badge className="bg-green-500"><Eye className="h-3 w-3 mr-1" />Opened</Badge>;
+        return <Badge className="bg-success"><Eye className="h-3 w-3 mr-1" />Opened</Badge>;
       case 'clicked':
-        return <Badge className="bg-purple-500"><MousePointerClick className="h-3 w-3 mr-1" />Clicked</Badge>;
+        return <Badge className="bg-secondary"><MousePointerClick className="h-3 w-3 mr-1" />Clicked</Badge>;
       case 'bounced':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Bounced</Badge>;
       case 'failed':
@@ -205,7 +205,7 @@ export default function EmailAnalytics() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Delivery Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.deliveryRate || 0}%</div>
@@ -216,7 +216,7 @@ export default function EmailAnalytics() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Open Rate</CardTitle>
-            <Eye className="h-4 w-4 text-blue-500" />
+            <Eye className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.openRate || 0}%</div>
@@ -259,9 +259,9 @@ export default function EmailAnalytics() {
                   <XAxis dataKey="date" fontSize={12} />
                   <YAxis fontSize={12} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="sent" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name="Sent" />
-                  <Area type="monotone" dataKey="delivered" stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Delivered" />
-                  <Area type="monotone" dataKey="opened" stackId="3" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.6} name="Opened" />
+                  <Area type="monotone" dataKey="sent" stackId="1" stroke={`hsl(var(--primary))`} fill={`hsl(var(--primary))`} fillOpacity={0.6} name="Sent" />
+                  <Area type="monotone" dataKey="delivered" stackId="2" stroke={`hsl(var(--success))`} fill={`hsl(var(--success))`} fillOpacity={0.6} name="Delivered" />
+                  <Area type="monotone" dataKey="opened" stackId="3" stroke={`hsl(var(--warning))`} fill={`hsl(var(--warning))`} fillOpacity={0.6} name="Opened" />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -334,7 +334,7 @@ export default function EmailAnalytics() {
                   <div className="text-xs text-muted-foreground text-right ml-4">
                     {format(new Date(email.created_at), 'MMM dd, HH:mm')}
                     {email.opened_at && (
-                      <div className="text-green-600">
+                      <div className="text-success">
                         Opened {format(new Date(email.opened_at), 'HH:mm')}
                       </div>
                     )}

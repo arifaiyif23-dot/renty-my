@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ export default function NotificationSettings() {
   useEffect(() => {
     if (!user) return;
     loadPreferences();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadPreferences = async () => {
@@ -50,7 +51,6 @@ export default function NotificationSettings() {
       if (data) {
         setPrefs(data);
       } else {
-        // Create default preferences
         const { data: newPrefs, error: createError } = await supabase
           .from("notification_preferences")
           .insert({ user_id: user!.id })
@@ -131,66 +131,61 @@ export default function NotificationSettings() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav">
-        <div className="mb-6">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+        <div className="flex items-center gap-3 mb-6">
+          <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Bell className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold">Notification Preferences</h1>
+            <p className="text-xs text-muted-foreground">Choose which notifications you receive</p>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Bell className="h-6 w-6 text-primary" />
-              <div>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>Choose which notifications you receive</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="text-sm font-medium mb-3">Notification Types</h3>
-              <div className="space-y-3">
-                {notificationToggles.map(({ key, label, desc }) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{label}</p>
-                      <p className="text-xs text-muted-foreground">{desc}</p>
-                    </div>
-                    <Switch
-                      checked={prefs[key] as boolean}
-                      onCheckedChange={() => togglePref(key as keyof NotificationPreference)}
-                    />
+        <GlassCard padding="lg" className="space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold mb-3">Notification Types</h3>
+            <div className="space-y-3">
+              {notificationToggles.map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between py-1">
+                  <div>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
                   </div>
-                ))}
-              </div>
+                  <Switch
+                    checked={prefs[key] as boolean}
+                    onCheckedChange={() => togglePref(key as keyof NotificationPreference)}
+                  />
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className="border-t pt-6">
-              <h3 className="text-sm font-medium mb-3">Delivery Methods</h3>
-              <div className="space-y-3">
-                {deliveryToggles.map(({ key, label, desc }) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{label}</p>
-                      <p className="text-xs text-muted-foreground">{desc}</p>
-                    </div>
-                    <Switch
-                      checked={prefs[key]}
-                      onCheckedChange={() => togglePref(key)}
-                    />
+          <div className="border-t pt-6">
+            <h3 className="text-sm font-semibold mb-3">Delivery Methods</h3>
+            <div className="space-y-3">
+              {deliveryToggles.map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between py-1">
+                  <div>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
                   </div>
-                ))}
-              </div>
+                  <Switch
+                    checked={prefs[key]}
+                    onCheckedChange={() => togglePref(key)}
+                  />
+                </div>
+              ))}
             </div>
+          </div>
 
-            <Button onClick={handleSave} disabled={saving} className="w-full">
-              {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Preferences
-            </Button>
-          </CardContent>
-        </Card>
+          <Button onClick={handleSave} disabled={saving} className="w-full rounded-xl">
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            Save Preferences
+          </Button>
+        </GlassCard>
       </div>
     </>
   );

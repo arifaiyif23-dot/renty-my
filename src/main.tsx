@@ -5,6 +5,7 @@ import App from "./App.tsx";
 import "./index.css";
 import "./i18n/config";
 import { registerServiceWorker } from './utils/registerServiceWorker';
+import { prefetchRoutes } from '@/hooks/use-prefetch';
 
 // Performance monitoring — configure with your analytics provider
 // import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
@@ -21,3 +22,30 @@ createRoot(document.getElementById("root")!).render(
     </HelmetProvider>
   </StrictMode>
 );
+
+// Preload remaining lazy chunks after initial paint
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(() => {
+    prefetchRoutes([
+      'verification',
+      'help',
+      'terms',
+      'privacy',
+      'earnings',
+      'notificationSettings',
+      'savedSearches',
+    ]);
+  }, { timeout: 5000 });
+} else {
+  setTimeout(() => {
+    prefetchRoutes([
+      'verification',
+      'help',
+      'terms',
+      'privacy',
+      'earnings',
+      'notificationSettings',
+      'savedSearches',
+    ]);
+  }, 3000);
+}

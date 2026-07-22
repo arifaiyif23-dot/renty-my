@@ -127,11 +127,12 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
               onMouseEnter={() => setHoveredRating(star)}
               onMouseLeave={() => setHoveredRating(0)}
               className="transition-transform hover:scale-110"
+              aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
             >
               <Star
                 className={`h-8 w-8 ${
                   star <= (hoveredRating || rating)
-                    ? 'fill-yellow-400 text-yellow-400'
+                    ? 'fill-amber-400 text-amber-400'
                     : 'text-muted'
                 }`}
               />

@@ -47,14 +47,14 @@ export function ContentModerationFeedback({ result }: ContentModerationFeedbackP
   // Warning state - has some keywords but not blocked
   if (result.detectedKeywords.length > 0) {
     return (
-      <Alert className="mt-4 border-yellow-500/50 bg-yellow-500/10">
-        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        <AlertTitle className="text-yellow-700 dark:text-yellow-400">Content Warning</AlertTitle>
-        <AlertDescription className="text-yellow-600 dark:text-yellow-300 mt-2">
+      <Alert className="mt-4 border-warning/30 bg-warning/10">
+        <AlertTriangle className="h-4 w-4 text-warning" />
+        <AlertTitle className="text-warning">Content Warning</AlertTitle>
+        <AlertDescription className="text-warning mt-2">
           <p>Your listing contains words that may be flagged. Please ensure you are listing a physical item for rent, not a service.</p>
           <div className="flex flex-wrap gap-1 mt-2">
             {result.detectedKeywords.slice(0, 3).map((keyword, index) => (
-              <Badge key={keyword} variant="outline" className="text-xs border-yellow-500 text-yellow-700">
+              <Badge key={keyword} variant="outline" className="text-xs border-warning text-warning">
                 {keyword}
               </Badge>
             ))}

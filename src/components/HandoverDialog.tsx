@@ -136,7 +136,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
                 {photoUrls.map((url, idx) => (
                   <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border">
                     <img src={url} alt={`Evidence ${idx + 1}`} className="object-cover w-full h-full" />
-                    <div className="absolute top-1 right-1 bg-green-500 rounded-full p-1">
+                    <div className="absolute top-1 right-1 bg-success rounded-full p-1">
                       <CheckCircle className="h-3 w-3 text-white" />
                     </div>
                   </div>
@@ -144,9 +144,9 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
               </div>
             )}
 
-            <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <Camera className="h-5 w-5 text-blue-600" />
-              <p className="text-sm text-blue-800 dark:text-blue-400">
+            <div className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+              <Camera className="h-5 w-5 text-primary" />
+              <p className="text-sm text-primary">
                 Photos uploaded: {photoUrls.length}
               </p>
             </div>
@@ -181,6 +181,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
           </Button>
           {step === 'upload' ? (
             <Button
+              variant="default"
               onClick={() => setStep('verify')}
               disabled={!canProceedToVerify}
               className="w-full sm:w-auto"
@@ -189,6 +190,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
             </Button>
           ) : (
             <Button
+              variant="default"
               onClick={handleVerifyCode}
               disabled={enteredCode.length !== 4 || isProcessing}
               className="w-full sm:w-auto"

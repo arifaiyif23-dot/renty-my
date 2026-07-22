@@ -23,34 +23,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let profileTimer: ReturnType<typeof setTimeout> | null = null;
-
-    // Listen for auth changes FIRST
+    // Listen for auth changes (handles cross-tab sign-in/out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      // Defer fetchProfile to prevent deadlock
-      if (profileTimer) clearTimeout(profileTimer);
-      if (session?.user) {
-        profileTimer = setTimeout(() => {
-          fetchProfile(session.user.id);
-          profileTimer = null;
-        }, 0);
-      } else {
+      if (!session?.user) {
         setProfile(null);
         setLoading(false);
       }
     });
 
-    // THEN check active session
+    // Check active session
     supabase.auth.getSession().then(({ data }) => {
       const session = data?.session ?? null;
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
+      if (!session?.user) {
         setLoading(false);
       }
     }).catch((err) => {
@@ -61,9 +49,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       subscription.unsubscribe();
-      if (profileTimer) clearTimeout(profileTimer);
     };
   }, []);
+
+  // Single source of fetch — runs when user resolves from getSession OR cross-tab sign-in
+  useEffect(() => {
+    if (user) {
+      fetchProfile(user.id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Realtime: keep profile in sync so verified badge / permissions update without refresh
   useEffect(() => {
@@ -75,9 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload) => {
           const newData = payload.new as Record<string, unknown>;
-          if (newData && typeof newData === 'object' && 'full_name' in newData) {
-            setProfile((prev) => prev ? { ...prev, ...newData } as Profile : prev);
-          }
+          setProfile((prev) => (prev ? { ...prev, ...newData } : newData) as Profile);
         }
       )
       .subscribe((status) => {
@@ -90,11 +83,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [user?.id]);
 
+  // Refetch profile when returning to the page (catches updates missed by Realtime)
+  useEffect(() => {
+    if (!user?.id) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProfile(user.id);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, email, phone, is_verified, verification_level, trust_score, is_suspended, role, created_at')
+        .select('id, full_name, avatar_url, phone, location, is_verified, verification_level, trust_score, is_suspended, preferred_role, created_at, total_rentals_completed, total_reviews_received, response_rate, avg_response_time_minutes, last_active_at')
         .eq('id', userId)
         .maybeSingle();
 
@@ -165,6 +171,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

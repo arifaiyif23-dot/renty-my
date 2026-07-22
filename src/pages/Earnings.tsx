@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
 import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
 import Header from '@/components/Header';
@@ -51,7 +52,7 @@ export default function Earnings() {
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
   const [showBankDialog, setShowBankDialog] = useState(false);
   const [saving, setSaving] = useState(false);
-  
+
   const [bankForm, setBankForm] = useState({
     bank_name: '',
     account_number: '',
@@ -71,6 +72,7 @@ export default function Earnings() {
     if (user) {
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const mountedRef = useRef(true);
@@ -81,7 +83,6 @@ export default function Earnings() {
   const fetchData = async () => {
     if (!mountedRef.current) return;
     try {
-      // Fetch payouts
       const { data: payoutsData, error: payoutsError } = await supabase
         .from('payouts')
         .select('id, payout_amount, status, created_at')
@@ -91,7 +92,6 @@ export default function Earnings() {
       if (payoutsError) throw payoutsError;
       setPayouts(payoutsData || []);
 
-      // Calculate stats
       const sumBy = (status: string) =>
         (payoutsData || [])
           .filter((p) => p.status === status)
@@ -111,14 +111,12 @@ export default function Earnings() {
         completedPayouts: (payoutsData || []).filter((p) => p.status === 'completed').length,
       });
 
-      // Fetch bank account
       const { data: bankData, error: bankError } = await supabase
         .from('owner_bank_accounts')
         .select('id, account_number, bank_name, account_holder_name')
         .eq('user_id', user?.id)
         .single();
 
-      // Mask account number for display
       if (bankData) {
         const { data: masked } = await supabase.rpc('mask_account_number', {
           account_number: bankData.account_number
@@ -165,7 +163,6 @@ export default function Earnings() {
       };
 
       if (bankAccount) {
-        // Update existing
         const { error } = await supabase
           .from('owner_bank_accounts')
           .update(bankForm)
@@ -173,7 +170,6 @@ export default function Earnings() {
 
         if (error) throw error;
       } else {
-        // Insert new
         const { error } = await supabase
           .from('owner_bank_accounts')
           .insert([payload]);
@@ -193,19 +189,19 @@ export default function Earnings() {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      held: { label: 'Held Until Complete', variant: 'secondary' as const, icon: Clock },
-      awaiting_bank_details: { label: 'Add Bank Account', variant: 'secondary' as const, icon: XCircle },
-      pending: { label: 'Processing', variant: 'default' as const, icon: Clock },
-      completed: { label: 'Paid', variant: 'default' as const, icon: CheckCircle },
-      failed: { label: 'Failed', variant: 'destructive' as const, icon: XCircle },
+    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ComponentType<{ className?: string }> }> = {
+      held: { label: 'Held Until Complete', variant: 'secondary', icon: Clock },
+      awaiting_bank_details: { label: 'Add Bank Account', variant: 'secondary', icon: XCircle },
+      pending: { label: 'Processing', variant: 'default', icon: Clock },
+      completed: { label: 'Paid', variant: 'default', icon: CheckCircle },
+      failed: { label: 'Failed', variant: 'destructive', icon: XCircle },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'default' as const, icon: Clock };
+    const config = statusConfig[status] || { label: status, variant: 'default' as const, icon: Clock };
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant} className="gap-1">
+      <Badge variant={config.variant} className="gap-1 rounded-full">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
@@ -238,13 +234,13 @@ export default function Earnings() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
           <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
             <DialogTrigger asChild>
-              <Button variant={bankAccount ? "outline" : "default"}>
+              <Button variant={bankAccount ? "outline" : "default"} className="rounded-xl">
                 {bankAccount ? <CreditCard className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
                 {bankAccount ? 'Update Bank Account' : 'Add Bank Account'}
               </Button>
@@ -264,6 +260,7 @@ export default function Earnings() {
                     placeholder="e.g., Maybank, CIMB, Public Bank"
                     value={bankForm.bank_name}
                     onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })}
+                    className="rounded-xl"
                   />
                 </div>
                 <div>
@@ -273,6 +270,7 @@ export default function Earnings() {
                     placeholder="1234567890"
                     value={bankForm.account_number}
                     onChange={(e) => setBankForm({ ...bankForm, account_number: e.target.value })}
+                    className="rounded-xl"
                   />
                 </div>
                 <div>
@@ -282,12 +280,13 @@ export default function Earnings() {
                     placeholder="As per bank account"
                     value={bankForm.account_holder_name}
                     onChange={(e) => setBankForm({ ...bankForm, account_holder_name: e.target.value })}
+                    className="rounded-xl"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowBankDialog(false)}>Cancel</Button>
-                <Button onClick={handleSaveBankAccount} disabled={saving}>
+                <Button variant="outline" className="rounded-xl" onClick={() => setShowBankDialog(false)}>Cancel</Button>
+                <Button className="rounded-xl" onClick={handleSaveBankAccount} disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Bank Account
                 </Button>
@@ -297,145 +296,140 @@ export default function Earnings() {
           </div>
         </div>
 
-        {/* Bank Account Warning */}
         {!bankAccount && stats.pendingPayouts > 0 && (
-          <Card className="mb-6 border-orange-500/50 bg-orange-500/10">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <CreditCard className="h-5 w-5 text-orange-500 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold mb-1">Bank Account Required</h3>
-                  <p className="text-sm text-muted-foreground">
-                    You have pending payouts! Add your bank account details now to receive payments.
-                  </p>
-                  <Button 
-                    size="sm" 
-                    className="mt-3"
-                    onClick={() => setShowBankDialog(true)}
-                  >
-                    Add Bank Account Now
-                  </Button>
-                </div>
+          <GlassCard variant="subtle" padding="lg" className="mb-6">
+            <div className="flex items-start gap-3">
+              <CreditCard className="h-5 w-5 text-warning mt-0.5" />
+              <div>
+                <h3 className="font-semibold mb-1">Bank Account Required</h3>
+                <p className="text-sm text-muted-foreground">
+                  You have pending payouts! Add your bank account details now to receive payments.
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-3 rounded-xl"
+                  onClick={() => setShowBankDialog(true)}
+                >
+                  Add Bank Account Now
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </GlassCard>
         )}
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> Total Earnings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">RM {stats.totalEarnings.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">All time</p>
-            </CardContent>
-          </Card>
+              </p>
+              <p className="text-2xl font-bold tabular-nums">RM {stats.totalEarnings.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">All time</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-success" />
+            </div>
+          </GlassCard>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
                 <Shield className="h-3 w-3" /> Held in Escrow
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">RM {stats.heldAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Released ~3 days after rental ends</p>
-            </CardContent>
-          </Card>
+              </p>
+              <p className="text-2xl font-bold tabular-nums">RM {stats.heldAmount.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Released ~3 days after rental ends</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-primary" />
+            </div>
+          </GlassCard>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
                 <Clock className="h-3 w-3" /> Pending Payout
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">RM {stats.pendingAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stats.pendingPayouts} in queue</p>
-            </CardContent>
-          </Card>
+              </p>
+              <p className="text-2xl font-bold tabular-nums">RM {stats.pendingAmount.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stats.pendingPayouts} in queue</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <Clock className="h-5 w-5 text-warning" />
+            </div>
+          </GlassCard>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" /> Paid Out
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">RM {stats.paidAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">{stats.completedPayouts} completed</p>
-            </CardContent>
-          </Card>
+              </p>
+              <p className="text-2xl font-bold tabular-nums">RM {stats.paidAmount.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stats.completedPayouts} completed</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-sky-500" />
+            </div>
+          </GlassCard>
         </div>
 
-        {/* Current Bank Account */}
         {bankAccount && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Bank Account Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bank Name:</span>
-                  <span className="font-semibold">{bankAccount.bank_name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Account Number:</span>
-                  <span className="font-mono">{bankAccount.account_number}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Account Holder:</span>
-                  <span className="font-semibold">{bankAccount.account_holder_name}</span>
-                </div>
+          <GlassCard padding="lg" className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <h2 className="font-semibold text-lg">Bank Account Details</h2>
+            </div>
+            <div className="grid gap-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Bank Name:</span>
+                <span className="font-semibold">{bankAccount.bank_name}</span>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Account Number:</span>
+                <span className="font-mono">{bankAccount.account_number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Account Holder:</span>
+                <span className="font-semibold">{bankAccount.account_holder_name}</span>
+              </div>
+            </div>
+          </GlassCard>
         )}
 
-        {/* Payouts List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Payout History</CardTitle>
-            <CardDescription>
-              All payouts from completed rentals
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {payouts.length === 0 ? (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Payout History</h2>
+              <p className="text-sm text-muted-foreground">All payouts from completed rentals</p>
+            </div>
+            <Badge variant="outline" className="rounded-full">{payouts.length} total</Badge>
+          </div>
+          {payouts.length === 0 ? (
+            <GlassCard padding="lg">
               <EnhancedEmptyState
                 icon={DollarSign}
                 title="No payouts yet"
                 description="Payouts are created automatically when rentals complete"
               />
-            ) : (
-              <div className="space-y-4">
-                {payouts.map((payout) => (
-                  <div key={payout.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div>
-                          <div className="font-semibold">RM {parseFloat(payout.payout_amount.toString()).toFixed(2)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Rental: RM {parseFloat(payout.rental_amount.toString()).toFixed(2)} - Fee: RM {parseFloat(payout.platform_fee.toString()).toFixed(2)}
-                          </div>
-                        </div>
+            </GlassCard>
+          ) : (
+            <div className="space-y-3">
+              {payouts.map((payout) => (
+                <GlassCard key={payout.id} variant="subtle" padding="md">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <span className="text-lg font-bold tabular-nums">RM {parseFloat(payout.payout_amount.toString()).toFixed(2)}</span>
                         {getStatusBadge(payout.status)}
                       </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Rental: RM {parseFloat(payout.rental_amount.toString()).toFixed(2)} — Fee: RM {parseFloat(payout.platform_fee.toString()).toFixed(2)}
+                      </p>
+                      <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
                         <p>Created: {format(new Date(payout.created_at), 'PPp')}</p>
                         {payout.processed_at && (
                           <p>Processed: {format(new Date(payout.processed_at), 'PPp')}</p>
                         )}
                         {payout.bank_name && (
-                          <p>Bank: {payout.bank_name} - {payout.account_number ? '****' + payout.account_number.slice(-4) : 'N/A'}</p>
+                          <p>Bank: {payout.bank_name} — {payout.account_number ? '****' + payout.account_number.slice(-4) : 'N/A'}</p>
                         )}
                         {payout.failure_reason && (
                           <p className="text-destructive">Reason: {payout.failure_reason}</p>
@@ -443,11 +437,11 @@ export default function Earnings() {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </GlassCard>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

@@ -12,8 +12,13 @@ export const SocialProof = ({ itemId }: SocialProofProps) => {
   const [recentBookings, setRecentBookings] = useState(0);
 
   useEffect(() => {
-    trackView();
+    const viewed = sessionStorage.getItem(`viewed-${itemId}`);
+    if (!viewed) {
+      trackView();
+      sessionStorage.setItem(`viewed-${itemId}`, '1');
+    }
     fetchStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId]);
 
   const trackView = async () => {

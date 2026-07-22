@@ -13,7 +13,11 @@ type AdminAction =
   | { action: 'process_payout'; payoutId: string; status: string; transactionReference?: string; failureReason?: string }
   | { action: 'resolve_report'; reportId: string; status: string; resolutionNote?: string }
   | { action: 'cleanup_payments' }
-  | { action: 'log_sensitive_access'; resourceType: string; resourceId: string };
+  | { action: 'log_sensitive_access'; resourceType: string; resourceId: string }
+  | { action: 'assign_admin_role'; email: string; permissions?: string[] }
+  | { action: 'update_admin_permissions'; userId: string; permissions: string[] }
+  | { action: 'remove_admin_role'; userId: string }
+  | { action: 'list_admins' };
 
 export async function invokeAdminOperation(op: AdminAction) {
   const { data, error } = await supabase.functions.invoke('admin-operations', {

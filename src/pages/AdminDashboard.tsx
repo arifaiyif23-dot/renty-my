@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ interface VerificationRequest {
   fraud_risk_score: number | null;
   ai_analysis_result: Record<string, unknown> | null;
   created_at: string;
-  profiles: {
+  profiles?: {
     full_name: string;
   };
 }
@@ -121,6 +121,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchAllData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -129,6 +130,7 @@ export default function AdminDashboard() {
     } else if (activeTab === "verifications") {
       fetchVerifications();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, fraudFilterStatus, verificationFilterStatus]);
 
   const fetchAllData = async () => {
@@ -159,7 +161,7 @@ export default function AdminDashboard() {
         supabase.from('rentals').select('*', { count: 'exact', head: true }).in('status', ['paid', 'active', 'approved']),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
         supabase.from('reports').select('*', { count: 'exact', head: true }).neq('status', 'dismissed'),
-        supabase.from('disputes').select('*', { count: 'exact', head: true }).neq('status', 'resolved').neq('status', 'closed'),
+        supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('is_disputed', true).or('dispute_status.is.null,dispute_status.eq.open'),
         supabase.from('payments').select('platform_fee').eq('status', 'completed'),
       ]);
 
@@ -188,10 +190,7 @@ export default function AdminDashboard() {
     try {
       let query = supabase
         .from('fraud_alerts')
-        .select(`
-          id, user_id, status, alert_type, created_at,
-          profiles(full_name, avatar_url)
-        `)
+        .select(`id, user_id, status, alert_type, risk_score, details, created_at`)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -202,7 +201,18 @@ export default function AdminDashboard() {
       const { data, error } = await query;
       if (error) throw error;
 
-      setFraudAlerts(data || []);
+      const alerts = data || [];
+      const userIds = [...new Set(alerts.map(a => a.user_id).filter(Boolean))] as string[];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+        const profileMap = new Map((profiles || []).map(p => [p.id, { full_name: p.full_name, avatar_url: p.avatar_url }]));
+        setFraudAlerts(alerts.map(a => ({ ...a, profiles: profileMap.get(a.user_id) })));
+      } else {
+        setFraudAlerts(alerts);
+      }
     } catch (error) {
       console.error("Error fetching fraud alerts:", error);
       toast.error("Failed to load fraud alerts");
@@ -213,10 +223,7 @@ export default function AdminDashboard() {
     try {
       let query = supabase
         .from('verification_requests')
-        .select(`
-          id, user_id, document_type, status, created_at,
-          profiles!inner(full_name)
-        `)
+        .select(`id, user_id, document_type, status, created_at`)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -227,7 +234,18 @@ export default function AdminDashboard() {
       const { data, error } = await query;
       if (error) throw error;
 
-      setVerifications(data || []);
+      const v = data || [];
+      const userIds = [...new Set(v.map(x => x.user_id).filter(Boolean))] as string[];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds);
+        const profileMap = new Map((profiles || []).map(p => [p.id, p.full_name]));
+        setVerifications(v.map(x => ({ ...x, profiles: { full_name: profileMap.get(x.user_id) || 'Unknown' } })));
+      } else {
+        setVerifications(v.map(x => ({ ...x, profiles: { full_name: 'Unknown' } })));
+      }
     } catch (error) {
       console.error("Error fetching verifications:", error);
       toast.error("Failed to load verifications");
@@ -323,22 +341,22 @@ export default function AdminDashboard() {
   });
 
   const getRiskBadge = (score: number) => {
-    if (score >= 80) return <Badge variant="destructive">Critical Risk ({score}%)</Badge>;
-    if (score >= 60) return <Badge className="bg-orange-500">High Risk ({score}%)</Badge>;
-    if (score >= 40) return <Badge className="bg-yellow-500">Medium Risk ({score}%)</Badge>;
-    return <Badge variant="secondary">Low Risk ({score}%)</Badge>;
+    if (score >= 80) return <Badge className="rounded-full" variant="destructive">Critical Risk ({score}%)</Badge>;
+    if (score >= 60) return <Badge className="bg-warning rounded-full">High Risk ({score}%)</Badge>;
+    if (score >= 40) return <Badge className="bg-warning rounded-full">Medium Risk ({score}%)</Badge>;
+    return <Badge className="rounded-full" variant="secondary">Low Risk ({score}%)</Badge>;
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary">Pending Review</Badge>;
+        return <Badge className="rounded-full" variant="secondary">Pending Review</Badge>;
       case 'approved':
-        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
+        return <Badge className="bg-success rounded-full"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
       case 'rejected':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+        return <Badge className="rounded-full" variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
       default:
-        return <Badge>{status}</Badge>;
+        return <Badge className="rounded-full">{status}</Badge>;
     }
   };
 
@@ -379,14 +397,14 @@ export default function AdminDashboard() {
               <AlertTriangle className="h-4 w-4 mr-2" />
               Fraud Alerts
               {stats.pendingFraudAlerts > 0 && (
-                <Badge className="ml-2" variant="destructive">{stats.pendingFraudAlerts}</Badge>
+                <Badge className="ml-2 rounded-full" variant="destructive">{stats.pendingFraudAlerts}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="verifications">
               <Shield className="h-4 w-4 mr-2" />
               Verifications
               {stats.pendingVerifications > 0 && (
-                <Badge className="ml-2" variant="secondary">{stats.pendingVerifications}</Badge>
+                <Badge className="ml-2 rounded-full" variant="secondary">{stats.pendingVerifications}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="email">
@@ -398,103 +416,103 @@ export default function AdminDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <GlassCard>
+                
+                  Total Users
                   <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                
+                
                   <div className="text-2xl font-bold">{stats.totalUsers}</div>
                   <p className="text-xs text-muted-foreground">Registered</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+              <GlassCard>
+                
+                  Active Listings
                   <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                
+                
                   <div className="text-2xl font-bold">{stats.activeListings}</div>
                   <p className="text-xs text-muted-foreground">Available to rent</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Rentals</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
+              <GlassCard>
+                
+                  Active Rentals
+                  <TrendingUp className="h-4 w-4 text-success" />
+                
+                
                   <div className="text-2xl font-bold">{stats.activeRentals}</div>
                   <p className="text-xs text-muted-foreground">In progress</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completed Rentals</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
+              <GlassCard>
+                
+                  Completed Rentals
+                  <CheckCircle className="h-4 w-4 text-success" />
+                
+                
                   <div className="text-2xl font-bold">{stats.completedRentals}</div>
                   <p className="text-xs text-muted-foreground">All time</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
+              <GlassCard>
+                
+                  Platform Revenue
                   <TrendingUp className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
+                
+                
                   <div className="text-2xl font-bold">RM{stats.platformRevenue.toFixed(2)}</div>
                   <p className="text-xs text-muted-foreground">From completed payments</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Actions</CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                </CardHeader>
-                <CardContent>
+              <GlassCard>
+                
+                  Pending Actions
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                
+                
                   <div className="text-2xl font-bold">{stats.pendingVerifications + stats.totalReports + stats.openDisputes}</div>
                   <p className="text-xs text-muted-foreground">Verifications + Reports + Disputes</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Open Reports</CardTitle>
+              <GlassCard>
+                
+                  Open Reports
                   <Flag className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
+                
+                
                   <div className="text-2xl font-bold">{stats.totalReports}</div>
                   <p className="text-xs text-muted-foreground">Pending review</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Open Disputes</CardTitle>
+              <GlassCard>
+                
+                  Open Disputes
                   <AlertTriangle className="h-4 w-4 text-destructive" />
-                </CardHeader>
-                <CardContent>
+                
+                
                   <div className="text-2xl font-bold">{stats.openDisputes}</div>
                   <p className="text-xs text-muted-foreground">Need resolution</p>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
+              <GlassCard>
+                
+                  Quick Actions
+                
+                
                   <Button 
-                    className="w-full justify-start" 
+                    className="w-full justify-start rounded-xl" 
                     variant="outline"
                     onClick={() => setActiveTab("verifications")}
                   >
@@ -502,7 +520,7 @@ export default function AdminDashboard() {
                     Review Pending Verifications ({stats.pendingVerifications})
                   </Button>
                   <Button 
-                    className="w-full justify-start" 
+                    className="w-full justify-start rounded-xl" 
                     variant="outline"
                     onClick={() => setActiveTab("fraud-alerts")}
                   >
@@ -510,7 +528,7 @@ export default function AdminDashboard() {
                     Check Fraud Alerts ({stats.pendingFraudAlerts})
                   </Button>
                   <Button 
-                    className="w-full justify-start" 
+                    className="w-full justify-start rounded-xl" 
                     variant="outline"
                     onClick={() => navigate("/admin/listings")}
                   >
@@ -518,7 +536,7 @@ export default function AdminDashboard() {
                     Manage Listings ({stats.activeListings})
                   </Button>
                   <Button 
-                    className="w-full justify-start" 
+                    className="w-full justify-start rounded-xl" 
                     variant="outline"
                     onClick={() => navigate("/admin/rentals")}
                   >
@@ -526,7 +544,7 @@ export default function AdminDashboard() {
                     View Rentals
                   </Button>
                   <Button 
-                    className="w-full justify-start" 
+                    className="w-full justify-start rounded-xl" 
                     variant="outline"
                     onClick={() => navigate("/admin/payments")}
                   >
@@ -534,21 +552,21 @@ export default function AdminDashboard() {
                     Payment Monitoring
                   </Button>
                   <Button 
-                    className="w-full justify-start" 
+                    className="w-full justify-start rounded-xl" 
                     variant="outline"
                     onClick={fetchAllData}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Refresh Dashboard
                   </Button>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pending Items</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
+              <GlassCard>
+                
+                  Pending Items
+                
+                
                   <div className="flex items-center justify-between text-sm">
                     <span>Verifications</span>
                     <span className="font-bold">{stats.pendingVerifications}</span>
@@ -569,15 +587,15 @@ export default function AdminDashboard() {
                     <span className="font-medium">Total Pending</span>
                     <span className="font-bold">{stats.pendingVerifications + stats.pendingFraudAlerts + stats.totalReports + stats.openDisputes}</span>
                   </div>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             </div>
           </TabsContent>
 
           {/* Fraud Alerts Tab */}
           <TabsContent value="fraud-alerts" className="space-y-4">
-            <Card>
-              <CardContent className="pt-6">
+            <GlassCard>
+              
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="flex-1">
                     <div className="relative">
@@ -586,12 +604,12 @@ export default function AdminDashboard() {
                         placeholder="Search fraud alerts..."
                         value={fraudSearchQuery}
                         onChange={(e) => setFraudSearchQuery(e.target.value)}
-                        className="pl-10"
+                        className="rounded-xl pl-10"
                       />
                     </div>
                   </div>
                   <Select value={fraudFilterStatus} onValueChange={setFraudFilterStatus}>
-                    <SelectTrigger className="w-full md:w-[200px]">
+                    <SelectTrigger className="w-full md:w-[200px] rounded-xl">
                       <Filter className="h-4 w-4 mr-2" />
                       <SelectValue />
                     </SelectTrigger>
@@ -603,31 +621,31 @@ export default function AdminDashboard() {
                     </SelectContent>
                   </Select>
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
             <div className="grid gap-4">
               {filteredFraudAlerts.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-muted-foreground">
+                <GlassCard>
+                  
                     No fraud alerts found
-                  </CardContent>
-                </Card>
+                  
+                </GlassCard>
               ) : (
                 filteredFraudAlerts.map((alert) => (
-                  <Card key={alert.id} className="border-l-4 border-l-destructive">
-                    <CardHeader>
+                  <GlassCard key={alert.id} className="border-l-4 border-l-destructive">
+                    
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-lg capitalize">{alert.alert_type.replace(/_/g, ' ')}</CardTitle>
+                          {alert.alert_type.replace(/_/g, ' ')}
                           <p className="text-sm text-muted-foreground">
                             User: {alert.profiles?.full_name} | {format(new Date(alert.created_at), "MMM dd, yyyy HH:mm")}
                           </p>
                         </div>
                         {getRiskBadge(alert.risk_score)}
                       </div>
-                    </CardHeader>
-                    <CardContent>
+                    
+                    
                       <div className="space-y-4">
                         <div className="bg-muted p-4 rounded-lg">
                           <p className="text-sm font-medium mb-2">Details:</p>
@@ -637,14 +655,14 @@ export default function AdminDashboard() {
                         </div>
                         {alert.status === 'pending' && (
                           <div className="flex gap-2">
-                            <Button
+                            <Button className="rounded-xl"
                               size="sm"
                               onClick={() => handleFraudAlertAction(alert.id, 'reviewed')}
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Mark as Reviewed
                             </Button>
-                            <Button
+                            <Button className="rounded-xl"
                               size="sm"
                               variant="outline"
                               onClick={() => handleFraudAlertAction(alert.id, 'dismissed')}
@@ -655,13 +673,13 @@ export default function AdminDashboard() {
                           </div>
                         )}
                         {alert.status !== 'pending' && (
-                          <Badge variant="secondary">
+                          <Badge className="rounded-full" variant="secondary">
                             Status: {alert.status}
                           </Badge>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    
+                  </GlassCard>
                 ))
               )}
             </div>
@@ -669,8 +687,8 @@ export default function AdminDashboard() {
 
           {/* Verifications Tab */}
           <TabsContent value="verifications" className="space-y-4">
-            <Card>
-              <CardContent className="pt-6">
+            <GlassCard>
+              
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
@@ -680,12 +698,12 @@ export default function AdminDashboard() {
                           placeholder="Search by name or IC number..."
                           value={verificationSearchQuery}
                           onChange={(e) => setVerificationSearchQuery(e.target.value)}
-                          className="pl-10"
+                          className="rounded-xl pl-10"
                         />
                       </div>
                     </div>
                     <Select value={verificationFilterStatus} onValueChange={setVerificationFilterStatus}>
-                      <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectTrigger className="w-full md:w-[200px] rounded-xl">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue />
                       </SelectTrigger>
@@ -704,18 +722,18 @@ export default function AdminDashboard() {
                       <span className="text-sm font-medium">
                         {selectedVerifications.size} selected
                       </span>
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => {
                           setBulkAction('approve');
                           setShowBulkDialog(true);
                         }}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="rounded-xl bg-success hover:bg-success/90"
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Bulk Approve
                       </Button>
-                      <Button 
+                      <Button className="rounded-xl" 
                         size="sm"
                         variant="destructive"
                         onClick={() => {
@@ -726,7 +744,7 @@ export default function AdminDashboard() {
                         <XCircle className="h-4 w-4 mr-2" />
                         Bulk Reject
                       </Button>
-                      <Button 
+                      <Button className="rounded-xl" 
                         size="sm"
                         variant="outline"
                         onClick={clearSelection}
@@ -737,7 +755,7 @@ export default function AdminDashboard() {
                   )}
 
                   {verificationFilterStatus === 'pending' && filteredVerifications.some(v => v.status === 'pending') && (
-                    <Button 
+                    <Button className="rounded-xl" 
                       variant="outline" 
                       size="sm"
                       onClick={selectAllVerifications}
@@ -746,20 +764,20 @@ export default function AdminDashboard() {
                     </Button>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
             <div className="grid gap-4">
               {filteredVerifications.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-muted-foreground">
+                <GlassCard>
+                  
                     No verification requests found
-                  </CardContent>
-                </Card>
+                  
+                </GlassCard>
               ) : (
                 filteredVerifications.map((verification) => (
-                  <Card key={verification.id}>
-                    <CardHeader>
+                  <GlassCard key={verification.id}>
+                    
                       <div className="flex items-start gap-4">
                         {verification.status === 'pending' && (
                           <Checkbox
@@ -770,7 +788,7 @@ export default function AdminDashboard() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between">
                             <div>
-                              <CardTitle className="text-lg">{verification.full_name_on_document}</CardTitle>
+                              {verification.full_name_on_document}
                               <p className="text-sm text-muted-foreground">
                                 User: {verification.profiles?.full_name} | {format(new Date(verification.created_at), "MMM dd, yyyy HH:mm")}
                               </p>
@@ -779,8 +797,8 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
+                    
+                    
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                           <p className="text-sm font-medium mb-1">Document Type</p>
@@ -820,21 +838,25 @@ export default function AdminDashboard() {
                       )}
 
                       <div className="flex gap-2 flex-wrap">
-                        <Button
+                        <Button className="rounded-xl"
                           variant="outline"
                           size="sm"
                           onClick={async () => {
                             try {
-                              const frontUrl = await getSignedUrl(verification.document_front_url);
-                              window.open(frontUrl, '_blank');
-                              
+                              if (verification.document_front_url) {
+                                const frontUrl = await getSignedUrl(verification.document_front_url);
+                                window.open(frontUrl, '_blank');
+                              }
+
                               if (verification.document_back_url) {
                                 const backUrl = await getSignedUrl(verification.document_back_url);
                                 window.open(backUrl, '_blank');
                               }
-                              
-                              const selfieUrl = await getSignedUrl(verification.selfie_url);
-                              window.open(selfieUrl, '_blank');
+
+                              if (verification.selfie_url) {
+                                const selfieUrl = await getSignedUrl(verification.selfie_url);
+                                window.open(selfieUrl, '_blank');
+                              }
                             } catch (error) {
                               toast.error("Failed to load documents");
                             }
@@ -844,8 +866,8 @@ export default function AdminDashboard() {
                           View Documents
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
+                    
+                  </GlassCard>
                 ))
               )}
             </div>
@@ -871,7 +893,7 @@ export default function AdminDashboard() {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Rejection Reason *</label>
                   <Select value={bulkRejectionReason} onValueChange={setBulkRejectionReason}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl">
                       <SelectValue placeholder="Select reason" />
                     </SelectTrigger>
                     <SelectContent>
@@ -887,13 +909,13 @@ export default function AdminDashboard() {
               )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowBulkDialog(false)} disabled={processing}>
+              <Button className="rounded-xl" variant="outline" onClick={() => setShowBulkDialog(false)} disabled={processing}>
                 Cancel
               </Button>
               <Button 
                 onClick={handleBulkAction} 
                 disabled={processing || (bulkAction === 'reject' && !bulkRejectionReason)}
-                className={bulkAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : ''}
+                className={bulkAction === 'approve' ? 'bg-success hover:bg-success/90' : ''}
                 variant={bulkAction === 'reject' ? 'destructive' : 'default'}
               >
                 {processing ? (

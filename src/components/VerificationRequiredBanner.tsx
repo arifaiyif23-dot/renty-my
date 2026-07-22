@@ -14,12 +14,12 @@ export function VerificationRequiredBanner({ isVerified }: VerificationRequiredB
 
   if (isVerified) {
     return (
-      <Alert className="mb-4 border-green-500/50 bg-green-500/10">
-        <CheckCircle2 className="h-4 w-4 text-green-500" />
-        <AlertTitle className="text-green-700 dark:text-green-400">
+      <Alert className="mb-4 border-success/50 bg-success/10">
+        <CheckCircle2 className="h-4 w-4 text-success" />
+        <AlertTitle className="text-success">
           {t('verification.verified', 'Verified Account')}
         </AlertTitle>
-        <AlertDescription className="text-green-600 dark:text-green-300">
+        <AlertDescription className="text-success">
           {t('verification.verifiedDesc', 'Your identity is verified. You can list items for rent.')}
         </AlertDescription>
       </Alert>

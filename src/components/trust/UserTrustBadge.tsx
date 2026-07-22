@@ -18,10 +18,10 @@ interface UserTrustBadgeProps {
 
 const LEVEL_CONFIG: Record<VerificationLevel, { label: string; icon: typeof Shield; color: string; description: string }> = {
   unverified: { label: 'Unverified', icon: Shield, color: 'text-muted-foreground', description: 'Identity not yet verified' },
-  email: { label: 'Email Verified', icon: ShieldHalf, color: 'text-blue-500', description: 'Email address confirmed' },
-  basic: { label: 'Basic Verified', icon: ShieldHalf, color: 'text-green-500', description: 'Basic identity check completed' },
-  kyc: { label: 'KYC Verified', icon: ShieldCheck, color: 'text-indigo-500', description: 'Full identity verified via document upload' },
-  premium: { label: 'Premium Verified', icon: BadgeCheck, color: 'text-amber-500', description: 'Enhanced eKYC verification completed' },
+  email: { label: 'Email Verified', icon: ShieldHalf, color: 'text-primary', description: 'Email address confirmed' },
+  basic: { label: 'Basic Verified', icon: ShieldHalf, color: 'text-success', description: 'Basic identity check completed' },
+  kyc: { label: 'KYC Verified', icon: ShieldCheck, color: 'text-primary', description: 'Full identity verified via document upload' },
+  premium: { label: 'Premium Verified', icon: BadgeCheck, color: 'text-brand-blue', description: 'Enhanced eKYC verification completed' },
 };
 
 export function UserTrustBadge({ level = 'unverified', trustScore, showScore, size = 'md', className }: UserTrustBadgeProps) {
@@ -72,7 +72,7 @@ export function TrustScoreRing({ score, size = 48, className }: TrustScoreRingPr
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (Math.min(score, 100) / 100) * circumference;
 
-  const color = score >= 80 ? 'text-green-500' : score >= 50 ? 'text-amber-500' : 'text-red-500';
+  const color = score >= 80 ? 'text-success' : score >= 50 ? 'text-warning' : 'text-destructive';
 
   return (
     <div className={cn('relative inline-flex items-center justify-center', className)}>

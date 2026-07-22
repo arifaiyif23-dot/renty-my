@@ -24,6 +24,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
     if (user) {
       checkIfSaved();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, itemId]);
 
   const checkIfSaved = async () => {
@@ -104,7 +105,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
     >
       <Heart 
         className={`h-5 w-5 transition-all ${
-          displayState ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+          displayState ? 'fill-destructive text-destructive' : 'text-muted-foreground'
         }`} 
       />
     </Button>

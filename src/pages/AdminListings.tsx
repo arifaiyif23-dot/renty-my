@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,7 @@ export default function AdminListings() {
 
   useEffect(() => {
     fetchItems();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterCategory, filterStatus]);
 
   const fetchItems = async () => {
@@ -113,8 +114,8 @@ export default function AdminListings() {
           </div>
         </div>
 
-        <Card className="mb-6">
-          <CardContent className="pt-6">
+        <GlassCard className="mb-6">
+          
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
@@ -123,12 +124,12 @@ export default function AdminListings() {
                     placeholder="Search by title, owner, or location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="rounded-xl pl-10"
                   />
                 </div>
               </div>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -144,7 +145,7 @@ export default function AdminListings() {
                 </SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,24 +157,24 @@ export default function AdminListings() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
+          <GlassCard>
+            
               No listings found
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
         ) : (
           <div className="space-y-3">
             {filtered.map((item) => (
-              <Card key={item.id} className={!item.is_available ? "opacity-70" : ""}>
-                <CardContent className="p-4">
+              <GlassCard key={item.id} className={!item.is_available ? "opacity-70" : ""}>
+                
                   <div className="flex items-start gap-4">
                     <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
                       {item.item_images?.[0]?.image_url && (
@@ -188,13 +189,13 @@ export default function AdminListings() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium truncate">{item.title}</span>
-                        <Badge variant="secondary" className="capitalize text-xs">
+                        <Badge variant="secondary" className="capitalize text-xs rounded-full">
                           {item.category}
                         </Badge>
                         {item.is_available ? (
-                          <Badge className="bg-green-500 text-xs">Visible</Badge>
+                          <Badge className="bg-success text-xs rounded-full">Visible</Badge>
                         ) : (
-                          <Badge variant="destructive" className="text-xs">Hidden</Badge>
+                          <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
@@ -205,7 +206,7 @@ export default function AdminListings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <Button
+                      <Button className="rounded-xl"
                         size="sm"
                         variant="outline"
                         onClick={() => navigate(`/items/${item.id}`)}
@@ -213,7 +214,7 @@ export default function AdminListings() {
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
-                      <Button
+                      <Button className="rounded-xl"
                         size="sm"
                         variant={item.is_available ? "secondary" : "default"}
                         onClick={() => toggleVisibility(item.id, item.is_available)}
@@ -230,8 +231,8 @@ export default function AdminListings() {
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ))}
           </div>
         )}

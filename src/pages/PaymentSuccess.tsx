@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle, XCircle, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Separator } from '@/components/ui/separator';
 
 export default function PaymentSuccess() {
@@ -28,7 +28,8 @@ export default function PaymentSuccess() {
     }, 10000);
     fetchLatestPayment();
     return () => clearTimeout(timer);
-  }, [user, status]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, status, navigate, paymentInfo]);
 
   const fetchLatestPayment = async () => {
     try {
@@ -60,7 +61,7 @@ export default function PaymentSuccess() {
       if (data) {
         setPaymentInfo({
           amount: Number(data.total_amount),
-          itemTitle: (data.rental as any)?.item?.title || 'your rental',
+          itemTitle: ((data.rental as { item: { title: string } })?.item?.title) || 'your rental',
         });
       }
     } catch { /* non-critical */ } finally {
@@ -82,8 +83,10 @@ export default function PaymentSuccess() {
   if (status === '1') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <Card className="max-w-md w-full p-8 text-center">
-          <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-4" />
+        <GlassCard className="max-w-md w-full text-center" padding="lg">
+          <div className="w-20 h-20 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-12 w-12 text-success" />
+          </div>
           <h1 className="text-2xl font-bold mb-2">Payment Successful!</h1>
           {paymentInfo && (
             <p className="text-muted-foreground mb-1">
@@ -124,18 +127,20 @@ export default function PaymentSuccess() {
           <p className="text-xs text-muted-foreground mb-6">
             Refund policy: Cancellation refunds depend on the owner's cancellation policy. Check your rental details for specifics.
           </p>
-          <Button onClick={() => navigate('/dashboard')} className="w-full">
+          <Button onClick={() => navigate('/dashboard')} variant="default" className="w-full rounded-xl">
             View My Rentals
           </Button>
-        </Card>
+        </GlassCard>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="max-w-md w-full p-8 text-center">
-        <XCircle className="h-20 w-20 text-destructive mx-auto mb-4" />
+      <GlassCard className="max-w-md w-full text-center" padding="lg">
+        <div className="w-20 h-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+          <XCircle className="h-12 w-12 text-destructive" />
+        </div>
         <h1 className="text-2xl font-bold mb-2">Payment Failed</h1>
         <p className="text-muted-foreground mb-2">
           Your payment could not be processed. Please try again.
@@ -143,10 +148,10 @@ export default function PaymentSuccess() {
         <p className="text-xs text-muted-foreground mb-6">
           Ensure your card/FPX has sufficient funds and try again. No amount has been charged.
         </p>
-        <Button onClick={() => navigate('/dashboard')} className="w-full">
+        <Button onClick={() => navigate('/dashboard')} className="w-full rounded-xl">
           Try Again
         </Button>
-      </Card>
+      </GlassCard>
     </div>
   );
 }

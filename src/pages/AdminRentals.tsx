@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -33,14 +33,14 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_BADGE: Record<string, { class: string; label: string }> = {
-  pending_approval: { class: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200", label: "Pending" },
-  approved: { class: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", label: "Approved" },
-  paid: { class: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200", label: "Paid" },
-  active: { class: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", label: "Active" },
-  completed: { class: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200", label: "Completed" },
-  cancelled: { class: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200", label: "Cancelled" },
-  rejected: { class: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200", label: "Rejected" },
-  disputed: { class: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", label: "Disputed" },
+  pending_approval: { class: "bg-warning/10 text-warning", label: "Pending" },
+  approved: { class: "bg-primary/10 text-primary-foreground", label: "Approved" },
+  paid: { class: "bg-primary/10 text-primary-foreground", label: "Paid" },
+  active: { class: "bg-success/10 text-success-foreground", label: "Active" },
+  completed: { class: "bg-success/10 text-success-foreground", label: "Completed" },
+  cancelled: { class: "bg-muted text-muted-foreground", label: "Cancelled" },
+  rejected: { class: "bg-destructive/10 text-destructive-foreground", label: "Rejected" },
+  disputed: { class: "bg-warning/10 text-warning", label: "Disputed" },
 };
 
 export default function AdminRentals() {
@@ -51,6 +51,7 @@ export default function AdminRentals() {
 
   useEffect(() => {
     fetchRentals();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus]);
 
   const fetchRentals = async () => {
@@ -70,16 +71,18 @@ export default function AdminRentals() {
       if (error) throw error;
       setRentals(data || []);
 
-      const { count: total } = await supabase.from("rentals").select("*", { count: "exact", head: true });
-      const { count: active } = await supabase.from("rentals").select("*", { count: "exact", head: true }).in("status", ["paid", "active", "approved"]);
-      const { count: completed } = await supabase.from("rentals").select("*", { count: "exact", head: true }).eq("status", "completed");
-      const { count: disputed } = await supabase.from("rentals").select("*", { count: "exact", head: true }).eq("is_disputed", true);
+      const [totalRes, activeRes, completedRes, disputedRes] = await Promise.all([
+        supabase.from("rentals").select("*", { count: "exact", head: true }),
+        supabase.from("rentals").select("*", { count: "exact", head: true }).in("status", ["paid", "active", "approved"]),
+        supabase.from("rentals").select("*", { count: "exact", head: true }).eq("status", "completed"),
+        supabase.from("rentals").select("*", { count: "exact", head: true }).eq("is_disputed", true),
+      ]);
 
       setStats({
-        total: total || 0,
-        active: active || 0,
-        completed: completed || 0,
-        disputed: disputed || 0,
+        total: totalRes.count || 0,
+        active: activeRes.count || 0,
+        completed: completedRes.count || 0,
+        disputed: disputedRes.count || 0,
       });
     } catch (error) {
       console.error("Error fetching rentals:", error);
@@ -100,45 +103,45 @@ export default function AdminRentals() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Rentals</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <GlassCard>
+            
+              Total Rentals
+            
+            
               <div className="text-2xl font-bold">{stats.total}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
+            
+          </GlassCard>
+          <GlassCard>
+            
+              Active
+            
+            
+              <div className="text-2xl font-bold text-success">{stats.active}</div>
+            
+          </GlassCard>
+          <GlassCard>
+            
+              Completed
+            
+            
               <div className="text-2xl font-bold">{stats.completed}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Disputed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.disputed}</div>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
+          <GlassCard>
+            
+              Disputed
+            
+            
+              <div className="text-2xl font-bold text-warning">{stats.disputed}</div>
+            
+          </GlassCard>
         </div>
 
-        <Card className="mb-6">
-          <CardContent className="pt-6">
+        <GlassCard className="mb-6">
+          
             <div className="flex items-center gap-4">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full md:w-[250px]">
+                <SelectTrigger className="w-full md:w-[250px] rounded-xl">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -149,32 +152,32 @@ export default function AdminRentals() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : rentals.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
+          <GlassCard>
+            
               No rentals found
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
         ) : (
           <div className="space-y-3">
             {rentals.map((rental) => {
               const sb = STATUS_BADGE[rental.status] || { class: "", label: rental.status };
               return (
-                <Card key={rental.id}>
-                  <CardContent className="p-4">
+                <GlassCard key={rental.id}>
+                  
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className={sb.class}>{sb.label}</Badge>
                           {rental.is_disputed && (
-                            <Badge variant="destructive" className="text-xs">Disputed</Badge>
+                            <Badge variant="destructive" className="text-xs rounded-full">Disputed</Badge>
                           )}
                         </div>
                         <div className="mt-1">
@@ -192,8 +195,8 @@ export default function AdminRentals() {
                         <div className="text-[10px]">ID: {rental.id.slice(0, 8)}</div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  
+                </GlassCard>
               );
             })}
           </div>

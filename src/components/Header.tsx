@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { PrefetchLink } from "@/components/PrefetchLink";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign, LogOut, LayoutDashboard, Users, Flag, TicketPercent, AlertTriangle, Zap, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import logoSrc from "@/assets/renty-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileNav from "@/components/MobileNav";
@@ -126,7 +126,7 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center" aria-label="Go to RENTY homepage">
-                <img src={logoSrc} alt="RENTY - Malaysia's Rental Marketplace" className="h-8 md:h-9 w-auto" loading="eager" />
+                <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
               </Link>
             </div>
 
@@ -225,64 +225,64 @@ const Header = () => {
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                              <Link to="/admin" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin" className="flex items-center cursor-pointer">
                                 <LayoutDashboard className="h-4 w-4 mr-2" />
                                 Admin: Dashboard
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/verifications" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/verifications" className="flex items-center cursor-pointer">
                                 <Shield className="h-4 w-4 mr-2" />
                                 Admin: Verifications
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/users" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/users" className="flex items-center cursor-pointer">
                                 <Users className="h-4 w-4 mr-2" />
                                 Admin: Users
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/reports" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/reports" className="flex items-center cursor-pointer">
                                 <Flag className="h-4 w-4 mr-2" />
                                 Admin: Reports
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/promo-codes" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/promo-codes" className="flex items-center cursor-pointer">
                                 <TicketPercent className="h-4 w-4 mr-2" />
                                 Admin: Promo Codes
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/payouts" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/payouts" className="flex items-center cursor-pointer">
                                 <DollarSign className="h-4 w-4 mr-2" />
                                 Admin: Payouts
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/disputes" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/disputes" className="flex items-center cursor-pointer">
                                 <AlertTriangle className="h-4 w-4 mr-2" />
                                 Admin: Disputes
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/automation" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/automation" className="flex items-center cursor-pointer">
                                 <Zap className="h-4 w-4 mr-2" />
                                 Admin: Automation
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/health" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/health" className="flex items-center cursor-pointer">
                                 <Activity className="h-4 w-4 mr-2" />
                                 Admin: Health
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link to="/admin/settings" className="flex items-center cursor-pointer">
+                              <PrefetchLink to="/admin/settings" className="flex items-center cursor-pointer">
                                 <Settings className="h-4 w-4 mr-2" />
                                 Admin: Settings
-                              </Link>
+                              </PrefetchLink>
                             </DropdownMenuItem>
                           </>
                         )}

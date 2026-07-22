@@ -24,7 +24,7 @@ export default function Verification() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = (location.state as any)?.redirectTo;
+  const redirectTo = (location.state as { redirectTo?: string })?.redirectTo;
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [documentType, setDocumentType] = useState<DocumentType>("mykad");
   const [documentFront, setDocumentFront] = useState<File | null>(null);
@@ -36,10 +36,9 @@ export default function Verification() {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0, stage: '' });
   const [verificationId, setVerificationId] = useState<string | null>(null);
-  const [result, setResult] = useState<{ success: boolean; autoApproved: boolean; confidence: number; details: Record<string, unknown> } | null>(null);
+  const [result, setResult] = useState<{ success: boolean } | null>(null);
   const [identityNumber, setIdentityNumber] = useState('');
   const [identityNumberError, setIdentityNumberError] = useState('');
-  const [useEkyc, setUseEkyc] = useState(false);
   
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
@@ -114,6 +113,14 @@ export default function Verification() {
       return;
     }
 
+    if (documentType === 'mykad' && identityNumber && identityNumber.length >= 12) {
+      const validation = validateMyKad(identityNumber);
+      if (!validation.isValid) {
+        toast.error("Please enter a valid MyKad number");
+        return;
+      }
+    }
+
     setLoading(true);
     setCurrentStep(6);
 
@@ -161,9 +168,9 @@ export default function Verification() {
       setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'Submitting for review' });
 
       // Create verification request
-      toast.loading("Creating verification request...");
+      const createToast = toast.loading("Creating verification request...");
 
-      const insertPayload: Record<string, any> = {
+      const insertPayload: Record<string, unknown> = {
         user_id: user?.id,
         document_type: documentType,
         document_front_url: frontUrl,
@@ -176,11 +183,6 @@ export default function Verification() {
 
       if (identityNumber && documentType === 'mykad') {
         insertPayload.identity_number_validated = true;
-        insertPayload.verification_level = 'kyc';
-        if (useEkyc) {
-          insertPayload.ekyc_provider = 'manual';
-          insertPayload.verification_level = 'kyc';
-        }
       }
 
       const { data: verification, error: createError } = await supabase
@@ -192,47 +194,39 @@ export default function Verification() {
       if (createError) throw createError;
 
       setVerificationId(verification.id);
+      toast.dismiss(createToast);
 
       // Call AI verification edge function
-      toast.loading("Running AI document analysis...");
+      const analysisToast = toast.loading("Running AI document analysis...");
       setUploadProgress({ done: jobs.length, total: jobs.length, stage: 'AI analysis in progress' });
 
-      const { data: aiResult, error: aiError } = await supabase.functions.invoke('submit-verification', {
+      await supabase.functions.invoke('submit-verification', {
         body: { verificationId: verification.id }
       });
 
-      if (aiError) {
-        console.error('AI verification error:', aiError);
-        toast.warning("Documents saved but AI analysis failed. An admin will review manually.");
-      }
-
-      if (aiResult?.autoApproved) {
-        toast.success("Verification approved automatically!");
-        setResult({
-          success: true,
-          autoApproved: true,
-          confidence: aiResult.confidence || 0,
-          details: { message: "Auto-approved by AI" }
-        });
-      } else {
-        toast.success("Documents submitted successfully! An admin will review your verification shortly.");
-        setResult({
-          success: true,
-          autoApproved: false,
-          confidence: aiResult?.confidence || 0,
-          details: { message: "Submitted for manual admin review" }
-        });
-      }
+      toast.dismiss(analysisToast);
+      toast.success("Documents submitted successfully! An admin will review your verification shortly.");
+      setResult({ success: true });
 
 
     } catch (error: unknown) {
       console.error("Verification error:", error);
+      toast.dismiss();
       toast.error(error instanceof Error ? error.message : "Failed to submit verification");
       setCurrentStep(5);
     } finally {
       setLoading(false);
     }
   };
+
+  const stepMap = useMemo(() => {
+    const steps: Step[] = [1, 2];
+    if (documentType === 'mykad') steps.push(3);
+    steps.push(4);
+    if (documentType === 'mykad') steps.push(5);
+    steps.push(6);
+    return steps;
+  }, [documentType]);
 
   const nextStep = () => {
     if (currentStep === 1 && !documentType) {
@@ -251,34 +245,14 @@ export default function Verification() {
       toast.error("Please complete selfie or video liveness check");
       return;
     }
-    if (currentStep === 5 && useEkyc && !identityNumber) {
-      toast.error("Please enter your MyKad number");
-      return;
-    }
-
-    if (currentStep === 3 && documentType !== "mykad") {
-      setCurrentStep(5 as Step);
-    } else if (currentStep === 4 && documentType !== "mykad") {
-      setCurrentStep(6 as Step);
-    } else if (currentStep === 5 && !useEkyc) {
-      setCurrentStep(6 as Step);
-    } else if (currentStep < 6) {
-      setCurrentStep((currentStep + 1) as Step);
-    }
+    
+    const idx = stepMap.indexOf(currentStep);
+    if (idx < stepMap.length - 1) setCurrentStep(stepMap[idx + 1]);
   };
 
   const prevStep = () => {
-    if (currentStep === 5 && documentType !== "mykad") {
-      setCurrentStep(2 as Step);
-    } else if (currentStep === 6 && documentType === "mykad") {
-      setCurrentStep(5 as Step);
-    } else if (currentStep === 6 && documentType !== "mykad") {
-      setCurrentStep(4 as Step);
-    } else if (currentStep === 5 && !useEkyc) {
-      setCurrentStep(4 as Step);
-    } else if (currentStep > 1) {
-      setCurrentStep((currentStep - 1) as Step);
-    }
+    const idx = stepMap.indexOf(currentStep);
+    if (idx > 0) setCurrentStep(stepMap[idx - 1]);
   };
 
   const handleIdentityNumberChange = (value: string) => {
@@ -525,7 +499,7 @@ export default function Verification() {
                     <p className="text-sm text-destructive">{identityNumberError}</p>
                   )}
                   {identityNumber && !identityNumberError && identityNumber.length >= 12 && (
-                    <div className="text-sm text-green-600 space-y-1">
+                    <div className="text-sm text-success space-y-1">
                       <p>Valid format</p>
                       {(() => {
                         const info = validateMyKad(identityNumber);
@@ -540,28 +514,6 @@ export default function Verification() {
                     </div>
                   )}
                 </div>
-
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="useEkyc"
-                    checked={useEkyc}
-                    onChange={(e) => setUseEkyc(e.target.checked)}
-                    className="rounded border-muted-foreground"
-                  />
-                  <label htmlFor="useEkyc" className="text-sm text-muted-foreground">
-                    Use eKYC for enhanced verification with third-party provider
-                  </label>
-                </div>
-
-                {useEkyc && (
-                  <div className="border border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800 p-4 rounded-lg">
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      eKYC will verify your identity through a secure third-party provider.
-                      You will be redirected to complete the verification process.
-                    </p>
-                  </div>
-                )}
 
                 {profile && profile.verification_level && profile.verification_level !== 'unverified' && (
                   <div className="border border-muted p-3 rounded-lg">
@@ -601,33 +553,14 @@ export default function Verification() {
                   </>
                 ) : result ? (
                   <>
-                    {result.autoApproved ? (
-                      <>
-                        <CheckCircle className="h-16 w-16 mx-auto text-green-500" />
-                        <h3 className="text-lg font-semibold text-green-500">Verification Approved!</h3>
-                        <p className="text-muted-foreground">Your identity has been successfully verified.</p>
-                        <Badge variant="secondary" className="text-lg py-2 px-4">
-                          Confidence Score: {result.confidence}%
-                        </Badge>
-                        <Button onClick={() => navigate(redirectTo || '/profile')} className="mt-4">
-                          Return to Profile
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="h-16 w-16 mx-auto bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
-                          <Loader2 className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
-                        </div>
-                        <h3 className="text-lg font-semibold">Under Review</h3>
-                        <p className="text-muted-foreground">Your verification requires manual review by our team. We'll notify you within 24-48 hours.</p>
-                        <Badge variant="secondary" className="text-lg py-2 px-4">
-                          Confidence Score: {result.confidence}%
-                        </Badge>
-                        <Button onClick={() => navigate(redirectTo || '/profile')} className="mt-4">
-                          Return to Profile
-                        </Button>
-                      </>
-                    )}
+                    <div className="h-16 w-16 mx-auto bg-warning/10 rounded-full flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 text-warning" />
+                    </div>
+                    <h3 className="text-lg font-semibold">Under Review</h3>
+                    <p className="text-muted-foreground">Your verification requires manual review by our team. We'll notify you within 24-48 hours.</p>
+                    <Button onClick={() => navigate(redirectTo || '/profile')} className="mt-4">
+                      Return to Profile
+                    </Button>
                   </>
                 ) : null}
               </div>

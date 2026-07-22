@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Camera, ShieldCheck, Wallet, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
@@ -80,11 +80,11 @@ export default function VendorOnboarding() {
             const Icon = s.icon;
             const done =
               (i === 0 && profile?.is_verified) ||
-              (i === 1 && false); // bank check would need query; skip for now
+              (i === 1 && false);
             return (
-              <Card key={i} className={done ? "border-primary/40 bg-primary/5" : ""}>
-                <CardContent className="p-4 flex items-start gap-4">
-                  <div className={`h-11 w-11 rounded-full flex items-center justify-center shrink-0 ${
+              <GlassCard key={i} variant={done ? "subtle" : "default"} padding="md" className={done ? "border-primary/40" : ""}>
+                <div className="flex items-start gap-4">
+                  <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
                     done ? "bg-primary text-primary-foreground" : "bg-muted"
                   }`}>
                     {done ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
@@ -96,23 +96,24 @@ export default function VendorOnboarding() {
                     <p className="text-xs text-muted-foreground mb-3">{s.desc}</p>
                     <Button
                       size="sm"
+                      className="rounded-xl"
                       variant={done ? "outline" : "default"}
                       onClick={() => navigate(s.to)}
                     >
                       {done ? "Semak" : s.action}
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </GlassCard>
             );
           })}
         </div>
 
         <div className="mt-8 flex flex-col gap-2">
-          <Button onClick={finish} disabled={loading} className="w-full h-12">
+          <Button onClick={finish} disabled={loading} className="w-full h-12 rounded-xl">
             Terus ke list barang →
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/")} className="w-full">
+          <Button variant="ghost" onClick={() => navigate("/")} className="w-full rounded-xl">
             Lain kali
           </Button>
         </div>

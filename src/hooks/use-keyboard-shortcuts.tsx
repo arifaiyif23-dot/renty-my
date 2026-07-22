@@ -31,6 +31,7 @@ export function useKeyboardShortcuts() {
 
       // ? to show help
       if (e.key === '?' && !e.shiftKey) {
+        // Reserved for help dialog
       }
     };
 

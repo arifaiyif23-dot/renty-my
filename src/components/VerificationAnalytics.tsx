@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
-import { Loader2, TrendingUp, Clock, CheckCircle, XCircle, Brain } from "lucide-react";
+import { Loader2, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from "recharts";
 
 interface VerificationStats {
@@ -11,13 +11,11 @@ interface VerificationStats {
     submitted: number;
     approved: number;
     rejected: number;
-    aiApproved: number;
   }>;
   totals: {
     pending: number;
     approved: number;
     rejected: number;
-    aiApproved: number;
     avgProcessingHours: number;
   };
   byDocType: Array<{
@@ -76,16 +74,11 @@ export function VerificationAnalytics() {
           return verifiedAt >= dayStart && verifiedAt < dayEnd && v.status === 'rejected';
         }) || [];
 
-        const dayAiApproved = dayApproved.filter(v => 
-          (v.ai_analysis_result as { autoApprove?: boolean })?.autoApprove === true
-        );
-
         return {
           date: format(day, 'MMM dd'),
           submitted: dayVerifications.length,
           approved: dayApproved.length,
-          rejected: dayRejected.length,
-          aiApproved: dayAiApproved.length
+          rejected: dayRejected.length
         };
       });
 
@@ -93,9 +86,6 @@ export function VerificationAnalytics() {
       const pending = verifications?.filter(v => v.status === 'pending').length || 0;
       const approved = verifications?.filter(v => v.status === 'approved').length || 0;
       const rejected = verifications?.filter(v => v.status === 'rejected').length || 0;
-      const aiApproved = verifications?.filter(v => 
-        v.status === 'approved' && (v.ai_analysis_result as { autoApprove?: boolean })?.autoApprove === true
-      ).length || 0;
 
       // Calculate average processing time
       const processedVerifications = verifications?.filter(v => v.verified_at) || [];
@@ -121,12 +111,11 @@ export function VerificationAnalytics() {
       }));
 
       setStats({
-        daily: dailyStats.slice(-14), // Last 14 days for chart
+        daily: dailyStats.slice(-14),
         totals: {
           pending,
           approved,
           rejected,
-          aiApproved,
           avgProcessingHours: Math.round(avgProcessingHours * 10) / 10
         },
         byDocType
@@ -159,41 +148,28 @@ export function VerificationAnalytics() {
     );
   }
 
-  const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'];
+
   const pieData = [
-    { name: 'Approved', value: stats.totals.approved, color: '#10b981' },
-    { name: 'Rejected', value: stats.totals.rejected, color: '#ef4444' },
-    { name: 'Pending', value: stats.totals.pending, color: '#f59e0b' }
+    { name: 'Approved', value: stats.totals.approved, color: 'hsl(var(--success))' },
+    { name: 'Rejected', value: stats.totals.rejected, color: 'hsl(var(--destructive))' },
+    { name: 'Pending', value: stats.totals.pending, color: 'hsl(var(--warning))' }
   ].filter(d => d.value > 0);
 
   const approvalRate = stats.totals.approved + stats.totals.rejected > 0
     ? Math.round((stats.totals.approved / (stats.totals.approved + stats.totals.rejected)) * 100)
     : 0;
 
-  const aiAutomationRate = stats.totals.approved > 0
-    ? Math.round((stats.totals.aiApproved / stats.totals.approved) * 100)
-    : 0;
-
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
               Approval Rate
             </CardDescription>
-            <CardTitle className="text-3xl text-green-600">{approvalRate}%</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1">
-              <Brain className="h-3 w-3" />
-              AI Automation
-            </CardDescription>
-            <CardTitle className="text-3xl text-blue-600">{aiAutomationRate}%</CardTitle>
+            <CardTitle className="text-3xl text-success">{approvalRate}%</CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -246,8 +222,8 @@ export function VerificationAnalytics() {
                   type="monotone" 
                   dataKey="submitted" 
                   stackId="1"
-                  stroke="#3b82f6" 
-                  fill="#3b82f6" 
+                  stroke={`hsl(var(--primary))`} 
+                  fill={`hsl(var(--primary))`} 
                   fillOpacity={0.3}
                   name="Submitted"
                 />
@@ -255,20 +231,12 @@ export function VerificationAnalytics() {
                   type="monotone" 
                   dataKey="approved" 
                   stackId="2"
-                  stroke="#10b981" 
-                  fill="#10b981" 
+                  stroke={`hsl(var(--success))`} 
+                  fill={`hsl(var(--success))`} 
                   fillOpacity={0.6}
                   name="Approved"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="aiApproved" 
-                  stackId="3"
-                  stroke="#8b5cf6" 
-                  fill="#8b5cf6" 
-                  fillOpacity={0.6}
-                  name="AI Approved"
-                />
+
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -310,21 +278,21 @@ export function VerificationAnalytics() {
             </div>
             <div className="grid grid-cols-3 gap-2 mt-4 text-center">
               <div>
-                <div className="flex items-center justify-center gap-1 text-green-600">
+                <div className="flex items-center justify-center gap-1 text-success">
                   <CheckCircle className="h-4 w-4" />
                   <span className="font-semibold">{stats.totals.approved}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Approved</p>
               </div>
               <div>
-                <div className="flex items-center justify-center gap-1 text-red-600">
+                <div className="flex items-center justify-center gap-1 text-destructive">
                   <XCircle className="h-4 w-4" />
                   <span className="font-semibold">{stats.totals.rejected}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Rejected</p>
               </div>
               <div>
-                <div className="flex items-center justify-center gap-1 text-yellow-600">
+                <div className="flex items-center justify-center gap-1 text-warning">
                   <Clock className="h-4 w-4" />
                   <span className="font-semibold">{stats.totals.pending}</span>
                 </div>
@@ -360,7 +328,7 @@ export function VerificationAnalytics() {
                     borderRadius: '8px'
                   }}
                 />
-                <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill={`hsl(var(--primary))`} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

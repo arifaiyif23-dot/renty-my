@@ -2,7 +2,14 @@
  * Image optimization utilities for better mobile performance
  */
 
-import { getNetworkQuality } from './performance';
+function getNetworkQuality(): 'slow' | 'medium' | 'fast' {
+  if (typeof navigator === 'undefined' || !('connection' in navigator)) return 'fast';
+  const conn = (navigator as Navigator & { connection: { effectiveType?: string } }).connection;
+  if (!conn?.effectiveType) return 'fast';
+  if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g') return 'slow';
+  if (conn.effectiveType === '3g') return 'medium';
+  return 'fast';
+}
 
 // Convert image to WebP format with quality optimization
 export const convertToWebP = async (
@@ -165,4 +172,20 @@ export const getOptimizedImageUrl = (
   }
 
   return url;
+};
+
+// Generate srcSet string for responsive images
+export const getSrcSet = (
+  url: string,
+  options?: { quality?: number }
+): string | undefined => {
+  if (!url || !url.includes('supabase.co/storage')) return undefined;
+
+  const quality = options?.quality || 80;
+  const widths = [320, 640, 960, 1280, 1920];
+  const separator = url.includes('?') ? '&' : '?';
+
+  return widths
+    .map((w) => `${url}${separator}width=${w}&quality=${quality}&format=webp ${w}w`)
+    .join(', ');
 };

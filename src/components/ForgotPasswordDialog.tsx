@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner';
 import { Mail, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { checkRateLimit } from '@/utils/securityHelpers';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
@@ -29,6 +30,12 @@ export function ForgotPasswordDialog() {
     const result = emailSchema.safeParse(email.trim().toLowerCase());
     if (!result.success) {
       toast.error(result.error.errors[0].message);
+      return;
+    }
+
+    const withinLimit = await checkRateLimit('password_reset', 3, 60, result.data);
+    if (!withinLimit) {
+      toast.error('Too many reset attempts. Please try again later.');
       return;
     }
 

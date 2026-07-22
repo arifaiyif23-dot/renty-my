@@ -1,0 +1,100 @@
+import { cn } from "@/lib/utils";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { TrustBadge } from "@/components/marketplace/TrustBadge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { VerificationLevel } from "@/types";
+import { UserTrustBadge } from "@/components/trust/UserTrustBadge";
+import { Star, Clock } from "lucide-react";
+
+interface VendorCardProps {
+  name: string;
+  avatar?: string;
+  location?: string;
+  rating?: number;
+  reviewCount?: number;
+  verificationLevel?: VerificationLevel;
+  responseTime?: string;
+  trustScore?: number;
+  onClick?: () => void;
+  className?: string;
+}
+
+const VendorCard = ({
+  name,
+  avatar,
+  location,
+  rating = 0,
+  reviewCount = 0,
+  verificationLevel,
+  responseTime,
+  trustScore,
+  onClick,
+  className,
+}: VendorCardProps) => {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+    >
+      <GlassCard
+        variant="interactive"
+        padding="md"
+        className={cn("flex items-center gap-4", className)}
+      >
+        <Avatar className="h-14 w-14 shrink-0 rounded-2xl border-2 border-border">
+          <AvatarImage src={avatar} alt={name} />
+          <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-semibold text-lg">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="font-semibold text-sm truncate">{name}</p>
+            {verificationLevel && verificationLevel !== "unverified" && (
+              <TrustBadge kind="verified" size="sm" />
+            )}
+          </div>
+
+          {location && (
+            <p className="text-xs text-muted-foreground truncate mb-1.5">
+              {location}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {rating > 0 && (
+              <span className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                <span className="font-medium tabular-nums">{rating.toFixed(1)}</span>
+                {reviewCount > 0 && <span>({reviewCount})</span>}
+              </span>
+            )}
+            {responseTime && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {responseTime}
+              </span>
+            )}
+            {trustScore !== undefined && (
+              <UserTrustBadge
+                level={verificationLevel || "unverified"}
+                trustScore={trustScore}
+                size="sm"
+              />
+            )}
+          </div>
+        </div>
+      </GlassCard>
+    </button>
+  );
+};
+
+export { VendorCard, type VendorCardProps };

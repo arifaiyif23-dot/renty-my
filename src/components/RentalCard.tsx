@@ -43,19 +43,19 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
   const getStatusColor = (status: Rental['status']) => {
     switch (status) {
       case 'pending_approval':
-        return 'bg-yellow-500/20 text-yellow-800 dark:text-yellow-400 border-yellow-500/30';
+        return 'bg-warning/20 text-warning border-warning/30';
       case 'approved':
-        return 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border-blue-500/30';
+        return 'bg-primary/20 text-primary border-primary/30';
       case 'paid':
       case 'active':
-        return 'bg-green-500/20 text-green-800 dark:text-green-400 border-green-500/30';
+        return 'bg-success/20 text-success border-success/30';
       case 'completed':
-        return 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border-blue-500/30';
+        return 'bg-primary/20 text-primary border-primary/30';
       case 'disputed':
-        return 'bg-orange-500/20 text-orange-800 dark:text-orange-400 border-orange-500/30';
+        return 'bg-warning/20 text-warning border-warning/30';
       case 'rejected':
       case 'cancelled':
-        return 'bg-red-500/20 text-red-800 dark:text-red-400 border-red-500/30';
+        return 'bg-destructive/20 text-destructive border-destructive/30';
       default:
         return '';
     }
@@ -204,6 +204,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               {/* Owner: Start Handover for paid rentals */}
               {isOwner && rental.status === 'paid' && (
                 <Button 
+                  variant="default"
                   className="w-full h-12"
                   onClick={() => setHandoverDialog(true)}
                 >
@@ -215,6 +216,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               {/* Owner: Process Return for active rentals */}
               {isOwner && rental.status === 'active' && (
                 <Button 
+                  variant="default"
                   className="w-full h-12"
                   onClick={() => setReturnDialog(true)}
                 >
@@ -227,6 +229,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               {isOwner && rental.status === 'pending_approval' && (
                 <>
                   <Button 
+                    variant="default"
                     className="w-full h-12"
                     onClick={() => { haptics.light(); setConfirmDialog({ open: true, action: 'approve' }); }}
                     disabled={isUpdating}
@@ -256,8 +259,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               
               {/* Status messages for renters */}
               {!isOwner && rental.status === 'pending_approval' && (
-                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+                <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                  <p className="text-sm text-warning flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     {t('rental.waitingApproval')}
                   </p>
@@ -265,8 +268,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
               )}
 
               {!isOwner && rental.status === 'rejected' && (
-                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                  <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                  <p className="text-sm text-destructive-foreground flex items-center gap-2">
                     <XCircle className="h-4 w-4" />
                     {t('rental.requestDeclined')}
                   </p>
@@ -275,17 +278,17 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
 
               {/* Disputed status */}
               {rental.status === 'disputed' && (
-                <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
-                  <p className="text-sm font-medium text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-1">
+                <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                  <p className="text-sm font-medium text-warning flex items-center gap-2 mb-1">
                     <AlertTriangle className="h-4 w-4" />
                     {isOwner ? t('rental.disputeRaised') : t('rental.disputeRaisedByOwner')}
                   </p>
                   {rental.dispute_reason && (
-                    <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
+                    <p className="text-xs text-warning/70 mt-2">
                       {t('rental.disputeReason')}: {rental.dispute_reason}
                     </p>
                   )}
-                  <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
+                  <p className="text-xs text-warning/70 mt-2">
                     {t('rental.paymentFrozen')}
                   </p>
                 </div>
@@ -373,6 +376,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             {/* Owner: Start Handover for paid rentals */}
             {isOwner && rental.status === 'paid' && (
               <Button 
+                variant="default"
                 size="sm"
                 onClick={() => setHandoverDialog(true)}
               >
@@ -384,6 +388,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             {/* Owner: Process Return for active rentals */}
             {isOwner && rental.status === 'active' && (
               <Button 
+                variant="default"
                 size="sm"
                 onClick={() => setReturnDialog(true)}
               >
@@ -396,6 +401,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             {isOwner && rental.status === 'pending_approval' && (
               <div className="flex gap-2">
                 <Button 
+                  variant="default"
                   size="sm" 
                   onClick={() => { haptics.light(); setConfirmDialog({ open: true, action: 'approve' }); }}
                   disabled={isUpdating}
@@ -425,8 +431,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             
             {/* Status messages for renters */}
             {!isOwner && rental.status === 'pending_approval' && (
-              <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <p className="text-sm text-yellow-800 dark:text-yellow-400 flex items-center gap-2">
+              <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                <p className="text-sm text-warning flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   {t('rental.waitingApproval')}
                 </p>
@@ -434,8 +440,8 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
             )}
 
             {!isOwner && rental.status === 'rejected' && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-sm text-red-800 dark:text-red-400 flex items-center gap-2">
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                <p className="text-sm text-destructive-foreground flex items-center gap-2">
                   <XCircle className="h-4 w-4" />
                   {t('rental.requestDeclined')}
                 </p>
@@ -444,19 +450,19 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
 
             {/* Disputed status */}
             {rental.status === 'disputed' && (
-              <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
-                <p className="text-sm font-medium text-orange-800 dark:text-orange-400 flex items-center gap-2 mb-1">
-                  <AlertTriangle className="h-4 w-4" />
-                  {isOwner ? t('rental.disputeRaised') : t('rental.disputeRaisedByOwner')}
-                </p>
-                {rental.dispute_reason && (
-                  <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
-                    {t('rental.disputeReason')}: {rental.dispute_reason}
+              <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                <p className="text-sm font-medium text-warning flex items-center gap-2 mb-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    {isOwner ? t('rental.disputeRaised') : t('rental.disputeRaisedByOwner')}
                   </p>
-                )}
-                <p className="text-xs text-orange-700 dark:text-orange-300 mt-2">
-                  {t('rental.paymentFrozen')}
-                </p>
+                  {rental.dispute_reason && (
+                    <p className="text-xs text-warning/70 mt-2">
+                      {t('rental.disputeReason')}: {rental.dispute_reason}
+                    </p>
+                  )}
+                  <p className="text-xs text-warning/70 mt-2">
+                    {t('rental.paymentFrozen')}
+                  </p>
               </div>
             )}
 

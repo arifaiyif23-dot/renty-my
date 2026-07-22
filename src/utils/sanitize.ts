@@ -40,24 +40,8 @@ export function validateUserInput(input: string, maxLength: number = 1000): stri
   
   const sanitized = sanitizeText(input);
   
-  // Additional validation rules
   if (sanitized.length > maxLength) {
     throw new Error(`Input exceeds maximum length of ${maxLength} characters`);
-  }
-  
-  // Detect potential injection attempts (basic heuristic)
-  const suspiciousPatterns = [
-    /<script/gi,
-    /javascript:/gi,
-    /on\w+=/gi, // Event handlers like onclick=
-    /eval\(/gi,
-    /expression\(/gi,
-  ];
-  
-  for (const pattern of suspiciousPatterns) {
-    if (pattern.test(input)) {
-      throw new Error('Invalid input detected');
-    }
   }
   
   return sanitized;

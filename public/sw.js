@@ -1,4 +1,4 @@
-const CACHE_NAME = 'renty-v2';
+const CACHE_NAME = 'renty-v3';
 const OFFLINE_URL = '/offline';
 const DATA_CACHE = 'renty-data-v2';
 const IMAGE_CACHE = 'renty-images-v2';

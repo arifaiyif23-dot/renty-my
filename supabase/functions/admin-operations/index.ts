@@ -6,6 +6,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const ACTION_PERMISSIONS: Record<string, string> = {
+  verify_identity: 'verification.verify',
+  batch_verify_identity: 'verification.batch_verify',
+  fraud_alert_action: 'fraud.manage',
+  suspend_user: 'user.suspend',
+  unsuspend_user: 'user.suspend',
+  resolve_dispute: 'disputes.resolve',
+  toggle_promo_code: 'promos.manage',
+  create_promo_code: 'promos.manage',
+  update_platform_setting: 'settings.manage',
+  process_payout: 'payouts.process',
+  resolve_report: 'reports.resolve',
+  cleanup_payments: 'payments.cleanup',
+  log_sensitive_access: 'admin.logs',
+};
+
+const ADMIN_MANAGEMENT_ACTIONS = [
+  'assign_admin_role',
+  'update_admin_permissions',
+  'remove_admin_role',
+  'list_admins',
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -43,7 +66,7 @@ serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .eq('role', 'admin')
+      .in('role', ['admin', 'super_admin', 'moderator'])
       .maybeSingle();
 
     if (roleError || !roleData) {
@@ -53,7 +76,34 @@ serve(async (req) => {
       );
     }
 
+    const isSuperAdmin = roleData.role === 'super_admin';
     const { action, ...payload } = await req.json();
+
+    if (ADMIN_MANAGEMENT_ACTIONS.includes(action) && !isSuperAdmin) {
+      return new Response(
+        JSON.stringify({ error: "Only super admins can manage admin roles" }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
+    if (!isSuperAdmin) {
+      const requiredPermission = ACTION_PERMISSIONS[action];
+      if (requiredPermission) {
+        const { data: permData } = await supabase
+          .from('admin_permissions')
+          .select('permission')
+          .eq('user_id', user.id)
+          .eq('permission', requiredPermission)
+          .maybeSingle();
+
+        if (!permData) {
+          return new Response(
+            JSON.stringify({ error: "You don't have permission for this action" }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+          );
+        }
+      }
+    }
 
     switch (action) {
       case 'verify_identity':
@@ -82,6 +132,14 @@ serve(async (req) => {
         return await handleCleanupPayments(supabase);
       case 'log_sensitive_access':
         return await handleLogSensitiveAccess(supabase, payload, user.id);
+      case 'assign_admin_role':
+        return await handleAssignAdminRole(supabase, payload, user.id);
+      case 'update_admin_permissions':
+        return await handleUpdateAdminPermissions(supabase, payload);
+      case 'remove_admin_role':
+        return await handleRemoveAdminRole(supabase, payload);
+      case 'list_admins':
+        return await handleListAdmins(supabase);
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
@@ -104,6 +162,180 @@ function json(data: unknown, status = 200) {
   });
 }
 
+// --- Role Management (Super Admin only) ---
+
+async function handleAssignAdminRole(
+  supabase: ReturnType<typeof createClient>,
+  payload: Record<string, unknown>,
+  adminUserId: string
+) {
+  const { email, permissions } = payload as {
+    email: string;
+    permissions?: string[];
+  };
+
+  const { data: userData, error: userError } = await supabase
+    .from('auth.users')
+    .select('id')
+    .eq('email', email)
+    .single();
+
+  if (userError || !userData) {
+    return json({ error: 'User not found' }, 404);
+  }
+
+  const targetUserId = (userData as { id: string }).id;
+
+  const { error: roleError } = await supabase
+    .from('user_roles')
+    .insert({ user_id: targetUserId, role: 'admin' });
+
+  if (roleError) {
+    if (roleError.code === '23505') {
+      return json({ error: 'User is already an admin' }, 409);
+    }
+    return json({ error: 'Failed to assign admin role' }, 500);
+  }
+
+  if (permissions && permissions.length > 0) {
+    const permissionRows = permissions.map((p) => ({
+      user_id: targetUserId,
+      permission: p,
+      created_by: adminUserId,
+    }));
+    const { error: permError } = await supabase
+      .from('admin_permissions')
+      .insert(permissionRows);
+
+    if (permError) {
+      console.error('Failed to assign permissions:', permError);
+    }
+  }
+
+  return json({ success: true, userId: targetUserId });
+}
+
+async function handleUpdateAdminPermissions(
+  supabase: ReturnType<typeof createClient>,
+  payload: Record<string, unknown>
+) {
+  const { userId, permissions } = payload as {
+    userId: string;
+    permissions: string[];
+  };
+
+  const { error: deleteError } = await supabase
+    .from('admin_permissions')
+    .delete()
+    .eq('user_id', userId);
+
+  if (deleteError) {
+    return json({ error: 'Failed to update permissions' }, 500);
+  }
+
+  if (permissions.length > 0) {
+    const permissionRows = permissions.map((p) => ({
+      user_id: userId,
+      permission: p,
+    }));
+    const { error: insertError } = await supabase
+      .from('admin_permissions')
+      .insert(permissionRows);
+
+    if (insertError) {
+      return json({ error: 'Failed to insert permissions' }, 500);
+    }
+  }
+
+  return json({ success: true });
+}
+
+async function handleRemoveAdminRole(
+  supabase: ReturnType<typeof createClient>,
+  payload: Record<string, unknown>
+) {
+  const { userId } = payload as { userId: string };
+
+  const { error: permError } = await supabase
+    .from('admin_permissions')
+    .delete()
+    .eq('user_id', userId);
+
+  if (permError) {
+    console.error('Failed to delete permissions:', permError);
+  }
+
+  const { error: roleError } = await supabase
+    .from('user_roles')
+    .delete()
+    .eq('user_id', userId)
+    .eq('role', 'admin');
+
+  if (roleError) {
+    return json({ error: 'Failed to remove admin role' }, 500);
+  }
+
+  return json({ success: true });
+}
+
+async function handleListAdmins(supabase: ReturnType<typeof createClient>) {
+  const { data: roles, error: rolesError } = await supabase
+    .from('user_roles')
+    .select('user_id, role, created_at')
+    .in('role', ['admin', 'super_admin']);
+
+  if (rolesError) {
+    return json({ error: 'Failed to list admins' }, 500);
+  }
+
+  const userIds = [...new Set(roles.map((r: { user_id: string }) => r.user_id))];
+
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', userIds);
+
+  if (profilesError) {
+    return json({ error: 'Failed to fetch profiles' }, 500);
+  }
+
+  const { data: permissions, error: permsError } = await supabase
+    .from('admin_permissions')
+    .select('user_id, permission');
+
+  if (permsError) {
+    return json({ error: 'Failed to fetch permissions' }, 500);
+  }
+
+  const profileMap = new Map(
+    (profiles || []).map((p: { id: string; full_name: string; avatar_url?: string }) => [p.id, p])
+  );
+
+  const permsMap = new Map<string, string[]>();
+  for (const p of permissions || []) {
+    const pData = p as { user_id: string; permission: string };
+    if (!permsMap.has(pData.user_id)) {
+      permsMap.set(pData.user_id, []);
+    }
+    permsMap.get(pData.user_id)!.push(pData.permission);
+  }
+
+  const admins = roles.map((r: { user_id: string; role: string; created_at: string }) => {
+    const profile = profileMap.get(r.user_id);
+    return {
+      userId: r.user_id,
+      role: r.role,
+      fullName: profile?.full_name || 'Unknown',
+      email: '',
+      avatarUrl: profile?.avatar_url || null,
+      permissions: permsMap.get(r.user_id) || [],
+      createdAt: r.created_at,
+    };
+  });
+
+  return json({ admins });
+}
+
 // --- Verification ---
 
 async function handleVerifyIdentity(
@@ -120,7 +352,9 @@ async function handleVerifyIdentity(
   };
 
   const isApproved = status === 'approved';
-  const updateData: Record<string, unknown> = { status, reviewed_at: new Date().toISOString() };
+  const now = new Date().toISOString();
+  const updateData: Record<string, unknown> = { status, verified_by: adminUserId };
+  if (isApproved) updateData.verified_at = now;
   if (adminNotes) updateData.admin_notes = adminNotes;
   if (!isApproved && rejectionReason) updateData.rejection_reason = rejectionReason;
 
@@ -133,7 +367,7 @@ async function handleVerifyIdentity(
   if (isApproved) {
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ is_verified: true })
+      .update({ is_verified: true, verification_level: 'kyc' })
       .eq('id', userId);
     if (profileError) { console.error('Verify identity profile error:', profileError); return json({ error: 'Failed to update profile' }, 500); }
   }
@@ -173,7 +407,8 @@ async function handleBatchVerifyIdentity(
   const isApproved = status === 'approved';
   const now = new Date().toISOString();
 
-  const updateData: Record<string, unknown> = { status, reviewed_at: now, verified_by: adminUserId };
+  const updateData: Record<string, unknown> = { status, verified_by: adminUserId };
+  if (isApproved) updateData.verified_at = now;
   if (!isApproved && rejectionReason) updateData.rejection_reason = rejectionReason;
   if (adminNotes) updateData.admin_notes = adminNotes;
 

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
 
 interface ImageCarouselProps {
   images: { image_url: string; id: string }[];
@@ -51,7 +52,9 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
         onTouchEnd={handleTouchEnd}
       >
         <img
-          src={images[currentIndex].image_url}
+          src={getOptimizedImageUrl(images[currentIndex].image_url, { width: 1200, quality: 85 })}
+          srcSet={getSrcSet(images[currentIndex].image_url)}
+          sizes="(max-width: 640px) 100vw, 75vw"
           alt={`${title} - Image ${currentIndex + 1}`}
           className="w-full h-full object-cover"
           loading="lazy"
@@ -103,7 +106,9 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
               )}
             >
               <img
-                src={image.image_url}
+                src={getOptimizedImageUrl(image.image_url, { width: 160, quality: 70 })}
+                srcSet={getSrcSet(image.image_url, { quality: 70 })}
+                sizes="80px"
                 alt={`Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
                 loading="lazy"

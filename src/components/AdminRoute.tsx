@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { AppRole } from '@/types';
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -14,8 +15,15 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
 
   const verifyAdminAccess = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('verify-admin');
-      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const { data, error } = await supabase.functions.invoke('verify-admin', {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
       if (error) {
         console.error('Admin verification error:', error);
         setIsAdmin(false);
@@ -25,6 +33,9 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Admin verification error:', error);
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        toast.error('Connection timeout. Please check your network and try again.');
+      }
       setIsAdmin(false);
     } finally {
       setLoading(false);
@@ -45,4 +56,31 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAdminRole() {
+  const [role, setRole] = useState<AppRole | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    supabase.functions.invoke('verify-admin', { signal: controller.signal })
+      .then(({ data }) => {
+        setRole(data?.role || null);
+      })
+      .catch((error) => {
+        console.error('Admin role check error:', error);
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { role, isSuperAdmin: role === 'super_admin', loading };
 }

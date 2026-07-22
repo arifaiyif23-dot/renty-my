@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,16 +13,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Search, Shield, ShieldOff, Loader2, Ban, CheckCircle, AlertTriangle, User as UserIcon, ExternalLink } from "lucide-react";
+import { Search, Shield, Loader2, Ban, CheckCircle, AlertTriangle, ExternalLink } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
 import { invokeAdminOperation } from "@/lib/adminOperations";
 import type { Profile } from "@/types";
 
 const ROLE_OPTIONS = [
-  { value: "admin", label: "Admin", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
-  { value: "moderator", label: "Moderator", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200" },
-  { value: "user", label: "User", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
+  { value: "admin", label: "Admin", color: "bg-destructive/10 text-destructive-foreground" },
+  { value: "moderator", label: "Moderator", color: "bg-secondary/10 text-secondary-foreground" },
+  { value: "user", label: "User", color: "bg-primary/10 text-primary-foreground" },
 ];
 
 export default function AdminUsers() {
@@ -40,7 +40,7 @@ export default function AdminUsers() {
     try {
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, full_name, phone, avatar_url, is_verified, verification_level, is_suspended, trust_score, created_at")
+        .select("id, full_name, phone, avatar_url, is_verified, verification_level, is_suspended, is_deleted, location, suspended_at, suspension_reason, trust_score, created_at")
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -130,8 +130,8 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        <Card className="mb-6">
-          <CardContent className="pt-6">
+        <GlassCard className="mb-6">
+          
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
@@ -140,12 +140,12 @@ export default function AdminUsers() {
                     placeholder="Search by name or ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="rounded-xl pl-10"
                   />
                 </div>
               </div>
               <Select value={filterRole} onValueChange={setFilterRole}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,7 +156,7 @@ export default function AdminUsers() {
                 </SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -167,8 +167,8 @@ export default function AdminUsers() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -177,17 +177,17 @@ export default function AdminUsers() {
         ) : (
           <div className="grid gap-4">
             {filtered.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
+              <GlassCard>
+                
                   No users found
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ) : (
               filtered.map((u) => {
                 const roleConfig = ROLE_OPTIONS.find((r) => r.value === u.role) || ROLE_OPTIONS[2];
                 return (
-                  <Card key={u.id} className={u.is_suspended ? "border-orange-300 dark:border-orange-800" : u.is_deleted ? "border-muted opacity-60" : ""}>
-                    <CardContent className="p-4">
+                  <GlassCard key={u.id} className={u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""}>
+                    
                       <div className="flex items-start gap-4">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={u.avatar_url} />
@@ -199,22 +199,22 @@ export default function AdminUsers() {
                             <Badge variant="outline" className={roleConfig.color}>
                               {roleConfig.label}
                             </Badge>
-                            {u.is_verified && <Badge variant="secondary" className="text-xs">Verified</Badge>}
-                            {u.is_suspended && <Badge variant="destructive" className="text-xs">Suspended</Badge>}
-                            {u.is_deleted && <Badge variant="outline" className="text-xs">Deleted</Badge>}
+                            {u.is_verified && <Badge variant="secondary" className="text-xs rounded-full">Verified</Badge>}
+                            {u.is_suspended && <Badge variant="destructive" className="text-xs rounded-full">Suspended</Badge>}
+                            {u.is_deleted && <Badge variant="outline" className="text-xs rounded-full">Deleted</Badge>}
                           </div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
                             <span>ID: {u.id.slice(0, 8)}...</span>
                             {u.location && <span>{u.location}</span>}
                             <span>Joined {format(new Date(u.created_at), "MMM yyyy")}</span>
                             {u.suspended_at && (
-                              <span className="text-orange-500">
+                              <span className="text-warning">
                                 Suspended {format(new Date(u.suspended_at), "MMM d, yyyy")}
                               </span>
                             )}
                           </div>
                           {u.suspension_reason && (
-                            <p className="text-xs text-orange-500 mt-1">Reason: {u.suspension_reason}</p>
+                            <p className="text-xs text-warning mt-1">Reason: {u.suspension_reason}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -226,7 +226,7 @@ export default function AdminUsers() {
                             <span className="hidden sm:inline">View</span>
                           </a>
                           {u.is_suspended ? (
-                            <Button
+                            <Button className="rounded-xl"
                               size="sm"
                               variant="outline"
                               onClick={() => handleUnsuspend(u)}
@@ -236,7 +236,7 @@ export default function AdminUsers() {
                               Unsuspend
                             </Button>
                           ) : !u.is_deleted ? (
-                            <Button
+                            <Button className="rounded-xl"
                               size="sm"
                               variant="destructive"
                               onClick={() => { setSuspendUser(u); setSuspendReason(""); }}
@@ -247,8 +247,8 @@ export default function AdminUsers() {
                           ) : null}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    
+                  </GlassCard>
                 );
               })
             )}
@@ -270,7 +270,7 @@ export default function AdminUsers() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-warning" />
               <p className="text-sm text-muted-foreground">
                 The user will not be able to log in, rent items, or access their account.
               </p>
@@ -286,8 +286,8 @@ export default function AdminUsers() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSuspendUser(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleSuspend} disabled={processing === suspendUser?.id}>
+            <Button className="rounded-xl" variant="outline" onClick={() => setSuspendUser(null)}>Cancel</Button>
+            <Button className="rounded-xl" variant="destructive" onClick={handleSuspend} disabled={processing === suspendUser?.id}>
               {processing === suspendUser?.id ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Confirm Suspension
             </Button>

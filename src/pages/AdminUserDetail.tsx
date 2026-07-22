@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,6 +54,7 @@ export default function AdminUserDetail() {
 
   useEffect(() => {
     if (id) fetchUserData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchUserData = async () => {
@@ -150,11 +151,11 @@ export default function AdminUserDetail() {
   if (!profile) {
     return (
       <AdminLayout>
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
+        <GlassCard>
+          
             User not found
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
       </AdminLayout>
     );
   }
@@ -162,14 +163,14 @@ export default function AdminUserDetail() {
   return (
     <AdminLayout>
       <div className="max-w-6xl">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/users")} className="mb-4">
+        <Button className="rounded-xl mb-4" variant="ghost" size="sm" onClick={() => navigate("/admin/users")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Users
         </Button>
 
         {/* Profile Header */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
+        <GlassCard className="mb-6">
+          
             <div className="flex items-start gap-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={profile.avatar_url || undefined} />
@@ -178,10 +179,10 @@ export default function AdminUserDetail() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-bold">{profile.full_name || "Unnamed"}</h1>
-                  {role === "admin" && <Badge className="bg-red-500">Admin</Badge>}
-                  {role === "moderator" && <Badge className="bg-purple-500">Moderator</Badge>}
-                  {profile.is_verified && <Badge className="bg-green-500">Verified</Badge>}
-                  {profile.is_suspended && <Badge variant="destructive">Suspended</Badge>}
+                  {role === "admin" && <Badge className="bg-destructive rounded-full">Admin</Badge>}
+                  {role === "moderator" && <Badge className="bg-secondary rounded-full">Moderator</Badge>}
+                  {profile.is_verified && <Badge className="bg-success rounded-full">Verified</Badge>}
+                  {profile.is_suspended && <Badge className="rounded-full" variant="destructive">Suspended</Badge>}
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                   <span>ID: {profile.id}</span>
@@ -206,7 +207,7 @@ export default function AdminUserDetail() {
                 {!profile.is_verified && (
                   <Button
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-success hover:bg-success/90 rounded-xl"
                     onClick={handleVerify}
                     disabled={processing === "verify"}
                   >
@@ -215,7 +216,7 @@ export default function AdminUserDetail() {
                   </Button>
                 )}
                 {profile.is_suspended ? (
-                  <Button
+                  <Button className="rounded-xl"
                     size="sm"
                     variant="outline"
                     onClick={handleUnsuspend}
@@ -225,7 +226,7 @@ export default function AdminUserDetail() {
                     Unsuspend
                   </Button>
                 ) : (
-                  <Button
+                  <Button className="rounded-xl"
                     size="sm"
                     variant="destructive"
                     onClick={handleSuspend}
@@ -237,20 +238,20 @@ export default function AdminUserDetail() {
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
 
         {/* Tabs: Items / Rentals / Reviews */}
         <div className="flex gap-2 mb-4">
-          <Button variant={tab === "items" ? "default" : "outline"} size="sm" onClick={() => setTab("items")}>
+          <Button className="rounded-xl" variant={tab === "items" ? "default" : "outline"} size="sm" onClick={() => setTab("items")}>
             <Package className="h-4 w-4 mr-2" />
             Items ({items.length})
           </Button>
-          <Button variant={tab === "rentals" ? "default" : "outline"} size="sm" onClick={() => setTab("rentals")}>
+          <Button className="rounded-xl" variant={tab === "rentals" ? "default" : "outline"} size="sm" onClick={() => setTab("rentals")}>
             <CalendarCheck className="h-4 w-4 mr-2" />
             Rentals ({rentals.length})
           </Button>
-          <Button variant={tab === "reviews" ? "default" : "outline"} size="sm" onClick={() => setTab("reviews")}>
+          <Button className="rounded-xl" variant={tab === "reviews" ? "default" : "outline"} size="sm" onClick={() => setTab("reviews")}>
             <MessageCircle className="h-4 w-4 mr-2" />
             Reviews ({reviews.length})
           </Button>
@@ -260,35 +261,35 @@ export default function AdminUserDetail() {
         {tab === "items" && (
           <div className="space-y-3">
             {items.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
+              <GlassCard>
+                
                   No listings from this user
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ) : items.map((item) => (
-              <Card key={item.id}>
-                <CardContent className="p-4">
+              <GlassCard key={item.id}>
+                
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{item.title}</span>
-                        <Badge variant="secondary" className="capitalize text-xs">{item.category}</Badge>
+                        <Badge variant="secondary" className="capitalize text-xs rounded-full">{item.category}</Badge>
                         {item.is_available ? (
-                          <Badge className="bg-green-500 text-xs">Active</Badge>
+                          <Badge className="bg-success text-xs rounded-full">Active</Badge>
                         ) : (
-                          <Badge variant="destructive" className="text-xs">Hidden</Badge>
+                          <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground mt-1">
                         RM{item.price_per_day}/day · Listed {format(new Date(item.created_at), "MMM d, yyyy")}
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => navigate(`/items/${item.id}`)}>
+                    <Button className="rounded-xl" size="sm" variant="outline" onClick={() => navigate(`/items/${item.id}`)}>
                       View
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ))}
           </div>
         )}
@@ -297,18 +298,18 @@ export default function AdminUserDetail() {
         {tab === "rentals" && (
           <div className="space-y-3">
             {rentals.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
+              <GlassCard>
+                
                   No rental history
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ) : rentals.map((rental) => (
-              <Card key={rental.id}>
-                <CardContent className="p-4">
+              <GlassCard key={rental.id}>
+                
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{rental.status}</Badge>
+                        <Badge className="rounded-full" variant="secondary">{rental.status}</Badge>
                       </div>
                       <div className="text-sm mt-1">
                         <span className="font-medium">{rental.item?.title || "Unknown item"}</span>
@@ -321,8 +322,8 @@ export default function AdminUserDetail() {
                       {format(new Date(rental.created_at), "MMM d, yyyy")}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ))}
           </div>
         )}
@@ -331,16 +332,16 @@ export default function AdminUserDetail() {
         {tab === "reviews" && (
           <div className="space-y-3">
             {reviews.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
+              <GlassCard>
+                
                   No reviews received
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ) : reviews.map((review) => (
-              <Card key={review.id}>
-                <CardContent className="p-4">
+              <GlassCard key={review.id}>
+                
                   <div className="flex items-start gap-3">
-                    <div className="text-lg font-bold text-amber-500 shrink-0">{review.rating}/5</div>
+                    <div className="text-lg font-bold text-warning shrink-0">{review.rating}/5</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium">{review.reviewer?.full_name || "Anonymous"}</span>
@@ -350,8 +351,8 @@ export default function AdminUserDetail() {
                       <p className="text-xs text-muted-foreground mt-1">{format(new Date(review.created_at), "MMM d, yyyy")}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ))}
           </div>
         )}

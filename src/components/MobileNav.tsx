@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PrefetchLink } from "@/components/PrefetchLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,10 +27,10 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
     .join("")
     .toUpperCase() || "U";
 
-  const navItems = [
+  const navItems: { icon: React.ComponentType<{ className?: string }>; label: string; path: string; prefetch?: boolean }[] = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Package, label: "My Listings", path: "/my-listings" },
-    { icon: TrendingUp, label: "My Earnings", path: "/earnings" },
+    { icon: TrendingUp, label: "My Earnings", path: "/earnings", prefetch: true },
     { icon: MessageCircle, label: "Messages", path: "/messages" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
@@ -63,17 +64,20 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
         {/* Navigation Items + Sign Out */}
         <div className="flex flex-col flex-1 min-h-0">
           <nav className="flex flex-col gap-2 py-6 overflow-y-auto px-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => onOpenChange(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
-              >
-                <item.icon className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const NavLink = item.prefetch ? PrefetchLink : Link;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => onOpenChange(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+                >
+                  <item.icon className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">{item.label}</span>
+                </NavLink>
+              );
+            })}
           </nav>
 
           {user && (

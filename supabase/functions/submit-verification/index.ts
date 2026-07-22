@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -77,7 +78,7 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseServiceKey}`
+        'Authorization': authHeader
       },
       body: JSON.stringify({
         documentFrontUrl: verification.document_front_url,
@@ -121,9 +122,8 @@ serve(async (req) => {
       faceMatch: aiData.faceMatchResult?.faceMatchScore
     });
 
-    // Determine final status
-    const finalStatus = aiData.autoApprove ? 'approved' : 'pending';
-    const isAutoApproved = aiData.autoApprove;
+    // Always manual review — no auto-approve
+    const finalStatus = 'pending';
 
     // Update verification with AI results
     const updateData: Record<string, any> = {
@@ -146,11 +146,6 @@ serve(async (req) => {
       updateData.date_of_birth = aiData.extractedInfo.dateOfBirth;
     }
 
-    // Set verified_at if auto-approved
-    if (isAutoApproved) {
-      updateData.verified_at = new Date().toISOString();
-    }
-
     const { error: finalUpdateError } = await supabase
       .from('verification_requests')
       .update(updateData)
@@ -161,60 +156,39 @@ serve(async (req) => {
       throw new Error("Failed to save verification results");
     }
 
-    // Update user profile if auto-approved
-    if (isAutoApproved) {
-      console.log('Auto-approved - updating user profile verification status...');
-      await supabase
-        .from('profiles')
-        .update({ is_verified: true })
-        .eq('id', user.id);
-    }
-
     // Create notification
     console.log('Creating notification...');
-    const notificationType = isAutoApproved ? 'verification_approved' : 'verification_pending';
-    const notificationTitle = isAutoApproved ? 'Verification Approved!' : 'Verification Under Review';
-    const notificationMessage = isAutoApproved 
-      ? 'Your identity has been verified successfully. You can now list items for rent.' 
-      : `Your verification is being reviewed by our team. Confidence score: ${aiData.overallConfidence}%`;
-
     await supabase.from('notifications').insert({
       user_id: user.id,
-      type: notificationType,
-      title: notificationTitle,
-      message: notificationMessage,
+      type: 'verification_pending',
+      title: 'Verification Under Review',
+      message: 'Your verification is being reviewed by our team. We will notify you once it is complete.',
       link: '/profile'
     });
 
     // Create audit log entry
     await supabase.from('verification_audit_log').insert({
       verification_id: verificationId,
-      action: isAutoApproved ? 'auto_approved' : 'ai_analyzed',
-      performed_by: null, // System action
+      action: 'ai_analyzed',
+      performed_by: null,
       details: {
         ai_model: aiData.model,
         confidence: aiData.overallConfidence,
         face_match: aiData.faceMatchResult?.faceMatchScore,
         fraud_risk: aiData.fraudIndicators?.riskScore,
-        auto_approve_reason: isAutoApproved ? 'High confidence, no fraud flags' : null,
         processing_time_ms: aiData.processingTimeMs
       }
     });
 
     console.log('Verification submission complete:', {
       status: finalStatus,
-      confidence: aiData.overallConfidence,
-      autoApproved: isAutoApproved
+      confidence: aiData.overallConfidence
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        status: finalStatus,
-        confidence: aiData.overallConfidence,
-        autoApproved: isAutoApproved,
-        faceMatchScore: aiData.faceMatchResult?.faceMatchScore,
-        reasoning: aiData.reasoning
+        status: finalStatus
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

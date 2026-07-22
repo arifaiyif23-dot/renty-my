@@ -87,4 +87,5 @@ export default function SpecificationsSection({ specifications, category }: Spec
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { categorySpecLabels };

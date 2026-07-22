@@ -73,8 +73,8 @@ export function ReportDialog({ open, onOpenChange, targetType, targetId, onRepor
       onOpenChange(false);
       setReason("");
       setDescription("");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit report");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to submit report");
     } finally {
       setLoading(false);
     }

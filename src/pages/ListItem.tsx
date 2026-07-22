@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
 import { ItemCategory } from '@/types';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -29,7 +30,7 @@ export default function ListItem() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [moderationResult, setModerationResult] = useState<ModerationResult | null>(null);
-  
+
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
@@ -45,11 +46,9 @@ export default function ListItem() {
     specifications: {} as Record<string, string>,
   });
 
-  // Debounced values for real-time content moderation
   const debouncedTitle = useDebounce(formData.title, 500);
   const debouncedDescription = useDebounce(formData.description, 500);
 
-  // Real-time content moderation check
   useEffect(() => {
     if (debouncedTitle || debouncedDescription) {
       const result = detectBannedContent(debouncedTitle, debouncedDescription);
@@ -75,14 +74,12 @@ export default function ListItem() {
       return;
     }
 
-    // Validate price is a positive number
     const pricePerDay = parseFloat(formData.price_per_day);
-    if (!formData.price_per_day || isNaN(pricePerDay) || pricePerDay <= 0) {
+    if (!formData.price_per_day || isNaN(pricePerDay) || pricePerDay < 1) {
       toast.error('Please enter a valid price per day');
       return;
     }
 
-    // Validate optional numeric fields
     const pricePerHour = formData.price_per_hour ? parseFloat(formData.price_per_hour) : null;
     if (pricePerHour !== null && (isNaN(pricePerHour) || pricePerHour < 0)) {
       toast.error('Please enter a valid hourly price');
@@ -95,7 +92,6 @@ export default function ListItem() {
       return;
     }
 
-    // Skip verification check for drafts
     if (listingStatus === 'active' && !profile?.is_verified) {
       toast.error('Verification required to list items', {
         description: 'Please complete ID verification to start listing',
@@ -107,7 +103,6 @@ export default function ListItem() {
       return;
     }
 
-    // Skip content moderation for drafts
     if (listingStatus === 'draft') {
       setIsLoading(true);
       try {
@@ -134,6 +129,7 @@ export default function ListItem() {
             longitude: profile?.longitude,
             listing_status: 'draft',
             is_available: false,
+            tags: [],
             instant_book_enabled: formData.instant_book_enabled,
             auto_approve_bookings: formData.auto_approve_bookings,
             specifications: specs,
@@ -165,7 +161,6 @@ export default function ListItem() {
       return;
     }
 
-    // Client-side content moderation check
     const contentCheck = detectBannedContent(formData.title, formData.description);
     if (contentCheck.isBlocked) {
       toast.error('Listing blocked', {
@@ -176,9 +171,8 @@ export default function ListItem() {
     }
 
     setIsLoading(true);
-    
+
     try {
-      // Server-side content validation
       const { data: validationData, error: validationError } = await supabase.functions.invoke(
         'validate-listing-content',
         {
@@ -201,7 +195,6 @@ export default function ListItem() {
         return;
       }
 
-      // Validate and sanitize all user inputs
       const sanitizedTitle = validateUserInput(formData.title, 200);
       const sanitizedDescription = validateUserInput(formData.description, 5000);
       const sanitizedLocation = validateUserInput(formData.location, 200);
@@ -224,6 +217,7 @@ export default function ListItem() {
           latitude: profile?.latitude,
           longitude: profile?.longitude,
           listing_status: 'active',
+          tags: [],
           instant_book_enabled: formData.instant_book_enabled,
           auto_approve_bookings: formData.auto_approve_bookings,
           specifications: specs,
@@ -232,8 +226,7 @@ export default function ListItem() {
         .single();
 
       if (error) {
-        // Handle verification error from database
-        if (error.message?.includes('violates row-level security policy') || 
+        if (error.message?.includes('violates row-level security policy') ||
             error.message?.includes('is_verified')) {
           toast.error('Verification required to list items', {
             description: 'Please complete ID verification to start listing',
@@ -247,7 +240,6 @@ export default function ListItem() {
         throw error;
       }
 
-      // Insert images into item_images table
       const imageInserts = imageUrls.map((url, index) => ({
         item_id: data.id,
         image_url: url,
@@ -260,7 +252,7 @@ export default function ListItem() {
         .insert(imageInserts);
 
       if (imageError) throw imageError;
-      
+
       toast.success('Item listed successfully!');
       navigate(`/items/${data.id}`);
     } catch (error: unknown) {
@@ -276,14 +268,12 @@ export default function ListItem() {
       <>
         <Header />
         <div className="container mx-auto p-4">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center mb-4">Please sign in to list an item</p>
-              <Button onClick={() => navigate('/auth')} className="w-full">
-                Sign In
-              </Button>
-            </CardContent>
-          </Card>
+          <GlassCard padding="lg">
+            <p className="text-center mb-4">Please sign in to list an item</p>
+            <Button onClick={() => navigate('/auth')} className="w-full rounded-xl">
+              Sign In
+            </Button>
+          </GlassCard>
         </div>
       </>
     );
@@ -293,237 +283,232 @@ export default function ListItem() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav">
-        {/* Mobile Back Button */}
         <div className="md:hidden mb-4 flex items-center gap-2">
           <BackButton fallbackPath="/" />
           <h1 className="text-xl font-bold">List Your Item</h1>
         </div>
 
-        {/* Verification Status Banner */}
         <VerificationRequiredBanner isVerified={profile?.is_verified ?? false} />
-        
-        <Card>
-          <CardHeader className="hidden md:block">
-            <CardTitle>List Your Item</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmit('active'); }} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="item-images">Item Images *</Label>
-                <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
-                <p className="text-xs text-muted-foreground">
-                  Upload up to 5 images. First image will be the primary photo.
-                </p>
-              </div>
 
+        <GlassCard padding="lg" className="md:mt-6">
+          <div className="hidden md:block mb-6">
+            <h1 className="text-2xl font-bold">List Your Item</h1>
+            <p className="text-muted-foreground text-sm mt-1">Share your item with the community and start earning</p>
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmit('active'); }} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="item-images" className="text-sm font-medium">Item Images *</Label>
+              <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
+              <p className="text-xs text-muted-foreground">
+                Upload up to 5 images. First image will be the primary photo.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-medium">Title *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="h-12 text-base rounded-xl"
+                placeholder="e.g., Canon EOS R5 Camera"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="min-h-[120px] text-base resize-none rounded-xl"
+                placeholder="Describe your item in detail..."
+                maxLength={1000}
+                required
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {formData.description.length} / 1000
+              </p>
+            </div>
+
+            <ContentModerationFeedback result={moderationResult} />
+
+            <div className="space-y-2">
+              <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value as ItemCategory })}
+              >
+                <SelectTrigger id="category" className="h-12 text-base rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="electronics">Electronics</SelectItem>
+                  <SelectItem value="vehicles">Vehicles</SelectItem>
+                  <SelectItem value="tools">Tools</SelectItem>
+                  <SelectItem value="sports">Sports</SelectItem>
+                  <SelectItem value="party">Party</SelectItem>
+                  <SelectItem value="fashion">Fashion</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-sm font-medium">Title *</Label>
+                <Label htmlFor="price" className="text-sm font-medium">Harga / Hari (RM) *</Label>
                 <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="h-12 text-base"
-                  placeholder="e.g., Canon EOS R5 Camera"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="min-h-[120px] text-base resize-none"
-                  placeholder="Describe your item in detail..."
-                  maxLength={1000}
-                  required
-                />
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.description.length} / 1000
-                </p>
-              </div>
-
-              {/* Real-time Content Moderation Feedback */}
-              <ContentModerationFeedback result={moderationResult} />
-
-              <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value as ItemCategory })}
-                >
-                  <SelectTrigger id="category" className="h-12 text-base">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="electronics">Electronics</SelectItem>
-                    <SelectItem value="vehicles">Vehicles</SelectItem>
-                    <SelectItem value="tools">Tools</SelectItem>
-                    <SelectItem value="sports">Sports</SelectItem>
-                    <SelectItem value="party">Party</SelectItem>
-                    <SelectItem value="fashion">Fashion</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="price" className="text-sm font-medium">Harga / Hari (RM) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price_per_day}
-                    onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
-                    className="h-12 text-base"
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price_hour" className="text-sm font-medium">Harga / Jam (RM)</Label>
-                  <Input
-                    id="price_hour"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price_per_hour}
-                    onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
-                    className="h-12 text-base"
-                    placeholder="Opsyenal"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="deposit" className="text-sm font-medium">Deposit (RM)</Label>
-                <Input
-                  id="deposit"
+                  id="price"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.deposit_amount}
-                  onChange={(e) => setFormData({ ...formData, deposit_amount: e.target.value })}
-                  className="h-12 text-base"
-                  placeholder="0.00 (opsyenal)"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Deposit dipulangkan selepas barang dikembalikan dalam keadaan baik.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment-method" className="text-sm font-medium">Kaedah Bayaran</Label>
-                <div id="payment-method" className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, payment_mode: 'escrow' })}
-                    className={`h-16 rounded-md border-2 text-left px-3 transition ${
-                      formData.payment_mode === 'escrow'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border'
-                    }`}
-                  >
-                    <div className="font-semibold text-sm">Escrow (auto)</div>
-                    <div className="text-[11px] text-muted-foreground">Platform tahan bayaran</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, payment_mode: 'manual' })}
-                    className={`h-16 rounded-md border-2 text-left px-3 transition ${
-                      formData.payment_mode === 'manual'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border'
-                    }`}
-                  >
-                    <div className="font-semibold text-sm">Manual (bank)</div>
-                    <div className="text-[11px] text-muted-foreground">Bayar terus ke akaun</div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="h-12 text-base"
-                  placeholder="City, State"
+                  value={formData.price_per_day}
+                  onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
+                  className="h-12 text-base rounded-xl"
+                  placeholder="0.00"
                   required
                 />
               </div>
-
-              {/* Instant Booking */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Instant Booking</Label>
-                  <p className="text-xs text-muted-foreground">Allow renters to book instantly without waiting for approval</p>
-                </div>
-                <Switch
-                  checked={formData.instant_book_enabled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, instant_book_enabled: checked })}
+              <div className="space-y-2">
+                <Label htmlFor="price_hour" className="text-sm font-medium">Harga / Jam (RM)</Label>
+                <Input
+                  id="price_hour"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.price_per_hour}
+                  onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
+                  className="h-12 text-base rounded-xl"
+                  placeholder="Opsyenal"
                 />
               </div>
+            </div>
 
-              {formData.instant_book_enabled && (
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-medium">Auto-approve Bookings</Label>
-                    <p className="text-xs text-muted-foreground">Automatically approve all incoming booking requests</p>
-                  </div>
-                  <Switch
-                    checked={formData.auto_approve_bookings}
-                    onCheckedChange={(checked) => setFormData({ ...formData, auto_approve_bookings: checked })}
+            <div className="space-y-2">
+              <Label htmlFor="deposit" className="text-sm font-medium">Deposit (RM)</Label>
+              <Input
+                id="deposit"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.deposit_amount}
+                onChange={(e) => setFormData({ ...formData, deposit_amount: e.target.value })}
+                className="h-12 text-base rounded-xl"
+                placeholder="0.00 (opsyenal)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Deposit dipulangkan selepas barang dikembalikan dalam keadaan baik.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Kaedah Bayaran</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, payment_mode: 'escrow' })}
+                  className={`h-16 rounded-xl border-2 text-left px-3 transition ${
+                    formData.payment_mode === 'escrow'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border'
+                  }`}
+                >
+                  <div className="font-semibold text-sm">Escrow (auto)</div>
+                  <div className="text-[11px] text-muted-foreground">Platform tahan bayaran</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, payment_mode: 'manual' })}
+                  className={`h-16 rounded-xl border-2 text-left px-3 transition ${
+                    formData.payment_mode === 'manual'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border'
+                  }`}
+                >
+                  <div className="font-semibold text-sm">Manual (bank)</div>
+                  <div className="text-[11px] text-muted-foreground">Bayar terus ke akaun</div>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="h-12 text-base rounded-xl"
+                placeholder="City, State"
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl border p-4">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">Instant Booking</Label>
+                <p className="text-xs text-muted-foreground">Allow renters to book instantly without waiting for approval</p>
+              </div>
+              <Switch
+                checked={formData.instant_book_enabled}
+                onCheckedChange={(checked) => setFormData({ ...formData, instant_book_enabled: checked })}
+              />
+            </div>
+
+            {formData.instant_book_enabled && (
+              <div className="flex items-center justify-between rounded-xl border p-4">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Auto-approve Bookings</Label>
+                  <p className="text-xs text-muted-foreground">Automatically approve all incoming booking requests</p>
+                </div>
+                <Switch
+                  checked={formData.auto_approve_bookings}
+                  onCheckedChange={(checked) => setFormData({ ...formData, auto_approve_bookings: checked })}
+                />
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Specifications</Label>
+              {categorySpecLabels[formData.category].map((field) => (
+                <div key={field.key} className="grid grid-cols-2 gap-2 items-center">
+                  <Label className="text-xs text-muted-foreground">{field.label}</Label>
+                  <Input
+                    value={formData.specifications[field.key] || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      specifications: { ...formData.specifications, [field.key]: e.target.value }
+                    })}
+                    className="h-9 text-sm rounded-xl"
+                    placeholder={field.label}
                   />
                 </div>
-              )}
+              ))}
+            </div>
 
-              {/* Specifications */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Specifications</Label>
-                {categorySpecLabels[formData.category].map((field) => (
-                  <div key={field.key} className="grid grid-cols-2 gap-2 items-center">
-                    <Label className="text-xs text-muted-foreground">{field.label}</Label>
-                    <Input
-                      value={formData.specifications[field.key] || ''}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        specifications: { ...formData.specifications, [field.key]: e.target.value }
-                      })}
-                      className="h-9 text-sm"
-                      placeholder={field.label}
-                    />
-                  </div>
-                ))}
+            <div className="sticky bottom-16 md:bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 h-12 text-base rounded-xl"
+                  disabled={isLoading}
+                  onClick={() => handleSubmit('draft')}
+                >
+                  {isLoading ? 'Saving...' : 'Save as Draft'}
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 h-12 text-base font-medium rounded-xl"
+                  disabled={isLoading || moderationResult?.isBlocked}
+                >
+                  {isLoading ? 'Publishing...' : moderationResult?.isBlocked ? 'Content Blocked' : 'Publish'}
+                </Button>
               </div>
-
-              <div className="sticky bottom-16 md:bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 h-12 text-base"
-                    disabled={isLoading}
-                    onClick={() => handleSubmit('draft')}
-                  >
-                    {isLoading ? 'Saving...' : 'Save as Draft'}
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1 h-12 text-base font-medium"
-                    disabled={isLoading || moderationResult?.isBlocked}
-                  >
-                    {isLoading ? 'Publishing...' : moderationResult?.isBlocked ? 'Content Blocked' : 'Publish'}
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            </div>
+          </form>
+        </GlassCard>
       </div>
     </>
   );

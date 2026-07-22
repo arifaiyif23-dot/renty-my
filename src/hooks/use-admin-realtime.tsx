@@ -99,6 +99,7 @@ export function useAdminRealtime() {
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
+            // Subscribed successfully
           }
         });
     };

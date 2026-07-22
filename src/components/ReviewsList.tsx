@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Star, ThumbsUp, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
 import type { Review } from "@/types";
 
 interface ReviewsListProps {
@@ -17,18 +18,14 @@ interface ReviewsListProps {
 
 export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
   const { user } = useAuth();
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Record<string, unknown>[]>([]);
   const [averageRating, setAverageRating] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest'>('recent');
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [ownerResponse, setOwnerResponse] = useState("");
 
-  useEffect(() => {
-    fetchReviews().catch((err) => console.error('Failed to fetch reviews:', err));
-  }, [itemId, userId, sortBy]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     setLoading(true);
     let query = supabase
       .from('reviews')
@@ -44,6 +41,10 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       query = query.eq('reviewee_id', userId);
     }
 
+    if (itemId) {
+      query = query.in('rental_id', supabase.from('rentals').select('id').eq('item_id', itemId));
+    }
+
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
@@ -52,11 +53,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       return;
     }
 
-    let filteredData = data || [];
-    
-    if (itemId) {
-      filteredData = filteredData.filter((review: any) => review.rental?.item_id === itemId);
-    }
+    const filteredData = data || [];
 
     // Apply sorting
     if (sortBy === 'highest') {
@@ -72,7 +69,11 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       const avg = filteredData.reduce((sum, review) => sum + review.rating, 0) / filteredData.length;
       setAverageRating(avg);
     }
-  };
+  }, [itemId, userId, sortBy]);
+
+  useEffect(() => {
+    fetchReviews().catch((err) => console.error('Failed to fetch reviews:', err));
+  }, [fetchReviews]);
 
   const handleVote = async (reviewId: string, isHelpful: boolean) => {
     if (!user) {
@@ -149,12 +150,12 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex items-center">
-            <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+            <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
             <span className="ml-2 text-2xl font-bold">{averageRating.toFixed(1)}</span>
           </div>
           <span className="text-muted-foreground">({reviews.length} reviews)</span>
         </div>
-        <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+        <Select value={sortBy} onValueChange={(v: 'recent' | 'highest' | 'lowest') => setSortBy(v)}>
           <SelectTrigger className="w-[150px]">
             <SelectValue />
           </SelectTrigger>
@@ -168,7 +169,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
 
       <div className="space-y-4">
         {reviews.map((review) => {
-          const helpfulCount = review.review_votes?.filter((v: any) => v.is_helpful).length || 0;
+          const helpfulCount = (review.review_votes as Array<{ is_helpful: boolean }>)?.filter((v) => v.is_helpful).length || 0;
           const isOwner = user?.id === review.rental?.owner_id;
 
           return (
@@ -188,7 +189,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                             key={i}
                             className={`h-4 w-4 ${
                               i < review.rating
-                                ? 'fill-yellow-400 text-yellow-400'
+                                ? 'fill-amber-400 text-amber-400'
                                 : 'text-muted'
                             }`}
                           />
@@ -202,10 +203,12 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                     {/* Review Images */}
                     {review.review_images && review.review_images.length > 0 && (
                       <div className="grid grid-cols-3 gap-2 my-2">
-                        {review.review_images.map((img: any, idx: number) => (
+                        {(review.review_images as Array<{ image_url: string }>).map((img, idx: number) => (
                           <img
                             key={idx}
-                            src={img.image_url}
+                            src={getOptimizedImageUrl(img.image_url, { width: 240, quality: 75 })}
+                            srcSet={getSrcSet(img.image_url)}
+                            sizes="(max-width: 640px) 33vw, 240px"
                             alt={`Review photo ${idx + 1}`}
                             className="w-full h-24 object-cover rounded-lg"
                           />

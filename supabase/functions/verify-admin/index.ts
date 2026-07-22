@@ -12,15 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    // Verify authentication
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(
         JSON.stringify({ isAdmin: false, error: "Missing authorization header" }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
 
@@ -31,18 +27,14 @@ serve(async (req) => {
     );
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    
+
     if (authError || !user) {
       return new Response(
         JSON.stringify({ isAdmin: false, error: "Invalid token" }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
 
-    // Use service role to check admin status (bypasses RLS)
     const supabaseServiceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -52,8 +44,8 @@ serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .single();
+      .in('role', ['admin', 'super_admin', 'moderator'])
+      .maybeSingle();
 
     if (roleError || !roleData) {
       return new Response(
@@ -63,17 +55,14 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ isAdmin: true, userId: user.id }),
+      JSON.stringify({ isAdmin: true, role: roleData.role, userId: user.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     return new Response(
       JSON.stringify({ isAdmin: false, error: 'Verification failed' }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

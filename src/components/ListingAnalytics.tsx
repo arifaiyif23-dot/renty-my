@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +11,7 @@ interface ListingAnalyticsProps {
 }
 
 export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
-  const [analytics, setAnalytics] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState<Record<string, unknown>[]>([]);
   const [summary, setSummary] = useState({
     totalViews: 0,
     totalClicks: 0,
@@ -23,9 +23,9 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [itemId]);
+  }, [fetchAnalytics]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -60,7 +60,7 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemId]);
 
   if (loading) {
     return <div className="text-center py-8">Loading analytics...</div>;

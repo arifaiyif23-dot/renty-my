@@ -36,6 +36,7 @@ export function UnifiedCalendar({
     if (itemId) {
       fetchBookedDates();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId]);
 
   const fetchBookedDates = async () => {

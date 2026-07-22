@@ -3,29 +3,30 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Item, ItemCategory } from '@/types';
-import { ListingCard } from '@/components/ListingCard';
-import SkeletonCard from '@/components/SkeletonCard';
-import EmptyState from '@/components/EmptyState';
+import type { ItemCategory } from '@/types';
+import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
+import { SearchBarV2 } from '@/components/SearchBarV2';
+import { EmptyStateV2 } from '@/components/EmptyStateV2';
+import { SkeletonV2 } from '@/components/SkeletonV2';
+import { GlassCard } from '@/components/ui/GlassCard';
 import SEO from '@/components/SEO';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Input } from '@/components/ui/input';
-import { AutocompleteSearch } from '@/components/AutocompleteSearch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Search as SearchIcon, X, ArrowUpDown, Package, RefreshCw, SlidersHorizontal, Mic, MicOff, BookmarkPlus } from 'lucide-react';
+import { X, ArrowUpDown, SlidersHorizontal, RefreshCw, SearchSlash, BookmarkPlus, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
-import { DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import MobileFilterDrawer from '@/components/MobileFilterDrawer';
 import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
-import { toast } from 'sonner';
-import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { getVerifiedUserIds } from '@/utils/verifiedFilter';
+import { toast } from 'sonner';
+import { MALAYSIA_STATES } from '@/components/SearchBarV2';
 
 const FILTERS_STORAGE_KEY = 'renty:searchFilters:v1';
 
@@ -72,13 +73,12 @@ export default function Search() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { isListening, transcript, startListening, stopListening, isSupported } = useVoiceSearch();
 
-  // Persist filters to localStorage whenever they change
   useEffect(() => {
     const payload: PersistedFilters = {
       category, minPrice, maxPrice, userLocation, sortBy,
       verifiedOnly, instantBookOnly, itemCondition, maxDistance,
     };
-    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload)); } catch { /* localStorage not available */ }
+    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload)); } catch { /* skip */ }
   }, [category, minPrice, maxPrice, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, maxDistance]);
 
   useEffect(() => {
@@ -95,6 +95,7 @@ export default function Search() {
       setSearchQuery(transcript);
       saveSearch(transcript);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript, isListening]);
 
   const saveSearch = (query: string) => {
@@ -103,11 +104,9 @@ export default function Search() {
     setRecentSearches(updated);
     localStorage.setItem('recentSearches', JSON.stringify(updated));
   };
-  
-  // Debounce search query for better performance
+
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Infinite scroll
   const fetchItemsPage = async (page: number, pageSize: number) => {
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
@@ -121,7 +120,8 @@ export default function Search() {
         category,
         location,
         owner:owner_id (
-          is_verified
+          is_verified,
+          verification_level
         ),
         images:item_images (
           image_url
@@ -152,12 +152,7 @@ export default function Search() {
     }
 
     if (verifiedOnly) {
-      const { data: verifiedIds, error: verifiedError } = await supabase
-        .from('profiles')
-        .select('id')
-        .in('verification_level', ['basic', 'kyc', 'premium']);
-      if (verifiedError) throw verifiedError;
-      const ids = verifiedIds?.map(p => p.id) || [];
+      const ids = await getVerifiedUserIds();
       query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
     }
 
@@ -178,19 +173,17 @@ export default function Search() {
     }
 
     const { data, error } = await query;
-
     if (error) throw error;
 
     if (dateRange?.from && dateRange?.to && data?.length) {
       const from = dateRange.from;
       const to = dateRange.to;
       const itemIds = data.map(item => item.id);
-      const { data: allRentals, error: rentalsError } = await supabase
+      const { data: allRentals } = await supabase
         .from('rentals')
         .select('item_id, start_date, end_date')
         .in('item_id', itemIds)
         .in('status', ['pending_approval', 'approved', 'paid', 'active']);
-      if (rentalsError) throw rentalsError;
 
       const rentalsByItem = new Map<string, { start_date: string; end_date: string }[]>();
       allRentals?.forEach(rental => {
@@ -199,7 +192,7 @@ export default function Search() {
         rentalsByItem.set(rental.item_id, existing);
       });
 
-      const availableItems = data.filter(item => {
+      return data.filter(item => {
         const itemRentals = rentalsByItem.get(item.id) || [];
         return !itemRentals.some(rental => {
           const rentalStart = new Date(rental.start_date);
@@ -211,8 +204,6 @@ export default function Search() {
           );
         });
       });
-
-      return availableItems;
     }
 
     return data || [];
@@ -223,36 +214,25 @@ export default function Search() {
     pageSize: 12,
   });
 
-  // Reset infinite scroll when filters change
   useEffect(() => {
     reset();
     setInitialLoading(true);
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
-  // Turn off initial loading once items arrive (not when loading starts — avoids empty flash)
   useEffect(() => {
     if (items.length > 0 && initialLoading) {
       setInitialLoading(false);
     }
   }, [items.length, initialLoading]);
 
-  // Pull to refresh
-  const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
-    reset();
-    toast.success('Results refreshed');
-  }, isMobile);
-
   useEffect(() => {
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
     const location = searchParams.get('location');
     const categoryParam = searchParams.get('category');
-    
+
     if (startDate && endDate) {
-      setDateRange({
-        from: new Date(startDate),
-        to: new Date(endDate),
-      });
+      setDateRange({ from: new Date(startDate), to: new Date(endDate) });
     }
     if (location) {
       setUserLocation(location);
@@ -267,372 +247,276 @@ export default function Search() {
   }, []);
 
   const activeFiltersCount = [
-    searchQuery,
-    category !== 'all',
-    minPrice,
-    maxPrice,
-    dateRange?.from,
-    userLocation,
+    searchQuery, category !== 'all', minPrice, maxPrice, dateRange?.from, userLocation,
   ].filter(Boolean).length;
+
+  const CATEGORY_OPTIONS = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'vehicles', label: 'Vehicles' },
+    { value: 'tools', label: 'Tools' },
+    { value: 'sports', label: 'Sports' },
+    { value: 'party', label: 'Party' },
+    { value: 'fashion', label: 'Fashion' },
+    { value: 'other', label: 'Other' },
+  ];
 
   return (
     <>
       <SEO
-        title="Search Items"
-        description="Browse and search thousands of items available for rent across Malaysia. Find vehicles, gadgets, tools, and more."
+        title="Search Items — RENTY"
+        description="Browse thousands of items available for rent across Malaysia. Find vehicles, gadgets, tools, and more."
       />
       <Header />
-      
-      {/* Pull to Refresh Indicator */}
-      {isMobile && pullDistance > 0 && (
-        <div 
-          className="fixed top-14 left-0 right-0 flex justify-center items-center z-40 transition-all"
-          style={{ 
-            transform: `translateY(${Math.min(pullDistance - 20, 60)}px)`,
-            opacity: Math.min(pullDistance / 80, 1)
-          }}
-        >
-          <div className="bg-card rounded-full p-2 shadow-lg border">
-            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </div>
-        </div>
-      )}
 
-      <div className="container mx-auto p-4 pb-mobile-nav">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6">Search Items</h1>
+      <div className="container mx-auto px-4 py-6 pb-mobile-nav">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Search</h1>
+          <span className="text-sm text-muted-foreground">
+            {loading ? 'Searching...' : `${items.length} items`}
+          </span>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-5">
+          <SearchBarV2 variant="inline" onSearch={(q) => saveSearch(q)} />
+        </div>
 
         {/* Recent Searches */}
         {recentSearches.length > 0 && !loading && (
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-2">Recent searches:</p>
-            <div className="flex flex-wrap gap-2">
-              {recentSearches.map((search, idx) => (
-                <button
-                  key={search}
-                  onClick={() => { 
-                    setSearchQuery(search);
-                    saveSearch(search);
-                  }}
-                  className="px-3 py-1 text-sm rounded-full bg-muted hover:bg-muted/80 transition-colors"
-                >
-                  {search}
-                </button>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium">Recent:</span>
+            {recentSearches.map((search, idx) => (
+              <button
+                key={search}
+                onClick={() => { setSearchQuery(search); saveSearch(search); }}
+                className="px-3 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors font-medium"
+              >
+                {search}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Filters Row */}
+        <div className="flex flex-wrap items-center gap-2 mb-5">
+          {/* Category Select */}
+          <Select value={category} onValueChange={(v) => setCategory(v as ItemCategory | 'all')}>
+            <SelectTrigger className="w-auto h-10 min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {CATEGORY_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
-            </div>
-          </div>
-        )}
+            </SelectContent>
+          </Select>
 
-        {/* Mobile: Search + Sort + Filter Button */}
-        {isMobile ? (
-          <div className="space-y-3 mb-6">
-            <div className="relative">
-              <AutocompleteSearch
-                value={searchQuery}
-                onChange={setSearchQuery}
-                onSelect={(value) => saveSearch(value)}
+          {/* Location Select */}
+          <Select value={userLocation} onValueChange={setUserLocation}>
+            <SelectTrigger className="w-auto h-10 min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+              <MapPin className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Malaysia</SelectItem>
+              {MALAYSIA_STATES.map((state) => (
+                <SelectItem key={state} value={state}>{state}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Sort */}
+          <Select value={sortBy} onValueChange={(v: 'newest' | 'price_low' | 'price_high') => setSortBy(v)}>
+            <SelectTrigger className="w-auto h-10 min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="price_low">Price: Low to High</SelectItem>
+              <SelectItem value="price_high">Price: High to Low</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Advanced Filters */}
+          <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-10 rounded-xl border border-border shadow-1">
+                <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
+                Filters
+                {activeFiltersCount > 0 && (
+                  <span className="ml-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="start">
+              <AdvancedSearchFilters
+                verifiedOnly={verifiedOnly}
+                setVerifiedOnly={setVerifiedOnly}
+                instantBookOnly={instantBookOnly}
+                setInstantBookOnly={setInstantBookOnly}
+                itemCondition={itemCondition}
+                setItemCondition={setItemCondition}
+                maxDistance={maxDistance}
+                setMaxDistance={setMaxDistance}
+                showDistanceFilter={!!userLocation}
               />
-              {isSupported && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] ${isListening ? 'text-primary animate-pulse' : ''}`}
-                  onClick={isListening ? stopListening : startListening}
-                  aria-label={isListening ? "Stop voice search" : "Start voice search"}
-                >
-                  {isListening ? <MicOff className="h-5 w-5" aria-hidden="true" /> : <Mic className="h-5 w-5" aria-hidden="true" />}
-                </Button>
-              )}
-            </div>
+            </PopoverContent>
+          </Popover>
 
-            <div className="flex flex-wrap gap-2">
-              <MobileFilterDrawer
-                category={category}
-                setCategory={setCategory}
-                minPrice={minPrice}
-                setMinPrice={setMinPrice}
-                maxPrice={maxPrice}
-                setMaxPrice={setMaxPrice}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                userLocation={userLocation}
-                setUserLocation={setUserLocation}
-                activeFiltersCount={activeFiltersCount}
-              />
+          {/* Save Search */}
+          {user && (searchQuery || category !== 'all' || userLocation) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10"
+              onClick={async () => {
+                try {
+                  const { error } = await supabase.from('saved_searches').insert({
+                    user_id: user.id,
+                    query_text: searchQuery || null,
+                    category: category !== 'all' ? category : null,
+                    location: userLocation || null,
+                    min_price: minPrice ? parseFloat(minPrice) : null,
+                    max_price: maxPrice ? parseFloat(maxPrice) : null,
+                    sort_by: sortBy,
+                    name: searchQuery || `${category !== 'all' ? category : 'all'} items`,
+                    notify_on_new: false,
+                  });
+                  if (error) throw error;
+                  toast.success('Search saved!');
+                } catch (err: unknown) {
+                  toast.error(err instanceof Error ? err.message : 'Failed to save search');
+                }
+              }}
+            >
+              <BookmarkPlus className="h-4 w-4 mr-1" />
+              Save
+            </Button>
+          )}
+        </div>
 
-              <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="flex-1 h-12">
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    Advanced
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80" align="start">
-                  <AdvancedSearchFilters
-                    verifiedOnly={verifiedOnly}
-                    setVerifiedOnly={setVerifiedOnly}
-                    instantBookOnly={instantBookOnly}
-                    setInstantBookOnly={setInstantBookOnly}
-                    itemCondition={itemCondition}
-                    setItemCondition={setItemCondition}
-                    maxDistance={maxDistance}
-                    setMaxDistance={setMaxDistance}
-                    showDistanceFilter={!!userLocation}
-                  />
-                </PopoverContent>
-              </Popover>
-              
-              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="flex-1 h-12">
-                  <ArrowUpDown className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="price_low">Price: Low to High</SelectItem>
-                  <SelectItem value="price_high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        ) : (
-          /* Desktop: Full Filters */
-          <div className="space-y-4 mb-6">
-            <div className="grid md:grid-cols-4 gap-3">
-              <div className="md:col-span-2">
-                <AutocompleteSearch
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  onSelect={(value) => saveSearch(value)}
-                />
-              </div>
-
-              <Input
-                placeholder="Location"
-                value={userLocation}
-                onChange={(e) => setUserLocation(e.target.value)}
-                aria-label="Filter by location"
-              />
-
-              <Select value={category} onValueChange={(value) => setCategory(value as ItemCategory | 'all')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="vehicles">Vehicles</SelectItem>
-                  <SelectItem value="tools">Tools</SelectItem>
-                  <SelectItem value="sports">Sports</SelectItem>
-                  <SelectItem value="party">Party</SelectItem>
-                  <SelectItem value="fashion">Fashion</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <div className="flex gap-2 flex-1 min-w-[200px]">
-                <Input
-                  type="number"
-                  placeholder="Min RM"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="flex-1"
-                />
-                <Input
-                  type="number"
-                  placeholder="Max RM"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline">
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    Advanced
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80" align="start">
-                  <AdvancedSearchFilters
-                    verifiedOnly={verifiedOnly}
-                    setVerifiedOnly={setVerifiedOnly}
-                    instantBookOnly={instantBookOnly}
-                    setInstantBookOnly={setInstantBookOnly}
-                    itemCondition={itemCondition}
-                    setItemCondition={setItemCondition}
-                    maxDistance={maxDistance}
-                    setMaxDistance={setMaxDistance}
-                    showDistanceFilter={!!userLocation}
-                  />
-                </PopoverContent>
-              </Popover>
-              
-              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <ArrowUpDown className="h-4 w-4 mr-2 shrink-0" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="price_low">Price: Low to High</SelectItem>
-                  <SelectItem value="price_high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-
-        {/* Active Filters */}
+        {/* Active Filter Chips */}
         {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-5">
             {searchQuery && (
-              <Badge variant="secondary" className="gap-2">
-                Search: {searchQuery}
+              <Badge variant="secondary" className="gap-1.5 rounded-full">
+                {searchQuery}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchQuery('')} />
               </Badge>
             )}
             {category !== 'all' && (
-              <Badge variant="secondary" className="gap-2">
-                Category: {category}
+              <Badge variant="secondary" className="gap-1.5 rounded-full">
+                {category}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setCategory('all')} />
               </Badge>
             )}
             {minPrice && (
-              <Badge variant="secondary" className="gap-2">
-                Min: RM {minPrice}
+              <Badge variant="secondary" className="gap-1.5 rounded-full">
+                Min RM{minPrice}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setMinPrice('')} />
               </Badge>
             )}
             {maxPrice && (
-              <Badge variant="secondary" className="gap-2">
-                Max: RM {maxPrice}
+              <Badge variant="secondary" className="gap-1.5 rounded-full">
+                Max RM{maxPrice}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setMaxPrice('')} />
               </Badge>
             )}
             {userLocation && (
-              <Badge variant="secondary" className="gap-2">
-                Location: {userLocation}
+              <Badge variant="secondary" className="gap-1.5 rounded-full">
+                <MapPin className="h-3 w-3" />
+                {userLocation}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setUserLocation('')} />
               </Badge>
             )}
             {dateRange?.from && dateRange?.to && (
-              <Badge variant="secondary" className="gap-2">
-                Dates: {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
+              <Badge variant="secondary" className="gap-1.5 rounded-full">
+                {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => setDateRange(undefined)} />
               </Badge>
             )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setCategory('all');
-                    setMinPrice('');
-                    setMaxPrice('');
-                    setUserLocation('');
-                    setDateRange(undefined);
-                  }}
-                  className="text-xs min-h-[44px]"
-                  aria-label="Clear all filters"
-                >
-                  Clear All
-                </Button>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setCategory('all');
+                setMinPrice('');
+                setMaxPrice('');
+                setUserLocation('');
+                setDateRange(undefined);
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground font-medium px-2 transition-colors"
+            >
+              Clear all
+            </button>
           </div>
         )}
 
-      {/* Results */}
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {loading ? 'Searching...' : `${items.length} items found`}
-        </p>
-        {user && (searchQuery || category !== 'all' || minPrice || maxPrice || userLocation) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              try {
-                const { error } = await supabase.from('saved_searches').insert({
-                  user_id: user.id,
-                  query_text: searchQuery || null,
-                  category: category !== 'all' ? category : null,
-                  location: userLocation || null,
-                  min_price: minPrice ? parseFloat(minPrice) : null,
-                  max_price: maxPrice ? parseFloat(maxPrice) : null,
-                  sort_by: sortBy,
-                  label: searchQuery || `${category !== 'all' ? category : 'all'} items`,
-                  notify_on_new: false,
-                });
-                if (error) throw error;
-                toast.success('Search saved!');
-              } catch (error: unknown) {
-                toast.error(error instanceof Error ? error.message : 'Failed to save search');
-              }
+        {/* Results */}
+        {error ? (
+          <GlassCard variant="subtle" padding="lg" className="text-center py-12">
+            <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+              <SearchSlash className="h-7 w-7 text-destructive" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Something went wrong</h3>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+            <Button variant="outline" onClick={reset} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          </GlassCard>
+        ) : initialLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden border border-border">
+                <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
+                <div className="p-4 space-y-3">
+                  <SkeletonV2 variant="text" className="h-4 w-3/4" />
+                  <SkeletonV2 variant="text" className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <EmptyStateV2
+            icon={SearchSlash}
+            title="No Items Found"
+            description="Try adjusting your filters or search terms to find what you're looking for."
+            actionLabel="Clear Filters"
+            onAction={() => {
+              setSearchQuery('');
+              setCategory('all');
+              setMinPrice('');
+              setMaxPrice('');
+              setUserLocation('');
+              setDateRange(undefined);
             }}
-          >
-            <BookmarkPlus className="h-4 w-4 mr-1" />
-            Save Search
-          </Button>
-        )}
-      </div>
-
-      {error ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="text-destructive mb-4">
-            <Package className="h-12 w-12 mx-auto mb-2" />
-            <h3 className="text-lg font-semibold">Something went wrong</h3>
-            <p className="text-sm text-muted-foreground mt-1">{error}</p>
-          </div>
-          <Button variant="outline" onClick={reset}>
-            Try Again
-          </Button>
-        </div>
-      ) : initialLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={Package}
-          title="No Items Found"
-          description="Try adjusting your filters or search terms to find what you're looking for."
-          actionLabel="Clear Filters"
-          onAction={() => {
-            setSearchQuery('');
-            setCategory('all');
-            setMinPrice('');
-            setMaxPrice('');
-            setUserLocation('');
-            setDateRange(undefined);
-          }}
-        />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {items.map((item) => (
-            <ListingCard
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              image={item.images?.[0]?.image_url || '/placeholder.svg'}
-              pricePerDay={Number(item.price_per_day)}
-              category={item.category}
-              location={item.location}
-              isOwnerVerified={item.owner?.is_verified || false}
-            />
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+            {items.map((item) => (
+              <ListingCardV2
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                image={item.images?.[0]?.image_url || '/placeholder.svg'}
+                pricePerDay={Number(item.price_per_day)}
+                category={item.category}
+                location={item.location}
+                badges={item.owner?.verification_level && item.owner.verification_level !== 'unverified' ? ['verified'] : undefined}
+              />
             ))}
           </div>
         )}
-        
-        {/* Infinite scroll sentinel */}
+
         <div ref={setSentinelRef} className="h-10 w-full" />
-        
+
         {loading && hasMore && (
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
           </div>
         )}
       </div>

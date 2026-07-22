@@ -3,68 +3,87 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Chunk';
+  src: url('/fonts/Chunk.otf') format('opentype'),
+       url('/fonts/Chunk.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ============================================================
-   Renty — Design System v3 | Dark Premium Black-Green + Gold
+   Renty — Design System v6 | Navy + Blue + Sky Premium
    ============================================================ */
 
 @layer base {
-  :root,
-  .dark {
-    /* Neutral base — pitch black with green undertone */
-    --background: 160 15% 4%;          /* #070D0B */
-    --foreground: 40 10% 92%;          /* #F0EDE8 warm white */
+  :root {
+    /* Background — white-slate (clean, premium) */
+    --background: 210 40% 98%;         /* #F8FAFC */
+    --foreground: 222 47% 11%;         /* #0F172A */
 
-    --card: 160 15% 6%;                /* #0C1411 */
-    --card-foreground: 40 10% 92%;
+    --card: 0 0% 100%;                 /* white */
+    --card-foreground: 222 47% 11%;
 
-    --popover: 160 12% 10%;            /* #151C19 */
-    --popover-foreground: 40 10% 88%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary — dark green (luxury, trust) */
-    --primary: 164 38% 16%;            /* #1A3C34 */
-    --primary-foreground: 40 20% 92%;  /* light text on dark green */
+    /* Primary — deep navy blue (trust, premium) */
+    --primary: 224 71% 22%;            /* #0F2A5F */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 12% 14%;
-    --secondary-foreground: 40 10% 90%;
+    /* Brand Blue — action, CTAs */
+    --brand-blue: 217 91% 60%;         /* #2563EB */
+    --brand-blue-foreground: 0 0% 100%;
 
-    --muted: 160 10% 12%;
-    --muted-foreground: 40 8% 60%;     /* #9C9A92 warm gray */
+    /* Sky Accent — highlights, secondary */
+    --sky: 199 89% 56%;                /* #38BDF8 */
+    --sky-foreground: 0 0% 100%;
 
-    --accent: 160 12% 14%;
-    --accent-foreground: 40 10% 90%;
+    /* Secondary — maps to brand-blue */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
 
-    --destructive: 0 60% 45%;          /* #BA3B3B muted red */
-    --destructive-foreground: 40 10% 92%;
+    --muted: 210 40% 96%;              /* #F1F5F9 */
+    --muted-foreground: 218 11% 65%;   /* #64748B */
 
-    --success: 152 40% 30%;            /* #2E6B4B rich green */
-    --success-foreground: 40 10% 92%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
 
-    --warning: 40 48% 61%;             /* #C8A96E gold */
-    --warning-foreground: 160 15% 4%;
+    --destructive: 0 72% 51%;          /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
 
-    /* Gold accent for premium highlights */
-    --color-gold: 40 48% 61%;          /* #C8A96E */
-    --color-gold-light: 40 30% 90%;    /* #F0E6D0 */
+    --success: 160 84% 39%;            /* #34D399 */
+    --success-foreground: 0 0% 100%;
 
-    --border: 160 12% 14%;
-    --input: 160 12% 18%;
-    --ring: 164 38% 16%;
+    --warning: 38 92% 50%;             /* #F59E0B */
+    --warning-foreground: 0 0% 100%;
 
-    --radius: 0.625rem;
+    /* Malaysia Jalur Gemilang accent colors */
+    --malaysia-blue: 242 80% 20%;
+    --malaysia-red: 360 100% 40%;
+    --malaysia-yellow: 48 100% 50%;
 
-    --sidebar-background: 160 15% 4%;
-    --sidebar-foreground: 40 10% 92%;
-    --sidebar-primary: 164 38% 16%;
-    --sidebar-primary-foreground: 40 20% 92%;
-    --sidebar-accent: 160 12% 14%;
-    --sidebar-accent-foreground: 40 10% 92%;
-    --sidebar-border: 160 12% 14%;
-    --sidebar-ring: 164 38% 16%;
+    --border: 220 13% 91%;             /* #E2E8F0 */
+    --input: 220 13% 91%;
+    --ring: 224 71% 22%;               /* primary */
 
-    /* Minimal shadows */
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.55);
+    --radius: 1.25rem;                 /* 20px */
+
+    --sidebar-background: 224 71% 22%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 71% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 224 71% 30%;
+    --sidebar-ring: 217 91% 60%;
+
+    /* Premium shadow system */
+    --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02);
+    --shadow-2: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --shadow-3: 0 10px 20px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
+    --shadow-4: 0 20px 30px -10px rgba(15, 23, 42, 0.10), 0 8px 12px -6px rgba(15, 23, 42, 0.06);
   }
 }
 
@@ -76,7 +95,7 @@
 
   html {
     -webkit-text-size-adjust: 100%;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
@@ -93,17 +112,17 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold text-foreground;
-    letter-spacing: -0.015em;
-    line-height: 1.2;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
 
-  h1 { font-size: 32px; font-weight: 700; }
-  h2 { font-size: 24px; font-weight: 600; }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
+  h2 { font-size: 26px; font-weight: 600; }
   h3 { font-size: 20px; font-weight: 600; }
   h4 { font-size: 18px; font-weight: 600; }
 
   small, .text-small { font-size: 14px; }
-  .text-caption { font-size: 12px; }
+  .text-caption { font-size: 12px; line-height: 1.4; }
 
   .tabular, .mono-stamp {
     font-variant-numeric: tabular-nums;
@@ -133,40 +152,76 @@
 
   .touch-target { min-height: 44px; min-width: 44px; }
 
+  /* Premium shadow classes (backward-compatible names) */
   .shadow-1 { box-shadow: var(--shadow-1); }
   .shadow-2 { box-shadow: var(--shadow-2); }
   .shadow-3 { box-shadow: var(--shadow-3); }
+  .shadow-4 { box-shadow: var(--shadow-4); }
 
-  .surface-1 {
+  /* Surface classes */
+  .surface-default {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    border-radius: var(--radius);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  .surface-1:hover { border-color: hsl(var(--border) / 0.8); }
+  .surface-default:hover {
+    border-color: hsl(var(--border) / 0.7);
+    box-shadow: var(--shadow-md);
+  }
 
-  .surface-2 {
+  .surface-elevated {
     background: hsl(var(--popover));
-    border: 1px solid hsl(var(--border));
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
   }
 
-  .card-minimal   { @apply surface-1; }
-  .card-elevated  { @apply surface-2; }
-  .shadow-natural    { box-shadow: var(--shadow-1); }
-  .shadow-natural-md { box-shadow: var(--shadow-2); }
-  .shadow-natural-lg { box-shadow: var(--shadow-3); }
-
-  .hover-scale { @apply transition-transform duration-150 hover:scale-[1.01] active:scale-[0.99]; }
-  .press       { @apply transition-transform duration-150 active:scale-[0.97]; }
-
-  .story-link {
-    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-150 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  /* Controlled glassmorphism */
+  .glass-1 {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .glass-2 {
+    background: rgba(255, 255, 255, 0.48);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
+  /* Interactive */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .hover-lift:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .press {
+    @apply transition-transform duration-150 active:scale-[0.97];
+  }
+
+  /* Gradient text utility */
+  .text-gradient-blue {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-blue)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Content spacing */
   .content-spacing > * + * { margin-top: 1.5rem; }
 }
 
 /* ============================================================
-   Animations — 120–180ms, ease-out only
+   Animations
    ============================================================ */
 @layer utilities {
   @keyframes fade-in {
@@ -178,18 +233,29 @@
     to   { opacity: 0; }
   }
   @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.98); }
+    from { opacity: 0; transform: scale(0.96); }
     to   { opacity: 1; transform: scale(1); }
   }
-  @keyframes skeleton-pulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.5; }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  .animate-fade-in  { animation: fade-in 0.16s ease-out both; }
+  .animate-fade-in  { animation: fade-in 0.2s ease-out both; }
   .animate-fade-out { animation: fade-out 0.14s ease-out both; }
-  .animate-scale-in { animation: scale-in 0.16s ease-out both; }
-  .animate-enter    { animation: fade-in 0.16s ease-out both; }
+  .animate-scale-in { animation: scale-in 0.2s ease-out both; }
+  .animate-shimmer  { animation: shimmer 1.5s ease-in-out infinite; background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.4) 50%, hsl(var(--muted)) 75%); background-size: 200% 100%; }
+  .animate-slide-up { animation: slide-up 0.3s ease-out both; }
+  .animate-slide-down { animation: slide-down 0.2s ease-out both; }
+  .animate-enter    { animation: fade-in 0.2s ease-out, scale-in 0.2s ease-out; }
 }
 
 /* Skip-to-main (a11y) */

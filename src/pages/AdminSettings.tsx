@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AdminRoute } from '@/components/AdminRoute';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -66,7 +65,8 @@ export default function AdminSettings() {
 
   const getSetting = (key: string): number => {
     const value = settings[key]?.value;
-    return parseFloat(String(value || '0'));
+    const parsed = parseFloat(String(value || '0'));
+    return Number.isNaN(parsed) ? 0 : parsed;
   };
 
   const handleChange = (key: string, value: string) => {
@@ -78,13 +78,15 @@ export default function AdminSettings() {
     try {
       const updates = Object.entries(pendingChanges).map(([key, value]) => ({
         key,
-        value: parseFloat(value),
+        value: Number.isNaN(parseFloat(value)) ? 0 : parseFloat(value),
         updated_at: new Date().toISOString()
       }));
 
-      for (const update of updates) {
-        await invokeAdminOperation({ action: 'update_platform_setting', key: update.key, value: String(update.value) });
-      }
+      await Promise.all(
+        updates.map(update =>
+          invokeAdminOperation({ action: 'update_platform_setting', key: update.key, value: String(update.value) })
+        )
+      );
 
       toast.success('Settings updated successfully');
       setPendingChanges({});
@@ -154,7 +156,7 @@ export default function AdminSettings() {
                 Configure platform fees, limits, and operational parameters
               </p>
             </div>
-            <Button
+            <Button className="rounded-xl"
               onClick={() => setShowConfirm(true)}
               disabled={!hasChanges || saving}
               size="lg"
@@ -169,17 +171,17 @@ export default function AdminSettings() {
           </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <GlassCard>
+              
+                
                   <DollarSign className="h-5 w-5" />
                   Platform Fee Settings
-                </CardTitle>
-                <CardDescription>
+                
+                
                   Adjust the transaction fee charged on each rental payment
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+                
+              
+              
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <Label>Platform Fee Percentage</Label>
@@ -210,21 +212,21 @@ export default function AdminSettings() {
                     ⚠️ Changes apply to new rentals only. Existing payments use the fee percentage at time of booking.
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
             {/* Withdrawal Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <GlassCard>
+              
+                
                   <ArrowDownToLine className="h-5 w-5" />
                   Withdrawal Configuration
-                </CardTitle>
-                <CardDescription>
+                
+                
                   Set limits and fees for user withdrawals
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                
+              
+              
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="min_withdrawal">Minimum Withdrawal (RM)</Label>
@@ -234,7 +236,7 @@ export default function AdminSettings() {
                       step="0.01"
                       value={getCurrentValue('min_withdrawal_amount')}
                       onChange={(e) => handleChange('min_withdrawal_amount', e.target.value)}
-                      className="mt-1"
+                      className="rounded-xl mt-1"
                     />
                   </div>
                   <div>
@@ -245,7 +247,7 @@ export default function AdminSettings() {
                       step="0.01"
                       value={getCurrentValue('max_withdrawal_amount')}
                       onChange={(e) => handleChange('max_withdrawal_amount', e.target.value)}
-                      className="mt-1"
+                      className="rounded-xl mt-1"
                     />
                   </div>
                 </div>
@@ -257,24 +259,24 @@ export default function AdminSettings() {
                     step="0.01"
                     value={getCurrentValue('withdrawal_processing_fee')}
                     onChange={(e) => handleChange('withdrawal_processing_fee', e.target.value)}
-                    className="mt-1"
+                    className="rounded-xl mt-1"
                   />
                   <p className="text-sm text-muted-foreground mt-1">
                     Fixed fee charged per withdrawal
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
             {/* Auto-Approval Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Automated Processing</CardTitle>
-                <CardDescription>
+            <GlassCard>
+              
+                Automated Processing
+                
                   Configure automatic payout approval thresholds
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                
+              
+              
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="auto_threshold">Auto-Approve Below (RM)</Label>
@@ -284,7 +286,7 @@ export default function AdminSettings() {
                       step="0.01"
                       value={getCurrentValue('auto_approve_threshold')}
                       onChange={(e) => handleChange('auto_approve_threshold', e.target.value)}
-                      className="mt-1"
+                      className="rounded-xl mt-1"
                     />
                     <p className="text-sm text-muted-foreground mt-1">
                       Low-risk payouts below this amount are auto-approved
@@ -297,15 +299,15 @@ export default function AdminSettings() {
                       type="number"
                       value={getCurrentValue('min_account_age_days')}
                       onChange={(e) => handleChange('min_account_age_days', e.target.value)}
-                      className="mt-1"
+                      className="rounded-xl mt-1"
                     />
                     <p className="text-sm text-muted-foreground mt-1">
                       Required account age for auto-approval
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
           </div>
         </div>
 

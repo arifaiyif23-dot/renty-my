@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,6 +48,7 @@ export default function AdminPayments() {
   useEffect(() => {
     if (activeTab === "transactions") fetchPayments();
     else fetchPayouts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filterStatus, payoutFilter]);
 
   const fetchPayments = async () => {
@@ -67,18 +68,17 @@ export default function AdminPayments() {
       if (error) throw error;
       setPayments(data || []);
 
-      const { data: allPayments } = await supabase
-        .from("payments")
-        .select("platform_fee, total_amount, status");
+      const [completedRes, refundedRes] = await Promise.all([
+        supabase.from("payments").select("total_amount, platform_fee").eq("status", "completed"),
+        supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "refunded"),
+      ]);
 
-      const completed = (allPayments || []).filter((p) => p.status === "completed");
-      const refunded = (allPayments || []).filter((p) => p.status === "refunded");
-
+      const completedPayments = completedRes.data || [];
       setStats({
-        totalRevenue: completed.reduce((s, p) => s + Number(p.total_amount), 0),
-        totalFees: completed.reduce((s, p) => s + Number(p.platform_fee), 0),
-        completedCount: completed.length,
-        refundedCount: refunded.length,
+        totalRevenue: completedPayments.reduce((s, p) => s + Number(p.total_amount), 0),
+        totalFees: completedPayments.reduce((s, p) => s + Number(p.platform_fee), 0),
+        completedCount: completedPayments.length,
+        refundedCount: refundedRes.count || 0,
       });
     } catch (error) {
       console.error("Error fetching payments:", error);
@@ -112,11 +112,11 @@ export default function AdminPayments() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed": return <Badge className="bg-green-500">Completed</Badge>;
-      case "pending": return <Badge variant="secondary">Pending</Badge>;
-      case "failed": return <Badge variant="destructive">Failed</Badge>;
-      case "refunded": return <Badge className="bg-orange-500">Refunded</Badge>;
-      default: return <Badge>{status}</Badge>;
+      case "completed": return <Badge className="bg-success rounded-full">Completed</Badge>;
+      case "pending": return <Badge className="rounded-full" variant="secondary">Pending</Badge>;
+      case "failed": return <Badge className="rounded-full" variant="destructive">Failed</Badge>;
+      case "refunded": return <Badge className="bg-warning rounded-full">Refunded</Badge>;
+      default: return <Badge className="rounded-full">{status}</Badge>;
     }
   };
 
@@ -132,38 +132,38 @@ export default function AdminPayments() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <GlassCard>
+            
+              Total Revenue
+            
+            
               <div className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Platform Fees</CardTitle>
-            </CardHeader>
-            <CardContent>
+            
+          </GlassCard>
+          <GlassCard>
+            
+              Platform Fees
+            
+            
               <div className="text-2xl font-bold">RM{stats.totalFees.toFixed(2)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.completedCount}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Refunded</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.refundedCount}</div>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
+          <GlassCard>
+            
+              Completed
+            
+            
+              <div className="text-2xl font-bold text-success">{stats.completedCount}</div>
+            
+          </GlassCard>
+          <GlassCard>
+            
+              Refunded
+            
+            
+              <div className="text-2xl font-bold text-warning">{stats.refundedCount}</div>
+            
+          </GlassCard>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -173,10 +173,10 @@ export default function AdminPayments() {
           </TabsList>
 
           <TabsContent value="transactions">
-            <Card className="mb-6">
-              <CardContent className="pt-6">
+            <GlassCard className="mb-6">
+              
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full md:w-[250px]">
+                  <SelectTrigger className="w-full md:w-[250px] rounded-xl">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -188,24 +188,24 @@ export default function AdminPayments() {
                     <SelectItem value="refunded">Refunded</SelectItem>
                   </SelectContent>
                 </Select>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : payments.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
+              <GlassCard>
+                
                   No transactions found
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ) : (
               <div className="space-y-3">
                 {payments.map((payment) => (
-                  <Card key={payment.id}>
-                    <CardContent className="p-4">
+                  <GlassCard key={payment.id}>
+                    
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -225,18 +225,18 @@ export default function AdminPayments() {
                           <div>{format(new Date(payment.created_at), "MMM d, yyyy")}</div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    
+                  </GlassCard>
                 ))}
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="payouts">
-            <Card className="mb-6">
-              <CardContent className="pt-6">
+            <GlassCard className="mb-6">
+              
                 <Select value={payoutFilter} onValueChange={setPayoutFilter}>
-                  <SelectTrigger className="w-full md:w-[250px]">
+                  <SelectTrigger className="w-full md:w-[250px] rounded-xl">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -248,24 +248,24 @@ export default function AdminPayments() {
                     <SelectItem value="failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : payouts.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
+              <GlassCard>
+                
                   No payouts found
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ) : (
               <div className="space-y-3">
                 {payouts.map((payout) => (
-                  <Card key={payout.id}>
-                    <CardContent className="p-4">
+                  <GlassCard key={payout.id}>
+                    
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -285,8 +285,8 @@ export default function AdminPayments() {
                           <div>{format(new Date(payout.created_at), "MMM d, yyyy")}</div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    
+                  </GlassCard>
                 ))}
               </div>
             )}

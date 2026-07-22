@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import SEO from "@/components/SEO";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Download, Trash2 } from "lucide-react";
@@ -31,11 +32,16 @@ export default function Privacy() {
       <SEO title="Dasar Privasi — Renty" description="Bagaimana Renty mengumpul, menyimpan, dan melindungi data peribadi anda selari dengan PDPA Malaysia." />
       <Header />
       <main className="container mx-auto max-w-3xl px-4 py-10 pb-mobile-nav space-y-8">
-        <div>
-          <h1 className="font-heading">Dasar Privasi</h1>
-          <p className="text-sm text-muted-foreground mt-1 font-mono">
-            Selari dengan Personal Data Protection Act 2010 (Malaysia)
-          </p>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Shield className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Dasar Privasi</h1>
+            <p className="text-sm text-muted-foreground font-mono">
+              Selari dengan Personal Data Protection Act 2010 (Malaysia)
+            </p>
+          </div>
         </div>
 
         <Section title="1. Data yang Dikumpul">
@@ -99,7 +105,7 @@ export default function Privacy() {
           </p>
 
           {!user && (
-            <Alert className="mb-4">
+            <Alert className="mb-4 rounded-xl">
               <AlertDescription className="text-sm">
                 Sign in dulu untuk buat permintaan data.
               </AlertDescription>
@@ -109,6 +115,7 @@ export default function Privacy() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               variant="outline"
+              className="rounded-xl"
               onClick={() => submitRequest("export")}
               disabled={!user || submitting !== null}
             >
@@ -117,9 +124,9 @@ export default function Privacy() {
             </Button>
             <Button
               variant="outline"
+              className="rounded-xl text-destructive hover:text-destructive"
               onClick={() => submitRequest("deletion")}
               disabled={!user || submitting !== null}
-              className="text-destructive hover:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {submitting === "deletion" ? "Menghantar..." : "Request Account Deletion"}
@@ -145,7 +152,7 @@ export default function Privacy() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-heading font-semibold">{title}</h2>
+      <h2 className="text-lg font-semibold">{title}</h2>
       {children}
     </section>
   );

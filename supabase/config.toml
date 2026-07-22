@@ -1,4 +1,4 @@
-project_id = "vrlukohqzwuddmuathai"
+project_id = "gsucsqtqtpaeuxwrykmf"
 
 [functions.send-email-notification]
 verify_jwt = true
@@ -15,9 +15,6 @@ verify_jwt = true
 [functions.submit-verification]
 verify_jwt = true
 
-[functions.verify-document-ai]
-verify_jwt = true
-
 [functions.validate-promo-code]
 verify_jwt = true
 
@@ -25,7 +22,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.verify-admin]
-verify_jwt = true
+verify_jwt = false
 
 [functions.resolve-dispute]
 verify_jwt = true

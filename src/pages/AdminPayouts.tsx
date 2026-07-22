@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { AdminRoute } from '@/components/AdminRoute';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { DollarSign, Loader2, CheckCircle, XCircle, Clock, Filter } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
@@ -65,7 +63,7 @@ export default function AdminPayouts() {
         .from('payouts')
         .select(`
           *,
-          owner:profiles!payouts_owner_id_fkey(full_name)
+          owner:profiles!owner_id(full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -150,7 +148,7 @@ export default function AdminPayouts() {
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant} className="gap-1">
+      <Badge variant={config.variant} className="gap-1 rounded-full">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
@@ -182,51 +180,51 @@ export default function AdminPayouts() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard>
+              
+                Pending Payouts
+              
+              
                 <div className="text-2xl font-bold">{stats.totalPending}</div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard>
+              
+                Completed
+              
+              
                 <div className="text-2xl font-bold">{stats.totalCompleted}</div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Payouts</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <GlassCard>
+              
+                Total Payouts
+              
+              
                 <div className="text-2xl font-bold">RM {stats.totalAmount.toFixed(2)}</div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">RM {stats.platformRevenue.toFixed(2)}</div>
-              </CardContent>
-            </Card>
+            <GlassCard>
+              
+                Platform Revenue
+              
+              
+                <div className="text-2xl font-bold text-success">RM {stats.platformRevenue.toFixed(2)}</div>
+              
+            </GlassCard>
           </div>
 
           {/* Filters */}
-          <Card className="mb-6">
-            <CardContent className="pt-6">
+          <GlassCard className="mb-6">
+            
               <div className="flex items-center gap-4">
                 <Filter className="h-5 w-5 text-muted-foreground" />
                 <div className="flex gap-2">
                   {['all', 'held', 'awaiting_bank_details', 'pending', 'completed', 'failed'].map((status) => (
-                    <Button
+                    <Button className="rounded-xl"
                       key={status}
                       variant={filter === status ? 'default' : 'outline'}
                       size="sm"
@@ -237,18 +235,18 @@ export default function AdminPayouts() {
                   ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
 
           {/* Payouts List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payouts</CardTitle>
-              <CardDescription>
+          <GlassCard>
+            
+              Payouts
+              
                 {filteredPayouts.length} payout(s)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              
+            
+            
               {filteredPayouts.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -311,7 +309,7 @@ export default function AdminPayouts() {
 
                       {payout.status === 'pending' && (
                         <div className="flex gap-2 pt-3 border-t">
-                          <Button
+                          <Button className="rounded-xl"
                             size="sm"
                             onClick={() => {
                               setSelectedPayout(payout);
@@ -321,7 +319,7 @@ export default function AdminPayouts() {
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Mark as Paid
                           </Button>
-                          <Button
+                          <Button className="rounded-xl"
                             size="sm"
                             variant="destructive"
                             onClick={() => {
@@ -338,8 +336,8 @@ export default function AdminPayouts() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
         </div>
 
         {/* Complete Payout Dialog */}
@@ -354,7 +352,7 @@ export default function AdminPayouts() {
             <div className="space-y-4 py-4">
               <div>
                 <Label htmlFor="transaction_ref">Transaction Reference Number</Label>
-                <Input
+                <Input className="rounded-xl"
                   id="transaction_ref"
                   placeholder="e.g., TXN123456789"
                   value={transactionRef}

@@ -1,86 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Item, ItemCategory } from '@/types';
-
-interface FetchItemsParams {
-  searchQuery?: string;
-  category?: ItemCategory | 'all';
-  minPrice?: string;
-  maxPrice?: string;
-  userLocation?: string;
-  verifiedOnly?: boolean;
-  instantBookOnly?: boolean;
-  itemCondition?: string;
-  sortBy?: 'newest' | 'price_low' | 'price_high';
-}
-
-export const useItemsQuery = (params: FetchItemsParams) => {
-  return useQuery({
-    queryKey: ['items', params],
-    queryFn: async () => {
-      let query = supabase
-        .from('items')
-        .select(`
-          *,
-          owner:profiles(id, full_name, avatar_url, is_verified, verification_level),
-          images:item_images(*)
-        `)
-        .eq('is_available', true);
-
-      if (params.searchQuery) {
-        const sanitized = params.searchQuery.replace(/[,()%]/g, '');
-        query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
-      }
-
-      if (params.category && params.category !== 'all') {
-        query = query.eq('category', params.category);
-      }
-
-      if (params.minPrice) {
-        query = query.gte('price_per_day', parseFloat(params.minPrice));
-      }
-
-      if (params.maxPrice) {
-        query = query.lte('price_per_day', parseFloat(params.maxPrice));
-      }
-
-      if (params.userLocation) {
-        query = query.ilike('location', `%${params.userLocation}%`);
-      }
-
-      if (params.verifiedOnly) {
-        const { data: verifiedIds } = await supabase
-          .from('profiles')
-          .select('id')
-          .in('verification_level', ['basic', 'kyc', 'premium']);
-        const ids = verifiedIds?.map(p => p.id) || [];
-        query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
-      }
-
-      if (params.instantBookOnly) {
-        query = query.eq('instant_book_enabled', true);
-      }
-
-      if (params.itemCondition && params.itemCondition !== 'all') {
-        query = query.eq('item_condition', params.itemCondition);
-      }
-
-      // Sorting
-      if (params.sortBy === 'price_low') {
-        query = query.order('price_per_day', { ascending: true });
-      } else if (params.sortBy === 'price_high') {
-        query = query.order('price_per_day', { ascending: false });
-      } else {
-        query = query.order('created_at', { ascending: false });
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 1000 * 60 * 2, // 2 minutes for search results
-  });
-};
 
 export const useWishlistQuery = (userId?: string) => {
   return useQuery({
@@ -99,7 +18,8 @@ export const useWishlistQuery = (userId?: string) => {
             category,
             location,
             owner:owner_id (
-              is_verified
+              is_verified,
+              verification_level
             ),
             images:item_images (
               image_url
@@ -111,7 +31,7 @@ export const useWishlistQuery = (userId?: string) => {
 
       if (error) throw error;
 
-      return (data || []).map((saved: any) => ({
+      return (data || []).map((saved: { item_id: string; items: { id: string; title: string; price_per_day: number; category: string; location: string; owner: { is_verified: boolean; verification_level: string | null }; images: { image_url: string }[] } }) => ({
         id: saved.items.id,
         title: saved.items.title,
         image: saved.items.images?.[0]?.image_url || '/placeholder.svg',
@@ -120,7 +40,7 @@ export const useWishlistQuery = (userId?: string) => {
         location: saved.items.location,
         rating: 0,
         reviewCount: 0,
-        isOwnerVerified: saved.items.owner?.is_verified || false,
+        verificationLevel: saved.items.owner?.verification_level,
       }));
     },
     enabled: !!userId,
@@ -150,7 +70,7 @@ export const useToggleWishlistMutation = () => {
       await queryClient.cancelQueries({ queryKey: ['wishlist', userId] });
       const previousWishlist = queryClient.getQueryData(['wishlist', userId]);
 
-      queryClient.setQueryData(['wishlist', userId], (old: any[]) => {
+      queryClient.setQueryData(['wishlist', userId], (old: { id: string }[]) => {
         if (isSaved) {
           return old?.filter(item => item.id !== itemId) || [];
         }

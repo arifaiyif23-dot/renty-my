@@ -31,7 +31,7 @@ export default function PeaceOfMind() {
         {FEATURES.map((feature) => (
           <Tooltip key={feature.label}>
             <TooltipTrigger asChild>
-              <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-help">
+              <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground cursor-help" tabIndex={0}>
                 <feature.icon className="h-3.5 w-3.5" />
                 <span>{feature.label}</span>
               </div>

@@ -239,7 +239,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
           )}
           
           {capturedFrames.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-green-600">
+            <div className="flex items-center gap-2 text-sm text-success">
               <Check className="w-4 h-4" />
               Liveness check completed ({capturedFrames.length} frames captured)
             </div>

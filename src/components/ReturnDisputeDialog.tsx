@@ -158,7 +158,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
                   <RadioGroupItem value="good" id="good" />
                   <Label htmlFor="good" className="cursor-pointer flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-success" />
                       <span className="font-semibold">Item in Good Condition</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -171,7 +171,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
                   <RadioGroupItem value="dispute" id="dispute" />
                   <Label htmlFor="dispute" className="cursor-pointer flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <AlertTriangle className="h-5 w-5 text-orange-600" />
+                      <AlertTriangle className="h-5 w-5 text-warning" />
                       <span className="font-semibold">Report an Issue</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -211,7 +211,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
                   {photoUrls.map((url, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border">
                       <img src={url} alt={`Return ${idx + 1}`} className="object-cover w-full h-full" />
-                      <div className="absolute top-1 right-1 bg-green-500 rounded-full p-1">
+                      <div className="absolute top-1 right-1 bg-success rounded-full p-1">
                         <CheckCircle className="h-3 w-3 text-white" />
                       </div>
                     </div>
@@ -233,13 +233,13 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
                 rows={4}
               />
               
-              <div className="flex items-start gap-2 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg mt-4">
-                <Shield className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/20 rounded-lg mt-4">
+                <Shield className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium text-orange-800 dark:text-orange-400">
+                  <p className="font-medium text-warning">
                     Payment Freeze Notice
                   </p>
-                  <p className="text-orange-700 dark:text-orange-300 text-xs mt-1">
+                  <p className="text-warning/70 text-xs mt-1">
                     The payment will be frozen until an admin reviews this dispute
                   </p>
                 </div>
@@ -249,13 +249,13 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
 
           {/* Good Condition Confirmation */}
           {path === 'good' && photoUrls.length > 0 && (
-            <div className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 p-3 bg-success/10 border border-success/20 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-green-800 dark:text-green-400">
+                <p className="font-medium text-success">
                   Ready to Complete
                 </p>
-                <p className="text-green-700 dark:text-green-300 text-xs mt-1">
+                <p className="text-success text-xs mt-1">
                   Confirm the item is returned in good condition. Your payout will be released.
                 </p>
               </div>

@@ -1,9 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PrefetchLink } from "@/components/PrefetchLink";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, ShieldCheck, Settings, DollarSign,
+  ShieldCheck, Settings, DollarSign,
   Activity, Users, Flag, TicketPercent, AlertTriangle, Zap,
-  ChevronLeft, Gauge, Package, CalendarCheck, CreditCard,
+  ChevronLeft, Gauge, Package, CalendarCheck, CreditCard, Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", icon: Gauge, path: "/admin" },
   { label: "Verifications", icon: ShieldCheck, path: "/admin/verifications" },
   { label: "Users", icon: Users, path: "/admin/users" },
+  { label: "Manage Admins", icon: Crown, path: "/admin/manage-admins" },
   { label: "Listings", icon: Package, path: "/admin/listings" },
   { label: "Rentals", icon: CalendarCheck, path: "/admin/rentals" },
   { label: "Payments", icon: CreditCard, path: "/admin/payments" },
@@ -50,9 +52,11 @@ export function AdminSidebar() {
       <ScrollArea className="flex-1">
         <nav className="p-2 space-y-1">
           {NAV_ITEMS.map((item) => {
-            const active = location.pathname === item.path;
+            const active = item.path === '/admin'
+              ? location.pathname === '/admin'
+              : location.pathname.startsWith(item.path);
             return (
-              <Link
+              <PrefetchLink
                 key={item.path}
                 to={item.path}
                 className={cn(
@@ -64,7 +68,7 @@ export function AdminSidebar() {
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />
                 {!collapsed && <span>{item.label}</span>}
-              </Link>
+              </PrefetchLink>
             );
           })}
         </nav>

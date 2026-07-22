@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { StatusStamp } from "@/components/StatusStamp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, FileText } from "lucide-react";
 import SEO from "@/components/SEO";
 
 export default function Terms() {
@@ -12,11 +12,16 @@ export default function Terms() {
       <Header />
       <main className="container mx-auto max-w-3xl px-4 py-10 pb-mobile-nav">
         <div className="flex items-center gap-3 mb-6">
-          <h1 className="font-heading">Terma & Syarat</h1>
-          <StatusStamp variant="draft" label="Draft" />
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <FileText className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Terma & Syarat</h1>
+            <StatusStamp variant="draft" label="Draft" />
+          </div>
         </div>
 
-        <Alert className="mb-8 border-warning bg-warning/10">
+        <Alert className="mb-8 border-warning bg-warning/10 rounded-xl">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-sm">
             <strong>Draft — pending semakan peguam.</strong> Dokumen ini adalah rangka
@@ -29,11 +34,11 @@ export default function Terms() {
         <article className="prose prose-sm max-w-none space-y-6 text-foreground">
           <Section n="1" title="Definisi">
             <ul className="list-disc pl-6 space-y-1 text-sm">
-              <li><b>“Renty”</b> — platform (kami), bertindak sebagai <i>facilitator</i> transaksi sewa antara Vendor dan Renter, bukan pemilik, penjual, atau insurer barang.</li>
-              <li><b>“Vendor”</b> — pengguna yang listing barang untuk disewa.</li>
-              <li><b>“Renter”</b> — pengguna yang membuat booking untuk menyewa barang.</li>
-              <li><b>“Barang”</b> — item yang di-listing (motorsikal, kamera, gadget, pakaian event, DIY tools).</li>
-              <li><b>“Booking”</b> — transaksi sewa yang confirmed antara Vendor dan Renter melalui platform.</li>
+              <li><b>"Renty"</b> — platform (kami), bertindak sebagai <i>facilitator</i> transaksi sewa antara Vendor dan Renter, bukan pemilik, penjual, atau insurer barang.</li>
+              <li><b>"Vendor"</b> — pengguna yang listing barang untuk disewa.</li>
+              <li><b>"Renter"</b> — pengguna yang membuat booking untuk menyewa barang.</li>
+              <li><b>"Barang"</b> — item yang di-listing (motorsikal, kamera, gadget, pakaian event, DIY tools).</li>
+              <li><b>"Booking"</b> — transaksi sewa yang confirmed antara Vendor dan Renter melalui platform.</li>
             </ul>
           </Section>
 
@@ -97,7 +102,7 @@ export default function Terms() {
           </Section>
 
           <Section n="9" title="Liabiliti & Insurans">
-            <Alert className="border-warning bg-warning/5">
+            <Alert className="border-warning bg-warning/5 rounded-xl">
               <AlertTriangle className="h-4 w-4 text-warning" />
               <AlertDescription className="text-sm">
                 Section ini paling memerlukan semakan peguam.
@@ -167,7 +172,7 @@ export default function Terms() {
 function Section({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-lg font-heading font-semibold">
+      <h2 className="text-lg font-semibold">
         <span className="font-mono text-primary mr-2">{n}.</span>
         {title}
       </h2>

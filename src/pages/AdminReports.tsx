@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { invokeAdminOperation } from "@/lib/adminOperations";
-import { Card, CardContent } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,15 +14,15 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, Flag, Loader2, CheckCircle, XCircle, Eye, ExternalLink } from "lucide-react";
+import { Search, Flag, Loader2, CheckCircle, XCircle, Eye } from "lucide-react";
 import { format } from "date-fns";
 import type { Report, ReportStatus } from "@/types";
 
 const STATUS_COLORS: Record<ReportStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  investigating: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  resolved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  dismissed: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+  pending: "bg-warning/10 text-warning",
+  investigating: "bg-primary/10 text-primary-foreground",
+  resolved: "bg-success/10 text-success-foreground",
+  dismissed: "bg-muted text-muted-foreground",
 };
 
 export default function AdminReports() {
@@ -38,15 +38,27 @@ export default function AdminReports() {
   const loadReports = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from("reports")
-        .select("*, reporter:reporter_id(full_name, avatar_url)")
+        .select("*")
         .order("created_at", { ascending: false });
 
-      const { data, error } = await query;
       if (error) throw error;
-      setReports(data || []);
-    } catch (error: unknown) {
+
+      const reportsData = data || [];
+      const userIds = [...new Set(reportsData.map(r => r.reporter_id).filter(Boolean))] as string[];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url")
+          .in("id", userIds);
+        const profileMap = new Map((profiles || []).map(p => [p.id, { full_name: p.full_name, avatar_url: p.avatar_url }]));
+        setReports(reportsData.map(r => ({ ...r, reporter: profileMap.get(r.reporter_id) })));
+      } else {
+        setReports(reportsData);
+      }
+    } catch (error) {
+      console.error("Error loading reports:", error);
       toast.error("Failed to load reports");
     } finally {
       setLoading(false);
@@ -91,17 +103,17 @@ export default function AdminReports() {
         </div>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="pt-6">
+      <GlassCard className="mb-6">
+        
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search reports..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+                <Input className="rounded-xl pl-10" placeholder="Search reports..." value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -111,7 +123,7 @@ export default function AdminReports() {
               </SelectContent>
             </Select>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Type" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="item">Item</SelectItem>
@@ -120,24 +132,23 @@ export default function AdminReports() {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        
+      </GlassCard>
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : filtered.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">No reports found</CardContent></Card>
+        <GlassCard>No reports found</GlassCard>
       ) : (
         <div className="grid gap-3">
           {filtered.map((report) => (
-            <Card key={report.id} className={`cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-yellow-300 dark:border-yellow-700' : ''}`}>
-              <CardContent className="p-4" onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
+            <GlassCard key={report.id} className={`cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-warning/50' : ''}`} onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
                 <div className="flex items-start gap-3">
                   <Flag className="h-5 w-5 mt-0.5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium capitalize">{report.reason}</span>
-                      <Badge variant="outline" className="text-xs capitalize">{report.target_type}</Badge>
+                      <Badge variant="outline" className="text-xs capitalize rounded-full">{report.target_type}</Badge>
                       <Badge className={`text-xs ${STATUS_COLORS[report.status]}`}>{report.status}</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -149,8 +160,8 @@ export default function AdminReports() {
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
           ))}
         </div>
       )}
@@ -212,7 +223,7 @@ export default function AdminReports() {
 
               {selectedReport.status === 'pending' || selectedReport.status === 'investigating' ? (
                 <div className="flex gap-2">
-                  <Button
+                  <Button className="rounded-xl"
                     variant="outline"
                     size="sm"
                     onClick={() => handleAction(selectedReport.id, 'investigating')}
@@ -226,12 +237,12 @@ export default function AdminReports() {
                     size="sm"
                     onClick={() => handleAction(selectedReport.id, 'resolved')}
                     disabled={processing === selectedReport.id}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="rounded-xl bg-success hover:bg-success/90"
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Resolve
                   </Button>
-                  <Button
+                  <Button className="rounded-xl"
                     variant="destructive"
                     size="sm"
                     onClick={() => handleAction(selectedReport.id, 'dismissed')}

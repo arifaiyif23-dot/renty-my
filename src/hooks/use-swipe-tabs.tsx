@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, type TouchEvent } from 'react';
 
 interface UseSwipeTabsOptions {
   tabs: string[];
@@ -12,11 +12,11 @@ export function useSwipeTabs({ tabs, initialTab, threshold = 50, onTabChange }: 
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
   }, []);
 

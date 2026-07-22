@@ -19,21 +19,21 @@ import PageTransition from "@/components/PageTransition";
 // Eager load critical pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Search from "./pages/Search";
+import ItemDetail from "./pages/ItemDetail";
+import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import MyListings from "./pages/MyListings";
+import Messages from "./pages/Messages";
+import ListItem from "./pages/ListItem";
+import Wishlist from "./pages/Wishlist";
+import NotFound from "./pages/NotFound";
 
 // Lazy load non-critical pages
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const ListItem = lazy(() => import("./pages/ListItem"));
-const ItemDetail = lazy(() => import("./pages/ItemDetail"));
-const Search = lazy(() => import("./pages/Search"));
-const Messages = lazy(() => import("./pages/Messages"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Verification = lazy(() => import("./pages/Verification"));
 const AdminVerification = lazy(() => import("./pages/AdminVerification"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
-const MyListings = lazy(() => import("./pages/MyListings"));
 const Install = lazy(() => import("./pages/Install"));
 const Offline = lazy(() => import("./pages/Offline"));
 const PWASettings = lazy(() => import("./pages/PWASettings"));
@@ -58,6 +58,7 @@ const AdminListings = lazy(() => import("./pages/AdminListings"));
 const AdminRentals = lazy(() => import("./pages/AdminRentals"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminUserDetail = lazy(() => import("./pages/AdminUserDetail"));
+const AdminManageAdmins = lazy(() => import("./pages/AdminManageAdmins"));
 
 function AppRoutes() {
   useScrollToTop();
@@ -105,6 +106,7 @@ function AppRoutes() {
               <Route path="/admin/rentals" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminRentals /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/payments" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/users/:id" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUserDetail /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/manage-admins" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminManageAdmins /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/users/:id" element={<ErrorBoundary><UserProfile /></ErrorBoundary>} />
               <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
               <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />

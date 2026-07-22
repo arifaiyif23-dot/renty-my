@@ -45,6 +45,7 @@ export function usePullToRefresh(onRefresh: () => Promise<void>, enabled = true)
       
       if (distance > 0 && distance < 120) {
         setPullDistance(distance);
+        pullDistanceRef.current = distance;
       }
     };
 

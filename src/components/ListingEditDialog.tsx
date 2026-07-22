@@ -60,7 +60,7 @@ function SortableImage({ id, url, isPrimary, onSetPrimary, onRemove }: SortableI
             <GripVertical className="h-4 w-4 text-white" />
           </Button>
           <Button size="icon" variant="ghost" onClick={onSetPrimary}>
-            <Star className={`h-4 w-4 ${isPrimary ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`} />
+            <Star className={`h-4 w-4 ${isPrimary ? 'fill-amber-400 text-amber-400' : 'text-white'}`} />
           </Button>
           <Button size="icon" variant="ghost" onClick={onRemove}>
             <X className="h-4 w-4 text-white" />
@@ -117,7 +117,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         location: listing.location || '',
         deposit_amount: listing.deposit_amount || 0,
         minimum_rental_days: listing.minimum_rental_days || 1,
-        maximum_rental_days: listing.maximum_rental_days || undefined,
+        maximum_rental_days: listing.maximum_rental_days ?? undefined,
         instant_book_enabled: listing.instant_book_enabled || false,
         auto_approve_bookings: listing.auto_approve_bookings || false,
         item_condition: listing.item_condition || 'good',
@@ -127,7 +127,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
       if (listing.item_images) {
         setImages(
-          listing.item_images.map((img: any, idx: number) => ({
+          listing.item_images.map((img: { id: string; image_url: string; is_primary: boolean }, idx: number) => ({
             id: img.id,
             url: img.image_url,
             isPrimary: img.is_primary || idx === 0,
@@ -135,7 +135,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         );
       }
     }
-  }, [listing?.id, open, form]);
+  }, [listing, open, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
@@ -159,6 +159,8 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
           description: values.description,
           category: values.category as 'electronics' | 'tools' | 'sports' | 'party' | 'vehicles' | 'fashion' | 'other',
           price_per_day: values.price_per_day,
+          price_per_hour: values.price_per_hour,
+          payment_mode: values.payment_mode,
           location: values.location,
           deposit_amount: values.deposit_amount,
           minimum_rental_days: values.minimum_rental_days,
@@ -176,28 +178,16 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         throw new Error(`Failed to update item: ${itemError.message}`);
       }
 
-      // Update images: save old ones for rollback, delete, then insert new ones
+      // Update images: save old, insert new, then delete stale old ones
       const { data: oldImages, error: oldImagesError } = await supabase
         .from('item_images')
-        .select('*')
+        .select('id, image_url')
         .eq('item_id', listing.id);
 
       if (oldImagesError) {
-        console.error('Failed to save old images for rollback:', oldImagesError);
-        throw new Error(`Failed to read existing images: ${oldImagesError.message}`);
+        console.error('Failed to read existing images:', oldImagesError);
       }
 
-      const { error: deleteError } = await supabase
-        .from('item_images')
-        .delete()
-        .eq('item_id', listing.id);
-      
-      if (deleteError) {
-        console.error('Image delete error:', deleteError);
-        throw new Error(`Failed to update images: ${deleteError.message}`);
-      }
-
-      // Insert updated images with correct order
       const imageInserts = updatedImages.map((img, index) => ({
         item_id: listing.id,
         image_url: img.url,
@@ -211,12 +201,26 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       
       if (imageError) {
         console.error('Image insert error:', imageError);
-        // Rollback: restore old images
-        if (oldImages?.length) {
-          const { error: rollbackError } = await supabase.from('item_images').insert(oldImages);
-          if (rollbackError) console.error('Rollback insert failed:', rollbackError);
-        }
         throw new Error(`Failed to save images: ${imageError.message}`);
+      }
+
+      // Delete old images that are no longer in the set
+      if (oldImages?.length) {
+        const oldUrls = new Set(oldImages.map(img => img.image_url));
+        const newUrls = new Set(updatedImages.map(img => img.url));
+        const staleUrls = [...oldUrls].filter(url => !newUrls.has(url));
+        
+        if (staleUrls.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('item_images')
+            .delete()
+            .eq('item_id', listing.id)
+            .in('image_url', staleUrls);
+          
+          if (deleteError) {
+            console.error('Image delete error:', deleteError);
+          }
+        }
       }
       
     },
@@ -225,7 +229,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       toast.success(t('listings.updateSuccess'));
       onOpenChange(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('Update mutation error:', error);
       toast.error(error.message || 'Failed to update listing');
     },

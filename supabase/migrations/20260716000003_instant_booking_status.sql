@@ -1,5 +1,8 @@
 -- Support instant booking by allowing status override in create_rental_with_overlap_check
 
+DROP FUNCTION IF EXISTS public.create_rental_with_overlap_check(UUID, UUID, UUID, DATE, DATE, DECIMAL, TEXT);
+DROP FUNCTION IF EXISTS public.create_rental_with_overlap_check(UUID, UUID, UUID, DATE, DATE, DECIMAL);
+
 CREATE OR REPLACE FUNCTION public.create_rental_with_overlap_check(
   p_item_id UUID,
   p_renter_id UUID,
@@ -41,4 +44,4 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.create_rental_with_overlap_check TO service_role;
+GRANT EXECUTE ON FUNCTION public.create_rental_with_overlap_check(UUID, UUID, UUID, DATE, DATE, DECIMAL, TEXT) TO service_role;

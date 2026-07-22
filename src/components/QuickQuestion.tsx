@@ -39,8 +39,8 @@ export default function QuickQuestion({ ownerId, ownerName }: QuickQuestionProps
       toast.success("Question sent! The owner will respond shortly.");
       setQuestion("");
       setOpen(false);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to send question");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to send question");
     } finally {
       setSending(false);
     }

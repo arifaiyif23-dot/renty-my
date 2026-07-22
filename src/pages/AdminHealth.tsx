@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, CheckCircle2, RefreshCw, Mail, CreditCard, Database, Shield } from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw, Mail, CreditCard, Database, Shield, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { toast } from "sonner";
 import { invokeAdminOperation } from "@/lib/adminOperations";
@@ -49,8 +49,8 @@ export default function AdminHealth() {
         supabase.from("payment_flow_logs").select("*").order("created_at", { ascending: false }).limit(15),
       ]);
       if (se) toast.error(se.message);
-      setStats(s as Stats | null);
-      setLogs(((l as unknown) as FlowLog[]) || []);
+      setStats((s ?? null) as Stats | null);
+      setLogs((Array.isArray(l) ? l : []) as FlowLog[]);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'An error occurred');
     } finally {
@@ -101,6 +101,14 @@ export default function AdminHealth() {
     ? Math.round((stats.emails_delivered_today / stats.emails_today) * 100)
     : null;
 
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <main className="space-y-6">
@@ -109,7 +117,7 @@ export default function AdminHealth() {
             <h1 className="text-2xl font-bold">System Health</h1>
             <p className="text-sm text-muted-foreground">Production readiness monitoring</p>
           </div>
-          <Button variant="outline" onClick={load} disabled={loading}>
+          <Button className="rounded-xl" variant="outline" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
         </div>
@@ -131,7 +139,7 @@ export default function AdminHealth() {
             <AlertTitle>{stats.expired_pending} expired pending payments</AlertTitle>
             <AlertDescription className="flex items-center justify-between gap-3">
               <span>Run cleanup to cancel stale rentals.</span>
-              <Button size="sm" onClick={runCleanup} disabled={cleanupRunning}>
+              <Button className="rounded-xl" size="sm" onClick={runCleanup} disabled={cleanupRunning}>
                 {cleanupRunning ? "Running..." : "Run cleanup"}
               </Button>
             </AlertDescription>
@@ -150,50 +158,50 @@ export default function AdminHealth() {
           />
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <GlassCard>
+          
+            
               <CheckCircle2 className="h-4 w-4" /> Readiness checklist
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
+            
+          
+          
             <CheckRow ok={stats?.encryption_self_test === true} label="Encryption self-test (round-trip pass)" />
             <CheckRow ok={stats?.pgcrypto_installed === true} label="pgcrypto extension installed" />
             <CheckRow ok={(stats?.payments_paid_today ?? 0) > 0 || (stats?.payouts_held ?? 0) > 0} label="At least one successful end-to-end payment processed" />
             <CheckRow ok={(stats?.emails_delivered_today ?? 0) > 0} label="Resend delivering emails today" />
             <CheckRow ok={(stats?.payouts_awaiting_bank ?? 0) === 0} label="No payouts blocked on missing bank details" />
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <GlassCard>
+          
+            
               <Mail className="h-4 w-4" /> Send test email
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            
+          
+          
             <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="email"
                 placeholder="recipient@example.com"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+                className="rounded-xl flex-1 rounded-md border bg-background px-3 py-2 text-sm"
               />
-              <Button onClick={sendTestEmail} disabled={testEmailSending}>
+              <Button className="rounded-xl" onClick={sendTestEmail} disabled={testEmailSending}>
                 {testEmailSending ? "Sending..." : "Send test"}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">Verifies Resend domain + edge function delivery end-to-end.</p>
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
 
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent payment flow logs</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <GlassCard>
+          
+            Recent payment flow logs
+          
+          
             {logs.length === 0 ? (
               <p className="text-sm text-muted-foreground">No payment flow events yet.</p>
             ) : (
@@ -201,7 +209,7 @@ export default function AdminHealth() {
                 {logs.map((log) => (
                   <div key={log.id} className="flex items-center justify-between text-sm border-b py-2 last:border-0">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{log.stage}</Badge>
+                      <Badge className="rounded-full" variant="outline">{log.stage}</Badge>
                       <span className="text-muted-foreground text-xs">{new Date(log.created_at).toLocaleString()}</span>
                     </div>
                     {log.rental_id && (
@@ -211,8 +219,8 @@ export default function AdminHealth() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          
+        </GlassCard>
       </main>
     </AdminLayout>
   );
@@ -220,20 +228,20 @@ export default function AdminHealth() {
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string | number; sub?: string }) {
   return (
-    <Card>
-      <CardContent className="p-4">
+    <GlassCard>
+      
         <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">{icon}{label}</div>
         <div className="text-2xl font-bold">{value}</div>
         {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
-      </CardContent>
-    </Card>
+      
+    </GlassCard>
   );
 }
 
 function CheckRow({ ok, label }: { ok: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2">
-      {ok ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-amber-500" />}
+      {ok ? <CheckCircle2 className="h-4 w-4 text-success" /> : <AlertTriangle className="h-4 w-4 text-warning" />}
       <span className={ok ? "" : "text-muted-foreground"}>{label}</span>
     </div>
   );

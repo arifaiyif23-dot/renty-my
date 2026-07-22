@@ -36,7 +36,11 @@ export function useSwipeToDelete({ onDelete, threshold = 120 }: UseSwipeToDelete
     if (swipeDistance >= threshold) {
       setIsDeleting(true);
       haptics.success();
-      await onDelete();
+      try {
+        await onDelete();
+      } catch {
+        // Delete handler will surface its own errors
+      }
     }
     
     setSwipeDistance(0);

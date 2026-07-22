@@ -31,6 +31,7 @@ export const ReferralSystem = () => {
       fetchOrCreateReferralCode();
       fetchReferrals();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchOrCreateReferralCode = async () => {
@@ -166,7 +167,7 @@ export const ReferralSystem = () => {
               <p className="text-sm text-muted-foreground">Completed</p>
               <p className="text-3xl font-bold">{stats.completed}</p>
             </div>
-            <Check className="w-10 h-10 text-green-500/20" />
+            <Check className="w-10 h-10 text-success/20" />
           </div>
         </Card>
 

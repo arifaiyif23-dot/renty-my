@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'moderator' | 'user';
+export type AppRole = 'super_admin' | 'admin' | 'moderator' | 'user';
 export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid' | 'pending' | 'active' | 'completed' | 'cancelled' | 'disputed';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
 export type ListingStatus = 'active' | 'paused' | 'draft' | 'archived';
@@ -19,7 +19,10 @@ export interface Report {
   resolution_note?: string;
   created_at: string;
   updated_at: string;
-  reporter?: Profile;
+  reporter?: {
+    full_name: string;
+    avatar_url?: string | null;
+  };
 }
 
 export interface NotificationPreference {
@@ -73,6 +76,7 @@ export interface Profile {
   total_rentals_completed?: number;
   total_reviews_received?: number;
   response_rate?: number;
+  avg_response_time_minutes?: number;
   is_suspended?: boolean;
   suspension_reason?: string;
   suspended_at?: string;

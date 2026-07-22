@@ -29,8 +29,8 @@ export const PWAFeatures = () => {
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isStandalone ? 'bg-green-500/10' : 'bg-muted'}`}>
-              <Download className={`w-5 h-5 ${isStandalone ? 'text-green-600' : 'text-muted-foreground'}`} />
+            <div className={`p-2 rounded-lg ${isStandalone ? 'bg-success/10' : 'bg-muted'}`}>
+              <Download className={`w-5 h-5 ${isStandalone ? 'text-success' : 'text-muted-foreground'}`} />
             </div>
             <div>
               <h3 className="font-semibold">App Installation</h3>
@@ -96,11 +96,11 @@ export const PWAFeatures = () => {
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isOnline ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+            <div className={`p-2 rounded-lg ${isOnline ? 'bg-success/10' : 'bg-destructive/10'}`}>
               {isOnline ? (
-                <Wifi className="w-5 h-5 text-green-600" />
+                <Wifi className="w-5 h-5 text-success" />
               ) : (
-                <WifiOff className="w-5 h-5 text-red-600" />
+                <WifiOff className="w-5 h-5 text-destructive" />
               )}
             </div>
             <div>
@@ -121,19 +121,19 @@ export const PWAFeatures = () => {
         <h3 className="font-semibold mb-3">App Features</h3>
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
+            <CheckCircle className="w-4 h-4 text-success" />
             <span>Offline browsing of items</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
+            <CheckCircle className="w-4 h-4 text-success" />
             <span>Fast app-like experience</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
+            <CheckCircle className="w-4 h-4 text-success" />
             <span>Background sync for actions</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-600" />
+            <CheckCircle className="w-4 h-4 text-success" />
             <span>Cached images & content</span>
           </div>
         </div>

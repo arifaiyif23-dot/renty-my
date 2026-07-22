@@ -41,6 +41,7 @@ class SoundPlayer {
       setTimeout(() => {
         const oscillator2 = context.createOscillator();
         const gainNode2 = context.createGain();
+        const now = context.currentTime;
 
         oscillator2.connect(gainNode2);
         gainNode2.connect(context.destination);
@@ -48,11 +49,11 @@ class SoundPlayer {
         oscillator2.frequency.value = 600;
         oscillator2.type = 'sine';
         
-        gainNode2.gain.setValueAtTime(0.3, context.currentTime);
-        gainNode2.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.2);
+        gainNode2.gain.setValueAtTime(0.3, now);
+        gainNode2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
         
-        oscillator2.start(context.currentTime);
-        oscillator2.stop(context.currentTime + 0.2);
+        oscillator2.start(now);
+        oscillator2.stop(now + 0.2);
       }, 100);
     } catch (error) {
       console.error('Error playing notification sound:', error);
@@ -74,6 +75,7 @@ class SoundPlayer {
         setTimeout(() => {
           const oscillator = context.createOscillator();
           const gainNode = context.createGain();
+          const now = context.currentTime;
 
           oscillator.connect(gainNode);
           gainNode.connect(context.destination);
@@ -81,11 +83,11 @@ class SoundPlayer {
           oscillator.frequency.value = freq;
           oscillator.type = 'sine';
           
-          gainNode.gain.setValueAtTime(0.25, context.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.2);
+          gainNode.gain.setValueAtTime(0.25, now);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
           
-          oscillator.start(context.currentTime);
-          oscillator.stop(context.currentTime + 0.2);
+          oscillator.start(now);
+          oscillator.stop(now + 0.2);
         }, index * 120);
       });
     } catch (error) {

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { ListingCard } from "@/components/ListingCard";
+import { ListingCardV2 } from "@/components/marketplace/ListingCardV2";
 import SkeletonCard from "@/components/SkeletonCard";
 import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import SEO from "@/components/SEO";
@@ -38,12 +39,11 @@ export default function Wishlist() {
 
   const removeFromWishlist = async (itemId: string) => {
     const previousItems = [...items];
-    
-    // Optimistic update via query cache
-    queryClient.setQueryData(['wishlist', user?.id], (old: any[]) => 
+
+    queryClient.setQueryData(['wishlist', user?.id], (old: { id: string }[]) =>
       old?.filter(item => item.id !== itemId) || []
     );
-    
+
     const undoToast = toast.success('Removed from wishlist', {
       action: {
         label: 'Undo',
@@ -78,12 +78,22 @@ export default function Wishlist() {
       <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
         {pullDistance > 0 && (
-          <div className="flex justify-center py-2">
-            <RefreshCw className={`h-5 w-5 text-primary ${isRefreshing ? 'animate-spin' : ''}`} style={{ transform: `rotate(${pullDistance * 2}deg)` }} />
+          <div className="flex justify-center py-3">
+            <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg" style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}>
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </div>
           </div>
         )}
-        <h1 className="text-3xl font-bold mb-6 text-foreground">My Wishlist</h1>
-        
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+            <Heart className="h-5 w-5 text-destructive" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">My Wishlist</h1>
+            <p className="text-sm text-muted-foreground">{items.length} saved items</p>
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[...Array(6)].map((_, i) => (
@@ -117,7 +127,7 @@ export default function Wishlist() {
   );
 }
 
-function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDelete: () => void; isMobile: boolean }) {
+function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: Record<string, unknown>; onDelete: () => void; isMobile: boolean }) {
   const {
     swipeDistance,
     isDeleting,
@@ -132,10 +142,10 @@ function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDele
 
   return (
     <div
-      className="relative overflow-hidden transition-all duration-200"
-      style={{ 
+      className="relative overflow-hidden transition-all duration-200 rounded-2xl"
+      style={{
         transform: `translateX(-${swipeDistance}px)`,
-        opacity: isDeleting ? 0 : 1 
+        opacity: isDeleting ? 0 : 1
       }}
     >
       <div
@@ -146,10 +156,10 @@ function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: any; onDele
       >
         <ListingCard {...item} />
       </div>
-      
+
       {swipeDistance > 0 && (
         <div
-          className="absolute right-0 top-0 h-full flex items-center justify-center px-6 bg-destructive text-destructive-foreground"
+          className="absolute right-0 top-0 h-full flex items-center justify-center px-6 bg-destructive text-destructive-foreground rounded-2xl"
           style={{ width: `${swipeDistance}px` }}
         >
           <Trash2 className="h-6 w-6" />

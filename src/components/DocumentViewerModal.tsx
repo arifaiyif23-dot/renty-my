@@ -11,7 +11,6 @@ import {
   Maximize2, 
   X,
   Loader2,
-  AlertTriangle,
   CheckCircle,
   User,
   FileText
@@ -32,7 +31,7 @@ interface DocumentViewerModalProps {
     selfie_url: string;
     full_name_on_document: string;
     document_type: string;
-    ai_analysis_result?: any;
+    ai_analysis_result?: Record<string, unknown>;
     overall_confidence_score?: number | null;
   } | null;
   onApprove?: () => void;
@@ -57,59 +56,63 @@ export function DocumentViewerModal({
   const [rotation, setRotation] = useState(0);
 
   const extractPath = useCallback((url: string) => {
-    const parts = url.split('/storage/v1/object/');
-    if (parts.length < 2) {
-      const publicParts = url.split('/storage/v1/object/public/');
-      if (publicParts.length >= 2) {
-        return publicParts[1].split('/').slice(1).join('/');
-      }
-    } else {
-      return parts[1].split('/').slice(1).join('/').replace('public/', '');
+    if (!url) return url;
+    try {
+      const urlObj = new URL(url);
+      const pathMatch = urlObj.pathname.match(/\/storage\/v1\/object\/(?:public\/)?(?:.+?\/(.+))$/);
+      if (pathMatch) return pathMatch[1];
+    } catch {
+      // Fallback if URL is malformed
     }
-    return url.split('verification-documents/').pop() || url;
+    const parts = url.split('verification-documents/');
+    if (parts.length > 1) return parts.slice(1).join('/');
+    // If path doesn't include bucket prefix, add it
+    if (!url.startsWith('verification-documents/')) {
+      return `verification-documents/${url}`;
+    }
+    return url;
   }, []);
 
   useEffect(() => {
     if (open && verification) {
+      const loadSignedUrls = async () => {
+        if (!verification) return;
+        
+        setLoading(true);
+        try {
+          const frontPath = extractPath(verification.document_front_url);
+          const frontUrl = await getSignedUrl(frontPath);
+
+          let backUrl = null;
+          if (verification.document_back_url) {
+            const backPath = extractPath(verification.document_back_url);
+            backUrl = await getSignedUrl(backPath);
+          }
+
+          const selfiePath = extractPath(verification.selfie_url);
+          const selfieUrl = await getSignedUrl(selfiePath);
+
+          setSignedUrls({ front: frontUrl, back: backUrl, selfie: selfieUrl });
+
+          await invokeAdminOperation({
+            action: 'log_sensitive_access',
+            resourceType: 'verification_document',
+            resourceId: verification.id,
+          });
+        } catch (error) {
+          console.error("Failed to load signed URLs:", error);
+          toast.error("Failed to load documents");
+        } finally {
+          setLoading(false);
+        }
+      };
       loadSignedUrls();
       // Reset view state
       setZoom(1);
       setRotation(0);
       setActiveTab("front");
     }
-  }, [open, verification]);
-
-  const loadSignedUrls = async () => {
-    if (!verification) return;
-    
-    setLoading(true);
-    try {
-      const frontPath = extractPath(verification.document_front_url);
-      const frontUrl = await getSignedUrl(frontPath);
-
-      let backUrl = null;
-      if (verification.document_back_url) {
-        const backPath = extractPath(verification.document_back_url);
-        backUrl = await getSignedUrl(backPath);
-      }
-
-      const selfiePath = extractPath(verification.selfie_url);
-      const selfieUrl = await getSignedUrl(selfiePath);
-
-      setSignedUrls({ front: frontUrl, back: backUrl, selfie: selfieUrl });
-
-      await invokeAdminOperation({
-        action: 'log_sensitive_access',
-        resourceType: 'verification_document',
-        resourceId: verification.id,
-      });
-    } catch (error) {
-      console.error("Failed to load signed URLs:", error);
-      toast.error("Failed to load documents");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [open, verification, extractPath]);
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
@@ -125,7 +128,6 @@ export function DocumentViewerModal({
     if (!open) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't capture if user is in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -134,23 +136,24 @@ export function DocumentViewerModal({
         case '+':
         case '=':
           e.preventDefault();
-          handleZoomIn();
+          setZoom(prev => Math.min(prev + 0.25, 3));
           break;
         case '-':
           e.preventDefault();
-          handleZoomOut();
+          setZoom(prev => Math.max(prev - 0.25, 0.5));
           break;
         case 'r':
           e.preventDefault();
-          handleRotateCw();
+          setRotation(prev => prev + 90);
           break;
         case 'R':
           e.preventDefault();
-          handleRotateCcw();
+          setRotation(prev => prev - 90);
           break;
         case '0':
           e.preventDefault();
-          handleResetView();
+          setZoom(1);
+          setRotation(0);
           break;
         case '1':
           e.preventDefault();
@@ -173,7 +176,7 @@ export function DocumentViewerModal({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, signedUrls.back]);
+  }, [open, signedUrls.back, onOpenChange]);
 
   const getCurrentUrl = () => {
     switch (activeTab) {
@@ -202,10 +205,10 @@ export function DocumentViewerModal({
               {verification?.overall_confidence_score && (
                 <Badge 
                   className={verification.overall_confidence_score >= 90 
-                    ? "bg-green-500" 
+                    ? "bg-success" 
                     : verification.overall_confidence_score >= 70 
-                      ? "bg-yellow-500" 
-                      : "bg-red-500"
+                      ? "bg-warning" 
+                      : "bg-destructive"
                   }
                 >
                   {verification.overall_confidence_score}% Confidence
@@ -299,7 +302,7 @@ export function DocumentViewerModal({
                 </Button>
               )}
               {onApprove && (
-                <Button onClick={onApprove} className="min-w-32 bg-green-600 hover:bg-green-700">
+                <Button onClick={onApprove} className="min-w-32 bg-success hover:bg-success/90">
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve
                 </Button>
@@ -307,113 +310,30 @@ export function DocumentViewerModal({
             </div>
           </div>
 
-          {/* AI Analysis Sidebar */}
+          {/* Document Info Sidebar */}
           <div className="w-80 border-l overflow-y-auto bg-background">
             <div className="p-4 border-b">
-              <h3 className="font-semibold mb-1">AI Analysis</h3>
-              <p className="text-xs text-muted-foreground">Extracted data and confidence scores</p>
+              <h3 className="font-semibold mb-1">Document Details</h3>
+              <p className="text-xs text-muted-foreground">Submitted document information</p>
             </div>
 
             <div className="p-4 space-y-4">
-              {/* Extracted Data */}
-              {extractedData && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">User Information</h4>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Name on Document</p>
+                  <p className="font-medium">{verification?.full_name_on_document || '—'}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Document Type</p>
+                  <p className="font-medium capitalize">{verification?.document_type || '—'}</p>
+                </div>
+              </div>
+
+              {verification?.overall_confidence_score !== null && verification?.overall_confidence_score !== undefined && (
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">Extracted Information</h4>
-                  
-                  {extractedData.fullName && (
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Full Name</p>
-                      <p className="font-medium">{extractedData.fullName}</p>
-                    </div>
-                  )}
-                  
-                  {extractedData.icNumber && (
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">IC Number</p>
-                      <p className="font-medium font-mono">****{extractedData.icNumber.slice(-4)}</p>
-                    </div>
-                  )}
-                  
-                  {extractedData.dateOfBirth && (
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Date of Birth</p>
-                      <p className="font-medium">{extractedData.dateOfBirth}</p>
-                    </div>
-                  )}
-                  
-                  {extractedData.address && (
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Address</p>
-                      <p className="font-medium text-sm">{extractedData.address}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Confidence Scores */}
-              {aiAnalysis && (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">Confidence Scores</h4>
-                  
-                  <ScoreBar 
-                    label="Document Quality" 
-                    score={aiAnalysis.documentQuality?.score || 0} 
-                  />
-                  <ScoreBar 
-                    label="Face Comparison" 
-                    score={aiAnalysis.faceComparison?.score || 0} 
-                  />
-                  <ScoreBar 
-                    label="Fraud Detection" 
-                    score={100 - (aiAnalysis.fraudDetection?.score || 0)}
-                    inverted
-                  />
-                  <ScoreBar 
-                    label="Overall" 
-                    score={aiAnalysis.overallConfidence || 0} 
-                  />
-                </div>
-              )}
-
-              {/* Fraud Warnings */}
-              {aiAnalysis?.fraudDetection?.concerns?.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-orange-500" />
-                    Concerns
-                  </h4>
-                  <ul className="space-y-1">
-                    {aiAnalysis.fraudDetection.concerns.map((concern: string, i: number) => (
-                      <li key={i} className="text-sm bg-orange-500/10 text-orange-700 dark:text-orange-300 rounded px-2 py-1">
-                        {concern}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* AI Recommendation */}
-              {aiAnalysis?.autoApprove !== undefined && (
-                <div className={`p-3 rounded-lg ${aiAnalysis.autoApprove ? 'bg-green-500/10 border border-green-500/30' : 'bg-orange-500/10 border border-orange-500/30'}`}>
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    {aiAnalysis.autoApprove ? (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-green-700 dark:text-green-300">AI Recommends Approval</span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
-                        <span className="text-orange-700 dark:text-orange-300">Manual Review Required</span>
-                      </>
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {!aiAnalysis && (
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  No AI analysis available
+                  <h4 className="text-sm font-medium text-muted-foreground">Scores</h4>
+                  <ScoreBar label="Overall" score={verification.overall_confidence_score} />
                 </div>
               )}
             </div>
@@ -427,8 +347,8 @@ export function DocumentViewerModal({
 function ScoreBar({ label, score, inverted = false }: { label: string; score: number; inverted?: boolean }) {
   const displayScore = Math.round(score);
   const colorClass = inverted 
-    ? (displayScore >= 80 ? 'bg-green-500' : displayScore >= 50 ? 'bg-yellow-500' : 'bg-red-500')
-    : (displayScore >= 80 ? 'bg-green-500' : displayScore >= 60 ? 'bg-yellow-500' : 'bg-red-500');
+    ? (displayScore >= 80 ? 'bg-success' : displayScore >= 50 ? 'bg-warning' : 'bg-destructive')
+    : (displayScore >= 80 ? 'bg-success' : displayScore >= 60 ? 'bg-warning' : 'bg-destructive');
 
   return (
     <div>

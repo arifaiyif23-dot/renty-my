@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Search, Mail, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Mail, ExternalLink, HelpCircle } from "lucide-react";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 
@@ -63,16 +63,23 @@ export default function Help() {
     <>
       <Header />
       <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
-        <h1 className="text-3xl font-bold mb-2">Help Center</h1>
-        <p className="text-muted-foreground mb-6">Find answers to common questions</p>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <HelpCircle className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Help Center</h1>
+            <p className="text-sm text-muted-foreground">Find answers to common questions</p>
+          </div>
+        </div>
 
-        <div className="relative mb-8">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search FAQs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 rounded-xl"
           />
         </div>
 
@@ -81,57 +88,59 @@ export default function Help() {
             <p className="text-center text-muted-foreground py-8">No results found</p>
           ) : (
             filtered.map((faq, i) => (
-              <Card
+              <GlassCard
                 key={i}
-                className="cursor-pointer hover:border-primary/50 transition-colors"
+                variant="subtle"
+                padding="md"
+                className="cursor-pointer hover:border-primary/50 transition-colors select-none"
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-medium text-sm">{faq.q}</h3>
-                    {openIndex === i ? (
-                      <ChevronDown className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
-                    )}
-                  </div>
-                  {openIndex === i && (
-                    <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{faq.a}</p>
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="font-medium text-sm">{faq.q}</h3>
+                  {openIndex === i ? (
+                    <ChevronDown className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
                   )}
-                </CardContent>
-              </Card>
+                </div>
+                {openIndex === i && (
+                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{faq.a}</p>
+                )}
+              </GlassCard>
             ))
           )}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Still Need Help?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <GlassCard padding="lg">
+          <h2 className="font-semibold text-lg mb-4">Still Need Help?</h2>
+          <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-primary" />
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Mail className="h-4 w-4 text-primary" />
+              </div>
               <div>
-                <p className="font-medium">Email Us</p>
+                <p className="font-medium text-sm">Email Us</p>
                 <a href="mailto:support@renty.my" className="text-sm text-primary hover:underline">
                   support@renty.my
                 </a>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <ExternalLink className="h-5 w-5 text-primary" />
-              <div>
-                <Button variant="link" className="p-0 h-auto" asChild>
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <ExternalLink className="h-4 w-4 text-primary" />
+              </div>
+              <div className="text-sm">
+                <Button variant="link" className="p-0 h-auto text-sm" asChild>
                   <Link to="/terms">Terms of Service</Link>
                 </Button>
                 <span className="text-muted-foreground mx-2">|</span>
-                <Button variant="link" className="p-0 h-auto" asChild>
+                <Button variant="link" className="p-0 h-auto text-sm" asChild>
                   <Link to="/privacy">Privacy Policy</Link>
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
       </div>
     </>
   );

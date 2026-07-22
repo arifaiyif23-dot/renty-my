@@ -106,6 +106,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
   return (
     <>
       <Button
+        variant="default"
         className="w-full"
         size="lg"
         onClick={() => { haptics.light(); setShowConfirmDialog(true); }}
@@ -151,7 +152,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
                   <span>RM {originalPrice.toFixed(2)}</span>
                 </div>
                 {hasPromo && (
-                  <div className="flex justify-between text-green-600 dark:text-green-400">
+                  <div className="flex justify-between text-success">
                     <span>Promo discount</span>
                     <span>-RM {Number(rental.discount_amount).toFixed(2)}</span>
                   </div>
@@ -171,7 +172,7 @@ export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
                 <p>Refund policy: If you cancel before the rental starts, a refund may be available depending on the owner's cancellation policy.</p>
               </div>
 
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs text-primary space-y-1">
                 <p className="font-medium">Secure payment via ToyyibPay</p>
                 <p>You'll be redirected to ToyyibPay (a Malaysian payment gateway) to complete payment. Accepted methods: FPX (all banks) and credit/debit cards. Your payment is protected by escrow — funds are only released to the owner after the rental period.</p>
               </div>

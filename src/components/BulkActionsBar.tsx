@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, CheckCheck, XCircle, Clock } from 'lucide-react';
+import { X, CheckCheck, XCircle } from 'lucide-react';
 
 interface BulkActionsBarProps {
   selectedCount: number;

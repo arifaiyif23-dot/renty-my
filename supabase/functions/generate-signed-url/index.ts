@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1';
 
 const corsHeaders = {
@@ -69,12 +70,12 @@ Deno.serve(async (req) => {
       // Check if user is accessing their own documents
       const isOwnDocument = userId === user.id;
       
-      // Check if user is admin
+      // Check if user is admin (include super_admin)
       const { data: roles } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .eq('role', 'admin')
+        .in('role', ['admin', 'super_admin'])
         .maybeSingle();
       
       const isAdmin = !!roles;
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .eq('role', 'admin')
+        .in('role', ['admin', 'super_admin'])
         .maybeSingle();
       const isAdmin = !!roles;
       

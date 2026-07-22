@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,13 +19,14 @@ interface AdminDispute {
   filed_by: string;
   filed_against: string;
   dispute_type: string;
-  severity: string;
   description: string;
-  evidence_urls: string[] | null;
   status: string;
   resolution_notes: string | null;
   resolution_amount: number | null;
   created_at: string;
+  renter?: { full_name: string };
+  owner?: { full_name: string };
+  item?: { title: string };
 }
 
 type ResolveAction = "refund_renter" | "release_owner" | "split";
@@ -42,14 +43,57 @@ export default function AdminDisputes() {
 
   const load = async () => {
     setLoading(true);
-    let q = supabase.from("disputes").select("*").order("created_at", { ascending: false });
-    if (filter !== "all") q = q.eq("status", filter);
-    const { data, error } = await q;
-    if (error) toast.error(error.message);
-    setDisputes((data || []) as AdminDispute[]);
-    setLoading(false);
+    try {
+      let q = supabase
+        .from("rentals")
+        .select("id, renter_id, owner_id, dispute_reason, dispute_status, is_disputed, created_at, item:items!item_id(title)")
+        .eq("is_disputed", true)
+        .order("created_at", { ascending: false });
+
+      if (filter === "open" || filter === "investigating") {
+        q = q.or("dispute_status.is.null,dispute_status.eq.open");
+      } else if (filter === "resolved") {
+        q = q.in("dispute_status", ["resolved_refund", "resolved_payout"]);
+      }
+
+      const { data, error } = await q;
+      if (error) throw error;
+
+      const rentalsData = data || [];
+      const userIds = [...new Set(rentalsData.flatMap(r => [r.renter_id, r.owner_id]).filter(Boolean))] as string[];
+      let profileMap = new Map<string, { full_name: string }>();
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+        profileMap = new Map((profiles || []).map(p => [p.id, { full_name: p.full_name }]));
+      }
+
+      setDisputes(rentalsData.map(r => ({
+        id: r.id,
+        rental_id: r.id,
+        filed_by: r.renter_id,
+        filed_against: r.owner_id,
+        dispute_type: r.dispute_reason || "User Dispute",
+        description: r.dispute_reason || "No details provided",
+        status: r.dispute_status || "open",
+        resolution_notes: null,
+        resolution_amount: null,
+        created_at: r.created_at,
+        renter: profileMap.get(r.renter_id),
+        owner: profileMap.get(r.owner_id),
+        item: r.item,
+      })));
+    } catch (error) {
+      console.error("Error loading disputes:", error);
+      toast.error("Failed to load disputes");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [filter]);
 
   const resolve = async () => {
@@ -58,23 +102,29 @@ export default function AdminDisputes() {
       return;
     }
     setSaving(true);
-    const amount = action === "release_owner" ? 0 : parseFloat(refundAmount || "0");
+    const parsed = parseFloat(refundAmount || "0");
+    const amount = Number.isNaN(parsed) ? 0 : parsed;
 
-    await invokeAdminOperation({
-      action: 'resolve_dispute',
-      disputeId: selected.id,
-      rentalId: selected.rental_id,
-      resolutionNotes: notes,
-      resolutionAmount: amount,
-      resolutionSplit: { action, refund_to_renter: amount },
-    });
+    try {
+      await invokeAdminOperation({
+        action: 'resolve_dispute',
+        disputeId: selected.id,
+        rentalId: selected.rental_id,
+        resolutionNotes: notes,
+        resolutionAmount: amount,
+        resolutionSplit: { action, refund_to_renter: amount },
+      });
 
-    toast.success("Dispute resolved");
-    setSelected(null);
-    setSaving(false);
-    setNotes("");
-    setRefundAmount("");
-    load();
+      toast.success("Dispute resolved");
+      setSelected(null);
+      setNotes("");
+      setRefundAmount("");
+      load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to resolve dispute');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -89,7 +139,7 @@ export default function AdminDisputes() {
           </div>
           <div className="flex gap-1">
             {(["open", "investigating", "resolved", "all"] as const).map((s) => (
-              <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)} className="capitalize">
+              <Button className="rounded-xl capitalize" key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)}>
                 {s}
               </Button>
             ))}
@@ -103,35 +153,25 @@ export default function AdminDisputes() {
         ) : (
           <div className="space-y-3">
             {disputes.map((d) => (
-              <Card key={d.id}>
-                <CardHeader className="pb-3">
+              <GlassCard key={d.id}>
+                
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div>
-                      <CardTitle className="text-base capitalize flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
-                        {d.dispute_type.replace(/_/g, " ")}
-                      </CardTitle>
+                      
+                        <AlertTriangle className="h-4 w-4 text-warning" />
+                        {d.renter?.full_name || "User"} · {d.item?.title || "Unknown item"}
+                      
                       <p className="text-xs text-muted-foreground mt-1">
                         Rental <code>{d.rental_id.slice(0, 8)}</code> · {format(new Date(d.created_at), "PPp")}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Badge variant="outline" className="capitalize">{d.severity}</Badge>
-                      <Badge variant={d.status === "resolved" ? "default" : "secondary"} className="capitalize">{d.status}</Badge>
+                      <Badge variant={d.status === "resolved" ? "default" : "secondary"} className="capitalize rounded-full">{d.status.replace(/_/g, " ")}</Badge>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                
+                
                   <p className="text-sm">{d.description}</p>
-                  {d.evidence_urls && d.evidence_urls.length > 0 && (
-                    <div className="flex gap-2 flex-wrap">
-                      {d.evidence_urls.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                          <img src={url} alt={`Evidence ${i + 1}`} className="h-20 w-20 object-cover rounded border" />
-                        </a>
-                      ))}
-                    </div>
-                  )}
                   {d.resolution_notes ? (
                     <div className="text-sm bg-muted p-3 rounded border-l-4 border-primary">
                       <div className="font-semibold mb-1">Resolution</div>
@@ -143,7 +183,7 @@ export default function AdminDisputes() {
                   ) : (
                     <Dialog open={selected?.id === d.id} onOpenChange={(o) => setSelected(o ? d : null)}>
                       <DialogTrigger asChild>
-                        <Button size="sm">Resolve</Button>
+                        <Button className="rounded-xl" size="sm">Resolve</Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
@@ -152,7 +192,7 @@ export default function AdminDisputes() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-3 gap-2">
                             {(["refund_renter", "split", "release_owner"] as ResolveAction[]).map((a) => (
-                              <Button key={a} variant={action === a ? "default" : "outline"} size="sm" onClick={() => setAction(a)} className="capitalize">
+                              <Button className="rounded-xl capitalize" key={a} variant={action === a ? "default" : "outline"} size="sm" onClick={() => setAction(a)}>
                                 {a.replace(/_/g, " ")}
                               </Button>
                             ))}
@@ -160,7 +200,7 @@ export default function AdminDisputes() {
                           {action !== "release_owner" && (
                             <div>
                               <Label>Refund amount (RM)</Label>
-                              <Input
+                              <Input className="rounded-xl"
                                 type="number"
                                 step="0.01"
                                 value={refundAmount}
@@ -180,8 +220,8 @@ export default function AdminDisputes() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
-                          <Button onClick={resolve} disabled={saving}>
+                          <Button className="rounded-xl" variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
+                          <Button className="rounded-xl" onClick={resolve} disabled={saving}>
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Submit Resolution
                           </Button>
@@ -189,8 +229,8 @@ export default function AdminDisputes() {
                       </DialogContent>
                     </Dialog>
                   )}
-                </CardContent>
-              </Card>
+                
+              </GlassCard>
             ))}
           </div>
         )}

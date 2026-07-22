@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { invokeAdminOperation } from "@/lib/adminOperations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +59,7 @@ export default function AdminPromoCodes() {
       await invokeAdminOperation({
         action: 'create_promo_code',
         code: form.code.trim().toUpperCase(),
-        discountAmount: parseFloat(form.discount_amount),
+        discountAmount: Number.isNaN(parseFloat(form.discount_amount)) ? 0 : parseFloat(form.discount_amount),
         discountType: form.discount_type,
         maxUses: form.max_uses ? parseInt(form.max_uses) : undefined,
         validFrom: form.valid_from || undefined,
@@ -98,47 +98,47 @@ export default function AdminPromoCodes() {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <Card><CardHeader className="pb-3"><CardTitle className="text-sm text-muted-foreground">Total Codes</CardTitle><p className="text-3xl font-bold">{stats.total}</p></CardHeader></Card>
-        <Card><CardHeader className="pb-3"><CardTitle className="text-sm text-muted-foreground">Active</CardTitle><p className="text-3xl font-bold text-green-600">{stats.active}</p></CardHeader></Card>
-        <Card><CardHeader className="pb-3"><CardTitle className="text-sm text-muted-foreground">Total Uses</CardTitle><p className="text-3xl font-bold">{stats.totalUses}</p></CardHeader></Card>
+        <GlassCard>Total Codes<p className="text-3xl font-bold">{stats.total}</p></GlassCard>
+        <GlassCard>Active<p className="text-3xl font-bold text-success">{stats.active}</p></GlassCard>
+        <GlassCard>Total Uses<p className="text-3xl font-bold">{stats.totalUses}</p></GlassCard>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="pt-6">
+      <GlassCard className="mb-6">
+        
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search codes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+              <Input className="rounded-xl pl-10" placeholder="Search codes..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Select value={filterActive} onValueChange={setFilterActive}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={() => setShowCreate(true)}>
+            <Button className="rounded-xl" onClick={() => setShowCreate(true)}>
               <Plus className="h-4 w-4 mr-2" /> Create Code
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        
+      </GlassCard>
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : filtered.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">No promo codes found</CardContent></Card>
+        <GlassCard>No promo codes found</GlassCard>
       ) : (
         <div className="grid gap-3">
           {filtered.map((code) => (
-            <Card key={code.id}>
-              <CardContent className="p-4">
+            <GlassCard key={code.id}>
+              
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-lg">{code.code}</span>
-                      <Badge variant={code.is_active ? "default" : "secondary"}>
+                      <Badge className="rounded-full" variant={code.is_active ? "default" : "secondary"}>
                         {code.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
@@ -151,8 +151,8 @@ export default function AdminPromoCodes() {
                   </div>
                   <Switch checked={code.is_active} onCheckedChange={() => toggleActive(code)} />
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
           ))}
         </div>
       )}
@@ -165,12 +165,12 @@ export default function AdminPromoCodes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Code</label>
-                <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. SUMMER50" />
+                <Input className="rounded-xl" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. SUMMER50" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Type</label>
                 <Select value={form.discount_type} onValueChange={(v: "percentage" | "fixed") => setForm({ ...form, discount_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">Percentage (%)</SelectItem>
                     <SelectItem value="fixed">Fixed (RM)</SelectItem>
@@ -181,27 +181,27 @@ export default function AdminPromoCodes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Discount Amount</label>
-                <Input type="number" value={form.discount_amount} onChange={(e) => setForm({ ...form, discount_amount: e.target.value })} placeholder={form.discount_type === 'percentage' ? "e.g. 50" : "e.g. 10.00"} />
+                <Input className="rounded-xl" type="number" value={form.discount_amount} onChange={(e) => setForm({ ...form, discount_amount: e.target.value })} placeholder={form.discount_type === 'percentage' ? "e.g. 50" : "e.g. 10.00"} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Max Uses (optional)</label>
-                <Input type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} placeholder="Unlimited" />
+                <Input className="rounded-xl" type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} placeholder="Unlimited" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valid From (optional)</label>
-                <Input type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
+                <Input className="rounded-xl" type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valid Until (optional)</label>
-                <Input type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} />
+                <Input className="rounded-xl" type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={saving}>
+            <Button className="rounded-xl" variant="outline" onClick={() => setShowCreate(false)} disabled={saving}>Cancel</Button>
+            <Button className="rounded-xl" onClick={handleCreate} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Create
             </Button>

@@ -21,7 +21,7 @@ export const AnimatedCategoryIcon = memo(({
     <div 
       className="group cursor-pointer"
       onClick={onClick}
-      onKeyPress={(e) => e.key === 'Enter' && onClick()}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
       role="button"
       tabIndex={0}
       aria-label={`Browse ${name} category with ${count} items${minPrice ? ` starting from RM ${minPrice}` : ''}`}
@@ -37,7 +37,7 @@ export const AnimatedCategoryIcon = memo(({
           <p className="text-xs text-muted-foreground">
             {count} {count === 1 ? 'item' : 'items'}
           </p>
-          {minPrice && (
+          {minPrice !== undefined && minPrice > 0 && (
             <p className="text-xs text-muted-foreground mt-1">
               From RM{minPrice}/day
             </p>

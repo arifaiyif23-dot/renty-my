@@ -20,8 +20,8 @@ export function useAdminKeyboardShortcuts({
   enabled = true
 }: AdminKeyboardShortcutsOptions) {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Ignore if user is typing in an input
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+    const target = e.target as HTMLElement;
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable) {
       return;
     }
 

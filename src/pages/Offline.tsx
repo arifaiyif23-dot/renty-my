@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 export default function Offline() {
   const navigate = useNavigate();
@@ -34,45 +34,40 @@ export default function Offline() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
-      <Card className="max-w-md w-full">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
-            <WifiOff className="w-8 h-8 text-destructive" aria-hidden="true" />
-          </div>
-          <CardTitle className="text-2xl">You're Offline</CardTitle>
-          <CardDescription>
-            It looks like you've lost your internet connection. Please check your network and try again.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground space-y-2">
-            <p><strong>Troubleshooting tips:</strong></p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Check your Wi-Fi or mobile data connection</li>
-              <li>Try turning airplane mode off and on</li>
-              <li>Restart your router if using Wi-Fi</li>
-              <li>Move to an area with better signal</li>
-            </ul>
-          </div>
-          
-          <Button 
-            onClick={handleRetry} 
-            className="w-full" 
-            disabled={!isOnline}
-            aria-live="polite"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
-            {isOnline ? 'Retry Connection' : 'Still Offline...'}
-          </Button>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <GlassCard className="max-w-md w-full text-center" padding="lg">
+        <div className="w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+          <WifiOff className="w-8 h-8 text-destructive" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">You're Offline</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          It looks like you've lost your internet connection. Please check your network and try again.
+        </p>
+        <div className="text-left text-sm text-muted-foreground space-y-2 mb-6">
+          <p className="font-medium">Troubleshooting tips:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Check your Wi-Fi or mobile data connection</li>
+            <li>Try turning airplane mode off and on</li>
+            <li>Restart your router if using Wi-Fi</li>
+            <li>Move to an area with better signal</li>
+          </ul>
+        </div>
 
-          {isOnline && (
-            <p className="text-sm text-center text-green-600" role="status">
-              ✓ Connection restored! Click retry to continue.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        <Button
+          onClick={handleRetry}
+          className="w-full rounded-xl"
+          disabled={!isOnline}
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          {isOnline ? 'Retry Connection' : 'Still Offline...'}
+        </Button>
+
+        {isOnline && (
+          <p className="text-sm text-center text-success mt-3" role="status">
+            ✓ Connection restored! Click retry to continue.
+          </p>
+        )}
+      </GlassCard>
     </div>
   );
 }

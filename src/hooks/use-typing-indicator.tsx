@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function useTypingIndicator(conversationId: string, userId: string) {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [channel, setChannel] = useState<any>(null);
+  const [channel, setChannel] = useState<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
     if (!conversationId || !userId) return;
@@ -15,7 +15,7 @@ export function useTypingIndicator(conversationId: string, userId: string) {
         const state = typingChannel.presenceState();
         const users = Object.values(state)
           .flat()
-          .map((presence: any) => presence.user_id)
+          .map((presence: { user_id: string }) => presence.user_id)
           .filter(id => id !== userId);
         setTypingUsers(users);
       })

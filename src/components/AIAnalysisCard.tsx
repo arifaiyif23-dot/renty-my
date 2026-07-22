@@ -46,31 +46,31 @@ export function AIAnalysisCard({ analysis, compact = false }: AIAnalysisCardProp
   const riskScore = analysis.fraudIndicators?.riskScore || 0;
 
   const getConfidenceColor = (score: number) => {
-    if (score >= 90) return "text-green-600";
-    if (score >= 70) return "text-yellow-600";
-    return "text-red-600";
+    if (score >= 90) return "text-success";
+    if (score >= 70) return "text-warning";
+    return "text-destructive";
   };
 
   const getProgressColor = (score: number) => {
-    if (score >= 90) return "bg-green-500";
-    if (score >= 70) return "bg-yellow-500";
-    return "bg-red-500";
+    if (score >= 90) return "bg-success";
+    if (score >= 70) return "bg-warning";
+    return "bg-destructive";
   };
 
   const getRiskColor = (score: number) => {
-    if (score <= 20) return "text-green-600";
-    if (score <= 50) return "text-yellow-600";
-    return "text-red-600";
+    if (score <= 20) return "text-success";
+    if (score <= 50) return "text-warning";
+    return "text-destructive";
   };
 
   const getMatchBadge = (confidence: string | undefined) => {
     switch (confidence) {
       case 'high':
-        return <Badge className="bg-green-500">High Match</Badge>;
+        return <Badge className="bg-success">High Match</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-500 text-yellow-900">Medium Match</Badge>;
+        return <Badge className="bg-warning text-warning-foreground">Medium Match</Badge>;
       case 'low':
-        return <Badge className="bg-orange-500">Low Match</Badge>;
+        return <Badge className="bg-warning">Low Match</Badge>;
       default:
         return <Badge variant="destructive">No Match</Badge>;
     }
@@ -87,7 +87,7 @@ export function AIAnalysisCard({ analysis, compact = false }: AIAnalysisCardProp
             </span>
             <span className="text-sm text-muted-foreground">confidence</span>
             {analysis.autoApprove && (
-              <Badge className="bg-green-500 text-xs">
+              <Badge className="bg-success text-xs">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Auto-Approve
               </Badge>
@@ -122,26 +122,26 @@ export function AIAnalysisCard({ analysis, compact = false }: AIAnalysisCardProp
 
       {/* Auto-Approve Recommendation */}
       {analysis.autoApprove ? (
-        <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-          <ShieldCheck className="h-5 w-5 text-green-600" />
+        <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/30 rounded-lg">
+          <ShieldCheck className="h-5 w-5 text-success" />
           <div>
-            <p className="font-medium text-green-600">Recommended for Auto-Approval</p>
+            <p className="font-medium text-success">Recommended for Auto-Approval</p>
             <p className="text-sm text-muted-foreground">High confidence, no fraud indicators detected</p>
           </div>
         </div>
       ) : analysis.fraudIndicators?.isHighRisk ? (
-        <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
+        <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
           <div>
-            <p className="font-medium text-red-600">High Risk - Manual Review Required</p>
+            <p className="font-medium text-destructive">High Risk - Manual Review Required</p>
             <p className="text-sm text-muted-foreground">Potential fraud indicators detected</p>
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-          <Info className="h-5 w-5 text-yellow-600" />
+        <div className="flex items-center gap-2 p-3 bg-warning/10 border border-warning/30 rounded-lg">
+          <Info className="h-5 w-5 text-warning" />
           <div>
-            <p className="font-medium text-yellow-600">Manual Review Recommended</p>
+            <p className="font-medium text-warning">Manual Review Recommended</p>
             <p className="text-sm text-muted-foreground">Confidence below auto-approval threshold</p>
           </div>
         </div>
@@ -182,9 +182,9 @@ export function AIAnalysisCard({ analysis, compact = false }: AIAnalysisCardProp
           <span className={cn("font-bold", getRiskColor(riskScore))}>
             {riskScore}%
           </span>
-          {riskScore <= 20 && <CheckCircle2 className="h-4 w-4 text-green-600" />}
-          {riskScore > 20 && riskScore <= 50 && <Info className="h-4 w-4 text-yellow-600" />}
-          {riskScore > 50 && <AlertTriangle className="h-4 w-4 text-red-600" />}
+          {riskScore <= 20 && <CheckCircle2 className="h-4 w-4 text-success" />}
+          {riskScore > 20 && riskScore <= 50 && <Info className="h-4 w-4 text-warning" />}
+          {riskScore > 50 && <AlertTriangle className="h-4 w-4 text-destructive" />}
         </div>
       </div>
 

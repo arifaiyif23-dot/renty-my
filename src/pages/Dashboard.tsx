@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Rental } from '@/types';
+import type { Rental } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,11 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
-import { Clock, Calendar as CalendarIcon, GitBranch, PackageSearch, RefreshCw } from 'lucide-react';
+import { BookingCard } from '@/components/marketplace/BookingCard';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { SkeletonV2 } from '@/components/SkeletonV2';
+import { EmptyStateV2 } from '@/components/EmptyStateV2';
+import { Clock, Calendar as CalendarIcon, GitBranch, PackageSearch, RefreshCw, TrendingUp, Package, DollarSign, Star } from 'lucide-react';
 import { RentalTimeline } from '@/components/RentalTimeline';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { RentalCalendarView } from '@/components/RentalCalendarView';
@@ -22,8 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import EmptyState from '@/components/EmptyState';
-import DashboardSkeleton from '@/components/DashboardSkeleton';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { useSwipeTabs } from '@/hooks/use-swipe-tabs';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +43,7 @@ export default function Dashboard() {
   const [selectedRentals, setSelectedRentals] = useState<Set<string>>(new Set());
   const [selectedRentalTimeline, setSelectedRentalTimeline] = useState<Rental | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [stats, setStats] = useState({ totalRevenue: 0, activeRentals: 0, pendingRequests: 0, myListings: 0, rating: 0 });
 
   const { activeTab, setTab, swipeHandlers } = useSwipeTabs({
     tabs: [...DASHBOARD_TABS],
@@ -50,8 +53,38 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       fetchRentals();
+      fetchStats();
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, fetchRentals]);
+
+  const fetchStats = async () => {
+    if (!user) return;
+    try {
+      const [rentalsData, itemsCount, reviewsData] = await Promise.all([
+        supabase.from('rentals').select('total_price, status').or(`owner_id.eq.${user.id},renter_id.eq.${user.id}`),
+        supabase.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', user.id),
+        supabase.from('reviews').select('rating').eq('reviewed_id', user.id),
+      ]);
+
+      const activeRentals = (rentalsData.data || []).filter(r => ['paid', 'active'].includes(r.status)).length;
+      const pendingRequests = (rentalsData.data || []).filter(r => r.status === 'pending_approval' && r.owner_id === user.id).length;
+      const totalRevenue = (rentalsData.data || [])
+        .filter(r => r.status === 'completed' && r.owner_id === user.id)
+        .reduce((sum, r) => sum + Number(r.total_price || 0), 0);
+
+      const ratings = reviewsData.data || [];
+      const avgRating = ratings.length > 0 ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
+
+      setStats({
+        totalRevenue,
+        activeRentals,
+        pendingRequests,
+        myListings: itemsCount.count || 0,
+        rating: Math.round(avgRating * 10) / 10,
+      });
+    } catch { /* non-critical */ }
+  };
 
   const fetchRentals = useCallback(async () => {
     try {
@@ -70,67 +103,45 @@ export default function Dashboard() {
       setRentals((data || []) as Rental[]);
     } catch (error: unknown) {
       toast.error('Failed to load rentals');
-      console.error(error);
     } finally {
       setLoading(false);
     }
   }, [user?.id]);
 
-  // Pull-to-refresh hook
   const { isRefreshing, pullDistance } = usePullToRefresh(fetchRentals);
 
   const updateRentalStatus = async (rentalId: string, status: Rental['status']) => {
     const rental = rentals.find(r => r.id === rentalId);
     if (!rental) throw new Error('Rental not found');
-
-    const { error } = await supabase
-      .from('rentals')
-      .update({ status })
-      .eq('id', rentalId);
-
+    const { error } = await supabase.from('rentals').update({ status }).eq('id', rentalId);
     if (error) throw error;
-    
     fetchRentals();
   };
 
-  const filterRentals = (status: string[]) => {
-    return rentals.filter(r => status.includes(r.status));
-  };
+  const filterRentals = (status: string[]) => rentals.filter(r => status.includes(r.status));
 
   const toggleRentalSelection = (rentalId: string) => {
     setSelectedRentals(prev => {
       const next = new Set(prev);
-      if (next.has(rentalId)) {
-        next.delete(rentalId);
-      } else {
-        next.add(rentalId);
-      }
+      if (next.has(rentalId)) { next.delete(rentalId); } else { next.add(rentalId); }
       return next;
     });
   };
 
   const handleBulkComplete = async () => {
     const ids = Array.from(selectedRentals);
-    const results = await Promise.allSettled(
-      ids.map((rentalId) => updateRentalStatus(rentalId, 'completed'))
-    );
+    const results = await Promise.allSettled(ids.map((id) => updateRentalStatus(id, 'completed')));
     const succeeded = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected').length;
     setSelectedRentals(new Set());
     if (succeeded > 0) toast.success(`${succeeded} rental(s) marked as completed`);
-    if (failed > 0) toast.error(`${failed} rental(s) failed to update`);
   };
 
   const handleBulkCancel = async () => {
     const ids = Array.from(selectedRentals);
-    const results = await Promise.allSettled(
-      ids.map((rentalId) => updateRentalStatus(rentalId, 'cancelled'))
-    );
-    const succeeded = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected').length;
+    const results = await Promise.allSettled(ids.map((id) => updateRentalStatus(id, 'cancelled')));
     setSelectedRentals(new Set());
+    const succeeded = results.filter(r => r.status === 'fulfilled').length;
     if (succeeded > 0) toast.success(`${succeeded} rental(s) cancelled`);
-    if (failed > 0) toast.error(`${failed} rental(s) failed to cancel`);
   };
 
   if (loading) {
@@ -138,8 +149,11 @@ export default function Dashboard() {
       <>
         <Header />
         <div className="container mx-auto p-4 pb-20 md:pb-4">
-          <h1 className="text-3xl font-bold text-foreground mb-6">{t('dashboard.myRentals')}</h1>
-          <DashboardSkeleton />
+          <SkeletonV2 variant="text" className="h-8 w-48 mb-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => <SkeletonV2 key={i} variant="card" className="h-24" />)}
+          </div>
+          <SkeletonV2 variant="card" className="h-48" />
         </div>
       </>
     );
@@ -149,18 +163,17 @@ export default function Dashboard() {
   const pendingCount = filterRentals(['pending_approval', 'approved']).length;
   const pastCount = filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length;
 
-  // Show empty state if no rentals
   if (!loading && rentals.length === 0) {
     return (
       <>
         <Header />
         <div className="container mx-auto p-4 pb-20 md:pb-4">
-          <h1 className="text-3xl font-bold text-foreground mb-6">{t('dashboard.myRentals')}</h1>
-          <EmptyState
+          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+          <EmptyStateV2
             icon={PackageSearch}
-            title={t('dashboard.noRentals')}
-            description={t('dashboard.noRentalsDesc')}
-            actionLabel={t('dashboard.browseItems')}
+            title="No Rentals Yet"
+            description="Start exploring items to rent or list your own"
+            actionLabel="Browse Items"
             onAction={() => navigate('/search')}
           />
         </div>
@@ -168,18 +181,15 @@ export default function Dashboard() {
     );
   }
 
+  const userRentals = rentals.filter(r => r.owner_id === user?.id);
+
   return (
     <>
       <Header />
-      
-      {/* Pull-to-refresh indicator */}
+
       {(pullDistance > 0 || isRefreshing) && (
-        <div 
-          className="fixed top-16 left-0 right-0 z-40 flex justify-center transition-all duration-200"
-          style={{ 
-            transform: `translateY(${Math.min(pullDistance / 2, 40)}px)`,
-            opacity: Math.min(pullDistance / 80, 1) 
-          }}
+        <div className="fixed top-16 left-0 right-0 z-40 flex justify-center transition-all duration-200"
+          style={{ transform: `translateY(${Math.min(pullDistance / 2, 40)}px)`, opacity: Math.min(pullDistance / 80, 1) }}
         >
           <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
             <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -188,145 +198,153 @@ export default function Dashboard() {
       )}
 
       <div className="container mx-auto p-4 pb-20 md:pb-4">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h1 className="text-3xl font-bold text-foreground">{t('dashboard.myRentals')}</h1>
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline" className="gap-1">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="gap-1 rounded-full">
               <Clock className="h-3 w-3" />
-              {activeCount} {t('dashboard.active')}
+              {activeCount} Active
             </Badge>
-            <Badge variant="secondary" className="gap-1">
-              {pendingCount} {t('dashboard.pending')}
-            </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCalendar(true)}
-            >
-              <CalendarIcon className="h-4 w-4 mr-2" />
-              {t('dashboard.calendarView')}
+            <Button variant="outline" size="sm" className="rounded-xl h-9" onClick={() => setShowCalendar(true)}>
+              <CalendarIcon className="h-4 w-4 mr-1.5" />
+              Calendar
             </Button>
           </div>
         </div>
 
-        {/* Incoming Requests for Owners */}
-        {rentals.some(r => r.status === 'pending_approval' && r.owner_id === user?.id) && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Revenue</p>
+              <p className="text-lg font-bold tabular-nums">RM{stats.totalRevenue.toLocaleString()}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-success" />
+            </div>
+          </GlassCard>
+
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Active</p>
+              <p className="text-lg font-bold tabular-nums">{stats.activeRentals}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+          </GlassCard>
+
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Pending</p>
+              <p className="text-lg font-bold tabular-nums">{stats.pendingRequests}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <Clock className="h-5 w-5 text-warning" />
+            </div>
+          </GlassCard>
+
+          <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-muted-foreground mb-0.5">Listings</p>
+              <p className="text-lg font-bold tabular-nums">{stats.myListings}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+          </GlassCard>
+        </div>
+
+        {userRentals.some(r => r.status === 'pending_approval') && (
           <div className="mb-6">
-            <IncomingRequests 
-              rentals={rentals.filter(r => r.owner_id === user?.id)} 
-              onUpdate={fetchRentals} 
-            />
+            <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Incoming Requests</h2>
+            <IncomingRequests rentals={userRentals} onUpdate={fetchRentals} />
           </div>
         )}
-      
-      <Tabs value={activeTab} onValueChange={setTab} className="w-full">
-        <TabsList className="bg-muted/20 w-full justify-start">
-          <TabsTrigger value="active" className="flex-1 data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.active')}</TabsTrigger>
-          <TabsTrigger value="pending" className="flex-1 data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.pending')}</TabsTrigger>
-          <TabsTrigger value="past" className="flex-1 data-[state=active]:bg-card data-[state=active]:text-foreground">{t('dashboard.past')}</TabsTrigger>
-        </TabsList>
-        
-        <div {...(isMobile ? swipeHandlers : {})} className="touch-pan-y">
-        <TabsContent value="active" className="space-y-4 mt-4">
-          {filterRentals(['paid', 'active']).length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">{t('dashboard.noActiveRentals')}</p>
-          ) : filterRentals(['paid', 'active']).map(rental => (
-            <div key={rental.id} className="relative">
-              <div className="absolute left-4 top-4 z-10">
-                <Checkbox
-                  checked={selectedRentals.has(rental.id)}
-                  onCheckedChange={() => toggleRentalSelection(rental.id)}
-                  className="bg-card"
-                />
-              </div>
-              <RentalCard 
-                rental={rental}
-                isOwner={rental.owner_id === user?.id}
-                onStatusUpdate={updateRentalStatus}
-                onReviewSuccess={fetchRentals}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedRentalTimeline(rental)}
-                className="mt-2"
+
+        <Tabs value={activeTab} onValueChange={setTab} className="w-full">
+          <TabsList className="bg-muted/30 p-1 rounded-xl w-full justify-start gap-1">
+            {(['active', 'pending', 'past'] as const).map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1 data-[state=active]:text-foreground text-muted-foreground font-medium"
               >
-                <GitBranch className="h-4 w-4 mr-2" />
-                {t('dashboard.viewTimeline')}
-              </Button>
-            </div>
-          ))}
-        </TabsContent>
-        
-        <TabsContent value="pending" className="space-y-4 mt-4">
-          {filterRentals(['pending_approval', 'approved']).length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">{t('dashboard.noPendingRentals')}</p>
-          ) : filterRentals(['pending_approval', 'approved']).map(rental => (
-            <RentalCard 
-              key={rental.id} 
-              rental={rental}
-              isOwner={rental.owner_id === user?.id}
-              onStatusUpdate={updateRentalStatus}
-              onReviewSuccess={fetchRentals}
-            />
-          ))}
-        </TabsContent>
-        
-        <TabsContent value="past" className="space-y-4 mt-4">
-          {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">{t('dashboard.noPastRentals')}</p>
-          ) : filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
-            <RentalCard 
-              key={rental.id} 
-              rental={rental}
-              isOwner={rental.owner_id === user?.id}
-              onStatusUpdate={updateRentalStatus}
-              onReviewSuccess={fetchRentals}
-            />
-          ))}
-        </TabsContent>
-        </div>
-      </Tabs>
+                {t(`dashboard.${tab}`)}
+                <Badge variant="outline" className="ml-1.5 rounded-full text-[10px] px-1.5 py-0 h-4 min-w-[18px] tabular-nums">
+                  {tab === 'active' ? activeCount : tab === 'pending' ? pendingCount : pastCount}
+                </Badge>
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-      <BulkActionsBar
-        selectedCount={selectedRentals.size}
-        onClearSelection={() => setSelectedRentals(new Set())}
-        onBulkComplete={handleBulkComplete}
-        onBulkCancel={handleBulkCancel}
-        showComplete={true}
-        showCancel={true}
-      />
+          <div {...(isMobile ? swipeHandlers : {})} className="touch-pan-y">
+            <TabsContent value="active" className="space-y-3 mt-4">
+              {filterRentals(['paid', 'active']).length === 0 ? (
+                <p className="text-center text-muted-foreground py-8 text-sm">{t('dashboard.noActiveRentals')}</p>
+              ) : filterRentals(['paid', 'active']).map(rental => (
+                <div key={rental.id} className="relative">
+                  <div className="absolute left-3 top-3 z-10">
+                    <Checkbox checked={selectedRentals.has(rental.id)} onCheckedChange={() => toggleRentalSelection(rental.id)} className="bg-card border-border" />
+                  </div>
+                  <RentalCard
+                    rental={rental}
+                    isOwner={rental.owner_id === user?.id}
+                    onStatusUpdate={updateRentalStatus}
+                    onReviewSuccess={fetchRentals}
+                  />
+                </div>
+              ))}
+            </TabsContent>
 
-      {/* Timeline Dialog */}
-      <Dialog open={!!selectedRentalTimeline} onOpenChange={() => setSelectedRentalTimeline(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t('dashboard.rentalTimeline')}</DialogTitle>
-          </DialogHeader>
-          {selectedRentalTimeline && (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">{selectedRentalTimeline.item?.title || 'Item'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RentalTimeline rental={selectedRentalTimeline} />
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            <TabsContent value="pending" className="space-y-3 mt-4">
+              {filterRentals(['pending_approval', 'approved']).length === 0 ? (
+                <p className="text-center text-muted-foreground py-8 text-sm">{t('dashboard.noPendingRentals')}</p>
+              ) : filterRentals(['pending_approval', 'approved']).map(rental => (
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
+              ))}
+            </TabsContent>
 
-      {/* Calendar Dialog */}
-      <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('dashboard.rentalCalendar')}</DialogTitle>
-          </DialogHeader>
-          <RentalCalendarView rentals={rentals} />
-        </DialogContent>
-      </Dialog>
+            <TabsContent value="past" className="space-y-3 mt-4">
+              {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
+                <p className="text-center text-muted-foreground py-8 text-sm">{t('dashboard.noPastRentals')}</p>
+              ) : filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
+              ))}
+            </TabsContent>
+          </div>
+        </Tabs>
+
+        <BulkActionsBar
+          selectedCount={selectedRentals.size}
+          onClearSelection={() => setSelectedRentals(new Set())}
+          onBulkComplete={handleBulkComplete}
+          onBulkCancel={handleBulkCancel}
+          showComplete={true}
+          showCancel={true}
+        />
+
+        <Dialog open={!!selectedRentalTimeline} onOpenChange={() => setSelectedRentalTimeline(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Rental Timeline</DialogTitle>
+            </DialogHeader>
+            {selectedRentalTimeline && (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-base">{selectedRentalTimeline.item?.title || 'Item'}</CardTitle></CardHeader>
+                  <CardContent><RentalTimeline rental={selectedRentalTimeline} /></CardContent>
+                </Card>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>Rental Calendar</DialogTitle></DialogHeader>
+            <RentalCalendarView rentals={rentals} />
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );

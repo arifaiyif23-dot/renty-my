@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +24,7 @@ export default function AdminAutomation() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch cron job logs
-  const { data: cronLogs, refetch: refetchCronLogs } = useQuery({
+  const { data: cronLogs, isLoading: cronLoading, refetch: refetchCronLogs } = useQuery({
     queryKey: ["cron-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,7 +39,7 @@ export default function AdminAutomation() {
   });
 
   // Fetch payment flow logs
-  const { data: paymentLogs, refetch: refetchPaymentLogs } = useQuery({
+  const { data: paymentLogs, isLoading: paymentLoading, refetch: refetchPaymentLogs } = useQuery({
     queryKey: ["payment-flow-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,7 +54,7 @@ export default function AdminAutomation() {
   });
 
   // Fetch recent payments
-  const { data: recentPayments } = useQuery({
+  const { data: recentPayments, isLoading: paymentsLoading } = useQuery({
     queryKey: ["recent-payments"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -98,24 +98,34 @@ export default function AdminAutomation() {
     }
   };
 
+  const loading = cronLoading || paymentLoading || paymentsLoading;
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center py-20"><RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      </AdminLayout>
+    );
+  }
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       success: "default",
       info: "secondary",
       error: "destructive",
     };
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+    return <Badge className="rounded-full" variant={variants[status] || "outline"}>{status}</Badge>;
   };
 
   const getStageBadge = (stage: string) => {
     const colors: Record<string, string> = {
-      rental_created: "bg-blue-500",
-      payment_created: "bg-purple-500",
-      bill_created: "bg-indigo-500",
-      callback_received: "bg-yellow-500",
-      payment_verified: "bg-green-500",
-      payment_failed: "bg-red-500",
-      payment_expired: "bg-orange-500",
+      rental_created: "bg-primary",
+      payment_created: "bg-secondary",
+      bill_created: "bg-primary",
+      callback_received: "bg-warning",
+      payment_verified: "bg-success",
+      payment_failed: "bg-destructive",
+      payment_expired: "bg-warning",
     };
     return (
       <Badge variant="outline" className={colors[stage]}>
@@ -134,7 +144,7 @@ export default function AdminAutomation() {
               Monitor cron jobs, payment flows, and system health
             </p>
           </div>
-          <Button onClick={handleRefresh} disabled={refreshing}>
+          <Button className="rounded-xl" onClick={handleRefresh} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
@@ -142,56 +152,56 @@ export default function AdminAutomation() {
 
         {/* Health Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center">
+          <GlassCard>
+            
+              
                 <DollarSign className="h-4 w-4 mr-2 text-primary" />
                 Total Payments
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              
+            
+            
               <div className="text-2xl font-bold">{healthMetrics?.totalPayments || 0}</div>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
           
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center">
+          <GlassCard>
+            
+              
                 <ShoppingCart className="h-4 w-4 mr-2 text-primary" />
                 Total Rentals
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              
+            
+            
               <div className="text-2xl font-bold">{healthMetrics?.totalRentals || 0}</div>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <Activity className="h-4 w-4 mr-2 text-green-500" />
+          <GlassCard>
+            
+              
+                <Activity className="h-4 w-4 mr-2 text-success" />
                 Cron Jobs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-500">Active</div>
+              
+            
+            
+              <div className="text-2xl font-bold text-success">Active</div>
               <p className="text-xs text-muted-foreground mt-1">2 jobs running</p>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center">
-                <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
+          <GlassCard>
+            
+              
+                <AlertCircle className="h-4 w-4 mr-2 text-destructive" />
                 Errors (24h)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-500">
+              
+            
+            
+              <div className="text-2xl font-bold text-destructive">
                 {healthMetrics?.recentErrors || 0}
               </div>
-            </CardContent>
-          </Card>
+            
+          </GlassCard>
         </div>
 
         <Tabs defaultValue="payment-flow" className="space-y-4">
@@ -203,14 +213,14 @@ export default function AdminAutomation() {
 
           {/* Payment Flow Logs */}
           <TabsContent value="payment-flow" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Flow Tracking</CardTitle>
-                <CardDescription>
+            <GlassCard>
+              
+                Payment Flow Tracking
+                
                   Track the complete payment lifecycle from rental creation to verification
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                
+              
+              
                 {!paymentLogs || paymentLogs.length === 0 ? (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
@@ -221,7 +231,7 @@ export default function AdminAutomation() {
                   </Alert>
                 ) : (
                   <div className="space-y-4">
-                    {paymentLogs.map((log: any) => (
+                    {paymentLogs.map((log: { id: string; stage: string; status: string; payment_id?: string; details?: unknown; created_at: string }) => (
                       <div
                         key={log.id}
                         className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
@@ -231,7 +241,7 @@ export default function AdminAutomation() {
                             {getStageBadge(log.stage)}
                             {getStatusBadge(log.status)}
                             {log.payment_id && (
-                              <Badge variant="outline" className="font-mono text-xs">
+                              <Badge variant="outline" className="font-mono text-xs rounded-full">
                                 {log.payment_id.slice(0, 8)}
                               </Badge>
                             )}
@@ -249,20 +259,20 @@ export default function AdminAutomation() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
           </TabsContent>
 
           {/* Cron Jobs */}
           <TabsContent value="cron-jobs" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cron Job Execution History</CardTitle>
-                <CardDescription>
+            <GlassCard>
+              
+                Cron Job Execution History
+                
                   Monitor automated cleanup and transition jobs
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                
+              
+              
                 {!cronLogs || cronLogs.length === 0 ? (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
@@ -273,16 +283,16 @@ export default function AdminAutomation() {
                   </Alert>
                 ) : (
                   <div className="space-y-3">
-                    {cronLogs.map((log: any) => (
+                    {cronLogs.map((log: { id: string; status: string; job_name: string; records_processed?: number; error_message?: string; executed_at: string }) => (
                       <div
                         key={log.id}
                         className="flex items-center justify-between p-3 border rounded-lg"
                       >
                         <div className="flex items-center gap-3">
                           {log.status === "success" ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            <CheckCircle2 className="h-5 w-5 text-success" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-500" />
+                            <XCircle className="h-5 w-5 text-destructive" />
                           )}
                           <div>
                             <div className="font-medium">{log.job_name}</div>
@@ -290,7 +300,7 @@ export default function AdminAutomation() {
                               {log.records_processed || 0} records processed
                             </div>
                             {log.error_message && (
-                              <div className="text-sm text-red-500 mt-1">
+                              <div className="text-sm text-destructive mt-1">
                                 {log.error_message}
                               </div>
                             )}
@@ -304,15 +314,15 @@ export default function AdminAutomation() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Scheduled Jobs</CardTitle>
-                <CardDescription>Active cron jobs configuration</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <GlassCard>
+              
+                Scheduled Jobs
+                Active cron jobs configuration
+              
+              
                 <div className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <div className="font-medium">cleanup-expired-payments</div>
@@ -320,7 +330,7 @@ export default function AdminAutomation() {
                       Runs every 10 minutes
                     </div>
                   </div>
-                  <Badge variant="default">Active</Badge>
+                  <Badge className="rounded-full" variant="default">Active</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
@@ -329,20 +339,20 @@ export default function AdminAutomation() {
                       Runs every 15 minutes
                     </div>
                   </div>
-                  <Badge variant="default">Active</Badge>
+                  <Badge className="rounded-full" variant="default">Active</Badge>
                 </div>
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
           </TabsContent>
 
           {/* Recent Payments */}
           <TabsContent value="recent-payments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Payments</CardTitle>
-                <CardDescription>Latest payment transactions</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <GlassCard>
+              
+                Recent Payments
+                Latest payment transactions
+              
+              
                 {!recentPayments || recentPayments.length === 0 ? (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
@@ -353,7 +363,7 @@ export default function AdminAutomation() {
                   </Alert>
                 ) : (
                   <div className="space-y-3">
-                    {recentPayments.map((payment: any) => (
+                    {recentPayments.map((payment: { id: string; total_amount: number; status: string; created_at: string }) => (
                       <div
                         key={payment.id}
                         className="flex items-center justify-between p-3 border rounded-lg"
@@ -376,8 +386,8 @@ export default function AdminAutomation() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              
+            </GlassCard>
           </TabsContent>
         </Tabs>
       </div>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co https://storage.googleapis.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com; media-src 'self' https://*.supabase.co;">
+    <!-- CSP is set via HTTP headers (vercel.json / netlify.toml) -->
     <title>Renty — Rent Anything in Malaysia | Peer-to-Peer Rental Marketplace</title>
     <meta name="description" content="Malaysia's trusted peer-to-peer rental platform. Rent cameras, cars, tools, drones and more. Insured rentals, verified users. Earn from items you own.">
     <meta name="keywords" content="rental malaysia, rent items, peer to peer rental, camera rental, car rental, tool rental, malaysia marketplace, renty">
@@ -17,6 +17,18 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
     
+    <!-- Reload page when SW updates (ensures fresh JS on every SW activation) -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      }
+    </script>
+
     <!-- Resource Hints for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

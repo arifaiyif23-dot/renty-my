@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -107,6 +107,7 @@ export default function Messages() {
         supabase.removeChannel(channel);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
@@ -156,6 +157,7 @@ export default function Messages() {
         supabase.removeChannel(channel);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId, user]);
 
   useEffect(() => {
@@ -348,58 +350,54 @@ export default function Messages() {
             {!showThread ? (
               <div className="space-y-4">
                 <h1 className="text-2xl font-bold">Messages</h1>
-                <Card className="border-border/70 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Conversations</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <ScrollArea className="h-[calc(100vh-250px)]">
-                      {isLoadingConversations ? (
-                        <div className="flex items-center justify-center p-8 text-muted-foreground">
-                          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
-                        </div>
-                      ) : conversations.map((conv) => (
-                        <div
-                          key={conv.userId}
-                          onClick={() => handleSelectConversation(conv.userId)}
-                          className="p-4 cursor-pointer hover:bg-accent border-b transition-colors active:scale-[0.98] min-h-[72px]"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12 flex-shrink-0">
-                              <AvatarImage src={conv.userAvatar} />
-                              <AvatarFallback>{conv.userName[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-semibold text-base truncate">{conv.userName}</div>
-                              <div className="text-sm text-muted-foreground line-clamp-2">
-                                {conv.lastMessage}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {safeFormatDate(conv.lastMessageTime, (d) => d.toLocaleString('en-MY', { 
-                                  month: 'short', 
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                }))}
-                              </div>
+                <GlassCard variant="subtle" padding="md">
+                  <h2 className="text-lg font-semibold pb-3">Conversations</h2>
+                  <ScrollArea className="h-[calc(100vh-250px)]">
+                    {isLoadingConversations ? (
+                      <div className="flex items-center justify-center p-8 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
+                      </div>
+                    ) : conversations.map((conv) => (
+                      <div
+                        key={conv.userId}
+                        onClick={() => handleSelectConversation(conv.userId)}
+                        className="p-4 cursor-pointer hover:bg-muted/50 border-b transition-colors active:scale-[0.98] min-h-[72px] rounded-xl"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-primary/10">
+                            <AvatarImage src={conv.userAvatar} />
+                            <AvatarFallback>{conv.userName[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-base truncate">{conv.userName}</div>
+                            <div className="text-sm text-muted-foreground line-clamp-2">
+                              {conv.lastMessage}
                             </div>
-                            {conv.unreadCount > 0 && (
-                              <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                                {conv.unreadCount}
-                              </div>
-                            )}
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {safeFormatDate(conv.lastMessageTime, (d) => d.toLocaleString('en-MY', { 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }))}
+                            </div>
                           </div>
+                          {conv.unreadCount > 0 && (
+                            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                              {conv.unreadCount}
+                            </div>
+                          )}
                         </div>
-                      ))}
-                      {!isLoadingConversations && conversations.length === 0 && (
-                        <div className="p-8 text-center text-muted-foreground">
-                          <p className="text-base">No conversations yet</p>
-                          <p className="text-sm mt-2">Messages will appear here when you start chatting</p>
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
+                      </div>
+                    ))}
+                    {!isLoadingConversations && conversations.length === 0 && (
+                      <div className="p-8 text-center text-muted-foreground">
+                        <p className="text-base">No conversations yet</p>
+                        <p className="text-sm mt-2">Messages will appear here when you start chatting</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </GlassCard>
               </div>
             ) : (
               <div className="h-[calc(100dvh-88px)] flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
@@ -408,7 +406,7 @@ export default function Messages() {
                   <Button variant="ghost" size="icon" onClick={handleBackToList} className="flex-shrink-0">
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
-                  <Avatar className="h-10 w-10 flex-shrink-0">
+                  <Avatar className="h-10 w-10 flex-shrink-0 ring-2 ring-primary/10">
                     <AvatarImage src={selectedConversation?.userAvatar} />
                     <AvatarFallback>{selectedConversation?.userName[0]}</AvatarFallback>
                   </Avatar>
@@ -428,7 +426,7 @@ export default function Messages() {
                         className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'} animate-fade-in`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm ${
+                          className={`max-w-[85%] rounded-xl px-4 py-2.5 shadow-sm ${
                             msg.sender_id === user.id
                               ? 'bg-primary text-primary-foreground rounded-br-sm'
                               : 'bg-muted rounded-bl-sm'
@@ -476,7 +474,7 @@ export default function Messages() {
                     {/* Typing Indicator */}
                     {typingUsers.length > 0 && (
                       <div className="flex justify-start animate-fade-in">
-                        <div className="bg-muted rounded-2xl px-4 py-3 rounded-bl-sm">
+                        <div className="bg-muted rounded-xl px-4 py-3 rounded-bl-sm">
                           <div className="flex gap-1">
                             <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                             <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -508,14 +506,14 @@ export default function Messages() {
                         }}
                         placeholder="Type a message..."
                         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                        className="h-12 text-base flex-1"
+                        className="h-12 text-base flex-1 rounded-xl"
                       />
                       <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
                       <Button 
                         onClick={sendMessage} 
                         size="icon"
                         disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
-                        className="h-12 w-12 flex-shrink-0"
+                        className="h-12 w-12 flex-shrink-0 rounded-xl"
                       >
                         {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                       </Button>
@@ -531,157 +529,149 @@ export default function Messages() {
             <h1 className="text-3xl font-bold mb-6">Messages</h1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Conversations List */}
-              <Card className="lg:col-span-1 border-border/70 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Conversations</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[600px]">
-                    {isLoadingConversations ? (
-                      <div className="flex items-center justify-center p-8 text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
-                      </div>
-                    ) : conversations.map((conv) => (
-                      <div
-                        key={conv.userId}
-                        onClick={() => setSelectedUserId(conv.userId)}
-                        className={`p-4 cursor-pointer hover:bg-accent border-b transition-colors min-h-[60px] ${
-                          selectedUserId === conv.userId ? 'bg-accent' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={conv.userAvatar} />
-                            <AvatarFallback>{conv.userName[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-base truncate">{conv.userName}</div>
-                            <div className="text-sm text-muted-foreground truncate">
-                              {conv.lastMessage}
-                            </div>
+              <GlassCard variant="subtle" padding="md" className="lg:col-span-1">
+                <h2 className="text-lg font-semibold pb-3">Conversations</h2>
+                <ScrollArea className="h-[600px]">
+                  {isLoadingConversations ? (
+                    <div className="flex items-center justify-center p-8 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
+                    </div>
+                  ) : conversations.map((conv) => (
+                    <div
+                      key={conv.userId}
+                      onClick={() => setSelectedUserId(conv.userId)}
+                      className={`p-4 cursor-pointer hover:bg-muted/50 border-b transition-colors min-h-[60px] rounded-xl ${
+                        selectedUserId === conv.userId ? 'bg-muted/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12 ring-2 ring-primary/10">
+                          <AvatarImage src={conv.userAvatar} />
+                          <AvatarFallback>{conv.userName[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base truncate">{conv.userName}</div>
+                          <div className="text-sm text-muted-foreground truncate">
+                            {conv.lastMessage}
                           </div>
-                          {conv.unreadCount > 0 && (
-                            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">
-                              {conv.unreadCount}
-                            </div>
-                          )}
                         </div>
+                        {conv.unreadCount > 0 && (
+                          <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">
+                            {conv.unreadCount}
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    {!isLoadingConversations && conversations.length === 0 && (
-                      <div className="p-8 text-center text-muted-foreground">
-                        <p>No conversations yet</p>
-                        <p className="text-xs mt-2">Messages will appear here when you start chatting</p>
-                      </div>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              {/* Messages Thread */}
-              <Card className="lg:col-span-2 border-border/70 shadow-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">
-                    {selectedUserId
-                      ? conversations.find(c => c.userId === selectedUserId)?.userName
-                      : 'Select a conversation'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {selectedUserId ? (
-                    <>
-                      <ScrollArea className="h-[480px] mb-4 pr-2">
-                        <div className="space-y-4">
-                          {isLoadingMessages ? (
-                            <div className="flex items-center justify-center py-10 text-muted-foreground">
-                              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading messages
-                            </div>
-                          ) : messages.map((msg) => (
-                            <div
-                              key={msg.id}
-                              className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
-                            >
-                              <div
-                                className={`max-w-[70%] rounded-lg p-3 shadow-sm ${
-                                  msg.sender_id === user.id
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted'
-                                }`}
-                              >
-                                {msg.attachment_url && (
-                                  <div className="mb-2">
-                                    {msg.attachment_type === 'image' ? (
-                                      <img 
-                                        src={msg.attachment_url} 
-                                        alt="Attachment" 
-                                        className="rounded-lg max-w-full h-auto"
-                                      />
-                                    ) : (
-                                      <a 
-                                        href={msg.attachment_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-sm underline"
-                                      >
-                                        <FileIcon className="h-4 w-4" />
-                                        View Document
-                                      </a>
-                                    )}
-                                  </div>
-                                )}
-                                <div className="text-base break-words">{msg.content}</div>
-                                <div className="text-xs opacity-70 mt-1">
-                                  {safeFormatDate(msg.created_at, (d) => d.toLocaleTimeString())}
-                                  {msg.sender_id === user.id && (
-                                    <span className="ml-2">{msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          <div ref={messageEndRef} />
-                        </div>
-                      </ScrollArea>
-
-                      <div className="space-y-2">
-                        <FileAttachment 
-                          onFileSelect={(url, type) => {
-                            setAttachmentUrl(url);
-                            setAttachmentType(type);
-                          }}
-                          disabled={false}
-                        />
-                        <div className="flex gap-2">
-                          <Input
-                            value={newMessage}
-                            onChange={(e) => {
-                              setNewMessage(e.target.value);
-                              handleTyping();
-                            }}
-                            placeholder="Type a message..."
-                            onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                            className="min-h-[44px]"
-                          />
-                          <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
-                          <Button 
-                            onClick={sendMessage} 
-                            size="icon"
-                            disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
-                            className="min-h-[44px] min-w-[44px]"
-                          >
-                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="h-[540px] flex flex-col items-center justify-center text-muted-foreground text-center p-4">
-                      <p className="text-lg mb-2">Select a conversation</p>
-                      <p className="text-sm">Choose a conversation from the list to start messaging</p>
+                    </div>
+                  ))}
+                  {!isLoadingConversations && conversations.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <p>No conversations yet</p>
+                      <p className="text-xs mt-2">Messages will appear here when you start chatting</p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </ScrollArea>
+              </GlassCard>
+
+              {/* Messages Thread */}
+              <GlassCard variant="subtle" padding="md" className="lg:col-span-2">
+                <h2 className="text-lg font-semibold pb-3">
+                  {selectedUserId
+                    ? conversations.find(c => c.userId === selectedUserId)?.userName
+                    : 'Select a conversation'}
+                </h2>
+                {selectedUserId ? (
+                  <>
+                    <ScrollArea className="h-[480px] mb-4 pr-2">
+                      <div className="space-y-4">
+                        {isLoadingMessages ? (
+                          <div className="flex items-center justify-center py-10 text-muted-foreground">
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading messages
+                          </div>
+                        ) : messages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div
+                              className={`max-w-[70%] rounded-lg p-3 shadow-sm ${
+                                msg.sender_id === user.id
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
+                              }`}
+                            >
+                              {msg.attachment_url && (
+                                <div className="mb-2">
+                                  {msg.attachment_type === 'image' ? (
+                                    <img 
+                                      src={msg.attachment_url} 
+                                      alt="Attachment" 
+                                      className="rounded-lg max-w-full h-auto"
+                                    />
+                                  ) : (
+                                    <a 
+                                      href={msg.attachment_url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 text-sm underline"
+                                    >
+                                      <FileIcon className="h-4 w-4" />
+                                      View Document
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                              <div className="text-base break-words">{msg.content}</div>
+                              <div className="text-xs opacity-70 mt-1">
+                                {safeFormatDate(msg.created_at, (d) => d.toLocaleTimeString())}
+                                {msg.sender_id === user.id && (
+                                  <span className="ml-2">{msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <div ref={messageEndRef} />
+                      </div>
+                    </ScrollArea>
+
+                    <div className="space-y-2">
+                      <FileAttachment 
+                        onFileSelect={(url, type) => {
+                          setAttachmentUrl(url);
+                          setAttachmentType(type);
+                        }}
+                        disabled={false}
+                      />
+                      <div className="flex gap-2">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => {
+                            setNewMessage(e.target.value);
+                            handleTyping();
+                          }}
+                          placeholder="Type a message..."
+                          onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                          className="min-h-[44px] rounded-xl"
+                        />
+                        <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
+                        <Button 
+                          onClick={sendMessage} 
+                          size="icon"
+                          disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
+                          className="min-h-[44px] min-w-[44px] rounded-xl"
+                        >
+                          {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-[540px] flex flex-col items-center justify-center text-muted-foreground text-center p-4">
+                    <p className="text-lg mb-2">Select a conversation</p>
+                    <p className="text-sm">Choose a conversation from the list to start messaging</p>
+                  </div>
+                )}
+              </GlassCard>
             </div>
           </>
         )}

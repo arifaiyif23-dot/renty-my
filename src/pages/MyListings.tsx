@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, Search, Filter, Grid3x3, List, BarChart3, Eye, 
+import {
+  Plus, Search, Filter, Grid3x3, List, BarChart3, Eye,
   Edit, Pause, Play, Copy, Trash2, MoreVertical, TrendingUp,
   Calendar, DollarSign, Star, Heart, Inbox, Loader2
 } from 'lucide-react';
@@ -43,6 +43,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 type ViewMode = 'grid' | 'list';
 type SortBy = 'recent' | 'views' | 'bookings' | 'revenue';
@@ -57,7 +58,7 @@ export default function MyListings() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Record<string, unknown> | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; bulk: boolean } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');
@@ -66,7 +67,7 @@ export default function MyListings() {
     queryKey: ['my-listings', user?.id, statusFilter, sortBy],
     queryFn: async () => {
       if (!user) return [];
-      
+
       let query = supabase
         .from('items')
         .select(`
@@ -108,7 +109,7 @@ export default function MyListings() {
     queryKey: ['listing-stats', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
+
       const { data: items, error: itemsError } = await supabase
         .from('items')
         .select('id, view_count, booking_count')
@@ -142,7 +143,7 @@ export default function MyListings() {
     queryKey: ['incoming-requests', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
+
       const { data, error } = await supabase
         .from('rentals')
         .select(`
@@ -271,7 +272,6 @@ export default function MyListings() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Header - Non-sticky */}
       <div className="border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
@@ -296,62 +296,51 @@ export default function MyListings() {
             </Button>
           </div>
 
-          {/* Stats */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Card className="border-border/70 shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <List className="h-4 w-4" />
-                      <p className="text-xs font-medium">{t('listings.totalListings')}</p>
-                    </div>
-                    <p className="text-2xl font-bold">{stats.totalListings}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/70 shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <p className="text-xs font-medium">{t('listings.activeRentals')}</p>
-                    </div>
-                    <p className="text-2xl font-bold">{stats.activeRentals}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/70 shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <DollarSign className="h-4 w-4" />
-                      <p className="text-xs font-medium">{t('listings.totalRevenue')}</p>
-                    </div>
-                    <p className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-border/70 shadow-sm">
-                <CardContent className="p-3 md:p-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Eye className="h-4 w-4" />
-                      <p className="text-xs font-medium">{t('listings.totalViews')}</p>
-                    </div>
-                    <p className="text-2xl font-bold">{stats.totalViews}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalListings')}</p>
+                  <p className="text-lg font-bold tabular-nums">{stats.totalListings}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Grid3x3 className="h-5 w-5 text-primary" />
+                </div>
+              </GlassCard>
+              <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">{t('listings.activeRentals')}</p>
+                  <p className="text-lg font-bold tabular-nums">{stats.activeRentals}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-success" />
+                </div>
+              </GlassCard>
+              <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalRevenue')}</p>
+                  <p className="text-lg font-bold tabular-nums">RM{stats.totalRevenue.toFixed(2)}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-warning" />
+                </div>
+              </GlassCard>
+              <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalViews')}</p>
+                  <p className="text-lg font-bold tabular-nums">{stats.totalViews}</p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                  <Eye className="h-5 w-5 text-sky-500" />
+                </div>
+              </GlassCard>
             </div>
           )}
         </div>
       </div>
 
-      {/* Sticky Filters Bar */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
-          {/* Filters */}
           <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -359,19 +348,19 @@ export default function MyListings() {
                 placeholder={t('common.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 rounded-xl"
               />
             </div>
             <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="w-full md:w-auto overflow-x-auto">
-              <TabsList className="w-max min-w-full md:min-w-0">
-                <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
-                <TabsTrigger value="active">{t('common.active')}</TabsTrigger>
-                <TabsTrigger value="paused">{t('common.paused')}</TabsTrigger>
-                <TabsTrigger value="draft">{t('common.draft')}</TabsTrigger>
+              <TabsList className="w-max min-w-full md:min-w-0 bg-muted/30 p-1 rounded-xl gap-1">
+                <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.all')}</TabsTrigger>
+                <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.active')}</TabsTrigger>
+                <TabsTrigger value="paused" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.paused')}</TabsTrigger>
+                <TabsTrigger value="draft" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.draft')}</TabsTrigger>
               </TabsList>
             </Tabs>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
-              <SelectTrigger className="w-full md:w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px] rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -385,6 +374,7 @@ export default function MyListings() {
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('grid')}
+                className="rounded-xl"
               >
                 <Grid3x3 className="h-4 w-4" />
               </Button>
@@ -392,28 +382,28 @@ export default function MyListings() {
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('list')}
+                className="rounded-xl"
               >
                 <List className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Bulk Actions */}
           {selectedItems.length > 0 && (
-            <div className="mt-4 p-3 bg-muted rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="mt-4 p-3 bg-muted/50 backdrop-blur rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
               <span className="text-sm font-medium">
                 {selectedItems.length} {t('listings.itemsSelected')}
               </span>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('activate')}>
+                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleBulkAction('activate')}>
                   <Play className="h-4 w-4 mr-2" />
                   {t('listings.activateAll')}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleBulkAction('pause')}>
+                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleBulkAction('pause')}>
                   <Pause className="h-4 w-4 mr-2" />
                   {t('listings.pauseAll')}
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleBulkAction('delete')}>
+                <Button variant="destructive" size="sm" className="rounded-xl" onClick={() => handleBulkAction('delete')}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   {t('listings.deleteSelected')}
                 </Button>
@@ -423,12 +413,11 @@ export default function MyListings() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-4 py-6">
         {activeTab === 'listings' ? (
           isLoading ? (
             <div className={cn(
-              viewMode === 'grid' 
+              viewMode === 'grid'
                 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                 : 'space-y-4'
             )}>
@@ -440,7 +429,7 @@ export default function MyListings() {
             <div className="text-center py-12">
               <p className="text-destructive font-medium mb-2">Failed to load listings</p>
               <p className="text-sm text-muted-foreground mb-4">{error?.message || "An unexpected error occurred"}</p>
-              <Button variant="outline" onClick={() => refetch()}>Try Again</Button>
+              <Button variant="outline" onClick={() => refetch()} className="rounded-xl">Try Again</Button>
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (
             <EnhancedEmptyState
@@ -458,16 +447,16 @@ export default function MyListings() {
                 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                 : 'space-y-4'
             )}>
-              {filteredItems.map((item: any) => {
-              const primaryImage = item.item_images?.find((img: any) => img.is_primary);
+              {filteredItems.map((item: { id: string; title: string; item_images?: { image_url: string; is_primary: boolean }[] }) => {
+              const primaryImage = item.item_images?.find((img) => img.is_primary);
               const imageUrl = primaryImage?.image_url || item.item_images?.[0]?.image_url;
               const isSelected = selectedItems.includes(item.id);
 
               return (
-                <Card 
-                  key={item.id} 
+                <Card
+                  key={item.id}
                   className={cn(
-                    "overflow-hidden transition-all border-border/70 shadow-sm hover:shadow-md",
+                    "overflow-hidden transition-all border-border/70 shadow-sm hover:shadow-md rounded-2xl",
                     isSelected && "ring-2 ring-primary"
                   )}
                 >
@@ -491,8 +480,8 @@ export default function MyListings() {
                         className="w-full h-44 md:h-48 object-cover"
                       />
                     )}
-                    <Badge 
-                      className="absolute top-2 right-2"
+                    <Badge
+                      className="absolute top-2 right-2 rounded-full"
                       variant={getStatusBadgeVariant(item.listing_status)}
                     >
                       {t(`common.${item.listing_status}`)}
@@ -506,7 +495,7 @@ export default function MyListings() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0">
+                          <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0 rounded-xl">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -560,16 +549,15 @@ export default function MyListings() {
           </div>
         )
       ) : (
-        <IncomingRequests 
-          rentals={incomingRequests || []} 
+        <IncomingRequests
+          rentals={incomingRequests || []}
           onUpdate={() => {
             refetch();
-          }} 
+          }}
         />
       )}
       </div>
 
-      {/* Edit Dialog */}
       {editingItem && (
         <ListingEditDialog
           open={!!editingItem}
@@ -578,7 +566,6 @@ export default function MyListings() {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && !isDeleting && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

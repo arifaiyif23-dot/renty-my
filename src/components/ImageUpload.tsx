@@ -35,7 +35,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
       prevInitialImagesRef.current = JSON.stringify(initialImages);
       isInitializedRef.current = true;
     }
-  }, []);
+  }, [initialImages]);
 
   // Update when initialImages actually changes (not just length)
   useEffect(() => {
@@ -47,7 +47,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     }
   }, [initialImages]);
 
-  const uploadImage = async (file: File, progressIndex: number): Promise<string | null> => {
+  const uploadImage = useCallback(async (file: File, progressIndex: number): Promise<string | null> => {
     if (!user) {
       toast.error("Authentication required", {
         description: "Please sign in to upload images",
@@ -140,7 +140,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
       });
       return null;
     }
-  };
+  }, [user]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -201,7 +201,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     if (validUrls.length > 0) {
       toast.success(`${validUrls.length} image(s) uploaded and optimized`);
     }
-  }, [images, maxImages, onImagesChange, user]);
+  }, [images, maxImages, onImagesChange, uploadImage]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

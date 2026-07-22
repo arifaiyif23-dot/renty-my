@@ -10,19 +10,27 @@ import { supabase } from '@/integrations/supabase/client';
 export async function checkRateLimit(
   action: string,
   maxAttempts: number = 5,
-  windowMinutes: number = 15
+  windowMinutes: number = 15,
+  identifier?: string
 ): Promise<boolean> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return true;
 
-    const { data, error } = await supabase.rpc('check_rate_limit_enhanced', {
-      p_user_id: user.id,
-      p_ip_address: null,
+    const params: Record<string, unknown> = {
       p_action: action,
       p_max_attempts: maxAttempts,
       p_window_minutes: windowMinutes
-    });
+    };
+
+    if (user?.id) {
+      params.p_user_id = user.id;
+      params.p_ip_address = null;
+    } else {
+      params.p_user_id = null;
+      params.p_ip_address = identifier ?? null;
+    }
+
+    const { data, error } = await supabase.rpc('check_rate_limit_enhanced', params);
 
     if (error) {
       console.error('Rate limit check error:', error);
@@ -38,10 +46,10 @@ export async function checkRateLimit(
 }
 
 /**
- * Log access to sensitive data
- * @param resourceType - Type of resource being accessed
- * @param resourceId - ID of the resource
- * @param accessType - Type of access (e.g., 'view', 'download', 'edit')
+ * Safely format a date string with error handling
+ * @param dateStr - Date string to format
+ * @param formatter - Formatting function
+ * @param fallback - Fallback string if date is invalid
  */
 export function safeFormatDate(dateStr: string | null | undefined, formatter: (d: Date) => string, fallback = "—"): string {
   if (!dateStr) return fallback;

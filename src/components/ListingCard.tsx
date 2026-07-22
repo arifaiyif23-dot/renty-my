@@ -1,9 +1,11 @@
 import { memo, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Star, ShieldCheck } from "lucide-react"
+import { MapPin, Star } from "lucide-react"
+import { UserTrustBadge } from "@/components/trust/UserTrustBadge"
 import { SaveItemButton } from "@/components/SaveItemButton"
-import { getOptimizedImageUrl } from "@/utils/imageOptimization"
+import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization"
+import type { VerificationLevel } from "@/types"
 
 interface ListingCardProps {
   id: string
@@ -15,7 +17,7 @@ interface ListingCardProps {
   reviewCount?: number
   location: string
   distance?: number
-  isOwnerVerified?: boolean
+  verificationLevel?: VerificationLevel
   badge?: "trending" | "just-listed" | "available"
 }
 
@@ -29,13 +31,13 @@ export const ListingCard = memo(({
   reviewCount = 0,
   location,
   distance,
-  isOwnerVerified,
+  verificationLevel,
   badge,
 }: ListingCardProps) => {
   const badgeConfig = useMemo(() => {
     switch (badge) {
       case "trending":
-        return { text: "Trending", variant: "destructive" as const }
+        return { text: "Trending", variant: "default" as const }
       case "just-listed":
         return { text: "Just Listed", variant: "secondary" as const }
       case "available":
@@ -57,6 +59,8 @@ export const ListingCard = memo(({
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           <img
             src={optimizedImage}
+            srcSet={getSrcSet(image)}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             alt={`${title} - ${category} available for rent in ${location}`}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             loading="lazy"
@@ -110,13 +114,9 @@ export const ListingCard = memo(({
 
           {/* Trust signals */}
           <div className="flex items-center gap-2 flex-wrap min-h-[1.25rem]">
-            {isOwnerVerified && (
-              <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                <ShieldCheck className="w-3 h-3" />
-                Verified owner
-              </span>
-            )}
-            {rating === 0 && reviewCount === 0 && !isOwnerVerified && (
+            {verificationLevel && verificationLevel !== 'unverified' ? (
+              <UserTrustBadge level={verificationLevel} size="sm" />
+            ) : (
               <span className="text-xs text-muted-foreground">New</span>
             )}
           </div>

@@ -14,8 +14,8 @@ const MobileBottomNav = () => {
   ];
 
   const rightNavItems = [
-    { key: "messages", icon: MessageCircle, label: "Messages", path: user ? "/messages" : "/auth" },
-    { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: user ? "/dashboard" : "/auth" },
+    { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages" },
+    { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   ];
 
   return (
@@ -60,11 +60,12 @@ const MobileBottomNav = () => {
         
         {/* Right Nav Items */}
         {rightNavItems.map((item) => {
+          const path = user ? item.path : "/auth";
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.key}
-              to={item.path}
+              to={path}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px]",
                 isActive ? "text-primary" : "text-muted-foreground"

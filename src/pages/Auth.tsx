@@ -4,13 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Gift, Home } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import logo from "@/assets/renty-logo.png";
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
 import { checkRateLimit } from '@/utils/securityHelpers';
@@ -30,7 +29,7 @@ const signUpSchema = z.object({
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be less than 100 characters')
     .regex(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens and apostrophes')
-    .transform(val => sanitizeText(val)), // Sanitize to prevent XSS
+    .transform(val => sanitizeText(val)),
   email: z.string()
     .trim()
     .email('Invalid email address')
@@ -53,7 +52,7 @@ export default function Auth() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = (location.state as any)?.redirectTo;
+  const redirectTo = (location.state as { redirectTo?: string })?.redirectTo;
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -65,7 +64,7 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const result = loginSchema.safeParse(loginData);
     if (!result.success) {
       const error = result.error.errors[0];
@@ -75,8 +74,7 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      // Check rate limit: max 5 login attempts per 15 minutes
-      const withinLimit = await checkRateLimit('login', 5, 15);
+      const withinLimit = await checkRateLimit('login', 5, 15, loginData.email);
       if (!withinLimit) {
         toast.error('Too many login attempts. Please try again in 15 minutes.');
         return;
@@ -86,7 +84,7 @@ export default function Auth() {
       navigate(redirectTo || '/');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      
+
       if (errorMessage.includes("Invalid login credentials")) {
         toast.error("Invalid email or password. Please try again.");
       } else if (errorMessage.includes("Email not confirmed")) {
@@ -103,7 +101,7 @@ export default function Auth() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const result = signUpSchema.safeParse(signupData);
     if (!result.success) {
       const error = result.error.errors[0];
@@ -118,14 +116,12 @@ export default function Auth() {
 
     setIsLoading(true);
     try {
-      // Check rate limit: max 3 signup attempts per hour
-      const withinLimit = await checkRateLimit('signup', 3, 60);
+      const withinLimit = await checkRateLimit('signup', 3, 60, signupData.email);
       if (!withinLimit) {
         toast.error('Too many signup attempts. Please try again later.');
         return;
       }
       await signUp(result.data.email, result.data.password, result.data.fullName);
-      // Record T&C acceptance on the newly created profile (best-effort)
       try {
         const { data: { user: newUser } } = await supabase.auth.getUser();
         if (newUser) {
@@ -145,7 +141,7 @@ export default function Auth() {
       navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : (redirectTo || "/"));
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      
+
       if (errorMessage.includes("User already registered")) {
         toast.error("This email is already registered. Try logging in instead.");
       } else if (errorMessage.includes("Password")) {
@@ -162,40 +158,37 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Minimal Top Bar */}
       <div className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="RENTY" className="h-8 w-auto" />
+            <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
           </Link>
           <Link to="/">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="rounded-xl">
               <Home className="h-5 w-5" />
             </Button>
           </Link>
         </div>
       </div>
-      
-      {/* Auth Form */}
+
       <div className="flex-1 flex items-center justify-center p-4 pb-mobile-nav scroll-pb-40">
-        <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to RENTY</CardTitle>
-          <CardDescription>Sign in or create an account to continue</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+        <GlassCard className="w-full max-w-md" padding="lg">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold">Welcome to RENTY</h1>
+            <p className="text-sm text-muted-foreground mt-1">Sign in or create an account to continue</p>
+          </div>
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-muted/30 p-1 rounded-xl gap-1">
+              <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">Sign Up</TabsTrigger>
             </TabsList>
 
             <div className="mt-4 mb-4">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 text-base font-medium gap-2"
-                onClick={() => supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth` } })}
+                className="w-full h-12 text-base font-medium gap-2 rounded-xl"
+                onClick={async () => { try { await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth` } }); } catch { toast.error('Google sign-in failed. Please try again.'); } }}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -215,7 +208,7 @@ export default function Auth() {
                 <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
               </div>
             </div>
-            
+
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
@@ -226,7 +219,7 @@ export default function Auth() {
                     placeholder="your@email.com"
                     value={loginData.email}
                     onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                    className="h-12 text-base"
+                    className="h-12 text-base rounded-xl"
                     autoComplete="email"
                     required
                   />
@@ -239,7 +232,7 @@ export default function Auth() {
                       type={showLoginPassword ? "text" : "password"}
                       value={loginData.password}
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      className="h-12 text-base pr-12"
+                      className="h-12 text-base pr-12 rounded-xl"
                       autoComplete="current-password"
                       required
                     />
@@ -262,20 +255,20 @@ export default function Auth() {
                     <ForgotPasswordDialog />
                   </div>
                 </div>
-                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading}>
+                <Button type="submit" className="w-full h-12 text-base font-medium rounded-xl" disabled={isLoading}>
                   {isLoading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
-              <Alert className="mb-4 border-primary bg-primary/5">
+              <Alert className="mb-4 border-primary bg-primary/5 rounded-xl">
                 <Gift className="h-4 w-4 text-primary" />
                 <AlertDescription className="text-sm">
                   <strong>Welcome Offer!</strong> Use code <span className="font-bold">WELCOME50</span> for 50% off your first rental!
                 </AlertDescription>
               </Alert>
-              
+
               <form onSubmit={handleSignup} className="space-y-5">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Saya nak…</Label>
@@ -283,7 +276,7 @@ export default function Auth() {
                     <button
                       type="button"
                       onClick={() => setPreferredRole('renter')}
-                      className={`h-16 rounded-md border-2 text-left px-3 transition ${
+                      className={`h-16 rounded-xl border-2 text-left px-3 transition ${
                         preferredRole === 'renter'
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-muted-foreground/40'
@@ -295,7 +288,7 @@ export default function Auth() {
                     <button
                       type="button"
                       onClick={() => setPreferredRole('vendor')}
-                      className={`h-16 rounded-md border-2 text-left px-3 transition ${
+                      className={`h-16 rounded-xl border-2 text-left px-3 transition ${
                         preferredRole === 'vendor'
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-muted-foreground/40'
@@ -314,7 +307,7 @@ export default function Auth() {
                     placeholder="John Doe"
                     value={signupData.fullName}
                     onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                    className="h-12 text-base"
+                    className="h-12 text-base rounded-xl"
                     autoComplete="name"
                     required
                   />
@@ -327,7 +320,7 @@ export default function Auth() {
                     placeholder="your@email.com"
                     value={signupData.email}
                     onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                    className="h-12 text-base"
+                    className="h-12 text-base rounded-xl"
                     autoComplete="email"
                     required
                   />
@@ -340,7 +333,7 @@ export default function Auth() {
                       type={showSignupPassword ? "text" : "password"}
                       value={signupData.password}
                       onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      className="h-12 text-base pr-12"
+                      className="h-12 text-base pr-12 rounded-xl"
                       autoComplete="new-password"
                       required
                     />
@@ -368,7 +361,7 @@ export default function Auth() {
                       type={showConfirmPassword ? "text" : "password"}
                       value={signupData.confirmPassword}
                       onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                      className="h-12 text-base pr-12"
+                      className="h-12 text-base pr-12 rounded-xl"
                       autoComplete="new-password"
                       required
                     />
@@ -407,14 +400,13 @@ export default function Auth() {
                     Renty (termasuk pemprosesan data di bawah PDPA).
                   </Label>
                 </div>
-                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isLoading || !acceptedTerms}>
+                <Button type="submit" className="w-full h-12 text-base font-medium rounded-xl" disabled={isLoading || !acceptedTerms}>
                   {isLoading ? 'Creating account...' : 'Create Account'}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-        </CardContent>
-      </Card>
+        </GlassCard>
       </div>
     </div>
   );
