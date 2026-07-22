@@ -63,7 +63,7 @@ serve(async (req) => {
       throw updateError;
     }
     
-    // Cancel associated rentals
+    // Cancel associated rentals (handle all rental statuses that can have pending payments)
     const { error: cancelError } = await supabase
       .from('rentals')
       .update({ 
@@ -71,7 +71,7 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       })
       .in('id', expiredPayments.map(p => p.rental_id))
-      .eq('status', 'pending');
+      .in('status', ['pending', 'pending_approval', 'approved']);
     
     if (cancelError) {
       console.error('Error cancelling rentals:', cancelError);

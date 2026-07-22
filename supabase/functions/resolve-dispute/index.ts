@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const resolutionSchema = z.object({
-  disputeId: z.string().uuid(),
+  rentalId: z.string().uuid(),
   resolutionType: z.enum(['full_refund', 'full_release', 'partial_split', 'custom']),
   resolutionNotes: z.string().min(10),
   ownerPercentage: z.number().min(0).max(100).optional(),
@@ -61,32 +61,30 @@ Deno.serve(async (req) => {
       }
     );
 
-    console.log('Resolving dispute:', validatedData.disputeId);
+    console.log('Resolving dispute for rental:', validatedData.rentalId);
 
-    // Get dispute details with rental and payment info
-    const { data: dispute, error: disputeError } = await supabaseAdmin
-      .from('disputes')
+    // Get rental details with dispute info and linked payment
+    const { data: rental, error: rentalError } = await supabaseAdmin
+      .from('rentals')
       .select(`
-        *,
-        rental:rentals!inner(
-          id, owner_id, renter_id, total_price
-        ),
+        id, owner_id, renter_id, total_price,
+        dispute_reason, dispute_status, is_disputed,
         payment:payments(
           id, total_amount, rental_amount, platform_fee, status
         )
       `)
-      .eq('id', validatedData.disputeId)
+      .eq('id', validatedData.rentalId)
       .single();
 
-    if (disputeError || !dispute) {
+    if (rentalError || !rental) {
       throw new Error('Dispute not found');
     }
 
-    if (dispute.status === 'resolved') {
+    if (!rental.is_disputed || rental.dispute_status === 'resolved') {
       throw new Error('Dispute already resolved');
     }
 
-    const payment = dispute.payment;
+    const payment = rental.payment;
     if (!payment) {
       throw new Error('No payment found for this dispute');
     }
@@ -95,7 +93,7 @@ Deno.serve(async (req) => {
       throw new Error('Payment is not in a resolvable state');
     }
 
-    const totalAmount = payment.total_amount || dispute.rental.total_price || 0;
+    const totalAmount = payment.total_amount || rental.total_price || 0;
 
     let ownerAmount = 0;
     let renterAmount = 0;
@@ -156,45 +154,41 @@ Deno.serve(async (req) => {
       })
       .eq('id', payment.id);
 
-    // Update dispute
+    // Update rental resolution (using existing dispute columns on rentals table)
     await supabaseAdmin
-      .from('disputes')
+      .from('rentals')
       .update({
-        status: 'resolved',
-        resolution_notes: validatedData.resolutionNotes,
-        resolution_amount: renterAmount,
-        resolution_split: resolutionSplit,
-        resolved_by: user.id,
-        resolved_at: new Date().toISOString()
+        dispute_status: renterAmount > 0 ? 'resolved_refund' : 'resolved_payout',
+        dispute_reason: `[Resolved by admin ${user.id}] ${validatedData.resolutionNotes}. Split: ${JSON.stringify(resolutionSplit)}`,
       })
-      .eq('id', validatedData.disputeId);
+      .eq('id', validatedData.rentalId);
 
     // Update rental status
     const rentalStatus = renterAmount > 0 ? 'cancelled' : 'completed';
     await supabaseAdmin
       .from('rentals')
       .update({ status: rentalStatus })
-      .eq('id', dispute.rental.id);
+      .eq('id', validatedData.rentalId);
 
     // Send notifications
     await supabaseAdmin.from('notifications').insert([
       {
-        user_id: dispute.rental.owner_id,
+        user_id: rental.owner_id,
         type: 'payment_received',
         title: 'Dispute Resolved',
         message: ownerAmount > 0
           ? `Dispute resolved. RM ${ownerAmount.toFixed(2)} released to you.`
           : 'Dispute resolved in favor of renter.',
-        link: `/rentals/${dispute.rental.id}`
+        link: `/rentals/${rental.id}`
       },
       {
-        user_id: dispute.rental.renter_id,
+        user_id: rental.renter_id,
         type: 'payment_received',
         title: 'Dispute Resolved',
         message: renterAmount > 0
           ? `Dispute resolved. RM ${renterAmount.toFixed(2)} refunded.`
           : 'Dispute resolved in favor of owner.',
-        link: `/rentals/${dispute.rental.id}`
+        link: `/rentals/${rental.id}`
       }
     ]);
 
@@ -204,7 +198,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         resolution: {
-          disputeId: validatedData.disputeId,
+          rentalId: validatedData.rentalId,
           ownerAmount,
           renterAmount,
           resolutionType: validatedData.resolutionType

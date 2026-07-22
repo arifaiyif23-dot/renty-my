@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeImage } from "@/utils/imageOptimization";
+import { validateUserInput } from "@/utils/sanitize";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -46,6 +47,17 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
 
     setUploading(true);
     try {
+      // Delete old avatar files for this user before uploading new one
+      const { data: existingFiles } = await supabase.storage
+        .from('avatars')
+        .list(user.id);
+
+      if (existingFiles && existingFiles.length > 0) {
+        await supabase.storage
+          .from('avatars')
+          .remove(existingFiles.map(f => `${user.id}/${f.name}`));
+      }
+
       // Optimize image before upload
       toast.info("Compressing image...");
       const optimizedBlob = await optimizeImage(file);
@@ -53,8 +65,8 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
         type: 'image/webp'
       });
 
-      const fileName = `${user.id}-${Date.now()}.webp`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${Date.now()}.webp`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -83,8 +95,8 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
       const { error } = await supabase
         .from('profiles')
         .update({
-          full_name: fullName,
-          location: location || null,
+          full_name: validateUserInput(fullName, 100),
+          location: location ? validateUserInput(location, 200) : null,
           phone: phone || null,
           avatar_url: avatarUrl || null,
         })
@@ -205,3 +217,5 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
     </Dialog>
   );
 }
+
+

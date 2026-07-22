@@ -70,11 +70,45 @@ serve(async (req) => {
 
     // Delete user data
     await supabase.from('sessions').delete().eq('user_id', user.id);
+
+    // Clean up storage files
     await supabase.storage.from('verification-documents').list(user.id).then(async ({ data: files }) => {
       if (files && files.length > 0) {
         await supabase.storage.from('verification-documents').remove(files.map(f => `${user.id}/${f.name}`));
       }
     });
+
+    await supabase.storage.from('avatars').list(user.id).then(async ({ data: files }) => {
+      if (files && files.length > 0) {
+        await supabase.storage.from('avatars').remove(files.map(f => `${user.id}/${f.name}`));
+      }
+    });
+
+    // Clean up item images for this user
+    await supabase.storage.from('item-images').list(user.id).then(async ({ data: files }) => {
+      if (files && files.length > 0) {
+        await supabase.storage.from('item-images').remove(files.map(f => `${user.id}/${f.name}`));
+      }
+    });
+
+    // Clean up rental evidence for rentals where user was involved
+    const { data: userRentals } = await supabase
+      .from('rentals')
+      .select('id')
+      .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
+
+    if (userRentals && userRentals.length > 0) {
+      for (const rental of userRentals) {
+        const { data: evidenceFiles } = await supabase.storage
+          .from('rental-evidence')
+          .list(rental.id);
+        if (evidenceFiles && evidenceFiles.length > 0) {
+          await supabase.storage
+            .from('rental-evidence')
+            .remove(evidenceFiles.map(f => `${rental.id}/${f.name}`));
+        }
+      }
+    }
 
     // Admin alert
     const adminEmail = Deno.env.get('ADMIN_EMAIL');

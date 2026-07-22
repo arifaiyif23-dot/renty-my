@@ -112,7 +112,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
       // Notify renter about dispute
       await supabase.from('notifications').insert({
         user_id: rental.renter_id,
-        type: 'rental_request',
+        type: 'dispute_opened',
         title: 'Dispute Raised',
         message: `The owner has raised a dispute for "${rental.item?.title}". Reason: ${disputeReason}`,
         link: '/dashboard'

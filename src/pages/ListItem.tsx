@@ -44,6 +44,8 @@ export default function ListItem() {
     instant_book_enabled: false,
     auto_approve_bookings: false,
     specifications: {} as Record<string, string>,
+    item_condition: 'good',
+    cancellation_policy: 'flexible',
   });
 
   const debouncedTitle = useDebounce(formData.title, 500);
@@ -133,6 +135,8 @@ export default function ListItem() {
             instant_book_enabled: formData.instant_book_enabled,
             auto_approve_bookings: formData.auto_approve_bookings,
             specifications: specs,
+            item_condition: formData.item_condition,
+            cancellation_policy: formData.cancellation_policy,
           })
           .select()
           .single();
@@ -221,6 +225,8 @@ export default function ListItem() {
           instant_book_enabled: formData.instant_book_enabled,
           auto_approve_bookings: formData.auto_approve_bookings,
           specifications: specs,
+          item_condition: formData.item_condition,
+          cancellation_policy: formData.cancellation_policy,
         })
         .select()
         .single();
@@ -430,6 +436,42 @@ export default function ListItem() {
                   <div className="font-semibold text-sm">Manual (bank)</div>
                   <div className="text-[11px] text-muted-foreground">Bayar terus ke akaun</div>
                 </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Item Condition</Label>
+                <Select
+                  value={formData.item_condition}
+                  onValueChange={(value) => setFormData({ ...formData, item_condition: value })}
+                >
+                  <SelectTrigger className="h-12 text-base rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="like_new">Like New</SelectItem>
+                    <SelectItem value="good">Good</SelectItem>
+                    <SelectItem value="fair">Fair</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Cancellation Policy</Label>
+                <Select
+                  value={formData.cancellation_policy}
+                  onValueChange={(value) => setFormData({ ...formData, cancellation_policy: value })}
+                >
+                  <SelectTrigger className="h-12 text-base rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flexible">Free cancellation</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="strict">Strict</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

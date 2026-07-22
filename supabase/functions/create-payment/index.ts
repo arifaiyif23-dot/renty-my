@@ -125,7 +125,43 @@ serve(async (req) => {
     }
     
     console.log('Creating payment for rental:', rental.id);
-    
+
+    // Server-side promo code re-validation
+    if (promoCodeId) {
+      const { data: promoCode, error: promoError } = await supabase
+        .from('promo_codes')
+        .select('id, discount_amount, discount_type, max_uses, current_uses, valid_until, is_active')
+        .eq('id', promoCodeId)
+        .single();
+
+      if (promoError || !promoCode) {
+        throw new Error('Invalid promo code');
+      }
+
+      if (!promoCode.is_active) {
+        throw new Error('Promo code is no longer active');
+      }
+
+      if (promoCode.valid_until && new Date(promoCode.valid_until) < new Date()) {
+        throw new Error('Promo code has expired');
+      }
+
+      if (promoCode.max_uses && promoCode.current_uses >= promoCode.max_uses) {
+        throw new Error('Promo code has reached maximum usage limit');
+      }
+
+      const { data: existingUsage } = await supabase
+        .from('user_promo_usage')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('promo_code_id', promoCodeId)
+        .maybeSingle();
+
+      if (existingUsage) {
+        throw new Error('You have already used this promo code');
+      }
+    }
+
     // Acquire payment lock to prevent race conditions
     const { data: acquired } = await supabase.rpc('acquire_payment_lock', {
       p_rental_id: rental.id,
@@ -153,7 +189,7 @@ serve(async (req) => {
       .from('payments')
       .select('id, status')
       .eq('rental_id', rental.id)
-      .single();
+      .maybeSingle();
     
     if (existingPayment && existingPayment.status !== 'expired') {
       throw new Error('Payment already exists for this rental');

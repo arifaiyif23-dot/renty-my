@@ -64,7 +64,7 @@ export default function PaymentSuccess() {
           itemTitle: ((data.rental as { item: { title: string } })?.item?.title) || 'your rental',
         });
       }
-    } catch { /* non-critical */ } finally {
+    } catch (e) { console.error('Payment success fetch error:', e); } finally {
       setLoading(false);
     }
   };

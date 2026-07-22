@@ -121,21 +121,21 @@ export default function Auth() {
         toast.error('Too many signup attempts. Please try again later.');
         return;
       }
-      await signUp(result.data.email, result.data.password, result.data.fullName);
-      try {
-        const { data: { user: newUser } } = await supabase.auth.getUser();
-        if (newUser) {
-          await supabase
+      await signUp(result.data.email, result.data.password, result.data.fullName, preferredRole);
+      // Retry profile update a few times to handle trigger race condition
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (newUser) {
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const { error: updateError } = await supabase
             .from('profiles')
             .update({
               terms_accepted_at: new Date().toISOString(),
               terms_version: TERMS_VERSION,
-              preferred_role: preferredRole,
             })
             .eq('id', newUser.id);
+          if (!updateError) break;
+          if (attempt < 4) await new Promise(r => setTimeout(r, 600));
         }
-      } catch (e) {
-        console.warn('Failed to record T&C acceptance', e);
       }
       toast.success("Account created! Welcome to Renty!");
       navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : (redirectTo || "/"));

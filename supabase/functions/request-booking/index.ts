@@ -82,6 +82,43 @@ serve(async (req) => {
       throw new Error('Renter must be verified to create booking requests');
     }
 
+    // Server-side promo code validation
+    if (promoCodeId) {
+      const { data: promoCode, error: promoError } = await supabase
+        .from('promo_codes')
+        .select('id, discount_amount, discount_type, max_uses, current_uses, valid_until, is_active')
+        .eq('id', promoCodeId)
+        .single();
+
+      if (promoError || !promoCode) {
+        throw new Error('Invalid promo code');
+      }
+
+      if (!promoCode.is_active) {
+        throw new Error('Promo code is no longer active');
+      }
+
+      if (promoCode.valid_until && new Date(promoCode.valid_until) < new Date()) {
+        throw new Error('Promo code has expired');
+      }
+
+      if (promoCode.max_uses && promoCode.current_uses >= promoCode.max_uses) {
+        throw new Error('Promo code has reached maximum usage limit');
+      }
+
+      // Check if user has already used this promo code
+      const { data: existingUsage } = await supabase
+        .from('user_promo_usage')
+        .select('id')
+        .eq('user_id', renterId)
+        .eq('promo_code_id', promoCodeId)
+        .maybeSingle();
+
+      if (existingUsage) {
+        throw new Error('You have already used this promo code');
+      }
+    }
+
     // Determine rental status
     let rentalStatus = 'pending_approval';
     if (instantBook) {
@@ -127,7 +164,16 @@ serve(async (req) => {
     }
     
     console.log('Rental request created:', rpcResult.rental_id);
-    
+
+    // Generate pickup code for instant bookings (regular bookings get it on owner approval)
+    if (instantBook) {
+      const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
+      await supabase
+        .from('rentals')
+        .update({ pickup_code: pickupCode })
+        .eq('id', rpcResult.rental_id);
+    }
+
     // Store promo info on the rental for payment flow
     if (promoCodeId || originalTotalPrice) {
       await supabase

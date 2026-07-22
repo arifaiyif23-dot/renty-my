@@ -88,6 +88,12 @@ serve(async (req) => {
       return new Response('Payment not found', { status: 404 });
     }
     
+    // Idempotency check: skip if payment already processed
+    if (payment.status === 'paid') {
+      console.log('Payment already processed, skipping:', paymentId);
+      return new Response('OK', { status: 200 });
+    }
+
     if (status === '1') {
       // Payment successful
       console.log('Processing successful payment:', paymentId);

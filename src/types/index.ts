@@ -2,7 +2,7 @@ export type AppRole = 'super_admin' | 'admin' | 'moderator' | 'user';
 export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid' | 'pending' | 'active' | 'completed' | 'cancelled' | 'disputed';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
 export type ListingStatus = 'active' | 'paused' | 'draft' | 'archived';
-export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received';
+export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received' | 'dispute_opened';
 
 export type ReportTargetType = 'item' | 'user' | 'message';
 export type ReportStatus = 'pending' | 'investigating' | 'resolved' | 'dismissed';
@@ -80,6 +80,12 @@ export interface Profile {
   is_suspended?: boolean;
   suspension_reason?: string;
   suspended_at?: string;
+  preferred_role?: string;
+  terms_accepted_at?: string;
+  terms_version?: number;
+  bio?: string;
+  is_deleted?: boolean;
+  deleted_at?: string;
   last_active_at?: string;
   created_at: string;
   updated_at: string;

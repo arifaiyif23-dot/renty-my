@@ -16,20 +16,20 @@ import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import PageTransition from "@/components/PageTransition";
 
-// Eager load critical pages
+// Eager load critical pages (landing + auth)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Search from "./pages/Search";
-import ItemDetail from "./pages/ItemDetail";
-import Profile from "./pages/Profile";
-import Dashboard from "./pages/Dashboard";
-import MyListings from "./pages/MyListings";
-import Messages from "./pages/Messages";
-import ListItem from "./pages/ListItem";
-import Wishlist from "./pages/Wishlist";
-import NotFound from "./pages/NotFound";
 
-// Lazy load non-critical pages
+// Lazy load all other pages to reduce main chunk size and prevent TDZ errors
+const Search = lazy(() => import("./pages/Search"));
+const ItemDetail = lazy(() => import("./pages/ItemDetail"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MyListings = lazy(() => import("./pages/MyListings"));
+const Messages = lazy(() => import("./pages/Messages"));
+const ListItem = lazy(() => import("./pages/ListItem"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const Verification = lazy(() => import("./pages/Verification"));
 const AdminVerification = lazy(() => import("./pages/AdminVerification"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -144,4 +144,5 @@ const App = () => (
 );
 
 export default App;
+
 

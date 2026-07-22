@@ -82,7 +82,7 @@ export default function ItemDetail() {
           item_id: id,
         });
         await supabase.rpc('increment_item_views', { item_id_param: id });
-      } catch { /* non-critical */ }
+      } catch (e) { console.error('non-critical:', e); }
     };
 
     const fetchItem = async () => {
@@ -131,7 +131,7 @@ export default function ItemDetail() {
           .eq('item_id', id)
           .gte('viewed_at', fifteenMinAgo);
         setRecentViewers(count || 0);
-      } catch { /* non-critical */ }
+      } catch (e) { console.error('non-critical:', e); }
     };
 
     if (id) {
@@ -191,7 +191,8 @@ export default function ItemDetail() {
       } else {
         setSimilarItems([]);
       }
-    } catch {
+    } catch (e) {
+      console.error('Similar items fetch error:', e);
       setSimilarItems([]);
     } finally {
       setLoadingSimilar(false);
@@ -210,7 +211,7 @@ export default function ItemDetail() {
           });
           if (booking.promoCode) setPromoCode(booking.promoCode);
         }
-      } catch { /* ignore */ }
+      } catch (e) { console.error('Pending booking restore error:', e); }
       sessionStorage.removeItem('renty_pending_booking');
     }
   }, [id]);
