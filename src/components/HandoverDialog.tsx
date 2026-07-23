@@ -17,7 +17,7 @@ interface HandoverDialogProps {
 
 export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: HandoverDialogProps) {
   const [step, setStep] = useState<'upload' | 'verify'>('upload');
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [, setPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [enteredCode, setEnteredCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -47,7 +47,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
     const uploadedUrls: string[] = [];
     for (const file of files) {
       const fileName = `${rental.id}/${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('rental-evidence')
         .upload(fileName, file);
 

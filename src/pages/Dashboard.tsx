@@ -11,11 +11,10 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
-import { BookingCard } from '@/components/marketplace/BookingCard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import { EmptyStateV2 } from '@/components/EmptyStateV2';
-import { Clock, Calendar as CalendarIcon, GitBranch, PackageSearch, RefreshCw, TrendingUp, Package, DollarSign, Star } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, PackageSearch, RefreshCw, TrendingUp, Package, DollarSign } from 'lucide-react';
 import { RentalTimeline } from '@/components/RentalTimeline';
 import { BulkActionsBar } from '@/components/BulkActionsBar';
 import { RentalCalendarView } from '@/components/RentalCalendarView';
@@ -101,7 +100,7 @@ export default function Dashboard() {
 
       if (error) throw error;
       setRentals((data || []) as Rental[]);
-    } catch (error: unknown) {
+    } catch {
       toast.error('Failed to load rentals');
     } finally {
       setLoading(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Star, Upload, X } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";

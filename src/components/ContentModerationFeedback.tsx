@@ -1,4 +1,4 @@
-import { AlertTriangle, XCircle, Info } from 'lucide-react';
+import { AlertTriangle, XCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ModerationResult } from '@/utils/contentModeration';
@@ -24,7 +24,7 @@ export function ContentModerationFeedback({ result }: ContentModerationFeedbackP
           {allDetected.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               <span className="text-sm font-medium">Detected:</span>
-              {allDetected.slice(0, 5).map((keyword, index) => (
+              {allDetected.slice(0, 5).map((keyword) => (
                 <Badge key={keyword} variant="destructive" className="text-xs">
                   {keyword}
                 </Badge>
@@ -53,7 +53,7 @@ export function ContentModerationFeedback({ result }: ContentModerationFeedbackP
         <AlertDescription className="text-warning mt-2">
           <p>Your listing contains words that may be flagged. Please ensure you are listing a physical item for rent, not a service.</p>
           <div className="flex flex-wrap gap-1 mt-2">
-            {result.detectedKeywords.slice(0, 3).map((keyword, index) => (
+            {result.detectedKeywords.slice(0, 3).map((keyword) => (
               <Badge key={keyword} variant="outline" className="text-xs border-warning text-warning">
                 {keyword}
               </Badge>

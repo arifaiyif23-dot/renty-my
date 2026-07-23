@@ -3,8 +3,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Rental } from '@/types';
-import { isSameDay, isWithinInterval } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 interface RentalCalendarViewProps {
   rentals: Rental[];
@@ -22,18 +20,6 @@ export function RentalCalendarView({ rentals }: RentalCalendarViewProps) {
   };
 
   const selectedDateRentals = selectedDate ? getRentalsForDate(selectedDate) : [];
-
-  const getDayClassName = (date: Date) => {
-    const rentalsOnDay = getRentalsForDate(date);
-    if (rentalsOnDay.length === 0) return '';
-    
-    const hasActive = rentalsOnDay.some(r => r.status === 'active' || r.status === 'approved');
-    const hasPending = rentalsOnDay.some(r => r.status === 'pending');
-    
-    if (hasActive) return 'bg-primary/20 hover:bg-primary/30';
-    if (hasPending) return 'bg-secondary/20 hover:bg-secondary/30';
-    return 'bg-muted/50';
-  };
 
   return (
     <div className="grid md:grid-cols-2 gap-4">

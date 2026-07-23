@@ -7,12 +7,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import {
-  Plus, Search, Filter, Grid3x3, List, BarChart3, Eye,
-  Edit, Pause, Play, Copy, Trash2, MoreVertical, TrendingUp,
-  Calendar, DollarSign, Star, Heart, Inbox, Loader2
+  Plus, Search, Grid3x3, List, Eye,
+  Edit, Pause, Play, Trash2, MoreVertical,
+  Calendar, DollarSign, Inbox, Loader2
 } from 'lucide-react';
 import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import SkeletonCard from '@/components/SkeletonCard';

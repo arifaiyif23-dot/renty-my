@@ -60,7 +60,7 @@ export default function NotificationSettings() {
         if (createError) throw createError;
         if (newPrefs) setPrefs(newPrefs);
       }
-    } catch (error: unknown) {
+    } catch {
       toast.error("Failed to load notification preferences");
     } finally {
       setLoading(false);

@@ -48,7 +48,7 @@ serve(async (req) => {
     if (authError || !user) throw new Error('Unauthorized: Invalid token');
 
     const body: EkycRequest = await req.json();
-    const { provider, sessionId, userId, identityNumber } = body;
+    const { provider, sessionId, userId } = body;
 
     if (!provider) throw new Error('Missing required field: provider');
     if (userId !== user.id) throw new Error('Forbidden: userId mismatch');

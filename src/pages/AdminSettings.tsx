@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
-import { Loader2, Save, Settings, DollarSign, ArrowDownToLine, ArrowUpFromLine, AlertTriangle } from 'lucide-react';
+import { Loader2, Save, Settings, DollarSign, ArrowDownToLine, AlertTriangle } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 import { invokeAdminOperation } from '@/lib/adminOperations';
 import {

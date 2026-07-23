@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ZoomIn, 
   ZoomOut, 
@@ -16,7 +16,6 @@ import {
   FileText
 } from "lucide-react";
 import { getSignedUrl } from "@/utils/signedUrls";
-import { supabase } from "@/integrations/supabase/client";
 import { invokeAdminOperation } from "@/lib/adminOperations";
 import { toast } from "sonner";
 
@@ -186,9 +185,6 @@ export function DocumentViewerModal({
       default: return null;
     }
   };
-
-  const aiAnalysis = verification?.ai_analysis_result;
-  const extractedData = aiAnalysis?.extraction;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

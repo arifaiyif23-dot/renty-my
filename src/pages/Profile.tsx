@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -362,7 +361,7 @@ export default function Profile() {
           </div>
         </GlassCard>
 
-        <AccountDeletionSection userId={profile.id} />
+        <AccountDeletionSection />
 
         <ProfileEditDialog
           open={editDialogOpen}
@@ -374,7 +373,7 @@ export default function Profile() {
   );
 }
 
-function AccountDeletionSection({ userId }: { userId: string }) {
+function AccountDeletionSection() {
   const [showDialog, setShowDialog] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [loading, setLoading] = useState(false);

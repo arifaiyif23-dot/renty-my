@@ -57,7 +57,7 @@ export default function AdminUsers() {
       }));
 
       setUsers(enriched);
-    } catch (error: unknown) {
+    } catch {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);

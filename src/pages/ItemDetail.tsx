@@ -1,22 +1,19 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import type { Item } from '@/types';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReportDialog } from '@/components/trust/ReportDialog';
-import { Link } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { ReviewsList } from '@/components/ReviewsList';
 import { ListingAnalytics } from '@/components/ListingAnalytics';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, User, Package, Calendar as CalendarIcon, ShieldCheck, Share2, Pencil, MessageCircle, Loader2, Flag, Eye, Clock, Ticket, AlertTriangle, Heart, ChevronLeft, Star } from 'lucide-react';
+import { MapPin, Package, ShieldCheck, Share2, Pencil, MessageCircle, Loader2, Flag, Eye, Ticket, AlertTriangle } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
@@ -24,14 +21,12 @@ import EmptyState from '@/components/EmptyState';
 import ImageCarousel from '@/components/ImageCarousel';
 import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
 import { VendorCard } from '@/components/marketplace/VendorCard';
-import { TrustBadge } from '@/components/marketplace/TrustBadge';
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import { addRecentlyViewed } from '@/hooks/use-recently-viewed';
 import SEO from '@/components/SEO';
 import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { SaveItemButton } from '@/components/SaveItemButton';
 import { SocialProof } from '@/components/SocialProof';
-import { UserTrustBadge } from '@/components/trust/UserTrustBadge';
 import StickyBookingBar from '@/components/StickyBookingBar';
 import PeaceOfMind from '@/components/PeaceOfMind';
 import QuickQuestion from '@/components/QuickQuestion';
@@ -52,7 +47,6 @@ export default function ItemDetail() {
   const { id } = useParams();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -283,7 +277,6 @@ export default function ItemDetail() {
     setIsBooking(true);
     setShowConfirmDialog(false);
     try {
-      const days = differenceInDays(dateRange.to, dateRange.from) + 1;
       const instantBook = item.instant_book_enabled === true;
       const finalTotal = getTotalAfterPromo();
       const originalTotal = getPriceBreakdown()?.total;
@@ -293,7 +286,7 @@ export default function ItemDetail() {
           : ((originalTotal || 0) * ((appliedPromo.discountAmount || 0) / 100)))
         : 0;
 
-      const { data, error } = await supabase.functions.invoke('request-booking', {
+      const { error } = await supabase.functions.invoke('request-booking', {
         body: {
           itemId: item.id, startDate: dateRange.from.toISOString().split('T')[0],
           endDate: dateRange.to.toISOString().split('T')[0], renterId: user.id,

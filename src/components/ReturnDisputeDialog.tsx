@@ -18,7 +18,7 @@ interface ReturnDisputeDialogProps {
 
 export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: ReturnDisputeDialogProps) {
   const [path, setPath] = useState<'good' | 'dispute' | null>(null);
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [, setPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [disputeReason, setDisputeReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,7 +33,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
     const uploadedUrls: string[] = [];
     for (const file of files) {
       const fileName = `${rental.id}/return_${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('rental-evidence')
         .upload(fileName, file);
 

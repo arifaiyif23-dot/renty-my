@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
@@ -73,8 +72,7 @@ interface DashboardStats {
 }
 
 export default function AdminVerification() {
-  const { user } = useAuth();
-  const { stats: realtimeStats, connectionState, resetStats } = useAdminRealtime();
+  const { connectionState, resetStats } = useAdminRealtime();
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
   const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -719,7 +717,7 @@ export default function AdminVerification() {
                               await invokeAdminOperation({ action: 'fraud_alert_action', alertId: alert.id, status: 'reviewed' });
                               toast.success("Alert marked as reviewed");
                               fetchData();
-                            } catch (error) {
+                            } catch {
                               toast.error("Failed to update alert");
                             }
                           }}
@@ -734,7 +732,7 @@ export default function AdminVerification() {
                               await invokeAdminOperation({ action: 'fraud_alert_action', alertId: alert.id, status: 'escalated' });
                               toast.success("Alert escalated");
                               fetchData();
-                            } catch (error) {
+                            } catch {
                               toast.error("Failed to escalate alert");
                             }
                           }}

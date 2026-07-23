@@ -10,7 +10,7 @@ import { PayNowButton } from "@/components/PayNowButton";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { format } from "date-fns";
-import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Lock, Key, Camera, AlertTriangle, Loader2 } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Key, Camera, AlertTriangle, Loader2 } from "lucide-react";
 import { Rental } from "@/types";
 import { toast } from "sonner";
 import { haptics } from "@/utils/haptics";
@@ -96,7 +96,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
     try {
       await onStatusUpdate(rental.id, statusMap[confirmDialog.action]);
       haptics.success();
-    } catch (error) {
+    } catch {
       haptics.error();
     } finally {
       setIsUpdating(false);

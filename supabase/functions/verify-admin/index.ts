@@ -59,7 +59,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
+  } catch {
     return new Response(
       JSON.stringify({ isAdmin: false, error: 'Verification failed' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

@@ -1,11 +1,9 @@
 import { useEffect, useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
-import { useTranslation } from "react-i18next"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { SearchBarV2 } from "@/components/SearchBarV2"
-import { AnimatedCategoryIcon } from "@/components/AnimatedCategoryIcon"
 import { ListingCardV2 } from "@/components/marketplace/ListingCardV2"
 import { CategoryCard } from "@/components/marketplace/CategoryCard"
 import { TrustBadge } from "@/components/marketplace/TrustBadge"
@@ -15,14 +13,13 @@ import { GlassCard } from "@/components/ui/GlassCard"
 import { VerificationRequiredBanner } from "@/components/VerificationRequiredBanner"
 import SEO from "@/components/SEO"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
 import {
   Package, Car, Smartphone, Dumbbell, Music, Wrench, Shirt,
   LayoutDashboard, Clock, MessageCircle, TrendingUp, Plus, ArrowRight,
   BadgeCheck, Search, LogIn, Users, Star, ShieldCheck,
   MapPin, Calendar, Handshake, Download, Smartphone as SmartphoneIcon,
-  ChevronRight, Sparkles, Scale, Bell, SearchSlash
+  ChevronRight, Scale, Bell, SearchSlash
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -72,7 +69,6 @@ interface Testimonial {
 }
 
 const Index = () => {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, profile, loading: authLoading } = useAuth()
   useKeyboardShortcuts()

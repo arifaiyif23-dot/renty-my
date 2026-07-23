@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
-import type { Review } from "@/types";
 
 interface ReviewsListProps {
   itemId?: string;

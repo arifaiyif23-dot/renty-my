@@ -4,7 +4,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle, Bug, RefreshCw, Loader2, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { Bug, RefreshCw, Loader2, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { toast } from "sonner";
 

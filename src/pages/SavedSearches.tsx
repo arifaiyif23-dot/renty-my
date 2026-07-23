@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -37,7 +36,7 @@ export default function SavedSearches() {
 
       if (error) throw error;
       setSearches(data || []);
-    } catch (error: unknown) {
+    } catch {
       toast.error("Failed to load saved searches");
     } finally {
       setLoading(false);
@@ -56,7 +55,7 @@ export default function SavedSearches() {
         prev.map((s) => (s.id === search.id ? { ...s, notify_on_new: !s.notify_on_new } : s))
       );
       toast.success(search.notify_on_new ? "Notifications disabled" : "Notifications enabled");
-    } catch (error: unknown) {
+    } catch {
       toast.error("Failed to update");
     }
   };
@@ -68,7 +67,7 @@ export default function SavedSearches() {
       if (error) throw error;
       setSearches((prev) => prev.filter((s) => s.id !== deleteId));
       toast.success("Search deleted");
-    } catch (error: unknown) {
+    } catch {
       toast.error("Failed to delete");
     } finally {
       setDeleteId(null);
@@ -89,7 +88,7 @@ export default function SavedSearches() {
       );
       toast.success("Label updated");
       setEditSearch(null);
-    } catch (error: unknown) {
+    } catch {
       toast.error("Failed to update label");
     }
   };

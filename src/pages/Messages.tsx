@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { useLocation } from "react-router-dom";
@@ -12,7 +12,7 @@ import { Send, ArrowLeft, File as FileIcon, Loader2 } from "lucide-react";
 import { FileAttachment } from "@/components/FileAttachment";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
-import type { Message, Profile } from "@/types";
+import type { Message } from "@/types";
 import Header from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { sanitizeMessage } from "@/utils/sanitize";

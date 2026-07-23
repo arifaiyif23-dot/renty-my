@@ -20,7 +20,6 @@ import { differenceInDays } from 'date-fns';
 
 interface PayNowButtonProps {
   rental: Rental;
-  onPaymentCreated?: () => void;
 }
 
 function formatRemaining(ms: number): string {
@@ -30,7 +29,7 @@ function formatRemaining(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export function PayNowButton({ rental, onPaymentCreated }: PayNowButtonProps) {
+export function PayNowButton({ rental }: PayNowButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingExpiresAt, setPendingExpiresAt] = useState<string | null>(null);

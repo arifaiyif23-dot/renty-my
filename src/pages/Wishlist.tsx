@@ -1,9 +1,7 @@
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { ListingCard } from "@/components/ListingCard";
-import { ListingCardV2 } from "@/components/marketplace/ListingCardV2";
 import SkeletonCard from "@/components/SkeletonCard";
 import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import SEO from "@/components/SEO";
@@ -17,7 +15,6 @@ import { useWishlistQuery, useToggleWishlistMutation } from "@/hooks/use-items-q
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function Wishlist() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { PrefetchLink } from "@/components/PrefetchLink";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search, Heart, MessageSquare, Shield, Settings, DollarSign, LogOut, LayoutDashboard, Users, Flag, TicketPercent, AlertTriangle, Zap, Activity } from "lucide-react";
+import { User, Menu, Search, Heart, Shield, Settings, DollarSign, LogOut, LayoutDashboard, Users, Flag, TicketPercent, AlertTriangle, Zap, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";

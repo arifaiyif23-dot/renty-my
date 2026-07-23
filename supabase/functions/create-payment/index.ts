@@ -65,7 +65,6 @@ serve(async (req) => {
     const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice, promoCodeId, discountAmount, originalAmount } = validationResult.data;
     
     let rental;
-    let lockAcquired = false;
     
     // NEW FLOW: Check if rental already exists (for approved rentals)
     if (rentalId) {
@@ -171,8 +170,7 @@ serve(async (req) => {
     if (!acquired) {
       throw new Error('Payment is already being processed for this rental');
     }
-    lockAcquired = true;
-    
+
     const { data: feeSetting } = await supabase
       .from('platform_settings')
       .select('value')
@@ -313,7 +311,6 @@ serve(async (req) => {
     
     // Release payment lock on success
     await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
-    lockAcquired = false;
     
     return new Response(
       JSON.stringify({
@@ -329,11 +326,9 @@ serve(async (req) => {
     
   } catch (error) {
     console.error('Payment creation error:', error);
-    if (lockAcquired) {
-      try {
-        await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
-      } catch { /* ignore release errors */ }
-    }
+    try {
+      await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
+    } catch { /* ignore release errors */ }
     const message = error instanceof Error ? error.message : 'Payment processing failed';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account');
     return new Response(

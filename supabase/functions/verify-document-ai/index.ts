@@ -234,7 +234,7 @@ Always respond with valid JSON only, no markdown formatting or code blocks.`
     let analysisResult;
     try {
       analysisResult = JSON.parse(toolCall.function.arguments);
-    } catch (parseError) {
+    } catch {
       console.error('Failed to parse AI result:', toolCall.function.arguments);
       throw new Error("Failed to parse AI analysis result");
     }

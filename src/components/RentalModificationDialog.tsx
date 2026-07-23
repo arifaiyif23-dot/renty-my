@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format, differenceInDays, addDays } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -77,9 +77,6 @@ export function RentalModificationDialog({ rental, type, open, onOpenChange, onS
       setSubmitting(false);
     }
   };
-
-  const minDate = type === 'extension' ? addDays(originalEndDate, 1) : originalStartDate;
-  const maxDate = type === 'extension' ? undefined : addDays(originalEndDate, -1);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { ItemCategory } from '@/types';
@@ -11,7 +10,6 @@ import { SkeletonV2 } from '@/components/SkeletonV2';
 import { GlassCard } from '@/components/ui/GlassCard';
 import SEO from '@/components/SEO';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +18,6 @@ import { X, ArrowUpDown, SlidersHorizontal, RefreshCw, SearchSlash, BookmarkPlus
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
-import MobileFilterDrawer from '@/components/MobileFilterDrawer';
 import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
@@ -52,10 +49,8 @@ function loadFilters(): PersistedFilters {
 }
 
 export default function Search() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const isMobile = useIsMobile();
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const persisted = (typeof window !== 'undefined') ? loadFilters() : {};
@@ -71,7 +66,7 @@ export default function Search() {
   const [maxDistance, setMaxDistance] = useState(persisted.maxDistance ?? 50);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const { isListening, transcript, startListening, stopListening, isSupported } = useVoiceSearch();
+  const { isListening, transcript } = useVoiceSearch();
 
   useEffect(() => {
     const payload: PersistedFilters = {
@@ -286,7 +281,7 @@ export default function Search() {
         {recentSearches.length > 0 && !loading && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground font-medium">Recent:</span>
-            {recentSearches.map((search, idx) => (
+            {recentSearches.map((search) => (
               <button
                 key={search}
                 onClick={() => { setSearchQuery(search); saveSearch(search); }}

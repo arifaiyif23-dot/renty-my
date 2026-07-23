@@ -20,7 +20,32 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
+  },
+  // Relaxed rules for backend edge functions (console.log is standard server logging)
+  {
+    files: ["supabase/functions/**/*.ts"],
+    rules: {
+      "no-console": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+    },
+  },
+  // Relaxed rules for e2e test files
+  {
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "no-console": "off",
       "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  // SW registration uses console.debug intentionally
+  {
+    files: ["src/utils/registerServiceWorker.ts"],
+    rules: {
+      "no-console": "off",
     },
   },
 );

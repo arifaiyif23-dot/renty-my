@@ -267,7 +267,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
         {/* Upload Progress */}
         {uploadProgress.length > 0 && (
           <div className="space-y-2 mb-4">
-            {uploadProgress.map((progress, index) => (
+            {uploadProgress.map((progress) => (
               <div key={progress.fileName} className="text-left">
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span className="truncate max-w-[200px]">{progress.fileName}</span>

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Filter, X, MapPin, Loader2 } from "lucide-react";
+import { Filter, MapPin, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { ItemCategory } from "@/types";
 import { toast } from "sonner";
@@ -65,7 +65,7 @@ const MobileFilterDrawer = ({
           const locationName = data.address.city || data.address.town || data.address.village || 'Your location';
           setUserLocation(locationName);
           toast.success(`Location set to ${locationName}`);
-        } catch (error) {
+        } catch {
           toast.error('Failed to get location name');
         } finally {
           setGettingLocation(false);

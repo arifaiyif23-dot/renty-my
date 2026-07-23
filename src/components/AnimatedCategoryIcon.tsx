@@ -1,6 +1,5 @@
 import { memo } from "react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 interface AnimatedCategoryIconProps {
   icon: React.ComponentType<{ className?: string }>;

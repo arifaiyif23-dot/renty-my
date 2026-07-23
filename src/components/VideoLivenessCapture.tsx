@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Camera, Video, Check, X, Loader2 } from "lucide-react";
+import { Camera, Video, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface VideoLivenessCaptureProps {

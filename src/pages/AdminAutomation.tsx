@@ -91,7 +91,7 @@ export default function AdminAutomation() {
     try {
       await Promise.all([refetchCronLogs(), refetchPaymentLogs()]);
       toast.success("Data refreshed");
-    } catch (error) {
+    } catch {
       toast.error("Failed to refresh data");
     } finally {
       setRefreshing(false);
