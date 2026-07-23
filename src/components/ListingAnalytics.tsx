@@ -21,10 +21,6 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [fetchAnalytics]);
-
   const fetchAnalytics = useCallback(async () => {
     try {
       const thirtyDaysAgo = new Date();
@@ -61,6 +57,10 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
       setLoading(false);
     }
   }, [itemId]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   if (loading) {
     return <div className="text-center py-8">Loading analytics...</div>;

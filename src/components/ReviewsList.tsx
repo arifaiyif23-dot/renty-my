@@ -42,7 +42,13 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
     }
 
     if (itemId) {
-      query = query.in('rental_id', supabase.from('rentals').select('id').eq('item_id', itemId));
+      const { data: rentalIds } = await supabase.from('rentals').select('id').eq('item_id', itemId);
+      const ids = (rentalIds || []).map(r => r.id);
+      if (ids.length > 0) {
+        query = query.in('rental_id', ids);
+      } else {
+        query = query.in('rental_id', [null]);
+      }
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });
