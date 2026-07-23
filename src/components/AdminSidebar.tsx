@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   ShieldCheck, Settings, DollarSign,
   Activity, Users, Flag, TicketPercent, AlertTriangle, Zap,
-  ChevronLeft, Gauge, Package, CalendarCheck, CreditCard, Crown,
+  ChevronLeft, Gauge, Package, CalendarCheck, CreditCard, Crown, Bug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { label: "Payouts", icon: DollarSign, path: "/admin/payouts" },
   { label: "Disputes", icon: AlertTriangle, path: "/admin/disputes" },
   { label: "Automation", icon: Zap, path: "/admin/automation" },
+  { label: "Errors", icon: Bug, path: "/admin/errors" },
   { label: "Health", icon: Activity, path: "/admin/health" },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];

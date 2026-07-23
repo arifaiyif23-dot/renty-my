@@ -59,6 +59,7 @@ const AdminRentals = lazy(() => import("./pages/AdminRentals"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminUserDetail = lazy(() => import("./pages/AdminUserDetail"));
 const AdminManageAdmins = lazy(() => import("./pages/AdminManageAdmins"));
+const AdminErrors = lazy(() => import("./pages/AdminErrors"));
 
 function AppRoutes() {
   useScrollToTop();
@@ -107,6 +108,7 @@ function AppRoutes() {
               <Route path="/admin/payments" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/users/:id" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUserDetail /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/admin/manage-admins" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminManageAdmins /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+              <Route path="/admin/errors" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminErrors /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
               <Route path="/users/:id" element={<ErrorBoundary><UserProfile /></ErrorBoundary>} />
               <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
               <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />

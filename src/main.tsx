@@ -6,6 +6,7 @@ import "./index.css";
 import "./i18n/config";
 import { registerServiceWorker } from './utils/registerServiceWorker';
 import { prefetchRoutes } from '@/hooks/use-prefetch';
+import { logRejection, logCaughtError } from '@/lib/errorLogger';
 
 // Performance monitoring — configure with your analytics provider
 // import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
@@ -13,6 +14,16 @@ import { prefetchRoutes } from '@/hooks/use-prefetch';
 // Register service worker for offline support
 if (import.meta.env.PROD) {
   registerServiceWorker();
+}
+
+// Global error handlers — log uncaught errors to Supabase
+if (import.meta.env.PROD) {
+  window.onerror = (message, _source, _lineno, _colno, error) => {
+    logCaughtError(error || new Error(String(message)));
+  };
+  window.onunhandledrejection = (event) => {
+    logRejection(event);
+  };
 }
 
 createRoot(document.getElementById("root")!).render(
