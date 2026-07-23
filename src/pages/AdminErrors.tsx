@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ export default function AdminErrors() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [typeFilter, setTypeFilter] = useState<string>("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       let query = supabase
@@ -49,9 +49,9 @@ export default function AdminErrors() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [typeFilter]);
 
-  useEffect(() => { load(); }, [typeFilter]);
+  useEffect(() => { load(); }, [load]);
 
   const deleteError = async (id: string) => {
     try {
