@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
 import { Loader2, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from "recharts";
+import { LazyRecharts } from "@/components/charts/LazyRecharts";
 
 interface VerificationStats {
   daily: Array<{
@@ -191,7 +191,10 @@ export function VerificationAnalytics() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <LazyRecharts>
+        {(r) => {
+          const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } = r;
+          return (<>
         {/* Trend Chart */}
         <Card>
           <CardHeader>
@@ -301,9 +304,7 @@ export function VerificationAnalytics() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Document Type Distribution */}
       {stats.byDocType.length > 0 && (
         <Card>
           <CardHeader>
@@ -334,6 +335,10 @@ export function VerificationAnalytics() {
           </CardContent>
         </Card>
       )}
+      </>
+          );
+        }}
+      </LazyRecharts>
     </div>
   );
 }

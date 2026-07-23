@@ -15,18 +15,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { format } from "date-fns";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from "recharts";
+import { LazyRecharts } from "@/components/charts/LazyRecharts";
 
 interface EmailStats {
   total: number;
@@ -239,6 +228,10 @@ export default function EmailAnalytics() {
       </div>
 
       {/* Charts */}
+      <LazyRecharts>
+        {(r) => {
+          const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } = r;
+          return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Trend Chart */}
         <Card>
@@ -307,6 +300,9 @@ export default function EmailAnalytics() {
           </CardContent>
         </Card>
       </div>
+          );
+        }}
+      </LazyRecharts>
 
       {/* Recent Emails */}
       <Card>

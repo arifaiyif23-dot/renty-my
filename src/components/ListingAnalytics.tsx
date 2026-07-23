@@ -3,8 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Eye, Calendar, DollarSign, MousePointerClick } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
+import { LazyRecharts } from '@/components/charts/LazyRecharts';
 
 interface ListingAnalyticsProps {
   itemId: string;
@@ -123,6 +123,10 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
         </Card>
       </div>
 
+      <LazyRecharts>
+        {(r) => {
+          const { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = r;
+          return (
       <Tabs defaultValue="views" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="views">Views</TabsTrigger>
@@ -184,6 +188,9 @@ export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
           </Card>
         </TabsContent>
       </Tabs>
+          );
+        }}
+      </LazyRecharts>
     </div>
   );
 }
