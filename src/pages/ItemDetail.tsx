@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +18,7 @@ import { MapPin, Package, ShieldCheck, Share2, Pencil, MessageCircle, Loader2, F
 import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
-import EmptyState from '@/components/EmptyState';
+import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import ImageCarousel from '@/components/ImageCarousel';
 import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
 import { VendorCard } from '@/components/marketplace/VendorCard';
@@ -44,6 +45,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function ItemDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -76,7 +78,7 @@ export default function ItemDetail() {
           item_id: id,
         });
         await supabase.rpc('increment_item_views', { item_id_param: id });
-      } catch (e) { console.error('non-critical:', e); }
+      } catch (e) { console.warn('trackView failed:', e); }
     };
 
     const fetchItem = async () => {
@@ -108,8 +110,8 @@ export default function ItemDetail() {
           fetchSimilarItems(data.category, data.id);
         }
       } catch (error: unknown) {
-        setLoadError(error instanceof Error ? error.message : 'An error occurred');
-        toast.error('Failed to load item');
+        setLoadError(error instanceof Error ? error.message : t('itemDetail.anErrorOccurred'));
+        toast.error(t('itemDetail.failedToLoadItem'));
       } finally {
         setLoading(false);
       }
@@ -125,7 +127,7 @@ export default function ItemDetail() {
           .eq('item_id', id)
           .gte('viewed_at', fifteenMinAgo);
         setRecentViewers(count || 0);
-      } catch (e) { console.error('non-critical:', e); }
+      } catch (e) { console.warn('fetchRecentViewers failed:', e); }
     };
 
     if (id) {
@@ -134,7 +136,7 @@ export default function ItemDetail() {
       if (!uuidRegex.test(id)) {
         setItem(null);
         setLoading(false);
-        setLoadError("Invalid item ID");
+        setLoadError(t('itemDetail.invalidItemId'));
         return;
       }
       fetchItem();
@@ -211,7 +213,7 @@ export default function ItemDetail() {
   }, [id]);
 
   const handleValidatePromo = async () => {
-    if (!user) { toast.error("Please sign in to use a promo code"); return; }
+    if (!user) { toast.error(t('itemDetail.signInToUsePromo')); return; }
     const code = promoCode.trim().toUpperCase();
     if (!code) return;
     setPromoCodeLoading(true);
@@ -222,10 +224,10 @@ export default function ItemDetail() {
       if (error) throw error;
       if (data.valid) {
         setAppliedPromo(data.promoCode);
-        toast.success(`Promo code applied! ${data.promoCode.discountType === 'percentage' ? data.promoCode.discountAmount + '% off' : 'RM' + data.promoCode.discountAmount + ' off'}`);
+        toast.success(t('itemDetail.promoCodeApplied', { discount: data.promoCode.discountType === 'percentage' ? `${data.promoCode.discountAmount}%` : `RM${data.promoCode.discountAmount}` }));
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Invalid promo code");
+      toast.error(err instanceof Error ? err.message : t('itemDetail.invalidPromoCode'));
       setAppliedPromo(null);
     } finally {
       setPromoCodeLoading(false);
@@ -247,21 +249,21 @@ export default function ItemDetail() {
           promoCode: appliedPromo?.code || '',
         }));
       }
-      toast.error('Please sign in to book');
+      toast.error(t('itemDetail.signInToBook'));
       navigate('/auth', { state: { redirectTo: `/items/${item?.id}` } });
       return;
     }
     if (!profile?.is_verified) {
-      toast.error('Verification required to book items');
+      toast.error(t('itemDetail.verificationRequired'));
       navigate('/verification', { state: { redirectTo: `/items/${item?.id}` } });
       return;
     }
     if (!dateRange?.from || !dateRange?.to) {
-      toast.error('Please select dates');
+      toast.error(t('itemDetail.selectDatesError'));
       return;
     }
     if (item?.owner_id === user.id) {
-      toast.error("You can't book your own item");
+      toast.error(t('itemDetail.cantBookOwnItem'));
       return;
     }
     if (item?.instant_book_enabled) {
@@ -295,10 +297,10 @@ export default function ItemDetail() {
         }
       });
       if (error) throw error;
-      toast.success(instantBook ? 'Booking confirmed!' : 'Request sent! Waiting for owner approval.');
+      toast.success(instantBook ? t('itemDetail.bookingConfirmed') : t('itemDetail.requestSent'));
       navigate('/dashboard');
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : t('itemDetail.anErrorOccurred'));
     } finally {
       setConfirming(false);
       setIsBooking(false);
@@ -306,8 +308,8 @@ export default function ItemDetail() {
   };
 
   const handleMessageOwner = async () => {
-    if (!user) { toast.error('Please sign in to message'); navigate('/auth'); return; }
-    if (item?.owner_id === user.id) { toast.error("You can't message yourself"); return; }
+    if (!user) { toast.error(t('itemDetail.signInToMessage')); navigate('/auth'); return; }
+    if (item?.owner_id === user.id) { toast.error(t('itemDetail.cantMessageSelf')); return; }
     navigate('/messages', { state: { recipientId: item?.owner_id } });
   };
 
@@ -351,7 +353,7 @@ export default function ItemDetail() {
   if (loading) {
     return (
       <>
-        <SEO title="Item Detail — RENTY" />
+        <SEO title={t('itemDetail.pageTitle')} />
         <Header />
         <div className="container mx-auto px-4 py-6 pb-32 md:pb-4">
           <div className="grid md:grid-cols-2 gap-6">
@@ -378,11 +380,11 @@ export default function ItemDetail() {
       <>
         <Header />
         <div className="container mx-auto px-4 py-6 pb-mobile-nav">
-          <EmptyState
+          <EnhancedEmptyState
             icon={Package}
-            title={loadError ? "Failed to Load Item" : "Item Not Found"}
-            description={loadError || "The item you're looking for doesn't exist or has been removed."}
-            actionLabel="Browse Items"
+            title={loadError ? t('itemDetail.failedToLoad') : t('itemDetail.itemNotFound')}
+            description={loadError || t('itemDetail.itemNotFoundDesc')}
+            actionLabel={t('itemDetail.browseItems')}
             onAction={() => navigate('/search')}
           />
         </div>
@@ -416,13 +418,13 @@ export default function ItemDetail() {
                     </Badge>
                     {item.item_condition && (
                       <Badge variant="secondary" className="rounded-full text-xs capitalize">
-                        {item.item_condition === 'like_new' ? 'Like New' : item.item_condition}
+                        {item.item_condition === 'like_new' ? t('itemDetail.likeNew') : item.item_condition}
                       </Badge>
                     )}
                     {recentViewers > 0 && (
                       <Badge variant="secondary" className="rounded-full text-xs gap-1">
                         <Eye className="h-3 w-3" />
-                        {recentViewers} viewing now
+                        {recentViewers} {t('itemDetail.viewingNow')}
                       </Badge>
                     )}
                   </div>
@@ -431,10 +433,10 @@ export default function ItemDetail() {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <SaveItemButton itemId={item.id} />
-                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Share" onClick={() => {
+                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label={t('itemDetail.share')} onClick={() => {
                     navigator.share?.({ title: item.title, url: window.location.href }).catch(() => {
                       navigator.clipboard.writeText(window.location.href);
-                      toast.success('Link copied');
+                      toast.success(t('itemDetail.linkCopied'));
                     });
                   }}>
                     <Share2 className="h-4 w-4" />
@@ -442,7 +444,7 @@ export default function ItemDetail() {
                   {user?.id === item.owner_id && (
                     <Button variant="outline" size="sm" className="h-9" onClick={() => navigate('/my-listings')}>
                       <Pencil className="h-4 w-4 mr-1.5" />
-                      Edit
+                      {t('itemDetail.edit')}
                     </Button>
                   )}
                 </div>
@@ -463,11 +465,11 @@ export default function ItemDetail() {
                 {item.cancellation_policy && (
                   <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                     <ShieldCheck className="h-4 w-4 text-success" />
-                    {item.cancellation_policy === 'flexible' ? 'Free cancellation' : item.cancellation_policy === 'moderate' ? 'Moderate cancellation' : 'Strict cancellation'}
+                    {item.cancellation_policy === 'flexible' ? t('itemDetail.freeCancellation') : item.cancellation_policy === 'moderate' ? t('itemDetail.moderateCancellation') : t('itemDetail.strictCancellation')}
                   </span>
                 )}
                 {Number(item.deposit_amount) > 0 && (
-                  <span className="text-muted-foreground">· RM{Number(item.deposit_amount).toFixed(0)} deposit</span>
+                  <span className="text-muted-foreground">· RM{Number(item.deposit_amount).toFixed(0)} {t('itemDetail.deposit')}</span>
                 )}
               </div>
 
@@ -488,7 +490,7 @@ export default function ItemDetail() {
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => setShowReport(true)} className="gap-1.5">
                     <Flag className="h-4 w-4" />
-                    Report
+                    {t('itemDetail.reportItem')}
                   </Button>
                 </div>
               )}
@@ -500,7 +502,7 @@ export default function ItemDetail() {
 
             {similarItems.length > 0 && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold tracking-tight">Similar Items</h2>
+                <h2 className="text-lg font-semibold tracking-tight">{t('itemDetail.similarItems')}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {loadingSimilar ? (
                     [...Array(2)].map((_, i) => (
@@ -530,11 +532,11 @@ export default function ItemDetail() {
             )}
 
             {user?.id !== item.owner_id && (
-              <QuickQuestion ownerId={item.owner_id} ownerName={item.owner?.full_name || "the owner"} />
+              <QuickQuestion ownerId={item.owner_id} ownerName={item.owner?.full_name || t('itemDetail.theOwner')} />
             )}
 
             <GlassCard variant="subtle" padding="lg">
-              <h2 className="text-lg font-semibold tracking-tight mb-4">Reviews</h2>
+              <h2 className="text-lg font-semibold tracking-tight mb-4">{t('itemDetail.reviews')}</h2>
               <ReviewsList itemId={id || ''} />
             </GlassCard>
           </div>
@@ -544,21 +546,21 @@ export default function ItemDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-2xl font-bold">RM{Number(item.price_per_day).toFixed(0)}</span>
-                  <span className="text-muted-foreground text-sm"> /day</span>
+                  <span className="text-muted-foreground text-sm"> {t('itemDetail.perDay')}</span>
                 </div>
                 {item.instant_book_enabled && (
-                  <Badge variant="brand" className="rounded-full">Instant Book</Badge>
+                  <Badge variant="brand" className="rounded-full">{t('itemDetail.instantBook')}</Badge>
                 )}
               </div>
 
               <div>
-                <Label className="text-sm font-medium">Select dates</Label>
+                <Label className="text-sm font-medium">{t('itemDetail.selectDates')}</Label>
                 <div className="flex gap-2 mt-2 mb-3">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-success/10 text-success border border-success/20">
-                    Save 10% ≥7 days
+                    {t('itemDetail.save7Days')}
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
-                    Save 20% ≥30 days
+                    {t('itemDetail.save30Days')}
                   </span>
                 </div>
                 <UnifiedCalendar
@@ -574,7 +576,7 @@ export default function ItemDetail() {
                   <Separator />
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>RM{Number(item.price_per_day).toFixed(0)} × {priceBreakdown.days} {priceBreakdown.days === 1 ? 'day' : 'days'}</span>
+                      <span>RM{Number(item.price_per_day).toFixed(0)} × {priceBreakdown.days} {priceBreakdown.days === 1 ? t('itemDetail.day') : t('itemDetail.days')}</span>
                       <span>RM{priceBreakdown.subtotal.toFixed(2)}</span>
                     </div>
                     {priceBreakdown.discountPct > 0 && (
@@ -583,7 +585,7 @@ export default function ItemDetail() {
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-success/10 text-success border border-success/20">
                             -{priceBreakdown.discountPct}%
                           </span>
-                          {priceBreakdown.days >= 30 ? 'Monthly' : 'Weekly'} discount
+                          {priceBreakdown.days >= 30 ? t('itemDetail.monthlyDiscount') : t('itemDetail.weeklyDiscount')}
                         </span>
                         <span>-RM{priceBreakdown.discount.toFixed(2)}</span>
                       </div>
@@ -592,37 +594,37 @@ export default function ItemDetail() {
                       <>
                         <div className="flex justify-between text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
-                            Security deposit (refundable)
-                            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-muted text-[10px] cursor-help" title="Deposit is collected at pickup, not via online payment">?</span>
+                            {t('itemDetail.securityDeposit')}
+                            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-muted text-[10px] cursor-help" title={t('itemDetail.depositTooltip')}>?</span>
                           </span>
                           <span>RM{priceBreakdown.deposit.toFixed(2)}</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground/70 -mt-1">
-                          Not charged via online payment — arrange with owner at pickup
+                          {t('itemDetail.depositNote')}
                         </p>
                       </>
                     )}
                     <Separator />
                     {appliedPromo && (
                       <div className="flex justify-between text-sm text-success">
-                        <span>Promo: {appliedPromo.code}</span>
+                        <span>{t('itemDetail.promoLabel')}: {appliedPromo.code}</span>
                         <span>-{appliedPromo.discountType === 'percentage' ? `${appliedPromo.discountAmount}%` : `RM${appliedPromo.discountAmount}`}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-semibold">
-                      <span>Total payable</span>
+                      <span>{t('itemDetail.totalPayable')}</span>
                       <span>RM{totalAfterPromo.toFixed(2)}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Platform fee deducted from owner's payout</p>
+                    <p className="text-xs text-muted-foreground">{t('itemDetail.platformFee')}</p>
                   </div>
                 </>
               )}
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Promo Code</Label>
+                <Label className="text-sm font-medium">{t('itemDetail.promoCode')}</Label>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Enter code"
+                    placeholder={t('itemDetail.enterCode')}
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleValidatePromo()}
@@ -631,7 +633,7 @@ export default function ItemDetail() {
                   />
                   {appliedPromo ? (
                     <Button variant="outline" size="sm" className="rounded-xl" onClick={() => { setAppliedPromo(null); setPromoCode(""); }}>
-                      Remove
+                      {t('itemDetail.remove')}
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" className="rounded-xl" onClick={handleValidatePromo} disabled={!promoCode.trim() || promoCodeLoading}>
@@ -645,10 +647,10 @@ export default function ItemDetail() {
                 <div className="p-3 bg-warning/10 border border-warning/30 rounded-xl text-sm">
                   <p className="text-warning font-medium flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
-                    Verification required to book
+                    {t('itemDetail.verificationRequiredToBook')}
                   </p>
                   <Button size="sm" variant="outline" className="mt-2 h-8 text-xs" onClick={() => navigate('/verification', { state: { redirectTo: `/items/${item?.id}` } })}>
-                    Verify Now
+                    {t('itemDetail.verifyNow')}
                   </Button>
                 </div>
               )}
@@ -657,7 +659,7 @@ export default function ItemDetail() {
                 <div className="space-y-2">
                   <Button variant="outline" className="w-full h-12 rounded-xl" onClick={handleMessageOwner}>
                     <MessageCircle className="h-5 w-5 mr-2" />
-                    Message Owner
+                    {t('itemDetail.messageOwner')}
                   </Button>
                   <Button
                     variant="default"
@@ -666,8 +668,8 @@ export default function ItemDetail() {
                     disabled={!dateRange?.from || !dateRange?.to || isBooking || (!!user && !profile?.is_verified)}
                   >
                     {isBooking ? (
-                      <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Processing...</span>
-                    ) : item.instant_book_enabled ? 'Instant Book' : 'Request Booking'}
+                      <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t('itemDetail.processing')}</span>
+                    ) : item.instant_book_enabled ? t('itemDetail.instantBook') : t('itemDetail.requestBooking')}
                   </Button>
                 </div>
               )}
@@ -691,41 +693,41 @@ export default function ItemDetail() {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{item.instant_book_enabled ? 'Confirm Instant Booking' : 'Confirm Booking Request'}</AlertDialogTitle>
+            <AlertDialogTitle>{item.instant_book_enabled ? t('itemDetail.confirmInstantBooking') : t('itemDetail.confirmBookingRequest')}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2">
-                <p>Please review your booking details before {item.instant_book_enabled ? 'confirming' : 'sending the request'}.</p>
+                <p>{item.instant_book_enabled ? t('itemDetail.reviewBeforeConfirm') : t('itemDetail.reviewBeforeSend')}</p>
                 {dateRange?.from && dateRange?.to && item && (
                   <div className="bg-muted rounded-xl p-3 space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration</span>
-                      <span className="font-medium">{differenceInDays(dateRange.to, dateRange.from) + 1} day(s)</span>
+                      <span className="text-muted-foreground">{t('itemDetail.duration')}</span>
+                      <span className="font-medium">{differenceInDays(dateRange.to, dateRange.from) + 1} {t('itemDetail.days')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Price</span>
+                      <span className="text-muted-foreground">{t('itemDetail.price')}</span>
                       <span className="font-medium">RM {item.price_per_day} × {differenceInDays(dateRange.to, dateRange.from) + 1}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-semibold text-base">
-                      <span>Total</span>
+                      <span>{t('itemDetail.total')}</span>
                       <span>RM {totalAfterPromo}</span>
                     </div>
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground pt-1">
                   {item.instant_book_enabled
-                    ? 'Your booking will be confirmed immediately.'
-                    : 'The owner will review and approve your request.'}
+                    ? t('itemDetail.bookingConfirmedImmediately')
+                    : t('itemDetail.ownerWillReview')}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={confirming}>{t('itemDetail.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmBooking(); }} disabled={confirming}>
               {confirming ? (
-                <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Sending...</span>
-              ) : item.instant_book_enabled ? 'Confirm Booking' : 'Send Request'}
+                <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t('itemDetail.sending')}</span>
+              ) : item.instant_book_enabled ? t('itemDetail.confirmBooking') : t('itemDetail.sendRequest')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

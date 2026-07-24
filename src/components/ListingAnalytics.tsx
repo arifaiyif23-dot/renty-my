@@ -10,8 +10,16 @@ interface ListingAnalyticsProps {
   itemId: string;
 }
 
+interface AnalyticsData {
+  date: string;
+  views?: number;
+  clicks?: number;
+  bookings_confirmed?: number;
+  revenue?: number;
+}
+
 export function ListingAnalytics({ itemId }: ListingAnalyticsProps) {
-  const [analytics, setAnalytics] = useState<Record<string, unknown>[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
   const [summary, setSummary] = useState({
     totalViews: 0,
     totalClicks: 0,

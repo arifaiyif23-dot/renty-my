@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { ListingEditFormData } from '@/types';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -74,7 +75,7 @@ function SortableImage({ id, url, isPrimary, onSetPrimary, onRemove }: SortableI
 interface ListingEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  listing: Record<string, unknown> & { id: string; title?: string; description?: string; category?: string; price_per_day?: number; location?: string; deposit_amount?: number; minimum_rental_days?: number; maximum_rental_days?: number | null; instant_book_enabled?: boolean; auto_approve_bookings?: boolean; item_condition?: string; cancellation_policy?: string; tags?: string[]; item_images?: Array<{ id: string; image_url: string; is_primary: boolean }> };
+  listing: ListingEditFormData;
 }
 
 export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDialogProps) {

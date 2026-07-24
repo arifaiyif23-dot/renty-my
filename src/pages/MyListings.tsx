@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { GlassCard } from '@/components/ui/GlassCard';
+import type { ListingEditFormData } from '@/types';
 
 type ViewMode = 'grid' | 'list';
 type SortBy = 'recent' | 'views' | 'bookings' | 'revenue';
@@ -58,7 +59,7 @@ export default function MyListings() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [editingItem, setEditingItem] = useState<Record<string, unknown> | null>(null);
+  const [editingItem, setEditingItem] = useState<ListingEditFormData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; bulk: boolean } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');

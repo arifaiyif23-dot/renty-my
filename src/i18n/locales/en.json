@@ -49,77 +49,109 @@
   },
   "home": {
     "hero": {
-      "title1": "Own Less. Share More.",
-      "title2": "Protect Our Planet.",
-      "title3": "The Future of Ownership is Shared.",
-      "subtitle1": "Borrow what you need. Share what you own. Build community.",
-      "subtitle2": "Malaysia's most trusted rental marketplace."
+      "tagline": "Malaysia's Trusted Rental Marketplace",
+      "heading1": "Rent anything you need,",
+      "heading2": "from people nearby.",
+      "description": "Find cameras, tools, vehicles, and more — from verified owners near you.",
+      "itemsAvailable": "{{count}}+ items available across Malaysia.",
+      "browseButton": "Browse items",
+      "listButton": "List your items",
+      "joinButton": "Join for free",
+      "verifiedOwners": "Verified owners",
+      "securePayments": "Secure payments",
+      "localPickup": "Local pickup",
+      "dijaminTrust": "Dijamin trust"
     },
     "categories": {
-      "title": "Browse by Category",
-      "vehicles": "Vehicles",
-      "gadgets": "Gadgets",
-      "rooms": "Rooms",
-      "sports": "Sports",
-      "music": "Music",
-      "tools": "Tools",
-      "electronics": "Electronics",
-      "party": "Party",
-      "other": "Other"
-    },
-    "featured": {
-      "title": "Featured Rentals",
-      "subtitle": "Handpicked items just for you",
-      "viewAll": "View All"
+      "title": "Browse categories",
+      "viewAll": "View all"
     },
     "howItWorks": {
-      "title": "How RENTY Works",
+      "title": "How it works",
+      "subtitle": "Renting from your neighbors has never been easier",
       "step1": {
-        "title": "Find What You Need",
-        "description": "Browse 10K+ verified items. From cameras to cars, we've got you covered. Search by location, price, or category."
+        "title": "Find what you need",
+        "description": "Browse thousands of items from cameras to tools. Filter by location, category, and price."
       },
       "step2": {
-        "title": "Book Instantly",
-        "description": "Secure payment. Instant confirmation. Insurance included. Zero hassle. Your rental is protected every step of the way."
+        "title": "Book & pay securely",
+        "description": "Send a request, agree on dates, and pay securely in-app. Your payment is protected."
       },
       "step3": {
-        "title": "Pick Up & Enjoy",
-        "description": "Meet locally or get it delivered. Use it. Love it. Make memories. Return it whenever you're done."
-      },
-      "step4": {
-        "title": "Return & Review",
-        "description": "Drop it off. Rate your experience. Build trust in our community. Help others make informed decisions."
+        "title": "Pick up & enjoy",
+        "description": "Meet the owner, inspect the item, and start using it. Return it when you're done."
       }
     },
-    "cta": {
-      "title": "Ready to Get Started?",
-      "subtitle": "Whether you want to rent or earn, RENTY makes it easy",
-      "renters": {
-        "title": "Looking to Rent?",
-        "description": "Access thousands of items without buying. Save money and space.",
-        "button": "Browse Items"
+    "ownerCta": {
+      "title": "Earn money renting out your stuff",
+      "description": "Turn your idle items into income. List for free, set your price, and start earning.",
+      "button": "Start earning"
+    },
+    "stats": {
+      "itemsAvailable": "Items Available",
+      "verifiedMembers": "Verified Members",
+      "successfulRentals": "Successful Rentals",
+      "avgRating": "Avg Rating"
+    },
+    "newestListings": {
+      "title": "Newest listings",
+      "viewAll": "View all",
+      "noListings": "No listings yet",
+      "noListingsDesc": "Be the first to list something for rent.",
+      "listItem": "List an item"
+    },
+    "recentlyViewed": {
+      "title": "Continue browsing",
+      "viewAll": "View all"
+    },
+    "whyRenty": {
+      "title": "Why choose Renty?",
+      "subtitle": "We make peer-to-peer renting safe, simple, and rewarding",
+      "verifiedIdentity": {
+        "title": "Verified Identity",
+        "desc": "Every owner is verified through our identity checks, so you know who you're renting from."
       },
-      "owners": {
-        "title": "Want to Earn?",
-        "description": "Turn your unused items into income. Start earning today.",
-        "button": "List Your Item"
+      "securePayment": {
+        "title": "Secure Payment",
+        "desc": "Pay in-app with our secure payment system. Funds are held safely until the rental is complete."
+      },
+      "disputeProtection": {
+        "title": "Dispute Protection",
+        "desc": "Fair resolution process for both owners and renters. We're here to help if anything goes wrong."
+      },
+      "localPickup": {
+        "title": "Local Pickup",
+        "desc": "Meet nearby owners, inspect items in person, and avoid shipping fees. Rent local, save more."
+      },
+      "flexibleDuration": {
+        "title": "Flexible Duration",
+        "desc": "Rent by the day, weekend, or week. Only pay for the time you actually need."
+      },
+      "communityDriven": {
+        "title": "Community Driven",
+        "desc": "Join Malaysia's growing rental community. Share, save money, and reduce waste together."
       }
     },
-    "footer": {
-      "about": "About",
-      "aboutUs": "About Us",
-      "howItWorks": "How It Works",
-      "careers": "Careers",
-      "support": "Support",
-      "helpCenter": "Help Center",
-      "safety": "Safety",
-      "contactUs": "Contact Us",
-      "legal": "Legal",
-      "terms": "Terms of Service",
-      "privacy": "Privacy Policy",
-      "community": "Community Guidelines",
-      "copyright": "© 2024 RENTY. All rights reserved.",
-      "sustainable": "A sustainable way to consume"
+    "testimonials": {
+      "title": "What our users say",
+      "subtitle": "Real stories from the Renty community in Malaysia"
+    },
+    "appDownload": {
+      "badge": "PWA Ready",
+      "title": "Take Renty with you",
+      "description": "Install Renty on your device for a faster, app-like experience. Works offline too.",
+      "feature1": "Install on any device — phone, tablet, or desktop",
+      "feature2": "Full-screen app experience with home screen icon",
+      "feature3": "Push notifications for messages and rental updates",
+      "installButton": "Install the app",
+      "installSuccess": "Renty installed!"
+    },
+    "welcome": {
+      "welcomeBack": "Welcome back",
+      "active": "Active",
+      "pending": "Pending",
+      "messages": "Messages",
+      "listings": "Listings"
     }
   },
   "search": {
@@ -329,5 +361,100 @@
     "noItems": "No Items Available",
     "noItemsDesc": "Be the first to list an item on RENTY and start earning!",
     "listItem": "List Your First Item"
+  },
+  "itemDetail": {
+    "pageTitle": "Item Detail | Renty",
+    "anErrorOccurred": "An error occurred",
+    "failedToLoadItem": "Failed to load item",
+    "invalidItemId": "Invalid item ID",
+    "signInToUsePromo": "Please sign in to use a promo code",
+    "promoCodeApplied": "Promo code applied! You save {{discount}}",
+    "invalidPromoCode": "Invalid promo code",
+    "signInToBook": "Please sign in to book this item",
+    "verificationRequired": "Verification required to book",
+    "selectDatesError": "Please select your rental dates",
+    "cantBookOwnItem": "You can't book your own item",
+    "bookingConfirmed": "Booking confirmed!",
+    "requestSent": "Request sent to owner!",
+    "signInToMessage": "Please sign in to message the owner",
+    "cantMessageSelf": "You can't message yourself",
+    "failedToLoad": "Failed to load item details",
+    "itemNotFound": "Item not found",
+    "itemNotFoundDesc": "The item you're looking for doesn't exist or has been removed.",
+    "browseItems": "Browse Items",
+    "likeNew": "Like New",
+    "viewingNow": "viewing now",
+    "share": "Share",
+    "linkCopied": "Link copied!",
+    "edit": "Edit",
+    "freeCancellation": "Free cancellation",
+    "moderateCancellation": "Moderate cancellation",
+    "strictCancellation": "Strict cancellation",
+    "deposit": "deposit",
+    "reportItem": "Report Item",
+    "similarItems": "Similar Items",
+    "theOwner": "the Owner",
+    "reviews": "Reviews",
+    "perDay": "/day",
+    "instantBook": "Instant Book",
+    "selectDates": "Select dates",
+    "save7Days": "Save 10% — rent for 7+ days",
+    "save30Days": "Save 25% — rent for 30+ days",
+    "day": "day",
+    "days": "days",
+    "monthlyDiscount": "Monthly discount",
+    "weeklyDiscount": "Weekly discount",
+    "securityDeposit": "Security deposit",
+    "depositTooltip": "Refundable deposit held during the rental period",
+    "depositNote": "Fully refundable if no damage occurs",
+    "promoLabel": "Promo",
+    "totalPayable": "Total payable",
+    "platformFee": "*Includes platform service fee",
+    "promoCode": "Promo Code",
+    "enterCode": "Enter code",
+    "remove": "Remove",
+    "verificationRequiredToBook": "Verification required to book items on Renty",
+    "verifyNow": "Verify Now",
+    "messageOwner": "Message Owner",
+    "processing": "Processing...",
+    "requestBooking": "Request Booking",
+    "confirmInstantBooking": "Confirm Instant Booking",
+    "confirmBookingRequest": "Confirm Booking Request",
+    "reviewBeforeConfirm": "Please review your booking details before confirming:",
+    "reviewBeforeSend": "Please review your request details before sending:",
+    "duration": "Duration",
+    "price": "Price",
+    "total": "Total",
+    "bookingConfirmedImmediately": "Your booking will be confirmed immediately.",
+    "ownerWillReview": "The owner will review your request before confirming.",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "confirmBooking": "Confirm Booking",
+    "sendRequest": "Send Request"
+  },
+  "analytics": {
+    "overview": "Overview",
+    "totalViews": "Total Views",
+    "uniqueViewers": "Unique Viewers",
+    "clickThroughRate": "Click-Through Rate",
+    "bookingRequests": "Booking Requests",
+    "confirmedBookings": "Confirmed Bookings",
+    "cancellations": "Cancellations",
+    "totalRevenue": "Total Revenue",
+    "avgRentalDuration": "Avg. Rental Duration",
+    "viewsOverTime": "Views Over Time",
+    "bookingsByMonth": "Bookings by Month",
+    "revenueTrend": "Revenue Trend",
+    "popularDays": "Popular Days",
+    "rentalDurations": "Rental Durations",
+    "last30Days": "Last 30 Days",
+    "last7Days": "Last 7 Days",
+    "last24Hours": "Last 24 Hours",
+    "allTime": "All Time",
+    "days": "days",
+    "performanceTip": "Your listing performs {percent}% better than similar items",
+    "mobileTrafficTip": "Most views come from mobile users ({percent}%)",
+    "pricingTip": "Consider adjusting the price by RM{amount} to increase bookings",
+    "responseTimeTip": "Your response time is slower than average"
   }
 }

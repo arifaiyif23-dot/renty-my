@@ -54,10 +54,9 @@ export default function Dashboard() {
       fetchRentals();
       fetchStats();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, fetchRentals]);
+  }, [user, fetchRentals, fetchStats]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     if (!user) return;
     try {
       const [rentalsData, itemsCount, reviewsData] = await Promise.all([
@@ -83,7 +82,7 @@ export default function Dashboard() {
         rating: Math.round(avgRating * 10) / 10,
       });
     } catch (e) { console.error('Dashboard fetch error:', e); }
-  };
+  }, [user?.id]);
 
   const fetchRentals = useCallback(async () => {
     try {

@@ -29,7 +29,8 @@
     "description": "描述",
     "title": "标题",
     "images": "图片",
-    "per_day": "每天"
+    "per_day": "每天",
+    "error": "发生错误"
   },
   "nav": {
     "home": "首页",
@@ -41,8 +42,167 @@
     "dashboard": "仪表板",
     "signIn": "登录",
     "signOut": "登出",
+    "signOutConfirmTitle": "您确定要登出吗？",
+    "signOutConfirmDesc": "您需要重新登录才能访问您的账户。",
     "myRentals": "我的租赁",
     "saved": "已保存"
+  },
+  "home": {
+    "hero": {
+      "tagline": "马来西亚最值得信赖的租赁平台",
+      "heading1": "租你所需，",
+      "heading2": "从附近的人那里。",
+      "description": "寻找相机、工具、车辆等——来自您附近经过验证的业主。",
+      "itemsAvailable": "全马来西亚有 {{count}}+ 件物品可供选择。",
+      "browseButton": "浏览物品",
+      "listButton": "列出您的物品",
+      "joinButton": "免费加入",
+      "verifiedOwners": "验证业主",
+      "securePayments": "安全支付",
+      "localPickup": "本地取货",
+      "dijaminTrust": "受信赖保障"
+    },
+    "categories": {
+      "title": "浏览类别",
+      "viewAll": "查看全部"
+    },
+    "howItWorks": {
+      "title": "运作方式",
+      "subtitle": "向邻居租赁从未如此简单",
+      "step1": {
+        "title": "找到你需要的",
+        "description": "浏览数以千计的物品，从相机到工具。按地点、类别和价格筛选。"
+      },
+      "step2": {
+        "title": "安全预订与支付",
+        "description": "发送请求，商定日期，并在应用内安全支付。您的付款受到保护。"
+      },
+      "step3": {
+        "title": "领取并享受",
+        "description": "与业主会面，检查物品，然后开始使用。用完归还即可。"
+      }
+    },
+    "ownerCta": {
+      "title": "出租您的闲置物品赚钱",
+      "description": "将闲置物品转化为收入。免费列出，设定价格，开始赚钱。",
+      "button": "开始赚钱"
+    },
+    "stats": {
+      "itemsAvailable": "可用物品",
+      "verifiedMembers": "认证会员",
+      "successfulRentals": "成功租赁",
+      "avgRating": "平均评分"
+    },
+    "newestListings": {
+      "title": "最新列表",
+      "viewAll": "查看全部",
+      "noListings": "暂无列表",
+      "noListingsDesc": "成为第一个列出租赁物品的人。",
+      "listItem": "列出物品"
+    },
+    "recentlyViewed": {
+      "title": "继续浏览",
+      "viewAll": "查看全部"
+    },
+    "whyRenty": {
+      "title": "为什么选择 Renty？",
+      "subtitle": "我们让点对点租赁安全、简单且有回报",
+      "verifiedIdentity": {
+        "title": "认证身份",
+        "desc": "每位业主都经过身份验证，让您知道您在向谁租赁。"
+      },
+      "securePayment": {
+        "title": "安全支付",
+        "desc": "使用我们安全的支付系统在应用内支付。资金在租赁完成前安全保管。"
+      },
+      "disputeProtection": {
+        "title": "争议保护",
+        "desc": "为业主和租客提供公平的解决流程。如有问题，我们随时为您提供帮助。"
+      },
+      "localPickup": {
+        "title": "本地取货",
+        "desc": "与附近的业主会面，亲自检查物品，避免运费。租赁本地，节省更多。"
+      },
+      "flexibleDuration": {
+        "title": "灵活时长",
+        "desc": "按天、周末或周租赁。只为实际需要的时间付费。"
+      },
+      "communityDriven": {
+        "title": "社区驱动",
+        "desc": "加入马来西亚不断壮大的租赁社区。一起分享、省钱并减少浪费。"
+      }
+    },
+    "testimonials": {
+      "title": "用户的评价",
+      "subtitle": "来自马来西亚 Renty 社区的真实故事"
+    },
+    "appDownload": {
+      "badge": "PWA 就绪",
+      "title": "随身携带 Renty",
+      "description": "在您的设备上安装 Renty，获得更快、类似应用体验。离线也可使用。",
+      "feature1": "在任何设备上安装 — 手机、平板或电脑",
+      "feature2": "具有主屏幕图标的全屏应用体验",
+      "feature3": "消息和租赁更新的推送通知",
+      "installButton": "安装应用",
+      "installSuccess": "Renty 已安装！"
+    },
+    "welcome": {
+      "welcomeBack": "欢迎回来",
+      "active": "活跃",
+      "pending": "待处理",
+      "messages": "消息",
+      "listings": "列表"
+    }
+  },
+  "search": {
+    "title": "搜索物品",
+    "placeholder": "搜索物品...",
+    "locationPlaceholder": "位置",
+    "categoryAll": "全部分类",
+    "minPrice": "最低 RM",
+    "maxPrice": "最高 RM",
+    "sortNewest": "最新优先",
+    "sortPriceLow": "价格：从低到高",
+    "sortPriceHigh": "价格：从高到低",
+    "filterSearch": "搜索：{{query}}",
+    "filterCategory": "类别：{{category}}",
+    "filterMin": "最低：RM {{price}}",
+    "filterMax": "最高：RM {{price}}",
+    "filterLocation": "位置：{{location}}",
+    "filterDates": "日期：{{dates}}",
+    "clearAll": "清除全部",
+    "searching": "搜索中...",
+    "itemsFound": "找到 {{count}} 个物品",
+    "noItems": "未找到物品",
+    "noItemsDesc": "请调整筛选条件或搜索词以找到您需要的内容。",
+    "clearFilters": "清除筛选"
+  },
+  "listItem": {
+    "title": "列出您的物品",
+    "signInPrompt": "请登录以列出物品",
+    "itemImages": "物品图片",
+    "uploadHelper": "最多上传5张图片。第一张将作为主图。",
+    "titleLabel": "标题",
+    "titlePlaceholder": "例如：Canon EOS R5 相机",
+    "descriptionLabel": "描述",
+    "descriptionPlaceholder": "详细描述您的物品...",
+    "categoryLabel": "类别",
+    "priceLabel": "每日价格（RM）",
+    "pricePlaceholder": "0.00",
+    "locationLabel": "位置",
+    "locationPlaceholder": "城市，州",
+    "submitButton": "列出物品",
+    "submitting": "列表中...",
+    "success": "物品列表成功！",
+    "error": "列表失败",
+    "uploadImage": "请至少上传一张图片",
+    "required": "*"
+  },
+  "wishlist": {
+    "title": "我的心愿单",
+    "noItems": "暂无收藏物品",
+    "noItemsDesc": "开始将物品添加到心愿单",
+    "browseItems": "浏览物品"
   },
   "listings": {
     "myListings": "我的列表",
@@ -177,6 +337,76 @@
     "noPendingRentals": "暂无待处理租赁",
     "noPastRentals": "暂无历史租赁"
   },
+  "itemDetail": {
+    "pageTitle": "物品详情 | Renty",
+    "anErrorOccurred": "发生错误",
+    "failedToLoadItem": "加载物品失败",
+    "invalidItemId": "无效的物品ID",
+    "signInToUsePromo": "请登录以使用促销代码",
+    "promoCodeApplied": "促销代码已应用！您节省了 {{discount}}",
+    "invalidPromoCode": "无效的促销代码",
+    "signInToBook": "请登录以预订此物品",
+    "verificationRequired": "需要验证才能预订",
+    "selectDatesError": "请选择您的租赁日期",
+    "cantBookOwnItem": "您不能预订自己的物品",
+    "bookingConfirmed": "预订已确认！",
+    "requestSent": "请求已发送给业主！",
+    "signInToMessage": "请登录以给业主发消息",
+    "cantMessageSelf": "您不能给自己发消息",
+    "failedToLoad": "加载物品详情失败",
+    "itemNotFound": "物品未找到",
+    "itemNotFoundDesc": "您要找的物品不存在或已被删除。",
+    "browseItems": "浏览物品",
+    "likeNew": "几乎全新",
+    "viewingNow": "正在查看",
+    "share": "分享",
+    "linkCopied": "链接已复制！",
+    "edit": "编辑",
+    "freeCancellation": "免费取消",
+    "moderateCancellation": "适中取消",
+    "strictCancellation": "严格取消",
+    "deposit": "押金",
+    "reportItem": "举报物品",
+    "similarItems": "相似物品",
+    "theOwner": "业主",
+    "reviews": "评价",
+    "perDay": "/天",
+    "instantBook": "即时预订",
+    "selectDates": "选择日期",
+    "save7Days": "节省10% — 租赁7天以上",
+    "save30Days": "节省25% — 租赁30天以上",
+    "day": "天",
+    "days": "天",
+    "monthlyDiscount": "月租折扣",
+    "weeklyDiscount": "周租折扣",
+    "securityDeposit": "安全押金",
+    "depositTooltip": "租赁期间可退还的押金",
+    "depositNote": "如无损坏可全额退还",
+    "promoLabel": "促销",
+    "totalPayable": "应付总额",
+    "platformFee": "*含平台服务费",
+    "promoCode": "促销代码",
+    "enterCode": "输入代码",
+    "remove": "移除",
+    "verificationRequiredToBook": "需要在Renty上验证才能预订物品",
+    "verifyNow": "立即验证",
+    "messageOwner": "联系业主",
+    "processing": "处理中...",
+    "requestBooking": "请求预订",
+    "confirmInstantBooking": "确认即时预订",
+    "confirmBookingRequest": "确认预订请求",
+    "reviewBeforeConfirm": "请确认前查看您的预订详情：",
+    "reviewBeforeSend": "请发送前查看您的请求详情：",
+    "duration": "时长",
+    "price": "价格",
+    "total": "总计",
+    "bookingConfirmedImmediately": "您的预订将立即确认。",
+    "ownerWillReview": "业主将在确认前审核您的请求。",
+    "cancel": "取消",
+    "sending": "发送中...",
+    "confirmBooking": "确认预订",
+    "sendRequest": "发送请求"
+  },
   "analytics": {
     "overview": "概览",
     "totalViews": "总浏览量",
@@ -216,5 +446,15 @@
     "malay": "Bahasa Melayu",
     "chinese": "中文",
     "tamil": "தமிழ்"
+  },
+  "notFound": {
+    "title": "404",
+    "message": "哎呀！页面未找到",
+    "button": "返回首页"
+  },
+  "emptyState": {
+    "noItems": "暂无可用物品",
+    "noItemsDesc": "成为第一个在RENTY上列出物品的人，开始赚钱！",
+    "listItem": "列出您的第一个物品"
   }
 }

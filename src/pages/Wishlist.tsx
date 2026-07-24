@@ -124,7 +124,19 @@ export default function Wishlist() {
   );
 }
 
-function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: Record<string, unknown>; onDelete: () => void; isMobile: boolean }) {
+interface WishlistItem {
+  id: string;
+  title: string;
+  image: string;
+  pricePerDay: number;
+  category: string;
+  location: string;
+  rating: number;
+  reviewCount: number;
+  verificationLevel: string | null;
+}
+
+function SwipeableWishlistItem({ item, onDelete, isMobile }: { item: WishlistItem; onDelete: () => void; isMobile: boolean }) {
   const {
     swipeDistance,
     isDeleting,

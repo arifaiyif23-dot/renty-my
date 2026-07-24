@@ -47,77 +47,109 @@
   },
   "home": {
     "hero": {
-      "title1": "Miliki Kurang. Kongsi Lebih.",
-      "title2": "Lindungi Planet Kita.",
-      "title3": "Masa Depan Pemilikan Adalah Perkongsian.",
-      "subtitle1": "Pinjam apa yang anda perlukan. Kongsi apa yang anda miliki. Bina komuniti.",
-      "subtitle2": "Platform sewaan paling dipercayai di Malaysia."
+      "tagline": "Pasaran Sewaan Paling Dipercayai di Malaysia",
+      "heading1": "Sewakan apa sahaja yang anda perlukan,",
+      "heading2": "dari orang berdekatan.",
+      "description": "Cari kamera, alat, kenderaan dan banyak lagi — daripada pemilik yang disahkan berhampiran anda.",
+      "itemsAvailable": "{{count}}+ item tersedia di seluruh Malaysia.",
+      "browseButton": "Layari item",
+      "listButton": "Senaraikan item anda",
+      "joinButton": "Sertai secara percuma",
+      "verifiedOwners": "Pemilik disahkan",
+      "securePayments": "Pembayaran selamat",
+      "localPickup": "Ambilan tempatan",
+      "dijaminTrust": "Dijamin trust"
     },
     "categories": {
-      "title": "Layari Mengikut Kategori",
-      "vehicles": "Kenderaan",
-      "gadgets": "Gadget",
-      "rooms": "Bilik",
-      "sports": "Sukan",
-      "music": "Muzik",
-      "tools": "Alatan",
-      "electronics": "Elektronik",
-      "party": "Parti",
-      "other": "Lain-lain"
-    },
-    "featured": {
-      "title": "Sewaan Pilihan",
-      "subtitle": "Item terpilih khas untuk anda",
-      "viewAll": "Lihat Semua"
+      "title": "Layari kategori",
+      "viewAll": "Lihat semua"
     },
     "howItWorks": {
-      "title": "Bagaimana RENTY Berfungsi",
+      "title": "Cara ia berfungsi",
+      "subtitle": "Menyewa daripada jiran tidak pernah semudah ini",
       "step1": {
-        "title": "Cari Apa Yang Anda Perlukan",
-        "description": "Layari 10K+ item yang disahkan. Dari kamera ke kereta, kami sedia membantu. Cari mengikut lokasi, harga, atau kategori."
+        "title": "Cari apa yang anda perlukan",
+        "description": "Layari ribuan item dari kamera hingga alat. Tapis mengikut lokasi, kategori dan harga."
       },
       "step2": {
-        "title": "Tempah Dengan Segera",
-        "description": "Pembayaran selamat. Pengesahan segera. Insurans disertakan. Tanpa kerumitan. Sewaan anda dilindungi setiap langkah."
+        "title": "Tempah & bayar dengan selamat",
+        "description": "Hantar permintaan, setujui tarikh, dan bayar dengan selamat dalam aplikasi. Pembayaran anda dilindungi."
       },
       "step3": {
-        "title": "Ambil & Nikmati",
-        "description": "Jumpa secara tempatan atau dapatkan penghantaran. Guna. Sayangi. Buat kenangan. Pulangkan bila selesai."
-      },
-      "step4": {
-        "title": "Pulangkan & Ulas",
-        "description": "Serahkan semula. Nilai pengalaman anda. Bina kepercayaan dalam komuniti kami. Bantu orang lain membuat keputusan termaklum."
+        "title": "Ambil & nikmati",
+        "description": "Temui pemilik, periksa item, dan mula menggunakannya. Pulangkan bila selesai."
       }
     },
-    "cta": {
-      "title": "Bersedia Untuk Bermula?",
-      "subtitle": "Sama ada anda ingin menyewa atau mendapat pendapatan, RENTY memudahkannya",
-      "renters": {
-        "title": "Ingin Menyewa?",
-        "description": "Akses beribu-ribu item tanpa membeli. Jimat wang dan ruang.",
-        "button": "Layari Item"
+    "ownerCta": {
+      "title": "Jana wang dengan menyewakan barang anda",
+      "description": "Tukar barang terbiar anda kepada pendapatan. Senaraikan secara percuma, tetapkan harga, dan mula menjana wang.",
+      "button": "Mula menjana wang"
+    },
+    "stats": {
+      "itemsAvailable": "Item Tersedia",
+      "verifiedMembers": "Ahli Disahkan",
+      "successfulRentals": "Sewaan Berjaya",
+      "avgRating": "Purata Penilaian"
+    },
+    "newestListings": {
+      "title": "Penyenaraian Terbaharu",
+      "viewAll": "Lihat semua",
+      "noListings": "Tiada penyenaraian lagi",
+      "noListingsDesc": "Jadilah yang pertama menyenaraikan sesuatu untuk disewa.",
+      "listItem": "Senaraikan item"
+    },
+    "recentlyViewed": {
+      "title": "Teruskan melayari",
+      "viewAll": "Lihat semua"
+    },
+    "whyRenty": {
+      "title": "Mengapa pilih Renty?",
+      "subtitle": "Kami menjadikan penyewaan rakan-ke-rakan selamat, mudah dan bermanfaat",
+      "verifiedIdentity": {
+        "title": "Identiti Disahkan",
+        "desc": "Setiap pemilik disahkan melalui pemeriksaan identiti kami, supaya anda tahu dari siapa anda menyewa."
       },
-      "owners": {
-        "title": "Ingin Mendapat Pendapatan?",
-        "description": "Tukar item tidak terpakai anda kepada pendapatan. Mula jana pendapatan hari ini.",
-        "button": "Senaraikan Item Anda"
+      "securePayment": {
+        "title": "Pembayaran Selamat",
+        "desc": "Bayar dalam aplikasi dengan sistem pembayaran selamat kami. Dana disimpan dengan selamat sehingga sewaan selesai."
+      },
+      "disputeProtection": {
+        "title": "Perlindungan Pertikaian",
+        "desc": "Proses penyelesaian yang adil untuk kedua-dua pemilik dan penyewa. Kami sedia membantu jika berlaku sebarang masalah."
+      },
+      "localPickup": {
+        "title": "Ambilan Tempatan",
+        "desc": "Temui pemilik berdekatan, periksa item secara bersemuka, dan elakkan caj penghantaran. Sewa tempatan, jimat lebih."
+      },
+      "flexibleDuration": {
+        "title": "Tempoh Fleksibel",
+        "desc": "Sewa mengikut hari, hujung minggu, atau minggu. Hanya bayar untuk masa yang anda perlukan."
+      },
+      "communityDriven": {
+        "title": "Didorong Komuniti",
+        "desc": "Sertai komuniti penyewaan Malaysia yang semakin berkembang. Kongsi, jimat wang, dan kurangkan sisa bersama."
       }
     },
-    "footer": {
-      "about": "Perihal",
-      "aboutUs": "Tentang Kami",
-      "howItWorks": "Cara Ia Berfungsi",
-      "careers": "Kerjaya",
-      "support": "Sokongan",
-      "helpCenter": "Pusat Bantuan",
-      "safety": "Keselamatan",
-      "contactUs": "Hubungi Kami",
-      "legal": "Undang-undang",
-      "terms": "Syarat Perkhidmatan",
-      "privacy": "Dasar Privasi",
-      "community": "Garis Panduan Komuniti",
-      "copyright": "© 2024 RENTY. Hak cipta terpelihara.",
-      "sustainable": "Cara mampan untuk menggunakan"
+    "testimonials": {
+      "title": "Apa kata pengguna kami",
+      "subtitle": "Cerita sebenar daripada komuniti Renty di Malaysia"
+    },
+    "appDownload": {
+      "badge": "PWA Sedia",
+      "title": "Bawa Renty bersama anda",
+      "description": "Pasang Renty pada peranti anda untuk pengalaman yang lebih pantas seperti aplikasi. Berfungsi di luar talian juga.",
+      "feature1": "Pasang pada mana-mana peranti — telefon, tablet atau desktop",
+      "feature2": "Pengalaman aplikasi skrin penuh dengan ikon skrin utama",
+      "feature3": "Pemberitahuan tolak untuk mesej dan kemas kini sewaan",
+      "installButton": "Pasang aplikasi",
+      "installSuccess": "Renty berjaya dipasang!"
+    },
+    "welcome": {
+      "welcomeBack": "Selamat kembali",
+      "active": "Aktif",
+      "pending": "Menunggu",
+      "messages": "Mesej",
+      "listings": "Penyenaraian"
     }
   },
   "search": {
@@ -327,5 +359,100 @@
     "noItems": "Tiada Item Tersedia",
     "noItemsDesc": "Jadilah yang pertama menyenaraikan item di RENTY dan mula jana pendapatan!",
     "listItem": "Senaraikan Item Pertama Anda"
+  },
+  "itemDetail": {
+    "pageTitle": "Butiran Item | Renty",
+    "anErrorOccurred": "Ralat berlaku",
+    "failedToLoadItem": "Gagal memuatkan item",
+    "invalidItemId": "ID item tidak sah",
+    "signInToUsePromo": "Sila log masuk untuk menggunakan kod promo",
+    "promoCodeApplied": "Kod promo digunakan! Anda jimat {{discount}}",
+    "invalidPromoCode": "Kod promo tidak sah",
+    "signInToBook": "Sila log masuk untuk menempah item ini",
+    "verificationRequired": "Pengesahan diperlukan untuk menempah",
+    "selectDatesError": "Sila pilih tarikh sewaan anda",
+    "cantBookOwnItem": "Anda tidak boleh menempah item sendiri",
+    "bookingConfirmed": "Tempahan disahkan!",
+    "requestSent": "Permintaan dihantar kepada pemilik!",
+    "signInToMessage": "Sila log masuk untuk menghantar mesej kepada pemilik",
+    "cantMessageSelf": "Anda tidak boleh mesej diri sendiri",
+    "failedToLoad": "Gagal memuatkan butiran item",
+    "itemNotFound": "Item tidak dijumpai",
+    "itemNotFoundDesc": "Item yang anda cari tidak wujud atau telah dialih keluar.",
+    "browseItems": "Layari Item",
+    "likeNew": "Seperti Baharu",
+    "viewingNow": "sedang melihat",
+    "share": "Kongsi",
+    "linkCopied": "Pautan disalin!",
+    "edit": "Edit",
+    "freeCancellation": "Pembatalan percuma",
+    "moderateCancellation": "Pembatalan sederhana",
+    "strictCancellation": "Pembatalan ketat",
+    "deposit": "deposit",
+    "reportItem": "Laporkan Item",
+    "similarItems": "Item Serupa",
+    "theOwner": "Pemilik",
+    "reviews": "Ulasan",
+    "perDay": "/hari",
+    "instantBook": "Tempah Segera",
+    "selectDates": "Pilih tarikh",
+    "save7Days": "Jimat 10% — sewa 7+ hari",
+    "save30Days": "Jimat 25% — sewa 30+ hari",
+    "day": "hari",
+    "days": "hari",
+    "monthlyDiscount": "Diskaun bulanan",
+    "weeklyDiscount": "Diskaun mingguan",
+    "securityDeposit": "Deposit keselamatan",
+    "depositTooltip": "Deposit yang boleh dikembalikan semasa tempoh sewaan",
+    "depositNote": "Boleh dikembalikan sepenuhnya jika tiada kerosakan",
+    "promoLabel": "Promo",
+    "totalPayable": "Jumlah dibayar",
+    "platformFee": "*Termasuk yuran perkhidmatan platform",
+    "promoCode": "Kod Promo",
+    "enterCode": "Masukkan kod",
+    "remove": "Buang",
+    "verificationRequiredToBook": "Pengesahan diperlukan untuk menempah item di Renty",
+    "verifyNow": "Sahkan Sekarang",
+    "messageOwner": "Mesej Pemilik",
+    "processing": "Memproses...",
+    "requestBooking": "Permintaan Tempahan",
+    "confirmInstantBooking": "Sahkan Tempahan Segera",
+    "confirmBookingRequest": "Sahkan Permintaan Tempahan",
+    "reviewBeforeConfirm": "Sila semak butiran tempahan anda sebelum mengesahkan:",
+    "reviewBeforeSend": "Sila semak butiran permintaan anda sebelum menghantar:",
+    "duration": "Tempoh",
+    "price": "Harga",
+    "total": "Jumlah",
+    "bookingConfirmedImmediately": "Tempahan anda akan disahkan serta-merta.",
+    "ownerWillReview": "Pemilik akan menyemak permintaan anda sebelum mengesahkan.",
+    "cancel": "Batal",
+    "sending": "Menghantar...",
+    "confirmBooking": "Sahkan Tempahan",
+    "sendRequest": "Hantar Permintaan"
+  },
+  "analytics": {
+    "overview": "Gambaran Keseluruhan",
+    "totalViews": "Jumlah Tontonan",
+    "uniqueViewers": "Pelawat Unik",
+    "clickThroughRate": "Kadar Klik",
+    "bookingRequests": "Permintaan Tempahan",
+    "confirmedBookings": "Tempahan Disahkan",
+    "cancellations": "Pembatalan",
+    "totalRevenue": "Jumlah Pendapatan",
+    "avgRentalDuration": "Purata Tempoh Sewaan",
+    "viewsOverTime": "Tontonan Mengikut Masa",
+    "bookingsByMonth": "Tempahan Mengikut Bulan",
+    "revenueTrend": "Trend Pendapatan",
+    "popularDays": "Hari Popular",
+    "rentalDurations": "Tempoh Sewaan",
+    "last30Days": "30 Hari Lepas",
+    "last7Days": "7 Hari Lepas",
+    "last24Hours": "24 Jam Lepas",
+    "allTime": "Sepanjang Masa",
+    "days": "hari",
+    "performanceTip": "Penyenaraian anda berprestasi {percent}% lebih baik daripada item serupa",
+    "mobileTrafficTip": "Kebanyakan tontonan datang daripada pengguna mudah alih ({percent}%)",
+    "pricingTip": "Pertimbangkan untuk melaraskan harga sebanyak RM{amount} untuk meningkatkan tempahan",
+    "responseTimeTip": "Masa tindak balas anda lebih perlahan daripada purata"
   }
 }

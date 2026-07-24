@@ -15,9 +15,25 @@ interface ReviewsListProps {
   userId?: string;
 }
 
+interface ReviewWithRelations {
+  id: string;
+  rental_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+  owner_response?: string;
+  owner_response_at?: string;
+  reviewer?: { full_name: string; avatar_url?: string };
+  rental?: { item_id?: string; owner_id?: string };
+  review_images?: Array<{ image_url: string }>;
+  review_votes?: Array<{ is_helpful: boolean }>;
+}
+
 export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
   const { user } = useAuth();
-  const [reviews, setReviews] = useState<Record<string, unknown>[]>([]);
+  const [reviews, setReviews] = useState<ReviewWithRelations[]>([]);
   const [averageRating, setAverageRating] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest'>('recent');
@@ -174,7 +190,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
 
       <div className="space-y-4">
         {reviews.map((review) => {
-          const helpfulCount = (review.review_votes as Array<{ is_helpful: boolean }>)?.filter((v) => v.is_helpful).length || 0;
+          const helpfulCount = review.review_votes?.filter((v) => v.is_helpful).length || 0;
           const isOwner = user?.id === review.rental?.owner_id;
 
           return (
@@ -208,7 +224,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                     {/* Review Images */}
                     {review.review_images && review.review_images.length > 0 && (
                       <div className="grid grid-cols-3 gap-2 my-2">
-                        {(review.review_images as Array<{ image_url: string }>).map((img, idx: number) => (
+                        {review.review_images?.map((img, idx: number) => (
                           <img
                             key={idx}
                             src={getOptimizedImageUrl(img.image_url, { width: 240, quality: 75 })}

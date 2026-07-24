@@ -207,6 +207,24 @@ export interface PromoCode {
   created_at: string;
 }
 
+export interface ListingEditFormData {
+  id: string;
+  title?: string;
+  description?: string;
+  category?: string;
+  price_per_day?: number;
+  location?: string;
+  deposit_amount?: number;
+  minimum_rental_days?: number;
+  maximum_rental_days?: number | null;
+  instant_book_enabled?: boolean;
+  auto_approve_bookings?: boolean;
+  item_condition?: string;
+  cancellation_policy?: string;
+  tags?: string[];
+  item_images?: Array<{ id: string; image_url: string; is_primary: boolean }>;
+}
+
 export interface UserPromoUsage {
   id: string;
   user_id: string;

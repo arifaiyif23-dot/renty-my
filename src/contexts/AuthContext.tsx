@@ -70,7 +70,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload) => {
           const newData = payload.new as Record<string, unknown>;
-          setProfile((prev) => (prev ? { ...prev, ...newData } : newData) as Profile);
+          setProfile((prev) => {
+            if (!prev) return prev;
+            // Only merge known Profile fields from the payload
+            const profileKeys = new Set(Object.keys(prev) as (keyof Profile)[]);
+            const safe: Record<string, unknown> = {};
+            for (const key of Object.keys(newData)) {
+              if (profileKeys.has(key as keyof Profile)) {
+                safe[key] = newData[key];
+              }
+            }
+            return { ...prev, ...safe };
+          });
         }
       )
       .subscribe((status) => {

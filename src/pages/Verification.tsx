@@ -168,8 +168,18 @@ export default function Verification() {
       // Create verification request
       const createToast = toast.loading("Creating verification request...");
 
-      const insertPayload: Record<string, unknown> = {
-        user_id: user?.id,
+      const insertPayload: {
+        user_id: string;
+        document_type: string;
+        document_front_url: string;
+        document_back_url: string | null;
+        selfie_url: string;
+        video_liveness_url: string | null;
+        liveness_video_frames: string[] | null;
+        status: string;
+        identity_number_validated?: boolean;
+      } = {
+        user_id: user?.id!,
         document_type: documentType,
         document_front_url: frontUrl,
         document_back_url: backUrl,
