@@ -1,6 +1,4 @@
 project_id = "gsucsqtqtpaeuxwrykmf"
-
-[functions]
 import_map = "./functions/import_map.json"
 
 [functions.send-email-notification]
