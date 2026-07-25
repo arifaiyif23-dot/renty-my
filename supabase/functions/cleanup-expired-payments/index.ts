@@ -49,14 +49,15 @@ serve(async (req) => {
       );
     }
     
-    // Mark payments as expired
+    // Mark payments as expired (TOCTOU guard: only if still pending)
     const { error: updateError } = await supabase
       .from('payments')
       .update({ 
         status: 'expired',
         updated_at: new Date().toISOString()
       })
-      .in('id', expiredPayments.map(p => p.id));
+      .in('id', expiredPayments.map(p => p.id))
+      .eq('status', 'pending');
     
     if (updateError) {
       console.error('Error updating expired payments:', updateError);

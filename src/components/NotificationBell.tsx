@@ -43,13 +43,13 @@ export const NotificationBell = () => {
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
           
-          if (newNotification.type === 'rental_request' || newNotification.type === 'rental_approved') {
+          const importantTypes = ['rental_request', 'rental_approved', 'rental_rejected', 'payment_confirmed', 'dispute_update'];
+          if (importantTypes.includes(newNotification.type)) {
             soundPlayer.playOrder();
+            toast.info(newNotification.title, { duration: 5000 });
           } else {
             soundPlayer.playNotification();
           }
-          
-          toast.info(newNotification.title);
         }
       )
       .subscribe();
@@ -77,10 +77,8 @@ export const NotificationBell = () => {
       return;
     }
 
-    // Filter out legacy payment_received notifications
-    const filteredData = (data || []).filter(n => n.type !== 'payment_received');
-    setNotifications(filteredData as Notification[]);
-    setUnreadCount(filteredData.filter(n => !n.is_read).length || 0);
+    setNotifications((data || []) as Notification[]);
+    setUnreadCount((data || []).filter(n => !n.is_read).length || 0);
   };
 
   const markAsRead = async (notificationId: string) => {

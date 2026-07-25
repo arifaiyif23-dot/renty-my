@@ -85,20 +85,27 @@ serve(async (req) => {
       pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
     }
 
-    // Update rental status and pickup code
+    // Update rental status and pickup code — atomic with status guard (TOCTOU prevention)
     const updateData: any = { status: newStatus };
     if (pickupCode) {
       updateData.pickup_code = pickupCode;
     }
 
-    const { error: updateError } = await supabase
+    const { data: updatedRental, error: updateError } = await supabase
       .from('rentals')
       .update(updateData)
-      .eq('id', rentalId);
+      .eq('id', rentalId)
+      .eq('status', 'pending_approval')
+      .select('id, status')
+      .maybeSingle();
 
     if (updateError) {
       console.error('Rental update error:', updateError);
       throw updateError;
+    }
+
+    if (!updatedRental) {
+      throw new Error(`Rental status changed before update. Current status is no longer 'pending_approval'.`);
     }
 
     console.log(`Rental ${action}ed:`, rentalId);

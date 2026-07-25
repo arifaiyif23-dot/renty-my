@@ -282,6 +282,7 @@ export function DocumentViewerModal({
                     src={getCurrentUrl() || ''} 
                     alt={`Document ${activeTab}`}
                     className="max-h-[60vh] max-w-full object-contain rounded-lg shadow-lg"
+                    loading="lazy"
                   />
                 </div>
               ) : (

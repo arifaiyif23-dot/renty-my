@@ -159,6 +159,7 @@ export function useAdminVerificationActions({ onSuccess }: UseAdminVerificationA
     showDocViewer,
     setShowDocViewer,
     selectedIndex,
+    setSelectedIndex,
     handleAction,
     handleBatchApprove,
     toggleSelection,

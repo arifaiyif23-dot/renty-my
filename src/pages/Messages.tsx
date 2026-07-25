@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { useLocation } from "react-router-dom";
@@ -28,6 +28,40 @@ interface Conversation {
   lastMessageTime: string;
   unreadCount: number;
 }
+
+const ConversationItem = memo(({ conv, onSelect, isSelected }: { conv: Conversation; onSelect: (id: string) => void; isSelected?: boolean }) => (
+  <div
+    key={conv.userId}
+    onClick={() => onSelect(conv.userId)}
+    className={`p-4 cursor-pointer hover:bg-muted/50 border-b transition-colors active:scale-[0.98] min-h-[72px] rounded-xl ${isSelected ? 'bg-muted/50' : ''}`}
+  >
+    <div className="flex items-center gap-3">
+      <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-primary/10">
+        <AvatarImage src={conv.userAvatar} />
+        <AvatarFallback>{conv.userName[0]}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-base truncate">{conv.userName}</div>
+        <div className="text-sm text-muted-foreground line-clamp-2">
+          {conv.lastMessage}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          {safeFormatDate(conv.lastMessageTime, (d) => d.toLocaleString('en-MY', { 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }))}
+        </div>
+      </div>
+      {conv.unreadCount > 0 && (
+        <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0">
+          {conv.unreadCount}
+        </div>
+      )}
+    </div>
+  </div>
+));
 
 export default function Messages() {
   const { user } = useAuth();
@@ -78,33 +112,28 @@ export default function Messages() {
     if (user) {
       fetchConversations();
 
-      const channel = supabase
-        .channel(`messages-list-${user.id}`)
+      // Subscribe to messages where user is sender or recipient (server-side filters)
+      const sentChannel = supabase
+        .channel(`messages-sent-${user.id}`)
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'messages',
-          },
-          (payload) => {
-            const changedMessage = (payload.new || payload.old) as { sender_id?: string; recipient_id?: string } | null;
-            if (
-              changedMessage &&
-              (changedMessage.sender_id === user.id || changedMessage.recipient_id === user.id)
-            ) {
-              fetchConversations(true);
-            }
-          }
+          { event: '*', schema: 'public', table: 'messages', filter: `sender_id=eq.${user.id}` },
+          () => { fetchConversations(true); }
         )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Messages channel error');
-          }
-        });
+        .subscribe();
+
+      const receivedChannel = supabase
+        .channel(`messages-received-${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'messages', filter: `recipient_id=eq.${user.id}` },
+          () => { fetchConversations(true); }
+        )
+        .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(sentChannel);
+        supabase.removeChannel(receivedChannel);
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,15 +155,11 @@ export default function Messages() {
 
       markMessagesRead().catch(err => console.error('Failed to mark messages read:', err));
       
-      const channel = supabase
+      const threadChannel = supabase
         .channel(`messages-thread-${user.id}-${selectedUserId}`)
         .on(
           'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'messages',
-          },
+          { event: '*', schema: 'public', table: 'messages', filter: `sender_id=in.(${user.id},${selectedUserId})` },
           (payload) => {
             const newMsg = payload.new as Message;
             if (!newMsg) return;
@@ -147,14 +172,10 @@ export default function Messages() {
             }
           }
         )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Messages thread channel error');
-          }
-        });
+        .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(threadChannel);
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -222,7 +243,8 @@ export default function Messages() {
       .from('messages')
       .select('id, sender_id, recipient_id, content, created_at, is_read, read_at, attachment_url, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
       .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .limit(100);
 
     if (error) {
       console.error('Error fetching messages:', error);
@@ -233,12 +255,13 @@ export default function Messages() {
 
     setMessages(data || []);
 
-    // Mark messages as read
+    // Mark messages as read (only unread ones to avoid redundant updates)
     const { error: readError } = await supabase
       .from('messages')
       .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('sender_id', otherUserId)
-      .eq('recipient_id', user.id);
+      .eq('recipient_id', user.id)
+      .eq('is_read', false);
 
     if (readError) console.error('Failed to mark messages as read:', readError);
 
@@ -358,37 +381,11 @@ export default function Messages() {
                         <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
                       </div>
                     ) : conversations.map((conv) => (
-                      <div
+                      <ConversationItem
                         key={conv.userId}
-                        onClick={() => handleSelectConversation(conv.userId)}
-                        className="p-4 cursor-pointer hover:bg-muted/50 border-b transition-colors active:scale-[0.98] min-h-[72px] rounded-xl"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-primary/10">
-                            <AvatarImage src={conv.userAvatar} />
-                            <AvatarFallback>{conv.userName[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-base truncate">{conv.userName}</div>
-                            <div className="text-sm text-muted-foreground line-clamp-2">
-                              {conv.lastMessage}
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {safeFormatDate(conv.lastMessageTime, (d) => d.toLocaleString('en-MY', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              }))}
-                            </div>
-                          </div>
-                          {conv.unreadCount > 0 && (
-                            <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                              {conv.unreadCount}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                        conv={conv}
+                        onSelect={handleSelectConversation}
+                      />
                     ))}
                     {!isLoadingConversations && conversations.length === 0 && (
                       <div className="p-8 text-center text-muted-foreground">
@@ -439,6 +436,7 @@ export default function Messages() {
                                   src={msg.attachment_url} 
                                   alt="Attachment" 
                                   className="rounded-lg max-w-full h-auto"
+                                  loading="lazy"
                                 />
                               ) : (
                                 <a 
@@ -537,31 +535,12 @@ export default function Messages() {
                       <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
                     </div>
                   ) : conversations.map((conv) => (
-                    <div
+                    <ConversationItem
                       key={conv.userId}
-                      onClick={() => setSelectedUserId(conv.userId)}
-                      className={`p-4 cursor-pointer hover:bg-muted/50 border-b transition-colors min-h-[60px] rounded-xl ${
-                        selectedUserId === conv.userId ? 'bg-muted/50' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12 ring-2 ring-primary/10">
-                          <AvatarImage src={conv.userAvatar} />
-                          <AvatarFallback>{conv.userName[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-base truncate">{conv.userName}</div>
-                          <div className="text-sm text-muted-foreground truncate">
-                            {conv.lastMessage}
-                          </div>
-                        </div>
-                        {conv.unreadCount > 0 && (
-                          <div className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">
-                            {conv.unreadCount}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                      conv={conv}
+                      onSelect={setSelectedUserId}
+                      isSelected={selectedUserId === conv.userId}
+                    />
                   ))}
                   {!isLoadingConversations && conversations.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">

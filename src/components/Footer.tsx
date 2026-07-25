@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Column 1 — Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="inline-block mb-3">
-              <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
+              <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" loading="lazy" />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               Rent anything you need, from people you can trust. Malaysia's peer-to-peer rental marketplace.

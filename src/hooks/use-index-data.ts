@@ -118,13 +118,13 @@ export function useIndexData() {
           .from('items')
           .select(`
             id, title, price_per_day, category, location, created_at, owner_id,
-            item_images!inner(image_url),
+            item_images(image_url),
             profiles!items_owner_id_fkey(is_verified, verification_level)
           `)
           .eq('is_available', true)
           .order('created_at', { ascending: false })
           .limit(6),
-        supabase.from('items').select('category, price_per_day').eq('is_available', true),
+        supabase.from('items').select('category, price_per_day').eq('is_available', true).limit(5000),
         supabase.from('items').select('*', { count: 'exact', head: true }).eq('is_available', true),
       ])
 
@@ -153,7 +153,7 @@ export function useIndexData() {
         return {
           id: item.id,
           title: item.title,
-          image: (item.item_images ?? [])[0]?.image_url || 'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&q=80',
+          image: (item.item_images ?? [])[0]?.image_url || '',
           pricePerDay: Number(item.price_per_day),
           category: item.category,
           rating: Math.round(rating * 10) / 10,

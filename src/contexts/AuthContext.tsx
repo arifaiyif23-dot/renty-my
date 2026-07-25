@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, phone, location, is_verified, verification_level, trust_score, is_suspended, preferred_role, created_at, total_rentals_completed, total_reviews_received, response_rate, avg_response_time_minutes, last_active_at')
+        .select('id, full_name, avatar_url, phone, location, is_verified, verification_level, trust_score, is_suspended, suspension_reason, bio, identity_number_hash, ekyc_provider, ekyc_session_id, ekyc_verified_at, is_deleted, deleted_at, terms_accepted_at, terms_version, latitude, longitude, preferred_role, created_at, total_rentals_completed, total_reviews_received, response_rate, avg_response_time_minutes, last_active_at')
         .eq('id', userId)
         .maybeSingle();
 

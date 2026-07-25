@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { optimizeImage } from "@/utils/imageOptimization";
+import { sanitizeMessage } from "@/utils/sanitize";
 
 interface ReviewFormProps {
   rentalId: string;
@@ -59,13 +60,26 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check for duplicate review
+      const { data: existing } = await supabase
+        .from('reviews')
+        .select('id')
+        .eq('rental_id', rentalId)
+        .eq('reviewer_id', user.id)
+        .maybeSingle();
+      if (existing) {
+        throw new Error('You have already submitted a review for this rental');
+      }
+
+      const sanitizedComment = comment.trim() ? sanitizeMessage(comment.trim()) : null;
+
       const { data: reviewData, error: reviewError } = await supabase.from('reviews')
         .insert({
           rental_id: rentalId,
           reviewer_id: user.id,
           reviewee_id: revieweeId,
           rating,
-          comment: comment.trim() || null,
+          comment: sanitizedComment,
         })
         .select()
         .single();
@@ -84,13 +98,13 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
           const fileName = `${reviewData.id}/${Math.random()}.webp`;
           
           const { error: uploadError } = await supabase.storage
-            .from('item-images')
+            .from('review-images')
             .upload(fileName, optimizedFile);
 
           if (uploadError) throw uploadError;
 
           const { data: { publicUrl } } = supabase.storage
-            .from('item-images')
+            .from('review-images')
             .getPublicUrl(fileName);
 
           await supabase.from('review_images').insert({
@@ -145,9 +159,10 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
         <label className="text-sm font-medium mb-2 block">Your Review (Optional)</label>
         <Textarea
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={(e) => setComment(e.target.value.slice(0, 2000))}
           placeholder="Share your experience..."
           rows={4}
+          maxLength={2000}
         />
       </div>
 
@@ -172,6 +187,7 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
                   src={url}
                   alt={`Preview ${index + 1}`}
                   className="w-full h-24 object-cover rounded-lg"
+                  loading="lazy"
                 />
                 <button
                   onClick={() => removeImage(index)}

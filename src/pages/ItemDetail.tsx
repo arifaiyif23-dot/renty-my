@@ -73,6 +73,15 @@ export default function ItemDetail() {
     const trackView = async () => {
       if (!id) return;
       try {
+        if (user) {
+          const { count } = await supabase
+            .from('user_views')
+            .select('id', { count: 'exact', head: true })
+            .eq('item_id', id)
+            .eq('user_id', user.id)
+            .gte('viewed_at', new Date(Date.now() - 60000).toISOString());
+          if (count && count > 0) return;
+        }
         await supabase.from('user_views').insert({
           user_id: user?.id || null,
           item_id: id,
@@ -153,8 +162,12 @@ export default function ItemDetail() {
       const { data, error } = await supabase
         .from('items')
         .select(`
-          *,
-          images:item_images(*),
+          id,
+          title,
+          price_per_day,
+          category,
+          location,
+          images:item_images(image_url),
           owner:owner_id(verification_level)
         `)
         .eq('category', category)

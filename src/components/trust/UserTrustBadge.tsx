@@ -21,7 +21,7 @@ const LEVEL_CONFIG: Record<VerificationLevel, { label: string; icon: typeof Shie
   email: { label: 'Email Verified', icon: ShieldHalf, color: 'text-primary', description: 'Email address confirmed' },
   basic: { label: 'Basic Verified', icon: ShieldHalf, color: 'text-success', description: 'Basic identity check completed' },
   kyc: { label: 'KYC Verified', icon: ShieldCheck, color: 'text-primary', description: 'Full identity verified via document upload' },
-  premium: { label: 'Premium Verified', icon: BadgeCheck, color: 'text-brand-blue', description: 'Enhanced eKYC verification completed' },
+  premium: { label: 'Premium Verified', icon: BadgeCheck, color: 'text-blue-500', description: 'Enhanced eKYC verification completed' },
 };
 
 export function UserTrustBadge({ level = 'unverified', trustScore, showScore, size = 'md', className }: UserTrustBadgeProps) {

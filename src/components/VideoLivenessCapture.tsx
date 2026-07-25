@@ -100,9 +100,14 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
       const stream = streamRef.current;
       if (!stream) throw new Error("Stream not available");
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm'
-      });
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : MediaRecorder.isTypeSupported('video/webm')
+          ? 'video/webm'
+          : MediaRecorder.isTypeSupported('video/mp4')
+            ? 'video/mp4'
+            : undefined;
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       
       chunksRef.current = [];
       mediaRecorderRef.current = mediaRecorder;

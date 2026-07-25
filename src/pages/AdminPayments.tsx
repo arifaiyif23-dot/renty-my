@@ -68,16 +68,16 @@ export default function AdminPayments() {
       if (error) throw error;
       setPayments(data || []);
 
-      const [completedRes, refundedRes] = await Promise.all([
-        supabase.from("payments").select("total_amount, platform_fee").eq("status", "completed"),
+      const [paidRes, refundedRes] = await Promise.all([
+        supabase.from("payments").select("total_amount, platform_fee").eq("status", "paid"),
         supabase.from("payments").select("*", { count: "exact", head: true }).eq("status", "refunded"),
       ]);
 
-      const completedPayments = completedRes.data || [];
+      const paidPayments = paidRes.data || [];
       setStats({
-        totalRevenue: completedPayments.reduce((s, p) => s + Number(p.total_amount), 0),
-        totalFees: completedPayments.reduce((s, p) => s + Number(p.platform_fee), 0),
-        completedCount: completedPayments.length,
+        totalRevenue: paidPayments.reduce((s, p) => s + Number(p.total_amount), 0),
+        totalFees: paidPayments.reduce((s, p) => s + Number(p.platform_fee), 0),
+        completedCount: paidPayments.length,
         refundedCount: refundedRes.count || 0,
       });
     } catch (error) {
@@ -112,6 +112,7 @@ export default function AdminPayments() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case "paid":
       case "completed": return <Badge className="bg-success rounded-full">Completed</Badge>;
       case "pending": return <Badge className="rounded-full" variant="secondary">Pending</Badge>;
       case "failed": return <Badge className="rounded-full" variant="destructive">Failed</Badge>;
@@ -133,36 +134,20 @@ export default function AdminPayments() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <GlassCard>
-            
-              Total Revenue
-            
-            
-              <div className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</div>
-            
+            <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
+            <div className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</div>
           </GlassCard>
           <GlassCard>
-            
-              Platform Fees
-            
-            
-              <div className="text-2xl font-bold">RM{stats.totalFees.toFixed(2)}</div>
-            
+            <p className="text-sm text-muted-foreground mb-1">Platform Fees</p>
+            <div className="text-2xl font-bold">RM{stats.totalFees.toFixed(2)}</div>
           </GlassCard>
           <GlassCard>
-            
-              Completed
-            
-            
-              <div className="text-2xl font-bold text-success">{stats.completedCount}</div>
-            
+            <p className="text-sm text-muted-foreground mb-1">Completed</p>
+            <div className="text-2xl font-bold text-success">{stats.completedCount}</div>
           </GlassCard>
           <GlassCard>
-            
-              Refunded
-            
-            
-              <div className="text-2xl font-bold text-warning">{stats.refundedCount}</div>
-            
+            <p className="text-sm text-muted-foreground mb-1">Refunded</p>
+            <div className="text-2xl font-bold text-warning">{stats.refundedCount}</div>
           </GlassCard>
         </div>
 
@@ -173,22 +158,20 @@ export default function AdminPayments() {
           </TabsList>
 
           <TabsContent value="transactions">
-            <GlassCard className="mb-6">
-              
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full md:w-[250px] rounded-xl">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                    <SelectItem value="refunded">Refunded</SelectItem>
-                  </SelectContent>
-                </Select>
-              
+            <GlassCard className="mb-6" padding="sm">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-full md:w-[250px] rounded-xl">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="refunded">Refunded</SelectItem>
+                </SelectContent>
+              </Select>
             </GlassCard>
 
             {loading ? (
@@ -196,36 +179,32 @@ export default function AdminPayments() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : payments.length === 0 ? (
-              <GlassCard>
-                
-                  No transactions found
-                
+              <GlassCard padding="lg">
+                <p className="text-center text-muted-foreground">No transactions found</p>
               </GlassCard>
             ) : (
               <div className="space-y-3">
                 {payments.map((payment) => (
-                  <GlassCard key={payment.id}>
-                    
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {getStatusBadge(payment.status)}
-                          </div>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
-                            <span className="font-medium">RM{Number(payment.total_amount).toFixed(2)}</span>
-                            <span className="text-muted-foreground">Fee: RM{Number(payment.platform_fee).toFixed(2)}</span>
-                            <span className="text-muted-foreground">Rental: RM{Number(payment.rental_amount).toFixed(2)}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
-                            <span>Rental: {payment.rental?.id?.slice(0, 8) || "N/A"} ({payment.rental?.status || "?"})</span>
-                            {payment.paid_at && <span>Paid: {format(new Date(payment.paid_at), "MMM d, yyyy")}</span>}
-                          </div>
+                  <GlassCard key={payment.id} padding="md">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getStatusBadge(payment.status)}
                         </div>
-                        <div className="text-xs text-muted-foreground shrink-0 text-right">
-                          <div>{format(new Date(payment.created_at), "MMM d, yyyy")}</div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
+                          <span className="font-medium">RM{Number(payment.total_amount).toFixed(2)}</span>
+                          <span className="text-muted-foreground">Fee: RM{Number(payment.platform_fee).toFixed(2)}</span>
+                          <span className="text-muted-foreground">Rental: RM{Number(payment.rental_amount).toFixed(2)}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+                          <span>Rental: {payment.rental?.id?.slice(0, 8) || "N/A"} ({payment.rental?.status || "?"})</span>
+                          {payment.paid_at && <span>Paid: {format(new Date(payment.paid_at), "MMM d, yyyy")}</span>}
                         </div>
                       </div>
-                    
+                      <div className="text-xs text-muted-foreground shrink-0 text-right">
+                        <div>{format(new Date(payment.created_at), "MMM d, yyyy")}</div>
+                      </div>
+                    </div>
                   </GlassCard>
                 ))}
               </div>
@@ -233,22 +212,20 @@ export default function AdminPayments() {
           </TabsContent>
 
           <TabsContent value="payouts">
-            <GlassCard className="mb-6">
-              
-                <Select value={payoutFilter} onValueChange={setPayoutFilter}>
-                  <SelectTrigger className="w-full md:w-[250px] rounded-xl">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                  </SelectContent>
-                </Select>
-              
+            <GlassCard className="mb-6" padding="sm">
+              <Select value={payoutFilter} onValueChange={setPayoutFilter}>
+                <SelectTrigger className="w-full md:w-[250px] rounded-xl">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
             </GlassCard>
 
             {loading ? (
@@ -256,36 +233,32 @@ export default function AdminPayments() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : payouts.length === 0 ? (
-              <GlassCard>
-                
-                  No payouts found
-                
+              <GlassCard padding="lg">
+                <p className="text-center text-muted-foreground">No payouts found</p>
               </GlassCard>
             ) : (
               <div className="space-y-3">
                 {payouts.map((payout) => (
-                  <GlassCard key={payout.id}>
-                    
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {getStatusBadge(payout.status)}
-                          </div>
-                          <div className="mt-1">
-                            <span className="font-medium">RM{Number(payout.payout_amount).toFixed(2)}</span>
-                            <span className="text-muted-foreground ml-4">to {payout.owner?.full_name || "Unknown"}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
-                            <span>Fee: RM{Number(payout.platform_fee).toFixed(2)}</span>
-                            <span>Payment: RM{Number(payout.payment?.total_amount || 0).toFixed(2)}</span>
-                            {payout.processed_at && <span>Processed: {format(new Date(payout.processed_at), "MMM d, yyyy")}</span>}
-                          </div>
+                  <GlassCard key={payout.id} padding="md">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getStatusBadge(payout.status)}
                         </div>
-                        <div className="text-xs text-muted-foreground shrink-0 text-right">
-                          <div>{format(new Date(payout.created_at), "MMM d, yyyy")}</div>
+                        <div className="mt-1">
+                          <span className="font-medium">RM{Number(payout.payout_amount).toFixed(2)}</span>
+                          <span className="text-muted-foreground ml-4">to {payout.owner?.full_name || "Unknown"}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+                          <span>Fee: RM{Number(payout.platform_fee).toFixed(2)}</span>
+                          <span>Payment: RM{Number(payout.payment?.total_amount || 0).toFixed(2)}</span>
+                          {payout.processed_at && <span>Processed: {format(new Date(payout.processed_at), "MMM d, yyyy")}</span>}
                         </div>
                       </div>
-                    
+                      <div className="text-xs text-muted-foreground shrink-0 text-right">
+                        <div>{format(new Date(payout.created_at), "MMM d, yyyy")}</div>
+                      </div>
+                    </div>
                   </GlassCard>
                 ))}
               </div>

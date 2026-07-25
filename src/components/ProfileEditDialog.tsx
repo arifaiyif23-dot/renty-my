@@ -47,26 +47,13 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
 
     setUploading(true);
     try {
-      // Delete old avatar files for this user before uploading new one
-      const { data: existingFiles } = await supabase.storage
-        .from('avatars')
-        .list(user.id);
-
-      if (existingFiles && existingFiles.length > 0) {
-        await supabase.storage
-          .from('avatars')
-          .remove(existingFiles.map(f => `${user.id}/${f.name}`));
-      }
-
-      // Optimize image before upload
       toast.info("Compressing image...");
       const optimizedBlob = await optimizeImage(file);
-      const optimizedFile = new File([optimizedBlob], `${file.name.split('.')[0]}.webp`, {
+      const optimizedFile = new File([optimizedBlob], `avatar.webp`, {
         type: 'image/webp'
       });
 
-      const fileName = `${Date.now()}.webp`;
-      const filePath = `${user.id}/${fileName}`;
+      const filePath = `${user.id}/avatar.webp`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -92,6 +79,9 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
 
     setSaving(true);
     try {
+      if (phone && !/^\+?[\d\s\-()]{6,20}$/.test(phone)) {
+        throw new Error('Invalid phone number format');
+      }
       const { error } = await supabase
         .from('profiles')
         .update({

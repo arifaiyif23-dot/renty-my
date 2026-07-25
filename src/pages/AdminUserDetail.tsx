@@ -92,17 +92,12 @@ export default function AdminUserDetail() {
     if (!profile) return;
     setProcessing("verify");
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_verified: true, verification_level: "kyc" })
-        .eq("id", profile.id);
-
-      if (error) throw error;
+      await invokeAdminOperation({ action: 'verify_identity', verificationId: '', status: 'approved', userId: profile.id });
       setProfile({ ...profile, is_verified: true, verification_level: "kyc" });
       toast.success("User verified");
     } catch (error) {
       console.error("Error verifying user:", error);
-      toast.error("Failed to verify user");
+      toast.error("Failed to verify user via admin pipeline");
     } finally {
       setProcessing(null);
     }
@@ -151,10 +146,8 @@ export default function AdminUserDetail() {
   if (!profile) {
     return (
       <AdminLayout>
-        <GlassCard>
-          
-            User not found
-          
+        <GlassCard padding="lg">
+          <p className="text-center text-muted-foreground">User not found</p>
         </GlassCard>
       </AdminLayout>
     );
@@ -169,76 +162,74 @@ export default function AdminUserDetail() {
         </Button>
 
         {/* Profile Header */}
-        <GlassCard className="mb-6">
-          
-            <div className="flex items-start gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="text-lg">{(profile.full_name || "U")[0]}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-2xl font-bold">{profile.full_name || "Unnamed"}</h1>
-                  {role === "admin" && <Badge className="bg-destructive rounded-full">Admin</Badge>}
-                  {role === "moderator" && <Badge className="bg-secondary rounded-full">Moderator</Badge>}
-                  {profile.is_verified && <Badge className="bg-success rounded-full">Verified</Badge>}
-                  {profile.is_suspended && <Badge className="rounded-full" variant="destructive">Suspended</Badge>}
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                  <span>ID: {profile.id}</span>
-                  <span>Joined {format(new Date(profile.created_at), "MMM yyyy")}</span>
-                  {profile.location && <span>{profile.location}</span>}
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
-                  <span className="flex items-center gap-1">
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                    Verification: {profile.verification_level || "unverified"}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-muted-foreground" />
-                    Trust Score: {profile.trust_score ?? "N/A"}
-                  </span>
-                </div>
-                {profile.suspension_reason && (
-                  <p className="text-sm text-destructive mt-2">Suspension reason: {profile.suspension_reason}</p>
-                )}
+        <GlassCard className="mb-6" padding="lg">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarFallback className="text-lg">{(profile.full_name || "U")[0]}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-bold">{profile.full_name || "Unnamed"}</h1>
+                {role === "admin" && <Badge className="bg-destructive rounded-full">Admin</Badge>}
+                {role === "moderator" && <Badge className="bg-secondary rounded-full">Moderator</Badge>}
+                {profile.is_verified && <Badge className="bg-success rounded-full">Verified</Badge>}
+                {profile.is_suspended && <Badge className="rounded-full" variant="destructive">Suspended</Badge>}
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {!profile.is_verified && (
-                  <Button
-                    size="sm"
-                    className="bg-success hover:bg-success/90 rounded-xl"
-                    onClick={handleVerify}
-                    disabled={processing === "verify"}
-                  >
-                    {processing === "verify" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                    Verify
-                  </Button>
-                )}
-                {profile.is_suspended ? (
-                  <Button className="rounded-xl"
-                    size="sm"
-                    variant="outline"
-                    onClick={handleUnsuspend}
-                    disabled={processing === "unsuspend"}
-                  >
-                    {processing === "unsuspend" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                    Unsuspend
-                  </Button>
-                ) : (
-                  <Button className="rounded-xl"
-                    size="sm"
-                    variant="destructive"
-                    onClick={handleSuspend}
-                    disabled={processing === "suspend"}
-                  >
-                    {processing === "suspend" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Ban className="h-4 w-4 mr-1" />}
-                    Suspend
-                  </Button>
-                )}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                <span>ID: {profile.id}</span>
+                <span>Joined {format(new Date(profile.created_at), "MMM yyyy")}</span>
+                {profile.location && <span>{profile.location}</span>}
               </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
+                <span className="flex items-center gap-1">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  Verification: {profile.verification_level || "unverified"}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                  Trust Score: {profile.trust_score ?? "N/A"}
+                </span>
+              </div>
+              {profile.suspension_reason && (
+                <p className="text-sm text-destructive mt-2">Suspension reason: {profile.suspension_reason}</p>
+              )}
             </div>
-          
+            <div className="flex items-center gap-2 shrink-0">
+              {!profile.is_verified && (
+                <Button
+                  size="sm"
+                  className="bg-success hover:bg-success/90 rounded-xl"
+                  onClick={handleVerify}
+                  disabled={processing === "verify"}
+                >
+                  {processing === "verify" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                  Verify
+                </Button>
+              )}
+              {profile.is_suspended ? (
+                <Button className="rounded-xl"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleUnsuspend}
+                  disabled={processing === "unsuspend"}
+                >
+                  {processing === "unsuspend" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                  Unsuspend
+                </Button>
+              ) : (
+                <Button className="rounded-xl"
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleSuspend}
+                  disabled={processing === "suspend"}
+                >
+                  {processing === "suspend" ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Ban className="h-4 w-4 mr-1" />}
+                  Suspend
+                </Button>
+              )}
+            </div>
+          </div>
         </GlassCard>
 
         {/* Tabs: Items / Rentals / Reviews */}
@@ -261,34 +252,30 @@ export default function AdminUserDetail() {
         {tab === "items" && (
           <div className="space-y-3">
             {items.length === 0 ? (
-              <GlassCard>
-                
-                  No listings from this user
-                
+              <GlassCard padding="lg">
+                <p className="text-center text-muted-foreground">No listings from this user</p>
               </GlassCard>
             ) : items.map((item) => (
-              <GlassCard key={item.id}>
-                
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{item.title}</span>
-                        <Badge variant="secondary" className="capitalize text-xs rounded-full">{item.category}</Badge>
-                        {item.is_available ? (
-                          <Badge className="bg-success text-xs rounded-full">Active</Badge>
-                        ) : (
-                          <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
-                        )}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        RM{item.price_per_day}/day · Listed {format(new Date(item.created_at), "MMM d, yyyy")}
-                      </div>
+              <GlassCard key={item.id} padding="md">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{item.title}</span>
+                      <Badge variant="secondary" className="capitalize text-xs rounded-full">{item.category}</Badge>
+                      {item.is_available ? (
+                        <Badge className="bg-success text-xs rounded-full">Active</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
+                      )}
                     </div>
-                    <Button className="rounded-xl" size="sm" variant="outline" onClick={() => navigate(`/items/${item.id}`)}>
-                      View
-                    </Button>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      RM{item.price_per_day}/day · Listed {format(new Date(item.created_at), "MMM d, yyyy")}
+                    </div>
                   </div>
-                
+                  <Button className="rounded-xl" size="sm" variant="outline" onClick={() => navigate(`/items/${item.id}`)}>
+                    View
+                  </Button>
+                </div>
               </GlassCard>
             ))}
           </div>
@@ -298,31 +285,27 @@ export default function AdminUserDetail() {
         {tab === "rentals" && (
           <div className="space-y-3">
             {rentals.length === 0 ? (
-              <GlassCard>
-                
-                  No rental history
-                
+              <GlassCard padding="lg">
+                <p className="text-center text-muted-foreground">No rental history</p>
               </GlassCard>
             ) : rentals.map((rental) => (
-              <GlassCard key={rental.id}>
-                
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Badge className="rounded-full" variant="secondary">{rental.status}</Badge>
-                      </div>
-                      <div className="text-sm mt-1">
-                        <span className="font-medium">{rental.item?.title || "Unknown item"}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        RM{Number(rental.total_price).toFixed(2)} · {format(new Date(rental.start_date), "MMM d")} - {format(new Date(rental.end_date), "MMM d, yyyy")}
-                      </div>
+              <GlassCard key={rental.id} padding="md">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="rounded-full" variant="secondary">{rental.status}</Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground shrink-0">
-                      {format(new Date(rental.created_at), "MMM d, yyyy")}
+                    <div className="text-sm mt-1">
+                      <span className="font-medium">{rental.item?.title || "Unknown item"}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      RM{Number(rental.total_price).toFixed(2)} · {format(new Date(rental.start_date), "MMM d")} - {format(new Date(rental.end_date), "MMM d, yyyy")}
                     </div>
                   </div>
-                
+                  <div className="text-xs text-muted-foreground shrink-0">
+                    {format(new Date(rental.created_at), "MMM d, yyyy")}
+                  </div>
+                </div>
               </GlassCard>
             ))}
           </div>
@@ -332,26 +315,22 @@ export default function AdminUserDetail() {
         {tab === "reviews" && (
           <div className="space-y-3">
             {reviews.length === 0 ? (
-              <GlassCard>
-                
-                  No reviews received
-                
+              <GlassCard padding="lg">
+                <p className="text-center text-muted-foreground">No reviews received</p>
               </GlassCard>
             ) : reviews.map((review) => (
-              <GlassCard key={review.id}>
-                
-                  <div className="flex items-start gap-3">
-                    <div className="text-lg font-bold text-warning shrink-0">{review.rating}/5</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium">{review.reviewer?.full_name || "Anonymous"}</span>
-                        <span className="text-muted-foreground">on {review.rental?.item?.title || "Unknown item"}</span>
-                      </div>
-                      {review.comment && <p className="text-sm text-muted-foreground mt-1">{review.comment}</p>}
-                      <p className="text-xs text-muted-foreground mt-1">{format(new Date(review.created_at), "MMM d, yyyy")}</p>
+              <GlassCard key={review.id} padding="md">
+                <div className="flex items-start gap-3">
+                  <div className="text-lg font-bold text-warning shrink-0">{review.rating}/5</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium">{review.reviewer?.full_name || "Anonymous"}</span>
+                      <span className="text-muted-foreground">on {review.rental?.item?.title || "Unknown item"}</span>
                     </div>
+                    {review.comment && <p className="text-sm text-muted-foreground mt-1">{review.comment}</p>}
+                    <p className="text-xs text-muted-foreground mt-1">{format(new Date(review.created_at), "MMM d, yyyy")}</p>
                   </div>
-                
+                </div>
               </GlassCard>
             ))}
           </div>

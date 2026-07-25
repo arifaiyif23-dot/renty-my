@@ -93,7 +93,7 @@ serve(async (req) => {
     if (status === 'approved') {
       templateType = 'verification_approved';
       emailContent = {
-        subject: '🎉 Your Renty Identity Verification is Approved!',
+        subject: 'Your Renty Identity Verification is Approved!',
         html: `
           <!DOCTYPE html>
           <html>

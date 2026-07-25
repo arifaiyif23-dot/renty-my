@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Heart, Star, MapPin } from "lucide-react";
 import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface ListingCardV2Props {
   id: string;
@@ -15,9 +18,10 @@ interface ListingCardV2Props {
   reviewCount?: number;
   badges?: BadgeKind[];
   className?: string;
+  initialSaved?: boolean;
 }
 
-const ListingCardV2 = ({
+const ListingCardV2 = memo(({
   id,
   title,
   image,
@@ -28,8 +32,11 @@ const ListingCardV2 = ({
   reviewCount = 0,
   badges,
   className,
+  initialSaved = false,
 }: ListingCardV2Props) => {
-  const [saved, setSaved] = useState(false);
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(initialSaved);
+  const [saving, setSaving] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -67,10 +74,22 @@ const ListingCardV2 = ({
         )}
 
         <button
-          onClick={(e) => {
+          onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            setSaved(!saved);
+            if (!user) { toast.error('Sign in to save items'); return; }
+            if (saving) return;
+            setSaving(true);
+            try {
+              if (saved) {
+                await supabase.from('saved_items').delete().eq('user_id', user.id).eq('item_id', id);
+                setSaved(false);
+              } else {
+                await supabase.from('saved_items').insert({ user_id: user.id, item_id: id });
+                setSaved(true);
+              }
+            } catch { /* silent fail */ }
+            setSaving(false);
           }}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all duration-200 active:scale-90"
           aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
@@ -131,6 +150,6 @@ const ListingCardV2 = ({
       </div>
     </Link>
   );
-};
+});
 
 export { ListingCardV2, type ListingCardV2Props };

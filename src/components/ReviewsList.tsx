@@ -62,11 +62,20 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       if (ids.length > 0) {
         query = query.in('rental_id', ids);
       } else {
-        query = query.in('rental_id', [null]);
+        query = query.in('rental_id', ['']);
       }
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    // Server-side sorting
+    if (sortBy === 'highest') {
+      query = query.order('rating', { ascending: false });
+    } else if (sortBy === 'lowest') {
+      query = query.order('rating', { ascending: true });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
+
+    const { data, error } = await query.limit(50);
 
     if (error) {
       console.error('Error fetching reviews:', error);
@@ -74,20 +83,11 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
       return;
     }
 
-    const filteredData = data || [];
-
-    // Apply sorting
-    if (sortBy === 'highest') {
-      filteredData.sort((a, b) => b.rating - a.rating);
-    } else if (sortBy === 'lowest') {
-      filteredData.sort((a, b) => a.rating - b.rating);
-    }
-
-    setReviews(filteredData);
+    setReviews(data || []);
     setLoading(false);
 
-    if (filteredData.length > 0) {
-      const avg = filteredData.reduce((sum, review) => sum + review.rating, 0) / filteredData.length;
+    if ((data || []).length > 0) {
+      const avg = (data || []).reduce((sum, review) => sum + review.rating, 0) / (data || []).length;
       setAverageRating(avg);
     }
   }, [itemId, userId, sortBy]);
@@ -108,12 +108,16 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
         review_id: reviewId,
         user_id: user.id,
         is_helpful: isHelpful,
-      });
+      }, { onConflict: 'review_id,user_id' });
 
     if (error) {
       toast.error("Failed to submit vote");
     } else {
-      fetchReviews();
+      setReviews(prev => prev.map(r =>
+        r.id === reviewId
+          ? { ...r, review_votes: [...(r.review_votes || []), { is_helpful: isHelpful }] }
+          : r
+      ));
     }
   };
 
@@ -199,7 +203,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                 <div className="flex items-start gap-3">
                   <Avatar>
                     <AvatarImage src={review.reviewer?.avatar_url} />
-                    <AvatarFallback>{review.reviewer?.full_name?.[0]}</AvatarFallback>
+                    <AvatarFallback>{(review.reviewer?.full_name || 'A')[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
@@ -226,12 +230,13 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                       <div className="grid grid-cols-3 gap-2 my-2">
                         {review.review_images?.map((img, idx: number) => (
                           <img
-                            key={idx}
+                            key={`${review.id}-${idx}`}
                             src={getOptimizedImageUrl(img.image_url, { width: 240, quality: 75 })}
                             srcSet={getSrcSet(img.image_url)}
                             sizes="(max-width: 640px) 33vw, 240px"
                             alt={`Review photo ${idx + 1}`}
                             className="w-full h-24 object-cover rounded-lg"
+                            loading="lazy"
                           />
                         ))}
                       </div>

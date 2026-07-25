@@ -106,101 +106,118 @@ export default function Search() {
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
 
-    let query = supabase
-      .from('items')
-      .select(`
-        id,
-        title,
-        price_per_day,
-        category,
-        location,
-        owner:owner_id (
-          is_verified,
-          verification_level
-        ),
-        images:item_images (
-          image_url
-        )
-      `)
-      .eq('is_available', true)
-      .range(start, end);
+    const buildFilterQuery = (selectIdOnly = false) => {
+      let q = supabase
+        .from('items')
+        .select(selectIdOnly ? 'id' : `
+          id,
+          title,
+          price_per_day,
+          category,
+          location,
+          owner:owner_id (
+            is_verified,
+            verification_level
+          ),
+          images:item_images (
+            image_url
+          )
+        `)
+        .eq('is_available', true);
 
-    if (debouncedSearchQuery) {
-      const sanitized = debouncedSearchQuery.replace(/[,()%]/g, '');
-      query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
-    }
+      if (!selectIdOnly) q = (q as ReturnType<typeof q>).range(start, end);
 
-    if (category !== 'all') {
-      query = query.eq('category', category);
-    }
+      if (debouncedSearchQuery) {
+        const sanitized = debouncedSearchQuery.replace(/[,()%]/g, '');
+        q = q.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
+      }
 
-    if (minPrice) {
-      query = query.gte('price_per_day', parseFloat(minPrice));
-    }
+      if (category !== 'all') q = q.eq('category', category);
+      if (minPrice) q = q.gte('price_per_day', parseFloat(minPrice));
+      if (maxPrice) q = q.lte('price_per_day', parseFloat(maxPrice));
+      if (userLocation) q = q.ilike('location', `%${userLocation}%`);
 
-    if (maxPrice) {
-      query = query.lte('price_per_day', parseFloat(maxPrice));
-    }
+      const applyCommonFilters = (query: typeof q) => {
+        if (instantBookOnly) query = query.eq('instant_book_enabled', true);
+        if (itemCondition !== 'all') query = query.eq('item_condition', itemCondition);
+        return query;
+      };
 
-    if (userLocation) {
-      query = query.ilike('location', `%${userLocation}%`);
-    }
+      if (verifiedOnly) {
+        return getVerifiedUserIds().then(ids => {
+          q = ids.length > 0 ? q.in('owner_id', ids) : q.in('owner_id', [-1]);
+          q = applyCommonFilters(q);
+          if (!selectIdOnly) {
+            if (sortBy === 'price_low') q = q.order('price_per_day', { ascending: true });
+            else if (sortBy === 'price_high') q = q.order('price_per_day', { ascending: false });
+            else q = q.order('created_at', { ascending: false });
+          }
+          return q;
+        });
+      }
 
-    if (verifiedOnly) {
-      const ids = await getVerifiedUserIds();
-      query = ids.length > 0 ? query.in('owner_id', ids) : query.in('owner_id', [-1]);
-    }
+      q = applyCommonFilters(q);
 
-    if (instantBookOnly) {
-      query = query.eq('instant_book_enabled', true);
-    }
+      if (!selectIdOnly) {
+        if (sortBy === 'price_low') q = q.order('price_per_day', { ascending: true });
+        else if (sortBy === 'price_high') q = q.order('price_per_day', { ascending: false });
+        else q = q.order('created_at', { ascending: false });
+      }
 
-    if (itemCondition !== 'all') {
-      query = query.eq('item_condition', itemCondition);
-    }
+      return Promise.resolve(q);
+    };
 
-    if (sortBy === 'price_low') {
-      query = query.order('price_per_day', { ascending: true });
-    } else if (sortBy === 'price_high') {
-      query = query.order('price_per_day', { ascending: false });
-    } else {
-      query = query.order('created_at', { ascending: false });
-    }
+    const isOverlapping = (from: Date, to: Date, rental: { start_date: string; end_date: string }) => {
+      const rStart = new Date(rental.start_date);
+      const rEnd = new Date(rental.end_date);
+      return (from >= rStart && from <= rEnd) ||
+        (to >= rStart && to <= rEnd) ||
+        (from <= rStart && to >= rEnd);
+    };
 
-    const { data, error } = await query;
-    if (error) throw error;
+    // When date range is active, fetch IDs first → filter → then paginate
+    if (dateRange?.from && dateRange?.to) {
+      const idQuery = await buildFilterQuery(true);
+      const { data: allIds, error: idError } = await idQuery;
+      if (idError) throw idError;
+      if (!allIds?.length) return [];
 
-    if (dateRange?.from && dateRange?.to && data?.length) {
-      const from = dateRange.from;
-      const to = dateRange.to;
-      const itemIds = data.map(item => item.id);
-      const { data: allRentals } = await supabase
+      const { data: rentals } = await supabase
         .from('rentals')
         .select('item_id, start_date, end_date')
-        .in('item_id', itemIds)
+        .in('item_id', allIds.map(i => i.id))
         .in('status', ['pending_approval', 'approved', 'paid', 'active']);
 
-      const rentalsByItem = new Map<string, { start_date: string; end_date: string }[]>();
-      allRentals?.forEach(rental => {
-        const existing = rentalsByItem.get(rental.item_id) || [];
-        existing.push(rental);
-        rentalsByItem.set(rental.item_id, existing);
+      const rentedIds = new Set<string>();
+      rentals?.forEach(r => {
+        if (isOverlapping(dateRange.from!, dateRange.to!, r)) {
+          rentedIds.add(r.item_id);
+        }
       });
 
-      return data.filter(item => {
-        const itemRentals = rentalsByItem.get(item.id) || [];
-        return !itemRentals.some(rental => {
-          const rentalStart = new Date(rental.start_date);
-          const rentalEnd = new Date(rental.end_date);
-          return (
-            (from >= rentalStart && from <= rentalEnd) ||
-            (to >= rentalStart && to <= rentalEnd) ||
-            (from <= rentalStart && to >= rentalEnd)
-          );
-        });
-      });
+      const availableIds = allIds.filter(i => !rentedIds.has(i.id)).map(i => i.id);
+      const pageIds = availableIds.slice(start, end + 1);
+      if (!pageIds.length) return [];
+
+      const itemsQuery = supabase
+        .from('items')
+        .select(`
+          id, title, price_per_day, category, location,
+          owner:owner_id (is_verified, verification_level),
+          images:item_images (image_url)
+        `)
+        .in('id', pageIds);
+      if (sortBy === 'price_low') itemsQuery.order('price_per_day', { ascending: true });
+      else if (sortBy === 'price_high') itemsQuery.order('price_per_day', { ascending: false });
+      else itemsQuery.order('created_at', { ascending: false });
+
+      const { data: items } = await itemsQuery;
+      return items || [];
     }
 
+    const query = await buildFilterQuery(false);
+    const { data, error } = await query;
+    if (error) throw error;
     return data || [];
   };
 
@@ -378,7 +395,7 @@ export default function Search() {
                     min_price: minPrice ? parseFloat(minPrice) : null,
                     max_price: maxPrice ? parseFloat(maxPrice) : null,
                     sort_by: sortBy,
-                    name: searchQuery || `${category !== 'all' ? category : 'all'} items`,
+                    label: searchQuery || `${category !== 'all' ? category : 'all'} items`,
                     notify_on_new: false,
                   });
                   if (error) throw error;

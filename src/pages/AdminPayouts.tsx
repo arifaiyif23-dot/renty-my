@@ -180,79 +180,57 @@ export default function AdminPayouts() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <GlassCard>
-              
-                Pending Payouts
-              
-              
-                <div className="text-2xl font-bold">{stats.totalPending}</div>
-              
+            <GlassCard padding="md">
+              <p className="text-sm text-muted-foreground mb-1">Pending Payouts</p>
+              <div className="text-2xl font-bold">{stats.totalPending}</div>
             </GlassCard>
 
-            <GlassCard>
-              
-                Completed
-              
-              
-                <div className="text-2xl font-bold">{stats.totalCompleted}</div>
-              
+            <GlassCard padding="md">
+              <p className="text-sm text-muted-foreground mb-1">Completed</p>
+              <div className="text-2xl font-bold">{stats.totalCompleted}</div>
             </GlassCard>
 
-            <GlassCard>
-              
-                Total Payouts
-              
-              
-                <div className="text-2xl font-bold">RM {stats.totalAmount.toFixed(2)}</div>
-              
+            <GlassCard padding="md">
+              <p className="text-sm text-muted-foreground mb-1">Total Payouts</p>
+              <div className="text-2xl font-bold">RM {stats.totalAmount.toFixed(2)}</div>
             </GlassCard>
 
-            <GlassCard>
-              
-                Platform Revenue
-              
-              
-                <div className="text-2xl font-bold text-success">RM {stats.platformRevenue.toFixed(2)}</div>
-              
+            <GlassCard padding="md">
+              <p className="text-sm text-muted-foreground mb-1">Platform Revenue</p>
+              <div className="text-2xl font-bold text-success">RM {stats.platformRevenue.toFixed(2)}</div>
             </GlassCard>
           </div>
 
           {/* Filters */}
-          <GlassCard className="mb-6">
-            
-              <div className="flex items-center gap-4">
-                <Filter className="h-5 w-5 text-muted-foreground" />
-                <div className="flex gap-2">
-                  {['all', 'held', 'awaiting_bank_details', 'pending', 'completed', 'failed'].map((status) => (
-                    <Button className="rounded-xl"
-                      key={status}
-                      variant={filter === status ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setFilter(status)}
-                    >
-                      {status === 'awaiting_bank_details' ? 'No Bank' : status.charAt(0).toUpperCase() + status.slice(1)}
-                    </Button>
-                  ))}
-                </div>
+          <GlassCard className="mb-6" padding="md">
+            <div className="flex items-center gap-4">
+              <Filter className="h-5 w-5 text-muted-foreground" />
+              <div className="flex gap-2">
+                {['all', 'held', 'awaiting_bank_details', 'pending', 'completed', 'failed'].map((status) => (
+                  <Button className="rounded-xl"
+                    key={status}
+                    variant={filter === status ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter(status)}
+                  >
+                    {status === 'awaiting_bank_details' ? 'No Bank' : status.charAt(0).toUpperCase() + status.slice(1)}
+                  </Button>
+                ))}
               </div>
-            
+            </div>
           </GlassCard>
 
           {/* Payouts List */}
-          <GlassCard>
-            
-              Payouts
-              
-                {filteredPayouts.length} payout(s)
-              
-            
-            
-              {filteredPayouts.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No payouts found</p>
-                </div>
-              ) : (
+          <GlassCard padding="md">
+            <h3 className="font-semibold mb-1">Payouts</h3>
+            <p className="text-sm text-muted-foreground mb-4">{filteredPayouts.length} payout(s)</p>
+
+            {filteredPayouts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No payouts found</p>
+              </div>
+            ) : (
                 <div className="space-y-4">
                   {filteredPayouts.map((payout) => (
                     <div key={payout.id} className="border rounded-lg p-4">
@@ -336,7 +314,6 @@ export default function AdminPayouts() {
                   ))}
                 </div>
               )}
-            
           </GlassCard>
         </div>
 

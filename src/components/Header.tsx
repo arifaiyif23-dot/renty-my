@@ -126,7 +126,7 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center" aria-label="Go to RENTY homepage">
-                <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
+                <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" loading="lazy" />
               </Link>
             </div>
 

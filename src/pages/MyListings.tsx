@@ -104,6 +104,7 @@ export default function MyListings() {
       return data;
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 2,
   });
 
   const { data: stats } = useQuery({
@@ -138,6 +139,7 @@ export default function MyListings() {
       };
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 5,
   });
 
   const { data: incomingRequests } = useQuery({
@@ -160,6 +162,7 @@ export default function MyListings() {
       return data || [];
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 2,
   });
 
   const handleStatusChange = async (itemId: string, newStatus: string) => {
@@ -479,6 +482,7 @@ export default function MyListings() {
                         src={imageUrl}
                         alt={item.title}
                         className="w-full h-44 md:h-48 object-cover"
+                        loading="lazy"
                       />
                     )}
                     <Badge

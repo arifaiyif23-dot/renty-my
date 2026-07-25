@@ -114,50 +114,48 @@ export default function AdminListings() {
           </div>
         </div>
 
-        <GlassCard className="mb-6">
-          
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by title, owner, or location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="rounded-xl pl-10"
-                  />
-                </div>
+        <GlassCard className="mb-6" padding="md">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by title, owner, or location..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="rounded-xl pl-10"
+                />
               </div>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="rounded-xl">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="vehicles">Vehicles</SelectItem>
-                  <SelectItem value="tools">Tools</SelectItem>
-                  <SelectItem value="sports">Sports</SelectItem>
-                  <SelectItem value="party">Party</SelectItem>
-                  <SelectItem value="fashion">Fashion</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="visible">Visible</SelectItem>
-                  <SelectItem value="hidden">Hidden</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-          
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="rounded-xl">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="electronics">Electronics</SelectItem>
+                <SelectItem value="vehicles">Vehicles</SelectItem>
+                <SelectItem value="tools">Tools</SelectItem>
+                <SelectItem value="sports">Sports</SelectItem>
+                <SelectItem value="party">Party</SelectItem>
+                <SelectItem value="fashion">Fashion</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="visible">Visible</SelectItem>
+                <SelectItem value="hidden">Hidden</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </GlassCard>
 
         {loading ? (
@@ -165,73 +163,69 @@ export default function AdminListings() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
-          <GlassCard>
-            
-              No listings found
-            
+          <GlassCard padding="lg">
+            <p className="text-center text-muted-foreground">No listings found</p>
           </GlassCard>
         ) : (
           <div className="space-y-3">
             {filtered.map((item) => (
-              <GlassCard key={item.id} className={!item.is_available ? "opacity-70" : ""}>
-                
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
-                      {item.item_images?.[0]?.image_url && (
-                        <img
-                          src={item.item_images[0].image_url}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+              <GlassCard key={item.id} className={!item.is_available ? "opacity-70" : ""} padding="md">
+                <div className="flex items-start gap-4">
+                  <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
+                    {item.item_images?.[0]?.image_url && (
+                      <img
+                        src={item.item_images[0].image_url}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium truncate">{item.title}</span>
+                      <Badge variant="secondary" className="capitalize text-xs rounded-full">
+                        {item.category}
+                      </Badge>
+                      {item.is_available ? (
+                        <Badge className="bg-success text-xs rounded-full">Visible</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">{item.title}</span>
-                        <Badge variant="secondary" className="capitalize text-xs rounded-full">
-                          {item.category}
-                        </Badge>
-                        {item.is_available ? (
-                          <Badge className="bg-success text-xs rounded-full">Visible</Badge>
-                        ) : (
-                          <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
-                        <span>Owner: {item.owner?.full_name || "Unknown"}</span>
-                        <span>RM{item.price_per_day}/day</span>
-                        <span>{item.location}</span>
-                        <span>Listed {format(new Date(item.created_at), "MMM d, yyyy")}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button className="rounded-xl"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate(`/items/${item.id}`)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button className="rounded-xl"
-                        size="sm"
-                        variant={item.is_available ? "secondary" : "default"}
-                        onClick={() => toggleVisibility(item.id, item.is_available)}
-                        disabled={processing === item.id}
-                      >
-                        {processing === item.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : item.is_available ? (
-                          <EyeOff className="h-4 w-4 mr-1" />
-                        ) : (
-                          <Eye className="h-4 w-4 mr-1" />
-                        )}
-                        {item.is_available ? "Hide" : "Show"}
-                      </Button>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+                      <span>Owner: {item.owner?.full_name || "Unknown"}</span>
+                      <span>RM{item.price_per_day}/day</span>
+                      <span>{item.location}</span>
+                      <span>Listed {format(new Date(item.created_at), "MMM d, yyyy")}</span>
                     </div>
                   </div>
-                
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button className="rounded-xl"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate(`/items/${item.id}`)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button className="rounded-xl"
+                      size="sm"
+                      variant={item.is_available ? "secondary" : "default"}
+                      onClick={() => toggleVisibility(item.id, item.is_available)}
+                      disabled={processing === item.id}
+                    >
+                      {processing === item.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : item.is_available ? (
+                        <EyeOff className="h-4 w-4 mr-1" />
+                      ) : (
+                        <Eye className="h-4 w-4 mr-1" />
+                      )}
+                      {item.is_available ? "Hide" : "Show"}
+                    </Button>
+                  </div>
+                </div>
               </GlassCard>
             ))}
           </div>

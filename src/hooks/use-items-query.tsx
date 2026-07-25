@@ -44,6 +44,7 @@ export const useWishlistQuery = (userId?: string) => {
       }));
     },
     enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
   });
 };
 

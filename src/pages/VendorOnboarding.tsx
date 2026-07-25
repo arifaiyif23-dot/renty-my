@@ -82,7 +82,7 @@ export default function VendorOnboarding() {
               (i === 0 && profile?.is_verified) ||
               (i === 1 && false);
             return (
-              <GlassCard key={i} variant={done ? "subtle" : "default"} padding="md" className={done ? "border-primary/40" : ""}>
+              <GlassCard key={s.title} variant={done ? "subtle" : "default"} padding="md" className={done ? "border-primary/40" : ""}>
                 <div className="flex items-start gap-4">
                   <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
                     done ? "bg-primary text-primary-foreground" : "bg-muted"

@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle, XCircle, Keyboard, Loader2 } from "lucide-react";
+import { Keyboard, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { VerificationAnalytics } from "@/components/VerificationAnalytics";
 import { DocumentViewerModal } from "@/components/DocumentViewerModal";
 import { useAdminKeyboardShortcuts } from "@/hooks/use-admin-keyboard-shortcuts";
-import { useAdminVerificationData, type VerificationRequest } from "@/hooks/use-admin-verification-data";
+import { useAdminVerificationData } from "@/hooks/use-admin-verification-data";
 import { useAdminVerificationActions } from "@/hooks/use-admin-verification-actions";
 import { AdminVerificationStats } from "@/components/admin/AdminVerificationStats";
 import { AdminVerificationFilterBar } from "@/components/admin/AdminVerificationFilterBar";
@@ -64,6 +64,14 @@ export default function AdminVerification() {
   const currentPendingVerification = selectedIndex >= 0 && selectedIndex < pendingVerifications.length
     ? pendingVerifications[selectedIndex]
     : null;
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && selectedIndex >= pendingVerifications.length) {
+      setSelectedVerification(null);
+      setSelectedIndex(-1);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingVerifications.length, selectedIndex]);
 
   useAdminKeyboardShortcuts({
     onApprove: currentPendingVerification ? () => openActionDialog(currentPendingVerification, 'approve') : undefined,

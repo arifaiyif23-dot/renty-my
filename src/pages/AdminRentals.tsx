@@ -103,56 +103,38 @@ export default function AdminRentals() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <GlassCard>
-            
-              Total Rentals
-            
-            
-              <div className="text-2xl font-bold">{stats.total}</div>
-            
+          <GlassCard padding="md">
+            <p className="text-sm text-muted-foreground mb-1">Total Rentals</p>
+            <div className="text-2xl font-bold">{stats.total}</div>
           </GlassCard>
-          <GlassCard>
-            
-              Active
-            
-            
-              <div className="text-2xl font-bold text-success">{stats.active}</div>
-            
+          <GlassCard padding="md">
+            <p className="text-sm text-muted-foreground mb-1">Active</p>
+            <div className="text-2xl font-bold text-success">{stats.active}</div>
           </GlassCard>
-          <GlassCard>
-            
-              Completed
-            
-            
-              <div className="text-2xl font-bold">{stats.completed}</div>
-            
+          <GlassCard padding="md">
+            <p className="text-sm text-muted-foreground mb-1">Completed</p>
+            <div className="text-2xl font-bold">{stats.completed}</div>
           </GlassCard>
-          <GlassCard>
-            
-              Disputed
-            
-            
-              <div className="text-2xl font-bold text-warning">{stats.disputed}</div>
-            
+          <GlassCard padding="md">
+            <p className="text-sm text-muted-foreground mb-1">Disputed</p>
+            <div className="text-2xl font-bold text-warning">{stats.disputed}</div>
           </GlassCard>
         </div>
 
-        <GlassCard className="mb-6">
-          
-            <div className="flex items-center gap-4">
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full md:w-[250px] rounded-xl">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          
+        <GlassCard className="mb-6" padding="md">
+          <div className="flex items-center gap-4">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full md:w-[250px] rounded-xl">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </GlassCard>
 
         {loading ? (
@@ -160,42 +142,38 @@ export default function AdminRentals() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : rentals.length === 0 ? (
-          <GlassCard>
-            
-              No rentals found
-            
+          <GlassCard padding="lg">
+            <p className="text-center text-muted-foreground">No rentals found</p>
           </GlassCard>
         ) : (
           <div className="space-y-3">
             {rentals.map((rental) => {
               const sb = STATUS_BADGE[rental.status] || { class: "", label: rental.status };
               return (
-                <GlassCard key={rental.id}>
-                  
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge className={sb.class}>{sb.label}</Badge>
-                          {rental.is_disputed && (
-                            <Badge variant="destructive" className="text-xs rounded-full">Disputed</Badge>
-                          )}
-                        </div>
-                        <div className="mt-1">
-                          <span className="font-medium">{rental.item?.title || "Unknown item"}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
-                          <span>Renter: {rental.renter?.full_name || "Unknown"}</span>
-                          <span>Owner: {rental.owner?.full_name || "Unknown"}</span>
-                          <span>RM{Number(rental.total_price).toFixed(2)}</span>
-                          <span>{format(new Date(rental.start_date), "MMM d")} - {format(new Date(rental.end_date), "MMM d, yyyy")}</span>
-                        </div>
+                <GlassCard key={rental.id} padding="md">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className={sb.class}>{sb.label}</Badge>
+                        {rental.is_disputed && (
+                          <Badge variant="destructive" className="text-xs rounded-full">Disputed</Badge>
+                        )}
                       </div>
-                      <div className="text-xs text-muted-foreground shrink-0 text-right">
-                        <div>{format(new Date(rental.created_at), "MMM d, yyyy")}</div>
-                        <div className="text-[10px]">ID: {rental.id.slice(0, 8)}</div>
+                      <div className="mt-1">
+                        <span className="font-medium">{rental.item?.title || "Unknown item"}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+                        <span>Renter: {rental.renter?.full_name || "Unknown"}</span>
+                        <span>Owner: {rental.owner?.full_name || "Unknown"}</span>
+                        <span>RM{Number(rental.total_price).toFixed(2)}</span>
+                        <span>{format(new Date(rental.start_date), "MMM d")} - {format(new Date(rental.end_date), "MMM d, yyyy")}</span>
                       </div>
                     </div>
-                  
+                    <div className="text-xs text-muted-foreground shrink-0 text-right">
+                      <div>{format(new Date(rental.created_at), "MMM d, yyyy")}</div>
+                      <div className="text-[10px]">ID: {rental.id.slice(0, 8)}</div>
+                    </div>
+                  </div>
                 </GlassCard>
               );
             })}

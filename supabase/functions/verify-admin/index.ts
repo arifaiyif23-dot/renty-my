@@ -59,7 +59,8 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch {
+  } catch (error) {
+    console.error('verify-admin unexpected error:', error);
     return new Response(
       JSON.stringify({ isAdmin: false, error: 'Verification failed' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

@@ -37,21 +37,12 @@ export default function PaymentSuccess() {
         .from('payments')
         .select('total_amount, rental:rentals!rental_id!inner(item:items(title))');
 
-      if (orderId) {
-        query = query.eq('id', orderId);
-      } else {
-        const { data: userRentals } = await supabase
-          .from('rentals')
-          .select('id')
-          .eq('renter_id', user!.id);
-
-        if (userRentals?.length) {
-          query = query.in('rental_id', userRentals.map(r => r.id));
-        } else {
-          setLoading(false);
-          return;
-        }
+      if (!orderId) {
+        // Without an explicit order_id from the URL, skip payment-specific info
+        setLoading(false);
+        return;
       }
+      query = query.eq('id', orderId);
 
       const { data } = await query
         .order('created_at', { ascending: false })

@@ -62,7 +62,7 @@ export default function Dashboard() {
       const [rentalsData, itemsCount, reviewsData] = await Promise.all([
         supabase.from('rentals').select('total_price, status').or(`owner_id.eq.${user.id},renter_id.eq.${user.id}`),
         supabase.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', user.id),
-        supabase.from('reviews').select('rating').eq('reviewed_id', user.id),
+        supabase.from('reviews').select('rating').eq('reviewee_id', user.id),
       ]);
 
       const activeRentals = (rentalsData.data || []).filter(r => ['paid', 'active'].includes(r.status)).length;
@@ -95,7 +95,8 @@ export default function Dashboard() {
           owner:profiles!rentals_owner_id_fkey(full_name, avatar_url)
         `)
         .or(`renter_id.eq.${user?.id},owner_id.eq.${user?.id}`)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (error) throw error;
       setRentals((data || []) as Rental[]);
@@ -108,9 +109,19 @@ export default function Dashboard() {
 
   const { isRefreshing, pullDistance } = usePullToRefresh(fetchRentals);
 
+  const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+    pending_approval: ['approved', 'rejected', 'cancelled'],
+    approved: ['active', 'cancelled'],
+    active: ['completed', 'disputed'],
+    paid: ['active', 'completed', 'cancelled'],
+  };
+
   const updateRentalStatus = async (rentalId: string, status: Rental['status']) => {
     const rental = rentals.find(r => r.id === rentalId);
     if (!rental) throw new Error('Rental not found');
+    if (!ALLOWED_TRANSITIONS[rental.status]?.includes(status)) {
+      throw new Error(`Cannot change rental from '${rental.status}' to '${status}'`);
+    }
     const { error } = await supabase.from('rentals').update({ status }).eq('id', rentalId);
     if (error) throw error;
     fetchRentals();

@@ -65,11 +65,12 @@ export default function Profile() {
     );
   }
 
-  const initials = profile.full_name
+  const initials = (profile.full_name || '')
     .split(" ")
     .map((n) => n[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase()
+    .slice(0, 2) || 'U';
 
   return (
     <>
@@ -195,7 +196,7 @@ export default function Profile() {
                   <ListChecks className="h-4 w-4 mr-2" />
                   {t('profile.manageListing')}
                 </Button>
-                {isAdmin && (
+                {isAdmin?.isAdmin && (
                   <Link to="/admin">
                     <Button size="sm" variant="secondary">
                       <ShieldCheck className="h-4 w-4 mr-2" />

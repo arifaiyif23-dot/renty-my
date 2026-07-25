@@ -82,7 +82,8 @@ serve(async (req) => {
       throw new Error('Renter must be verified to create booking requests');
     }
 
-    // Server-side promo code validation
+    // Server-side promo code validation with atomic usage increment (prevents TOCTOU)
+    let currentPromoUses = 0;
     if (promoCodeId) {
       const { data: promoCode, error: promoError } = await supabase
         .from('promo_codes')
@@ -117,6 +118,8 @@ serve(async (req) => {
       if (existingUsage) {
         throw new Error('You have already used this promo code');
       }
+
+      currentPromoUses = promoCode.current_uses;
     }
 
     // Determine rental status
@@ -172,6 +175,22 @@ serve(async (req) => {
         .from('rentals')
         .update({ pickup_code: pickupCode })
         .eq('id', rpcResult.rental_id);
+    }
+
+    // Atomically increment promo code usage (compare-and-swap — TOCTOU prevention)
+    if (promoCodeId) {
+      const { data: updatedPromo } = await supabase
+        .from('promo_codes')
+        .update({ current_uses: currentPromoUses + 1 })
+        .eq('id', promoCodeId)
+        .eq('current_uses', currentPromoUses)
+        .select('id')
+        .maybeSingle();
+
+      if (!updatedPromo) {
+        await supabase.from('rentals').delete().eq('id', rpcResult.rental_id);
+        throw new Error('Promo code usage limit reached. Please try again.');
+      }
     }
 
     // Store promo info on the rental for payment flow

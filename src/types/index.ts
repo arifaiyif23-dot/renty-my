@@ -179,6 +179,11 @@ export interface Message {
   content: string;
   is_read: boolean;
   created_at: string;
+  read_at?: string;
+  delivered_at?: string;
+  attachment_url?: string;
+  attachment_type?: string;
+  pending?: boolean;
   sender?: Profile;
   recipient?: Profile;
 }

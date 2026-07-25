@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ interface RentalCardProps {
   onReviewSuccess: () => void;
 }
 
-export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }: RentalCardProps) {
+const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: RentalCardProps) => {
   const { t } = useTranslation();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -148,6 +148,7 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
                 src={rental.item.images[0].image_url}
                 alt={rental.item.title}
                 className="object-cover w-full h-full"
+                loading="lazy"
               />
               <Badge className={`absolute top-2 left-2 gap-1 ${getStatusColor(rental.status)}`}>
                 {getStatusIcon(rental.status)}
@@ -579,4 +580,6 @@ export function RentalCard({ rental, isOwner, onStatusUpdate, onReviewSuccess }:
       />
     </>
   );
-}
+});
+
+export { RentalCard };

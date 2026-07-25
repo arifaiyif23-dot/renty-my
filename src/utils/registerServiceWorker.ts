@@ -5,8 +5,6 @@ export const registerServiceWorker = async () => {
         scope: '/',
       });
 
-      console.debug('Service Worker registered:', registration);
-
       // Check for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
@@ -14,7 +12,6 @@ export const registerServiceWorker = async () => {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker available
-              console.debug('New service worker available');
             }
           });
         }
@@ -30,7 +27,6 @@ export const unregisterServiceWorker = async () => {
     const registration = await navigator.serviceWorker.getRegistration();
     if (registration) {
       await registration.unregister();
-      console.debug('Service Worker unregistered');
     }
   }
 };

@@ -40,6 +40,17 @@ serve(async (req) => {
 
     console.log('Processing verification for user:', user.id);
 
+    // Rate limit: max 3 submissions per hour per user
+    const { count: recentCount, error: countError } = await supabase
+      .from('verification_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', new Date(Date.now() - 3600000).toISOString());
+
+    if (!countError && recentCount && recentCount >= 3) {
+      throw new Error('Too many verification submissions. Please wait before submitting again.');
+    }
+
     const { verificationId } = await req.json();
 
     if (!verificationId) {
@@ -49,7 +60,7 @@ serve(async (req) => {
     // Get verification request details
     const { data: verification, error: fetchError } = await supabase
       .from('verification_requests')
-      .select('*')
+      .select('id, user_id, document_type, document_front_url, document_back_url, selfie_url, full_name_on_document, video_liveness_url, liveness_video_frames, status')
       .eq('id', verificationId)
       .eq('user_id', user.id)
       .single();
@@ -72,6 +83,27 @@ serve(async (req) => {
       throw new Error("Failed to update status");
     }
 
+    // Generate signed URLs for AI analysis (URLs must be accessible to the AI gateway)
+    const signedUrlOptions = { expiresIn: 600 };
+    const { data: signedFront } = await supabase.storage
+      .from('verification-documents')
+      .createSignedUrl(verification.document_front_url, signedUrlOptions);
+    const signedSelfie = verification.selfie_url
+      ? (await supabase.storage.from('verification-documents').createSignedUrl(verification.selfie_url, signedUrlOptions)).data
+      : null;
+    const signedBack = verification.document_back_url
+      ? (await supabase.storage.from('verification-documents').createSignedUrl(verification.document_back_url, signedUrlOptions)).data
+      : null;
+
+    const signedLivenessFrames = verification.liveness_video_frames
+      ? await Promise.all(
+          (verification.liveness_video_frames as string[]).map(async (framePath: string) => {
+            const { data } = await supabase.storage.from('verification-documents').createSignedUrl(framePath, signedUrlOptions);
+            return data?.signedUrl || framePath;
+          })
+        )
+      : [];
+
     // Call AI verification
     console.log('Calling verify-document-ai function...');
     const aiResult = await fetch(`${supabaseUrl}/functions/v1/verify-document-ai`, {
@@ -81,13 +113,13 @@ serve(async (req) => {
         'Authorization': authHeader
       },
       body: JSON.stringify({
-        documentFrontUrl: verification.document_front_url,
-        documentBackUrl: verification.document_back_url,
-        selfieUrl: verification.selfie_url,
+        documentFrontUrl: signedFront?.signedUrl || verification.document_front_url,
+        documentBackUrl: signedBack?.signedUrl || verification.document_back_url,
+        selfieUrl: signedSelfie?.signedUrl || verification.selfie_url,
         documentType: verification.document_type,
         fullNameOnDocument: verification.full_name_on_document,
         livenessVideoUrl: verification.video_liveness_url,
-        livenessVideoFrames: verification.liveness_video_frames
+        livenessVideoFrames: signedLivenessFrames.length > 0 ? signedLivenessFrames : verification.liveness_video_frames
       })
     });
 
@@ -156,15 +188,18 @@ serve(async (req) => {
       throw new Error("Failed to save verification results");
     }
 
-    // Create notification
+    // Create notification (only after all updates succeed)
     console.log('Creating notification...');
-    await supabase.from('notifications').insert({
+    const { error: notifError } = await supabase.from('notifications').insert({
       user_id: user.id,
       type: 'verification_pending',
       title: 'Verification Under Review',
       message: 'Your verification is being reviewed by our team. We will notify you once it is complete.',
       link: '/profile'
     });
+    if (notifError) {
+      console.error('Failed to create notification:', notifError);
+    }
 
     // Create audit log entry
     await supabase.from('verification_audit_log').insert({
@@ -179,6 +214,26 @@ serve(async (req) => {
         processing_time_ms: aiData.processingTimeMs
       }
     });
+
+    // Auto-create fraud alert if risk score exceeds threshold
+    const riskScore = aiData.fraudIndicators?.riskScore || 0;
+    if (riskScore > 50 || (aiData.fraudIndicators?.flags && aiData.fraudIndicators.flags.length > 0)) {
+      await supabase.from('fraud_alerts').insert({
+        user_id: user.id,
+        alert_type: 'ai_detected_risk',
+        risk_score: riskScore,
+        status: 'pending',
+        details: {
+          verification_id: verificationId,
+          flags: aiData.fraudIndicators?.flags || [],
+          overall_confidence: aiData.overallConfidence,
+          face_match_score: aiData.faceMatchResult?.faceMatchScore,
+          document_type: verification.document_type,
+        }
+      }).then(({ error: alertError }) => {
+        if (alertError) console.error('Failed to create fraud alert:', alertError);
+      });
+    }
 
     console.log('Verification submission complete:', {
       status: finalStatus,

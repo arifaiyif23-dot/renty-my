@@ -109,9 +109,9 @@ export default function AdminUsers() {
 
   const filtered = users.filter((u) => {
     const name = u.full_name?.toLowerCase() || "";
-    const email = u.id?.toLowerCase() || "";
+    const userId = u.id?.toLowerCase() || "";
     const query = searchQuery.toLowerCase();
-    if (query && !name.includes(query) && !email.includes(query)) return false;
+    if (query && !name.includes(query) && !userId.includes(query)) return false;
     if (filterRole !== "all" && u.role !== filterRole) return false;
     if (filterStatus === "suspended" && !u.is_suspended) return false;
     if (filterStatus === "active" && u.is_suspended) return false;
@@ -130,44 +130,42 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        <GlassCard className="mb-6">
-          
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by name or ID..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="rounded-xl pl-10"
-                  />
-                </div>
+        <GlassCard className="mb-6" padding="md">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="rounded-xl pl-10"
+                />
               </div>
-              <Select value={filterRole} onValueChange={setFilterRole}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="moderator">Moderator</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                  <SelectItem value="deleted">Deleted</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-          
+            <Select value={filterRole} onValueChange={setFilterRole}>
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="moderator">Moderator</SelectItem>
+                <SelectItem value="user">User</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="rounded-xl">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="deleted">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </GlassCard>
 
         {loading ? (
@@ -177,77 +175,73 @@ export default function AdminUsers() {
         ) : (
           <div className="grid gap-4">
             {filtered.length === 0 ? (
-              <GlassCard>
-                
-                  No users found
-                
+              <GlassCard padding="lg">
+                <p className="text-center text-muted-foreground">No users found</p>
               </GlassCard>
             ) : (
               filtered.map((u) => {
                 const roleConfig = ROLE_OPTIONS.find((r) => r.value === u.role) || ROLE_OPTIONS[2];
                 return (
-                  <GlassCard key={u.id} className={u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""}>
-                    
-                      <div className="flex items-start gap-4">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={u.avatar_url} />
-                          <AvatarFallback>{(u.full_name || "U")[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-medium">{u.full_name || "Unnamed"}</span>
-                            <Badge variant="outline" className={roleConfig.color}>
-                              {roleConfig.label}
-                            </Badge>
-                            {u.is_verified && <Badge variant="secondary" className="text-xs rounded-full">Verified</Badge>}
-                            {u.is_suspended && <Badge variant="destructive" className="text-xs rounded-full">Suspended</Badge>}
-                            {u.is_deleted && <Badge variant="outline" className="text-xs rounded-full">Deleted</Badge>}
-                          </div>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
-                            <span>ID: {u.id.slice(0, 8)}...</span>
-                            {u.location && <span>{u.location}</span>}
-                            <span>Joined {format(new Date(u.created_at), "MMM yyyy")}</span>
-                            {u.suspended_at && (
-                              <span className="text-warning">
-                                Suspended {format(new Date(u.suspended_at), "MMM d, yyyy")}
-                              </span>
-                            )}
-                          </div>
-                          {u.suspension_reason && (
-                            <p className="text-xs text-warning mt-1">Reason: {u.suspension_reason}</p>
+                  <GlassCard key={u.id} className={u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""} padding="md">
+                    <div className="flex items-start gap-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={u.avatar_url} />
+                        <AvatarFallback>{(u.full_name || "U")[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium">{u.full_name || "Unnamed"}</span>
+                          <Badge variant="outline" className={roleConfig.color}>
+                            {roleConfig.label}
+                          </Badge>
+                          {u.is_verified && <Badge variant="secondary" className="text-xs rounded-full">Verified</Badge>}
+                          {u.is_suspended && <Badge variant="destructive" className="text-xs rounded-full">Suspended</Badge>}
+                          {u.is_deleted && <Badge variant="outline" className="text-xs rounded-full">Deleted</Badge>}
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+                          <span>ID: {u.id.slice(0, 8)}...</span>
+                          {u.location && <span>{u.location}</span>}
+                          <span>Joined {format(new Date(u.created_at), "MMM yyyy")}</span>
+                          {u.suspended_at && (
+                            <span className="text-warning">
+                              Suspended {format(new Date(u.suspended_at), "MMM d, yyyy")}
+                            </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <a
-                            href={`/admin/users/${u.id}`}
-                            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted transition-colors"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">View</span>
-                          </a>
-                          {u.is_suspended ? (
-                            <Button className="rounded-xl"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleUnsuspend(u)}
-                              disabled={processing === u.id}
-                            >
-                              {processing === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                              Unsuspend
-                            </Button>
-                          ) : !u.is_deleted ? (
-                            <Button className="rounded-xl"
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => { setSuspendUser(u); setSuspendReason(""); }}
-                            >
-                              <Ban className="h-4 w-4 mr-1" />
-                              Suspend
-                            </Button>
-                          ) : null}
-                        </div>
+                        {u.suspension_reason && (
+                          <p className="text-xs text-warning mt-1">Reason: {u.suspension_reason}</p>
+                        )}
                       </div>
-                    
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <a
+                          href={`/admin/users/${u.id}`}
+                          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted transition-colors"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">View</span>
+                        </a>
+                        {u.is_suspended ? (
+                          <Button className="rounded-xl"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleUnsuspend(u)}
+                            disabled={processing === u.id}
+                          >
+                            {processing === u.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                            Unsuspend
+                          </Button>
+                        ) : !u.is_deleted ? (
+                          <Button className="rounded-xl"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => { setSuspendUser(u); setSuspendReason(""); }}
+                          >
+                            <Ban className="h-4 w-4 mr-1" />
+                            Suspend
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
                   </GlassCard>
                 );
               })

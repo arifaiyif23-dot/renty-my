@@ -201,7 +201,6 @@ export default function Verification() {
 
       if (createError) throw createError;
 
-      setVerificationId(verification.id);
       toast.dismiss(createToast);
 
       // Call AI verification edge function
@@ -350,6 +349,7 @@ export default function Verification() {
                         src={frontUrl}
                         alt="Document front" 
                         className="max-h-64 mx-auto rounded"
+                        loading="lazy"
                       />
                       <Button variant="outline" onClick={() => frontInputRef.current?.click()}>
                         <Upload className="h-4 w-4 mr-2" />
@@ -393,6 +393,7 @@ export default function Verification() {
                         src={backUrl}
                         alt="Document back" 
                         className="max-h-64 mx-auto rounded"
+                        loading="lazy"
                       />
                       <Button variant="outline" onClick={() => backInputRef.current?.click()}>
                         <Upload className="h-4 w-4 mr-2" />
@@ -453,6 +454,7 @@ export default function Verification() {
                             src={selfieUrl}
                             alt="Selfie" 
                             className="max-h-64 mx-auto rounded"
+                            loading="lazy"
                           />
                           <Button variant="outline" onClick={() => selfieInputRef.current?.click()}>
                             <Upload className="h-4 w-4 mr-2" />

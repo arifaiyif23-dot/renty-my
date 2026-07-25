@@ -6,6 +6,7 @@ export function useActiveStatus(userId?: string | null) {
 
   const ping = async () => {
     if (!userId) return;
+    if (document.visibilityState !== 'visible') return;
     try {
       await supabase
         .from("profiles")

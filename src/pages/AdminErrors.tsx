@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,7 @@ export default function AdminErrors() {
     return colors[type] || "bg-gray-100 text-gray-800";
   };
 
-  const types = [...new Set(errors.map((e) => e.error_type))];
+  const types = useMemo(() => [...new Set(errors.map((e) => e.error_type))], [errors]);
 
   if (loading && errors.length === 0) {
     return (

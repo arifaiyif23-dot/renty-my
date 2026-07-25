@@ -36,20 +36,12 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Verify admin access
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       throw new Error('Unauthorized');
     }
 
-    const { data: adminCheck } = await supabase.functions.invoke('verify-admin');
-    if (!adminCheck?.isAdmin) {
-      throw new Error('Admin access required');
-    }
-
-    const body = await req.json();
-    const validatedData = resolutionSchema.parse(body);
-
+    // Verify admin access via direct DB query (avoids fragile functions.invoke call)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -60,6 +52,20 @@ Deno.serve(async (req) => {
         }
       }
     );
+
+    const { data: roleData, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['admin', 'super_admin'])
+      .maybeSingle();
+
+    if (roleError || !roleData) {
+      throw new Error('Admin access required');
+    }
+
+    const body = await req.json();
+    const validatedData = resolutionSchema.parse(body);
 
     console.log('Resolving dispute for rental:', validatedData.rentalId);
 

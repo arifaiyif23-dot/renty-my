@@ -158,68 +158,57 @@ export default function AdminHealth() {
           />
         </div>
 
-        <GlassCard>
-          
-            
-              <CheckCircle2 className="h-4 w-4" /> Readiness checklist
-            
-          
-          
+        <GlassCard padding="lg">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" /> Readiness checklist
+          </h3>
+          <div className="space-y-2">
             <CheckRow ok={stats?.encryption_self_test === true} label="Encryption self-test (round-trip pass)" />
             <CheckRow ok={stats?.pgcrypto_installed === true} label="pgcrypto extension installed" />
             <CheckRow ok={(stats?.payments_paid_today ?? 0) > 0 || (stats?.payouts_held ?? 0) > 0} label="At least one successful end-to-end payment processed" />
             <CheckRow ok={(stats?.emails_delivered_today ?? 0) > 0} label="Resend delivering emails today" />
             <CheckRow ok={(stats?.payouts_awaiting_bank ?? 0) === 0} label="No payouts blocked on missing bank details" />
-          
+          </div>
         </GlassCard>
 
-        <GlassCard>
-          
-            
-              <Mail className="h-4 w-4" /> Send test email
-            
-          
-          
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="email"
-                placeholder="recipient@example.com"
-                value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
-                className="rounded-xl flex-1 rounded-md border bg-background px-3 py-2 text-sm"
-              />
-              <Button className="rounded-xl" onClick={sendTestEmail} disabled={testEmailSending}>
-                {testEmailSending ? "Sending..." : "Send test"}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">Verifies Resend domain + edge function delivery end-to-end.</p>
-          
+        <GlassCard padding="lg">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <Mail className="h-4 w-4" /> Send test email
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              placeholder="recipient@example.com"
+              value={testEmail}
+              onChange={(e) => setTestEmail(e.target.value)}
+              className="rounded-xl flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <Button className="rounded-xl" onClick={sendTestEmail} disabled={testEmailSending}>
+              {testEmailSending ? "Sending..." : "Send test"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Verifies Resend domain + edge function delivery end-to-end.</p>
         </GlassCard>
 
-
-        <GlassCard>
-          
-            Recent payment flow logs
-          
-          
-            {logs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No payment flow events yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {logs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between text-sm border-b py-2 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <Badge className="rounded-full" variant="outline">{log.stage}</Badge>
-                      <span className="text-muted-foreground text-xs">{new Date(log.created_at).toLocaleString()}</span>
-                    </div>
-                    {log.rental_id && (
-                      <code className="text-xs text-muted-foreground">{log.rental_id.slice(0, 8)}</code>
-                    )}
+        <GlassCard padding="lg">
+          <h3 className="font-semibold mb-4">Recent payment flow logs</h3>
+          {logs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No payment flow events yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {logs.map((log) => (
+                <div key={log.id} className="flex items-center justify-between text-sm border-b py-2 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <Badge className="rounded-full" variant="outline">{log.stage}</Badge>
+                    <span className="text-muted-foreground text-xs">{new Date(log.created_at).toLocaleString()}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          
+                  {log.rental_id && (
+                    <code className="text-xs text-muted-foreground">{log.rental_id.slice(0, 8)}</code>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </GlassCard>
       </main>
     </AdminLayout>
@@ -228,12 +217,10 @@ export default function AdminHealth() {
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string | number; sub?: string }) {
   return (
-    <GlassCard>
-      
-        <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">{icon}{label}</div>
-        <div className="text-2xl font-bold">{value}</div>
-        {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
-      
+    <GlassCard padding="md">
+      <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">{icon}{label}</div>
+      <div className="text-2xl font-bold">{value}</div>
+      {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
     </GlassCard>
   );
 }

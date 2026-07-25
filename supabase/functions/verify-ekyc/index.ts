@@ -53,6 +53,17 @@ serve(async (req) => {
     if (!provider) throw new Error('Missing required field: provider');
     if (userId !== user.id) throw new Error('Forbidden: userId mismatch');
 
+    // Only admins can use the 'manual' provider
+    if (provider === 'manual') {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'super_admin'])
+        .maybeSingle();
+      if (!roleData) throw new Error('Only admins can perform manual verification');
+    }
+
     let result: EkycResult;
 
     switch (provider) {
@@ -152,12 +163,23 @@ serve(async (req) => {
   }
 });
 
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function verifyWithIdenfy(sessionId: string): Promise<EkycResult> {
   const apiKey = Deno.env.get('IDENFY_API_KEY');
   const apiSecret = Deno.env.get('IDENFY_API_SECRET');
   if (!apiKey || !apiSecret) throw new Error('iDenfy credentials not configured');
 
-  const response = await fetch(`https://api.idenfy.com/v2/sessions/${sessionId}`, {
+  const response = await fetchWithTimeout(`https://api.idenfy.com/v2/sessions/${sessionId}`, {
     headers: {
       'Authorization': `Basic ${btoa(`${apiKey}:${apiSecret}`)}`,
       'Content-Type': 'application/json',
@@ -188,7 +210,7 @@ async function verifyWithVeriff(sessionId: string): Promise<EkycResult> {
   if (!apiKey || !apiSecret) throw new Error('Veriff credentials not configured');
 
   const token = btoa(`${apiKey}:${apiSecret}`);
-  const response = await fetch(`https://api.veriff.com/v1/sessions/${sessionId}/decisions`, {
+  const response = await fetchWithTimeout(`https://api.veriff.com/v1/sessions/${sessionId}/decisions`, {
     headers: {
       'Authorization': `Basic ${token}`,
       'Content-Type': 'application/json',
@@ -219,7 +241,7 @@ async function verifyWithShuftiPro(sessionId: string): Promise<EkycResult> {
   const secretKey = Deno.env.get('SHUFTIPRO_SECRET_KEY');
   if (!clientId || !secretKey) throw new Error('ShuftiPro credentials not configured');
 
-  const response = await fetch(`https://api.shuftipro.com/v2/sessions/${sessionId}`, {
+  const response = await fetchWithTimeout(`https://api.shuftipro.com/v2/sessions/${sessionId}`, {
     headers: {
       'Authorization': `Basic ${btoa(`${clientId}:${secretKey}`)}`,
       'Content-Type': 'application/json',
@@ -248,7 +270,7 @@ async function verifyWithKenal(refId: string, fullName?: string): Promise<EkycRe
   const apiKey = Deno.env.get('KENAL_API_KEY');
   if (!apiKey) throw new Error('KENAL_API_KEY not configured');
 
-  const response = await fetch('https://app.kenal.io/api/v1/startEKYC', {
+  const response = await fetchWithTimeout('https://app.kenal.io/api/v1/startEKYC', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

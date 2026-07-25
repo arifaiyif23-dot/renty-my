@@ -110,6 +110,12 @@ serve(async (req) => {
       }
     }
 
+    // Delete auth user (requires service_role key)
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(user.id);
+    if (deleteAuthError) {
+      console.error('Failed to delete auth user:', deleteAuthError);
+    }
+
     // Admin alert
     const adminEmail = Deno.env.get('ADMIN_EMAIL');
     if (!adminEmail) {

@@ -29,6 +29,8 @@ const formSchema = z.object({
   description: z.string().min(10),
   category: z.string(),
   price_per_day: z.number().min(1),
+  price_per_hour: z.number().optional(),
+  payment_mode: z.string().optional(),
   location: z.string().min(2),
   deposit_amount: z.number().min(0),
   minimum_rental_days: z.number().min(1),
@@ -55,7 +57,7 @@ function SortableImage({ id, url, isPrimary, onSetPrimary, onRemove }: SortableI
   return (
     <div ref={setNodeRef} style={style} className="relative group">
       <div className="aspect-square rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-colors">
-        <img src={url} alt="Listing image" className="w-full h-full object-cover" />
+        <img src={url} alt="Listing image" className="w-full h-full object-cover" loading="lazy" />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Button size="icon" variant="ghost" {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
             <GripVertical className="h-4 w-4 text-white" />
@@ -95,6 +97,8 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
       description: listing?.description || '',
       category: listing?.category || '',
       price_per_day: listing?.price_per_day || 0,
+      price_per_hour: listing?.price_per_hour || undefined,
+      payment_mode: listing?.payment_mode || 'per_day',
       location: listing?.location || '',
       deposit_amount: listing?.deposit_amount || 0,
       minimum_rental_days: listing?.minimum_rental_days || 1,
@@ -115,6 +119,8 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         description: listing.description || '',
         category: listing.category || '',
         price_per_day: listing.price_per_day || 0,
+        price_per_hour: listing.price_per_hour || undefined,
+        payment_mode: listing.payment_mode || 'per_day',
         location: listing.location || '',
         deposit_amount: listing.deposit_amount || 0,
         minimum_rental_days: listing.minimum_rental_days || 1,

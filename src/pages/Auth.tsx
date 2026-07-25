@@ -16,7 +16,7 @@ import { checkRateLimit } from '@/utils/securityHelpers';
 import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog';
 import { supabase } from '@/integrations/supabase/client';
 
-const TERMS_VERSION = '2026-07-draft';
+const TERMS_VERSION = '2026-07-01';
 
 const loginSchema = z.object({
   email: z.string().trim().email('Invalid email address').toLowerCase(),
@@ -40,7 +40,8 @@ const signUpSchema = z.object({
     .max(128, 'Password too long')
     .regex(/[A-Z]/, 'Must contain uppercase letter')
     .regex(/[a-z]/, 'Must contain lowercase letter')
-    .regex(/[0-9]/, 'Must contain a number'),
+    .regex(/[0-9]/, 'Must contain a number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Must contain a special character'),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -52,7 +53,10 @@ export default function Auth() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = (location.state as { redirectTo?: string })?.redirectTo;
+  const locState = location.state as { redirectTo?: string; from?: { pathname: string; search?: string } } | null;
+  const oauthRedirect = sessionStorage.getItem('renty_oauth_redirect');
+  const redirectTo = locState?.redirectTo || (locState?.from ? locState.from.pathname + (locState.from.search || '') : undefined) || oauthRedirect || undefined;
+  if (oauthRedirect) sessionStorage.removeItem('renty_oauth_redirect');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -161,7 +165,7 @@ export default function Auth() {
       <div className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
+            <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" loading="lazy" />
           </Link>
           <Link to="/">
             <Button variant="ghost" size="icon" className="rounded-xl">
@@ -188,7 +192,7 @@ export default function Auth() {
                 type="button"
                 variant="outline"
                 className="w-full h-12 text-base font-medium gap-2 rounded-xl"
-                onClick={async () => { try { await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth` } }); } catch { toast.error('Google sign-in failed. Please try again.'); } }}
+                onClick={async () => { try { if (redirectTo) sessionStorage.setItem('renty_oauth_redirect', redirectTo); await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth` } }); } catch { toast.error('Google sign-in failed. Please try again.'); } }}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>

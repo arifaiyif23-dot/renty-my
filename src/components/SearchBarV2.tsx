@@ -37,9 +37,11 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
     if (query.trim()) params.set("q", query.trim());
+    else params.delete("q");
     if (location) params.set("location", location);
+    else params.delete("location");
     navigate(`/search?${params.toString()}`);
     onSearch?.(query);
   };

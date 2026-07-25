@@ -210,7 +210,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
                 <div className="grid grid-cols-3 gap-2">
                   {photoUrls.map((url, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border">
-                      <img src={url} alt={`Return ${idx + 1}`} className="object-cover w-full h-full" />
+                      <img src={url} alt={`Return ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
                       <div className="absolute top-1 right-1 bg-success rounded-full p-1">
                         <CheckCircle className="h-3 w-3 text-white" />
                       </div>

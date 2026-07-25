@@ -38,7 +38,7 @@ export default function UserProfile() {
     setLoading(true);
     try {
       const [profileRes, itemsRes, ratingRes] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, avatar_url, is_verified, verification_level, trust_score, location, bio, created_at, is_suspended, total_rentals_completed, total_reviews_received, response_rate, avg_response_time_minutes, last_active_at").eq("id", id).maybeSingle(),
+        supabase.from("profiles").select("id, full_name, avatar_url, is_verified, verification_level, trust_score, location, bio, created_at, is_suspended, is_deleted, total_rentals_completed, total_reviews_received, response_rate, avg_response_time_minutes, last_active_at").eq("id", id).maybeSingle(),
         supabase
           .from("items")
           .select("*, images:item_images(*)")

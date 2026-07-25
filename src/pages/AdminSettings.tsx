@@ -171,142 +171,133 @@ export default function AdminSettings() {
           </div>
 
           <div className="space-y-6">
-            <GlassCard>
-              
-                
-                  <DollarSign className="h-5 w-5" />
-                  Platform Fee Settings
-                
-                
-                  Adjust the transaction fee charged on each rental payment
-                
-              
-              
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label>Platform Fee Percentage</Label>
-                    <span className="text-2xl font-bold text-primary">
-                      {getCurrentValue('platform_fee_percentage')}%
-                    </span>
-                  </div>
-                  
-                  <Slider
-                    value={[parseFloat(getCurrentValue('platform_fee_percentage').toString())]}
-                    onValueChange={(value) => handleChange('platform_fee_percentage', value[0].toString())}
-                    min={0}
-                    max={30}
-                    step={0.5}
-                    className="w-full"
-                  />
-                  
-                  <div className="text-sm text-muted-foreground space-y-2">
-                    <p className="font-medium">Example Calculation:</p>
-                    <p>If rental price is RM 100:</p>
-                    <p>• Platform Fee ({getCurrentValue('platform_fee_percentage')}%): RM {(100 * parseFloat(getCurrentValue('platform_fee_percentage').toString()) / 100).toFixed(2)}</p>
-                    <p className="font-semibold">• Total charged to renter: RM {(100 + (100 * parseFloat(getCurrentValue('platform_fee_percentage').toString()) / 100)).toFixed(2)}</p>
-                  </div>
+            <GlassCard padding="lg">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="h-5 w-5" />
+                <h2 className="text-lg font-semibold">Platform Fee Settings</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Adjust the transaction fee charged on each rental payment
+              </p>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label>Platform Fee Percentage</Label>
+                  <span className="text-2xl font-bold text-primary">
+                    {getCurrentValue('platform_fee_percentage')}%
+                  </span>
                 </div>
+                
+                <Slider
+                  value={[parseFloat(getCurrentValue('platform_fee_percentage').toString())]}
+                  onValueChange={(value) => handleChange('platform_fee_percentage', value[0].toString())}
+                  min={0}
+                  max={30}
+                  step={0.5}
+                  className="w-full"
+                />
+                
+                <div className="text-sm text-muted-foreground space-y-2">
+                  <p className="font-medium">Example Calculation:</p>
+                  <p>If rental price is RM 100:</p>
+                  <p>• Platform Fee ({getCurrentValue('platform_fee_percentage')}%): RM {(100 * parseFloat(getCurrentValue('platform_fee_percentage').toString()) / 100).toFixed(2)}</p>
+                  <p className="font-semibold">• Total charged to renter: RM {(100 + (100 * parseFloat(getCurrentValue('platform_fee_percentage').toString()) / 100)).toFixed(2)}</p>
+                </div>
+              </div>
 
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    ⚠️ Changes apply to new rentals only. Existing payments use the fee percentage at time of booking.
-                  </p>
-                </div>
-              
+              <div className="pt-4 border-t mt-4">
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ Changes apply to new rentals only. Existing payments use the fee percentage at time of booking.
+                </p>
+              </div>
             </GlassCard>
 
             {/* Withdrawal Settings */}
-            <GlassCard>
-              
-                
-                  <ArrowDownToLine className="h-5 w-5" />
-                  Withdrawal Configuration
-                
-                
-                  Set limits and fees for user withdrawals
-                
-              
-              
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="min_withdrawal">Minimum Withdrawal (RM)</Label>
-                    <Input
-                      id="min_withdrawal"
-                      type="number"
-                      step="0.01"
-                      value={getCurrentValue('min_withdrawal_amount')}
-                      onChange={(e) => handleChange('min_withdrawal_amount', e.target.value)}
-                      className="rounded-xl mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="max_withdrawal">Maximum Withdrawal (RM)</Label>
-                    <Input
-                      id="max_withdrawal"
-                      type="number"
-                      step="0.01"
-                      value={getCurrentValue('max_withdrawal_amount')}
-                      onChange={(e) => handleChange('max_withdrawal_amount', e.target.value)}
-                      className="rounded-xl mt-1"
-                    />
-                  </div>
-                </div>
+            <GlassCard padding="lg">
+              <div className="flex items-center gap-2 mb-4">
+                <ArrowDownToLine className="h-5 w-5" />
+                <h2 className="text-lg font-semibold">Withdrawal Configuration</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Set limits and fees for user withdrawals
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="withdrawal_fee">Processing Fee (RM)</Label>
+                  <Label htmlFor="min_withdrawal">Minimum Withdrawal (RM)</Label>
                   <Input
-                    id="withdrawal_fee"
+                    id="min_withdrawal"
                     type="number"
                     step="0.01"
-                    value={getCurrentValue('withdrawal_processing_fee')}
-                    onChange={(e) => handleChange('withdrawal_processing_fee', e.target.value)}
+                    value={getCurrentValue('min_withdrawal_amount')}
+                    onChange={(e) => handleChange('min_withdrawal_amount', e.target.value)}
                     className="rounded-xl mt-1"
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Fixed fee charged per withdrawal
-                  </p>
                 </div>
-              
+                <div>
+                  <Label htmlFor="max_withdrawal">Maximum Withdrawal (RM)</Label>
+                  <Input
+                    id="max_withdrawal"
+                    type="number"
+                    step="0.01"
+                    value={getCurrentValue('max_withdrawal_amount')}
+                    onChange={(e) => handleChange('max_withdrawal_amount', e.target.value)}
+                    className="rounded-xl mt-1"
+                  />
+                </div>
+              </div>
+              <div className="mt-4">
+                <Label htmlFor="withdrawal_fee">Processing Fee (RM)</Label>
+                <Input
+                  id="withdrawal_fee"
+                  type="number"
+                  step="0.01"
+                  value={getCurrentValue('withdrawal_processing_fee')}
+                  onChange={(e) => handleChange('withdrawal_processing_fee', e.target.value)}
+                  className="rounded-xl mt-1"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Fixed fee charged per withdrawal
+                </p>
+              </div>
             </GlassCard>
 
             {/* Auto-Approval Settings */}
-            <GlassCard>
-              
-                Automated Processing
-                
-                  Configure automatic payout approval thresholds
-                
-              
-              
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="auto_threshold">Auto-Approve Below (RM)</Label>
-                    <Input
-                      id="auto_threshold"
-                      type="number"
-                      step="0.01"
-                      value={getCurrentValue('auto_approve_threshold')}
-                      onChange={(e) => handleChange('auto_approve_threshold', e.target.value)}
-                      className="rounded-xl mt-1"
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Low-risk payouts below this amount are auto-approved
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="min_age">Minimum Account Age (days)</Label>
-                    <Input
-                      id="min_age"
-                      type="number"
-                      value={getCurrentValue('min_account_age_days')}
-                      onChange={(e) => handleChange('min_account_age_days', e.target.value)}
-                      className="rounded-xl mt-1"
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Required account age for auto-approval
-                    </p>
-                  </div>
+            <GlassCard padding="lg">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="h-5 w-5" />
+                <h2 className="text-lg font-semibold">Automated Processing</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Configure automatic payout approval thresholds
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="auto_threshold">Auto-Approve Below (RM)</Label>
+                  <Input
+                    id="auto_threshold"
+                    type="number"
+                    step="0.01"
+                    value={getCurrentValue('auto_approve_threshold')}
+                    onChange={(e) => handleChange('auto_approve_threshold', e.target.value)}
+                    className="rounded-xl mt-1"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Low-risk payouts below this amount are auto-approved
+                  </p>
                 </div>
-              
+                <div>
+                  <Label htmlFor="min_age">Minimum Account Age (days)</Label>
+                  <Input
+                    id="min_age"
+                    type="number"
+                    value={getCurrentValue('min_account_age_days')}
+                    onChange={(e) => handleChange('min_account_age_days', e.target.value)}
+                    className="rounded-xl mt-1"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Required account age for auto-approval
+                  </p>
+                </div>
+              </div>
             </GlassCard>
           </div>
         </div>

@@ -49,6 +49,9 @@ serve(async (req) => {
     if (!email) {
       throw new Error('Email is required');
     }
+    if (userId !== user.id) {
+      throw new Error('userId does not match authenticated user');
+    }
 
     const subject = 'Welcome to Renty! 🎉';
     const templateType = 'welcome';

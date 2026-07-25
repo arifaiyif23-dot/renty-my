@@ -54,7 +54,8 @@ serve(async (req) => {
           status: 'active',
           updated_at: now.toISOString()
         })
-        .in('id', toActivate.map(r => r.id));
+        .in('id', toActivate.map(r => r.id))
+        .eq('status', 'approved'); // TOCTOU guard: only update if still approved
 
       if (activateError) {
         console.error('Error activating rentals:', activateError);
@@ -106,7 +107,8 @@ serve(async (req) => {
           status: 'completed',
           updated_at: now.toISOString()
         })
-        .in('id', toComplete.map(r => r.id));
+        .in('id', toComplete.map(r => r.id))
+        .eq('status', 'active'); // TOCTOU guard: only update if still active
 
       if (completeError) {
         console.error('Error completing rentals:', completeError);

@@ -88,17 +88,11 @@ serve(async (req) => {
       return new Response('Payment not found', { status: 404 });
     }
     
-    // Idempotency check: skip if payment already processed
-    if (payment.status === 'paid') {
-      console.log('Payment already processed, skipping:', paymentId);
-      return new Response('OK', { status: 200 });
-    }
-
     if (status === '1') {
-      // Payment successful
+      // Payment successful — atomic update with status guard (TOCTOU prevention)
       console.log('Processing successful payment:', paymentId);
       
-      await supabase
+      const { data: updatedPayment } = await supabase
         .from('payments')
         .update({
           status: 'paid',
@@ -107,7 +101,16 @@ serve(async (req) => {
           payment_verified_at: new Date().toISOString(),
           paid_at: new Date().toISOString()
         })
-        .eq('id', paymentId);
+        .eq('id', paymentId)
+        .eq('status', 'pending')
+        .select('id')
+        .maybeSingle();
+      
+      // Idempotency: another callback already processed this payment
+      if (!updatedPayment) {
+        console.log('Payment already processed, skipping:', paymentId);
+        return new Response('OK', { status: 200 });
+      }
       
       // Log payment verification
       await supabase.from('payment_flow_logs').insert({
@@ -143,7 +146,7 @@ serve(async (req) => {
       
       console.log('Payment successful:', paymentId);
       
-      // Trigger n8n workflow for receipt generation
+      // Trigger n8n workflow for receipt generation (fire-and-forget — non-blocking)
       const n8nWebhookUrl = Deno.env.get('N8N_RECEIPT_WEBHOOK_URL');
       if (n8nWebhookUrl) {
         const webhookPayload = {
@@ -155,69 +158,27 @@ serve(async (req) => {
           transactionId
         };
         
-        // Create initial log entry
-        const { data: logEntry } = await supabase
-          .from('workflow_logs')
-          .insert({
-            workflow_name: 'payment-receipt-generation',
-            payment_id: paymentId,
-            trigger_data: webhookPayload,
-            status: 'pending'
-          })
-          .select()
-          .single();
+        // Create log entry (fire-and-forget, don't block callback response)
+        supabase.from('workflow_logs').insert({
+          workflow_name: 'payment-receipt-generation',
+          payment_id: paymentId,
+          trigger_data: webhookPayload,
+          status: 'pending'
+        }).then(() => {}).catch(() => {});
         
-        try {
-          const response = await fetch(n8nWebhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(webhookPayload)
-          });
-          
+        // Fire and forget — n8n latency must not block ToyyibPay callback
+        fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(webhookPayload)
+        }).then(async (response) => {
           const responseText = await response.text();
-          
-          if (response.ok) {
-            console.log('n8n receipt workflow triggered successfully');
-            
-            // Update log to success
-            if (logEntry) {
-              await supabase
-                .from('workflow_logs')
-                .update({
-                  status: 'success',
-                  response_data: { statusCode: response.status, body: responseText }
-                })
-                .eq('id', logEntry.id);
-            }
-          } else {
-            console.error('Failed to trigger n8n workflow:', responseText);
-            
-            // Update log to failed
-            if (logEntry) {
-              await supabase
-                .from('workflow_logs')
-                .update({
-                  status: 'failed',
-                  error_message: `HTTP ${response.status}: ${responseText}`,
-                  response_data: { statusCode: response.status, body: responseText }
-                })
-                .eq('id', logEntry.id);
-            }
+          if (!response.ok) {
+            console.error('n8n receipt workflow failed:', responseText);
           }
-        } catch (error) {
-          console.error('Error triggering n8n workflow:', error);
-          
-          // Update log to failed
-          if (logEntry) {
-            await supabase
-              .from('workflow_logs')
-              .update({
-                status: 'failed',
-                error_message: error instanceof Error ? error.message : String(error)
-              })
-              .eq('id', logEntry.id);
-          }
-        }
+        }).catch((err) => {
+          console.error('n8n receipt workflow error:', err);
+        });
       }
       
     } else if (status === '3') {

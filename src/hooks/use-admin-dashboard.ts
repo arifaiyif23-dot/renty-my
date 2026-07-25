@@ -126,7 +126,7 @@ export function useAdminDashboard() {
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
         supabase.from('reports').select('*', { count: 'exact', head: true }).neq('status', 'dismissed'),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('is_disputed', true).or('dispute_status.is.null,dispute_status.eq.open'),
-        supabase.from('payments').select('platform_fee').eq('status', 'completed'),
+        supabase.from('payments').select('platform_fee').eq('status', 'paid'),
       ]);
 
       const approvalRate = totalCount ? ((approvedCount || 0) / totalCount) * 100 : 0;

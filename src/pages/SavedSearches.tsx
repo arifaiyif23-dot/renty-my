@@ -32,7 +32,8 @@ export default function SavedSearches() {
         .from("saved_searches")
         .select("*")
         .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (error) throw error;
       setSearches(data || []);
