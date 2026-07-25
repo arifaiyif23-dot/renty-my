@@ -1,5 +1,4 @@
 project_id = "gsucsqtqtpaeuxwrykmf"
-import_map = "./functions/import_map.json"
 
 [functions.send-email-notification]
 verify_jwt = true

@@ -1,13 +1,17 @@
 # RENTY - Project Guide
 
 ## Stack
-React 18 + Vite 5 + TypeScript + Supabase + Tailwind CSS + shadcn/ui + React Router + TanStack Query + i18next
+React 18 + Vite 5 + TypeScript + Supabase + Tailwind CSS + shadcn/ui + React Router + TanStack Query + i18next + Playwright (E2E)
 
 ## Commands
 - `npm run dev` — start dev server (port 8080)
 - `npm run build` — production build + PWA generation
-- `npx tsc --noEmit` — TypeScript check (must pass before deploy)
+- `npm run typecheck` — TypeScript check (`tsc --noEmit`, must pass before deploy)
 - `npm run lint` — ESLint
+- `npm run test:e2e` — Playwright E2E tests (headless)
+- `npm run test:e2e:ui` — Playwright UI mode
+- `npm run test:e2e:headed` — Playwright headed mode
+- `npm run verify` — pre-deploy verification script
 
 ## Key Files
 - `src/contexts/AuthContext.tsx` — auth provider (Supabase session + profile)
@@ -44,3 +48,25 @@ React 18 + Vite 5 + TypeScript + Supabase + Tailwind CSS + shadcn/ui + React Rou
 - `profiles` table has NO `email` or `role` column. Use `preferred_role` instead. Email lives in `auth.users` (service_role only).
 - `verification_requests.document_front_url` etc. store storage paths like `uuid/front.jpg` (no bucket prefix). `DocumentViewerModal.extractPath` prepends `verification-documents/` before calling signed URL edge fn.
 - Realtime on `profiles` needs REPLICA IDENTITY FULL (applied in migration `20260722000002`).
+
+## Production Hardening (July 2026)
+- **Search**: date-range ID query limited to 5000 rows to prevent OOM on large datasets
+- **Payment**: server-side verification of payment status (no longer trusts URL params)
+- **Double-click guards**: booking, OAuth, status change, bulk actions all guarded
+- **Error handling**: stats silent errors fixed, profile skeleton-forever fixed, conversations error/empty distinction added
+- **IC hash salt**: moved from hardcoded `'salt-change-this'` to `app.settings.ic_hash_salt` (migration `20260723000002`)
+- **import_map.json**: centralized Deno dependency management for all 21 edge functions
+- **Storage buckets**: defined in `config.toml` for local dev (item-images, avatars, verification-documents, rental-evidence)
+
+## CI/CD
+- `.github/workflows/ci.yml` — PR checks: typecheck + lint + build
+- `.github/workflows/e2e-tests.yml` — E2E Playwright tests on push/PR to main/develop
+- `.github/workflows/deploy.yml` — auto-deploy to Vercel on main push (requires `VERCEL_TOKEN` secret)
+- GitHub Secrets required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VERCEL_TOKEN`
+
+## Monitoring (recommended)
+- **Vercel Analytics** — enable from Vercel dashboard (free, zero code)
+- **Vercel Speed Insights** — enable from Vercel dashboard (free, zero code)
+- **Supabase Logs** — edge function logs via Supabase dashboard
+- **Errors table** — client-side errors logged to `public.errors` table, viewable via AdminErrors page
+- Option: Sentry (free tier 5k events/month) for structured error tracking with source maps
