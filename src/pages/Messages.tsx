@@ -74,6 +74,7 @@ export default function Messages() {
   const [attachmentUrl, setAttachmentUrl] = useState("");
   const [attachmentType, setAttachmentType] = useState("");
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [conversationsError, setConversationsError] = useState<string | null>(null);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const isMobile = useIsMobile();
@@ -153,7 +154,7 @@ export default function Messages() {
           .is('read_at', null);
       };
 
-      markMessagesRead().catch(err => console.error('Failed to mark messages read:', err));
+      markMessagesRead().catch(err => { console.error('Failed to mark messages read:', err); });
       
       const threadChannel = supabase
         .channel(`messages-thread-${user.id}-${selectedUserId}`)
@@ -198,11 +199,15 @@ export default function Messages() {
 
     if (error) {
       console.error('Error fetching conversations:', error);
-      if (!silent) setIsLoadingConversations(false);
+      if (!silent) {
+        setIsLoadingConversations(false);
+        setConversationsError(error.message);
+      }
       toast.error("Failed to load conversations");
       return;
     }
 
+    setConversationsError(null);
     const conversationMap = new Map<string, Conversation>();
     
     data?.forEach((msg: Message & { sender?: { full_name: string; avatar_url?: string }; recipient?: { full_name: string; avatar_url?: string } }) => {
@@ -387,7 +392,17 @@ export default function Messages() {
                         onSelect={handleSelectConversation}
                       />
                     ))}
-                    {!isLoadingConversations && conversations.length === 0 && (
+                    {!isLoadingConversations && conversationsError && (
+                      <div className="p-8 text-center text-muted-foreground">
+                        <p className="text-base">Failed to load conversations</p>
+                        <p className="text-sm mt-2">{conversationsError}</p>
+                        <Button variant="outline" size="sm" className="mt-3" onClick={() => fetchConversations()}>
+                          <Loader2 className={`h-4 w-4 mr-1 ${isLoadingConversations ? 'animate-spin' : ''}`} />
+                          Retry
+                        </Button>
+                      </div>
+                    )}
+                    {!isLoadingConversations && !conversationsError && conversations.length === 0 && (
                       <div className="p-8 text-center text-muted-foreground">
                         <p className="text-base">No conversations yet</p>
                         <p className="text-sm mt-2">Messages will appear here when you start chatting</p>
@@ -542,7 +557,17 @@ export default function Messages() {
                       isSelected={selectedUserId === conv.userId}
                     />
                   ))}
-                  {!isLoadingConversations && conversations.length === 0 && (
+                  {!isLoadingConversations && conversationsError && (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <p>Failed to load conversations</p>
+                      <p className="text-xs mt-2">{conversationsError}</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={() => fetchConversations()}>
+                        <Loader2 className={`h-4 w-4 mr-1 ${isLoadingConversations ? 'animate-spin' : ''}`} />
+                        Retry
+                      </Button>
+                    </div>
+                  )}
+                  {!isLoadingConversations && !conversationsError && conversations.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
                       <p>No conversations yet</p>
                       <p className="text-xs mt-2">Messages will appear here when you start chatting</p>

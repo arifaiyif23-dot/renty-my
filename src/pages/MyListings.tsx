@@ -165,17 +165,24 @@ export default function MyListings() {
     staleTime: 1000 * 60 * 2,
   });
 
-  const handleStatusChange = async (itemId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('items')
-      .update({ listing_status: newStatus })
-      .eq('id', itemId);
+  const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
 
-    if (error) {
-      toast.error(t('common.error'));
-    } else {
+  const handleStatusChange = async (itemId: string, newStatus: string) => {
+    if (changingStatusId) return;
+    setChangingStatusId(itemId);
+    try {
+      const { error } = await supabase
+        .from('items')
+        .update({ listing_status: newStatus })
+        .eq('id', itemId);
+
+      if (error) throw error;
       toast.success(t('listings.updateSuccess'));
       refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setChangingStatusId(null);
     }
   };
 
@@ -233,6 +240,8 @@ export default function MyListings() {
     }
   };
 
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+
   const handleBulkAction = async (action: 'activate' | 'pause' | 'delete') => {
     if (selectedItems.length === 0) return;
 
@@ -241,18 +250,23 @@ export default function MyListings() {
       return;
     }
 
-    {
+    if (bulkProcessing) return;
+    setBulkProcessing(true);
+    try {
       const status = action === 'activate' ? 'active' : 'paused';
       const { error } = await supabase
         .from('items')
         .update({ listing_status: status })
         .in('id', selectedItems);
 
-      if (!error) {
-        toast.success(t('listings.updateSuccess'));
-        setSelectedItems([]);
-        refetch();
-      }
+      if (error) throw error;
+      toast.success(t('listings.updateSuccess'));
+      setSelectedItems([]);
+      refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setBulkProcessing(false);
     }
   };
 
@@ -514,13 +528,13 @@ export default function MyListings() {
                             {t('listings.editListing')}
                           </DropdownMenuItem>
                           {item.listing_status === 'active' ? (
-                            <DropdownMenuItem onClick={() => handleStatusChange(item.id, 'paused')}>
-                              <Pause className="h-4 w-4 mr-2" />
+                            <DropdownMenuItem onClick={() => handleStatusChange(item.id, 'paused')} disabled={changingStatusId === item.id}>
+                              {changingStatusId === item.id ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Pause className="h-4 w-4 mr-2" />}
                               {t('listings.pauseListing')}
                             </DropdownMenuItem>
                           ) : (
-                            <DropdownMenuItem onClick={() => handleStatusChange(item.id, 'active')}>
-                              <Play className="h-4 w-4 mr-2" />
+                            <DropdownMenuItem onClick={() => handleStatusChange(item.id, 'active')} disabled={changingStatusId === item.id}>
+                              {changingStatusId === item.id ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
                               {t('listings.activateListing')}
                             </DropdownMenuItem>
                           )}

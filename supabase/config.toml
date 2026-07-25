@@ -1,5 +1,8 @@
 project_id = "gsucsqtqtpaeuxwrykmf"
 
+[functions]
+import_map = "./functions/import_map.json"
+
 [functions.send-email-notification]
 verify_jwt = true
 
@@ -56,3 +59,26 @@ verify_jwt = true
 
 [functions.resend-webhook]
 verify_jwt = false
+
+[storage]
+enabled = true
+
+[storage.buckets.item-images]
+public = true
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
+file_size_limit = "5MB"
+
+[storage.buckets.avatars]
+public = true
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
+file_size_limit = "2MB"
+
+[storage.buckets.verification-documents]
+public = false
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp", "application/pdf"]
+file_size_limit = "10MB"
+
+[storage.buckets.rental-evidence]
+public = false
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp", "video/mp4", "application/pdf"]
+file_size_limit = "20MB"

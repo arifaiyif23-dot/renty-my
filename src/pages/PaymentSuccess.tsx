@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle, XCircle, Receipt } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Receipt, Timer } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Separator } from '@/components/ui/separator';
@@ -17,45 +18,67 @@ export default function PaymentSuccess() {
   const orderId = searchParams.get('order_id');
   const billCode = searchParams.get('billcode');
   const transactionId = searchParams.get('transaction_id');
+  const [redirectCountdown, setRedirectCountdown] = useState(15);
 
   useEffect(() => {
     if (!user || status !== '1') {
       setLoading(false);
       return;
     }
-    const timer = setTimeout(() => {
-      if (!paymentInfo) navigate('/dashboard');
-    }, 10000);
     fetchLatestPayment();
-    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, status, navigate, paymentInfo]);
+  }, [user, status]);
+
+  useEffect(() => {
+    if (loading || paymentInfo) return;
+    const interval = setInterval(() => {
+      setRedirectCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(interval);
+          navigate('/dashboard');
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loading, paymentInfo, navigate]);
 
   const fetchLatestPayment = async () => {
     try {
-      let query = supabase
-        .from('payments')
-        .select('total_amount, rental:rentals!rental_id!inner(item:items(title))');
-
       if (!orderId) {
-        // Without an explicit order_id from the URL, skip payment-specific info
         setLoading(false);
         return;
       }
-      query = query.eq('id', orderId);
 
-      const { data } = await query
-        .order('created_at', { ascending: false })
-        .limit(1)
+      const { data, error } = await supabase
+        .from('payments')
+        .select('status, total_amount, rental:rentals!rental_id!inner(item:items(title))')
+        .eq('id', orderId)
         .maybeSingle();
 
-      if (data) {
-        setPaymentInfo({
-          amount: Number(data.total_amount),
-          itemTitle: ((data.rental as { item: { title: string } })?.item?.title) || 'your rental',
-        });
+      if (error) throw error;
+
+      if (!data) {
+        toast.error('Payment record not found. Please contact support.');
+        setLoading(false);
+        return;
       }
-    } catch (e) { console.error('Payment success fetch error:', e); } finally {
+
+      if (data.status !== 'paid') {
+        toast.error('Payment could not be verified. Please contact support.');
+        setLoading(false);
+        return;
+      }
+
+      setPaymentInfo({
+        amount: Number(data.total_amount),
+        itemTitle: ((data.rental as { item: { title: string } })?.item?.title) || 'your rental',
+      });
+    } catch (e) {
+      console.error('Payment success fetch error:', e);
+      toast.error('Failed to load payment details');
+    } finally {
       setLoading(false);
     }
   };
@@ -118,6 +141,9 @@ export default function PaymentSuccess() {
           <p className="text-xs text-muted-foreground mb-6">
             Refund policy: Cancellation refunds depend on the owner's cancellation policy. Check your rental details for specifics.
           </p>
+          <p className="text-xs text-muted-foreground mb-2 flex items-center justify-center gap-1">
+            <Timer className="h-3 w-3" /> Not redirected? Click below.
+          </p>
           <Button onClick={() => navigate('/dashboard')} variant="default" className="w-full rounded-xl">
             View My Rentals
           </Button>
@@ -139,8 +165,13 @@ export default function PaymentSuccess() {
         <p className="text-xs text-muted-foreground mb-6">
           Ensure your card/FPX has sufficient funds and try again. No amount has been charged.
         </p>
+        {!user && (
+          <p className="text-xs text-muted-foreground mb-4 flex items-center justify-center gap-1">
+            <Timer className="h-3 w-3" /> Redirecting to dashboard in {redirectCountdown}s
+          </p>
+        )}
         <Button onClick={() => navigate('/dashboard')} className="w-full rounded-xl">
-          Try Again
+          {user ? 'Back to Dashboard' : 'Try Again'}
         </Button>
       </GlassCard>
     </div>

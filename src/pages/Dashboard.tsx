@@ -81,7 +81,10 @@ export default function Dashboard() {
         myListings: itemsCount.count || 0,
         rating: Math.round(avgRating * 10) / 10,
       });
-    } catch (e) { console.error('Dashboard fetch error:', e); }
+    } catch (e) {
+      console.error('Dashboard fetch error:', e);
+      toast.error(t('dashboard.failedToLoadStats'));
+    }
   }, [user?.id]);
 
   const fetchRentals = useCallback(async () => {
@@ -289,7 +292,12 @@ export default function Dashboard() {
           <div {...(isMobile ? swipeHandlers : {})} className="touch-pan-y">
             <TabsContent value="active" className="space-y-3 mt-4">
               {filterRentals(['paid', 'active']).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">{t('dashboard.noActiveRentals')}</p>
+                <EmptyStateV2
+                  icon={PackageSearch}
+                  title={t('dashboard.noActiveRentals')}
+                  description={t('dashboard.noActiveRentalsDesc')}
+                  variant="compact"
+                />
               ) : filterRentals(['paid', 'active']).map(rental => (
                 <div key={rental.id} className="relative">
                   <div className="absolute left-3 top-3 z-10">
@@ -307,7 +315,12 @@ export default function Dashboard() {
 
             <TabsContent value="pending" className="space-y-3 mt-4">
               {filterRentals(['pending_approval', 'approved']).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">{t('dashboard.noPendingRentals')}</p>
+                <EmptyStateV2
+                  icon={Clock}
+                  title={t('dashboard.noPendingRentals')}
+                  description={t('dashboard.noPendingRentalsDesc')}
+                  variant="compact"
+                />
               ) : filterRentals(['pending_approval', 'approved']).map(rental => (
                 <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
               ))}
@@ -315,7 +328,12 @@ export default function Dashboard() {
 
             <TabsContent value="past" className="space-y-3 mt-4">
               {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">{t('dashboard.noPastRentals')}</p>
+                <EmptyStateV2
+                  icon={Calendar as React.ComponentType<{ className?: string }>}
+                  title={t('dashboard.noPastRentals')}
+                  description={t('dashboard.noPastRentalsDesc')}
+                  variant="compact"
+                />
               ) : filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
                 <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
               ))}

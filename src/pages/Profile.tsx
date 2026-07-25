@@ -34,7 +34,7 @@ import { useActiveStatus } from "@/hooks/use-active-status";
 import { getSrcSet } from "@/utils/imageOptimization";
 
 export default function Profile() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading, error: authError } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -53,6 +53,25 @@ export default function Profile() {
     await refreshProfile();
     toast.success('Profile updated');
   }, isMobile);
+
+  if (authError && !profile) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
+          <GlassCard variant="subtle" padding="lg" className="text-center py-12">
+            <CircleAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Failed to load profile</h2>
+            <p className="text-muted-foreground mb-4">{authError}</p>
+            <Button onClick={() => window.location.reload()} variant="outline" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          </GlassCard>
+        </div>
+      </>
+    );
+  }
 
   if (statsLoading || !profile) {
     return (

@@ -253,6 +253,7 @@ export default function ItemDetail() {
   };
 
   const handleBooking = async () => {
+    if (isBooking) return;
     if (!user) {
       if (dateRange?.from && dateRange?.to) {
         sessionStorage.setItem('renty_pending_booking', JSON.stringify({
@@ -288,6 +289,7 @@ export default function ItemDetail() {
 
   const handleConfirmBooking = async () => {
     if (!item || !user || !dateRange?.from || !dateRange?.to) return;
+    if (confirming) return;
     setConfirming(true);
     setIsBooking(true);
     setShowConfirmDialog(false);
@@ -399,6 +401,8 @@ export default function ItemDetail() {
             description={loadError || t('itemDetail.itemNotFoundDesc')}
             actionLabel={t('itemDetail.browseItems')}
             onAction={() => navigate('/search')}
+            showRetry={!!loadError}
+            onRetry={() => window.location.reload()}
           />
         </div>
       </>

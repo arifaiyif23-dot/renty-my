@@ -175,9 +175,9 @@ export default function Search() {
         (from <= rStart && to >= rEnd);
     };
 
-    // When date range is active, fetch IDs first → filter → then paginate
     if (dateRange?.from && dateRange?.to) {
       const idQuery = await buildFilterQuery(true);
+      idQuery.limit(5000);
       const { data: allIds, error: idError } = await idQuery;
       if (idError) throw idError;
       if (!allIds?.length) return [];
