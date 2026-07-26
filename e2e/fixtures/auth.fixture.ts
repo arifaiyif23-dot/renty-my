@@ -14,49 +14,47 @@ type TestFixtures = {
   };
 };
 
+// Selectors match the REAL Auth page (src/pages/Auth.tsx): inputs use `id`,
+// the default login method is magic-link (password is behind a toggle), and
+// signup requires accepting the terms checkbox.
+async function signUp(page: import('@playwright/test').Page, email: string, password: string) {
+  await page.goto('/auth');
+  await page.getByRole('tab', { name: /sign up/i }).click();
+  await page.fill('#signup-name', 'Test User');
+  await page.fill('#signup-email', email);
+  await page.fill('#signup-password', password);
+  await page.fill('#signup-confirm', password);
+  await page.locator('#signup-terms').click();
+  await page.getByRole('button', { name: /create account/i }).click();
+}
+
 export const test = base.extend<TestFixtures>({
   authenticatedUser: async ({ page }, use) => {
     const email = `test-${Date.now()}@example.com`;
     const password = 'Test123!@#';
-    
-    // Navigate to auth page
-    await page.goto('/auth');
-    
-    // Sign up new user
-    await page.click('text=Sign Up');
-    await page.fill('input[name="fullName"]', 'Test User');
-    await page.fill('input[type="email"]', email);
-    await page.fill('input[type="password"]', password);
-    await page.fill('input[name="confirmPassword"]', password);
-    await page.click('button[type="submit"]');
-    
-    // Wait for redirect to home
-    await page.waitForURL('/', { timeout: 10000 });
-    
+
+    await signUp(page, email, password);
+
+    // Signup navigates away from /auth on success (home or vendor onboarding).
+    await page.waitForURL((url) => !url.pathname.startsWith('/auth'), { timeout: 15000 });
+
     await use({ email, password, userId: 'test-user-id' });
-    
-    // Cleanup: Sign out
-    try {
-      await page.goto('/');
-      await page.click('[data-testid="user-menu"]');
-      await page.click('text=Sign Out');
-    } catch (error) {
-      console.log('Cleanup sign out failed:', error);
-    }
   },
-  
+
   adminUser: async ({ page }, use) => {
     // For admin testing, use pre-configured admin account
     const email = 'admin@renty.com';
     const password = 'Admin123!@#';
-    
+
     await page.goto('/auth');
-    await page.fill('input[type="email"]', email);
-    await page.fill('input[type="password"]', password);
-    await page.click('button[type="submit"]');
-    
-    await page.waitForURL('/', { timeout: 10000 });
-    
+    // Switch from the default magic-link view to the password form.
+    await page.getByRole('button', { name: /sign in with password/i }).click();
+    await page.fill('#login-email', email);
+    await page.fill('#login-password', password);
+    await page.getByRole('button', { name: /^sign in$/i }).click();
+
+    await page.waitForURL((url) => !url.pathname.startsWith('/auth'), { timeout: 15000 });
+
     await use({ email, password, userId: 'admin-user-id' });
   },
 });

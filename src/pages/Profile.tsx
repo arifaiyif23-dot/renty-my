@@ -34,7 +34,7 @@ import { useActiveStatus } from "@/hooks/use-active-status";
 import { getSrcSet } from "@/utils/imageOptimization";
 
 export default function Profile() {
-  const { user, profile, loading: authLoading, error: authError } = useAuth();
+  const { user, profile, error: authError } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [editDialogOpen, setEditDialogOpen] = useState(false);

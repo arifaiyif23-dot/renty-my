@@ -93,4 +93,15 @@
 
 | # | Page | Issue | Status |
 |---|------|-------|--------|
-|   |      |       |        |
+| 1 | payment-callback | Fake HMAC signature rejected/forged callbacks | ✅ Fixed (getBillTransactions API) |
+| 2 | verify-ekyc | Kenal self-approve KYC | ✅ Fixed (provider disabled) |
+| 3 | request-booking | Client-supplied price trusted | ✅ Fixed (server recompute) |
+| 4 | process-rental-approval | Double-book overlapping pendings | ✅ Fixed (overlap re-check) |
+| 5 | resolve-dispute | Refund was DB-only flag | ✅ Fixed (real refund payout) |
+| 6 | Search | 'All Malaysia' emptied results | ✅ Fixed ('all' sentinel) |
+| 7 | payouts | Never auto-created on completion | ✅ Fixed (DB trigger) |
+| 8 | Auth | Reset-password flow dead | ✅ Fixed (recovery form) |
+| 9 | Auth | Suspension not enforced at login | ✅ Fixed |
+| 10 | Search | Infinite-scroll race / skeleton-forever | ✅ Fixed (generation counter) |
+| 11 | ReturnDisputeDialog | Client-direct status flip bypass | ✅ Fixed (complete-rental fn) |
+| 12 | E2E | baseURL wrong port + stale selectors | ✅ Fixed (12/12 pass) |

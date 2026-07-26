@@ -64,7 +64,9 @@ function extractStoragePath(url: string): string {
     const urlObj = new URL(url);
     const match = urlObj.pathname.match(/\/storage\/v1\/object\/(?:public\/)?verification-documents\/(.+)$/);
     if (match) return `verification-documents/${match[1]}`;
-  } catch {}
+  } catch {
+    // Not a parseable URL — fall through to the path-only handling below.
+  }
   if (url.startsWith('verification-documents/')) return url;
   return `verification-documents/${url}`;
 }

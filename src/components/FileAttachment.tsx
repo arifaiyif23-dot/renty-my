@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, X, FileImage, File as FileIcon, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface FileAttachmentProps {
@@ -10,6 +11,7 @@ interface FileAttachmentProps {
 }
 
 export function FileAttachment({ onFileSelect, disabled }: FileAttachmentProps) {
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<{ url: string; type: string } | null>(null);
 
@@ -33,8 +35,7 @@ export function FileAttachment({ onFileSelect, disabled }: FileAttachmentProps) 
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      const filePath = `message-attachments/${fileName}`;
+      const filePath = `${user?.id}/${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('item-images')

@@ -185,7 +185,7 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
         throw new Error(`Failed to update item: ${itemError.message}`);
       }
 
-      // Update images: save old, insert new, then delete stale old ones
+      // Update images: fetch existing rows, delete removed, insert new, update kept
       const { data: oldImages, error: oldImagesError } = await supabase
         .from('item_images')
         .select('id, image_url')
@@ -193,40 +193,62 @@ export function ListingEditDialog({ open, onOpenChange, listing }: ListingEditDi
 
       if (oldImagesError) {
         console.error('Failed to read existing images:', oldImagesError);
+        throw new Error(`Failed to read existing images: ${oldImagesError.message}`);
       }
 
-      const imageInserts = updatedImages.map((img, index) => ({
-        item_id: listing.id,
-        image_url: img.url,
-        is_primary: img.isPrimary,
-        display_order: index,
-      }));
+      const updatedUrls = new Set(updatedImages.map((img) => img.url));
+      const oldByUrl = new Map((oldImages || []).map((img) => [img.image_url, img.id]));
 
-      const { error: imageError } = await supabase
-        .from('item_images')
-        .insert(imageInserts);
-      
-      if (imageError) {
-        console.error('Image insert error:', imageError);
-        throw new Error(`Failed to save images: ${imageError.message}`);
+      // DELETE rows whose URL is no longer in the updated list
+      const staleIds = (oldImages || [])
+        .filter((img) => !updatedUrls.has(img.image_url))
+        .map((img) => img.id);
+
+      if (staleIds.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('item_images')
+          .delete()
+          .in('id', staleIds);
+
+        if (deleteError) {
+          console.error('Image delete error:', deleteError);
+        }
       }
 
-      // Delete old images that are no longer in the set
-      if (oldImages?.length) {
-        const oldUrls = new Set(oldImages.map(img => img.image_url));
-        const newUrls = new Set(updatedImages.map(img => img.url));
-        const staleUrls = [...oldUrls].filter(url => !newUrls.has(url));
-        
-        if (staleUrls.length > 0) {
-          const { error: deleteError } = await supabase
-            .from('item_images')
-            .delete()
-            .eq('item_id', listing.id)
-            .in('image_url', staleUrls);
-          
-          if (deleteError) {
-            console.error('Image delete error:', deleteError);
-          }
+      // INSERT only genuinely new URLs (not already present)
+      const newInserts = updatedImages
+        .filter((img) => !oldByUrl.has(img.url))
+        .map((img, index) => ({
+          item_id: listing.id,
+          image_url: img.url,
+          is_primary: img.isPrimary,
+          display_order: index,
+        }));
+
+      if (newInserts.length > 0) {
+        const { error: imageError } = await supabase
+          .from('item_images')
+          .insert(newInserts);
+
+        if (imageError) {
+          console.error('Image insert error:', imageError);
+          throw new Error(`Failed to save images: ${imageError.message}`);
+        }
+      }
+
+      // UPDATE display_order / is_primary for kept rows by id
+      for (let index = 0; index < updatedImages.length; index++) {
+        const img = updatedImages[index];
+        const existingId = oldByUrl.get(img.url);
+        if (!existingId) continue;
+
+        const { error: updateError } = await supabase
+          .from('item_images')
+          .update({ display_order: index, is_primary: img.isPrimary })
+          .eq('id', existingId);
+
+        if (updateError) {
+          console.error('Image update error:', updateError);
         }
       }
       

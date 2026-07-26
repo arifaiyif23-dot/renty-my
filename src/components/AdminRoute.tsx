@@ -13,6 +13,14 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     verifyAdminAccess();
   }, []);
 
+  // Show the access-denied toast exactly once, when verification resolves to
+  // "not an admin" — previously it fired during render on every re-render.
+  useEffect(() => {
+    if (!loading && isAdmin === false) {
+      toast.error('Access denied. Admin privileges required.');
+    }
+  }, [loading, isAdmin]);
+
   const verifyAdminAccess = async () => {
     try {
       const controller = new AbortController();
@@ -51,7 +59,6 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAdmin) {
-    toast.error('Access denied. Admin privileges required.');
     return <Navigate to="/" replace />;
   }
 

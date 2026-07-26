@@ -19,6 +19,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const negotiatedMimeRef = useRef<string>('video/webm');
 
   useEffect(() => {
     return () => {
@@ -107,6 +108,9 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
           : MediaRecorder.isTypeSupported('video/mp4')
             ? 'video/mp4'
             : undefined;
+      // Remember the negotiated MIME type so the final Blob uses the correct
+      // container (hardcoding 'video/webm' breaks playback on Safari/mp4).
+      negotiatedMimeRef.current = mimeType || 'video/webm';
       const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       
       chunksRef.current = [];
@@ -149,7 +153,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
 
       // Set onstop handler BEFORE calling stop to avoid race condition
       mediaRecorder.onstop = () => {
-        const videoBlob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const videoBlob = new Blob(chunksRef.current, { type: negotiatedMimeRef.current });
         stopCamera();
         toast.success("Liveness check completed!");
         onCapture(videoBlob, frames);

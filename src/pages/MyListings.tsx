@@ -130,7 +130,7 @@ export default function MyListings() {
       if (rentalsError) throw rentalsError;
 
       const totalViews = items?.reduce((sum, item) => sum + (item.view_count || 0), 0) || 0;
-      const totalRevenue = rentals?.reduce((sum, r) => sum + Number(r.total_price), 0) || 0;
+      const totalRevenue = rentals?.reduce((sum, r) => sum + (Number(r.total_price) || 0), 0) || 0;
 
       return {
         totalListings: items?.length || 0,

@@ -67,7 +67,7 @@ export default function ItemDetail() {
   const [currentRental, setCurrentRental] = useState<Rental | null>(null);
   const [conditionReports, setConditionReports] = useState<ConditionReport[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
-  const [loadingRental, setLoadingRental] = useState(false);
+  const [, setLoadingRental] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {

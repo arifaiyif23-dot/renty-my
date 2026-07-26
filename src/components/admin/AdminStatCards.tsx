@@ -1,5 +1,4 @@
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Package, TrendingUp, CheckCircle, AlertTriangle, Flag, RefreshCw, FileCheck } from "lucide-react";
 

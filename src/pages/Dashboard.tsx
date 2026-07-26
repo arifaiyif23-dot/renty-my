@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedRentals, setSelectedRentals] = useState<Set<string>>(new Set());
   const [selectedRentalTimeline, setSelectedRentalTimeline] = useState<Rental | null>(null);
+  const [timelineModifications, setTimelineModifications] = useState<ModificationRequestData[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [stats, setStats] = useState({ totalRevenue: 0, activeRentals: 0, pendingRequests: 0, myListings: 0, rating: 0 });
 
@@ -90,6 +91,7 @@ export default function Dashboard() {
       console.error('Dashboard fetch error:', e);
       toast.error(t('dashboard.failedToLoadStats'));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const fetchRentals = useCallback(async () => {
@@ -138,7 +140,32 @@ export default function Dashboard() {
     } catch {
       console.error('Failed to fetch modifications');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  const fetchRentalModifications = useCallback(async (rentalId: string) => {
+    const { data } = await supabase
+      .from('rental_modifications')
+      .select('*')
+      .eq('rental_id', rentalId)
+      .order('requested_at', { ascending: true });
+    if (data) {
+      const { data: rentals } = await supabase
+        .from('rentals')
+        .select('id, item:items(title), renter:profiles!rentals_renter_id_fkey(full_name, avatar_url)')
+        .eq('id', rentalId)
+        .single();
+      setTimelineModifications((data || []).map(m => ({ ...m, rental: rentals })) as unknown as ModificationRequestData[]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedRentalTimeline) {
+      fetchRentalModifications(selectedRentalTimeline.id);
+    } else {
+      setTimelineModifications([]);
+    }
+  }, [selectedRentalTimeline, fetchRentalModifications]);
 
   const { isRefreshing, pullDistance } = usePullToRefresh(fetchRentals);
 
@@ -336,18 +363,19 @@ export default function Dashboard() {
                   variant="compact"
                 />
               ) : filterRentals(['paid', 'active']).map(rental => (
-                <div key={rental.id} className="relative">
-                  <div className="absolute left-3 top-3 z-10">
-                    <Checkbox checked={selectedRentals.has(rental.id)} onCheckedChange={() => toggleRentalSelection(rental.id)} className="bg-card border-border" />
+                  <div key={rental.id} className="relative">
+                    <div className="absolute left-3 top-3 z-10">
+                      <Checkbox checked={selectedRentals.has(rental.id)} onCheckedChange={() => toggleRentalSelection(rental.id)} className="bg-card border-border" />
+                    </div>
+                    <RentalCard
+                      rental={rental}
+                      isOwner={rental.owner_id === user?.id}
+                      onStatusUpdate={updateRentalStatus}
+                      onReviewSuccess={fetchRentals}
+                      hasPendingModification={pendingModRentalIds.has(rental.id)}
+                      onShowTimeline={(r) => setSelectedRentalTimeline(r)}
+                    />
                   </div>
-                  <RentalCard
-                    rental={rental}
-                    isOwner={rental.owner_id === user?.id}
-                    onStatusUpdate={updateRentalStatus}
-                    onReviewSuccess={fetchRentals}
-                    hasPendingModification={pendingModRentalIds.has(rental.id)}
-                  />
-                </div>
               ))}
             </TabsContent>
 
@@ -360,7 +388,7 @@ export default function Dashboard() {
                   variant="compact"
                 />
               ) : filterRentals(['pending_approval', 'approved']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} hasPendingModification={pendingModRentalIds.has(rental.id)} />
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} hasPendingModification={pendingModRentalIds.has(rental.id)} onShowTimeline={(r) => setSelectedRentalTimeline(r)} />
               ))}
             </TabsContent>
 
@@ -373,7 +401,7 @@ export default function Dashboard() {
                   variant="compact"
                 />
               ) : filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} hasPendingModification={pendingModRentalIds.has(rental.id)} />
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} hasPendingModification={pendingModRentalIds.has(rental.id)} onShowTimeline={(r) => setSelectedRentalTimeline(r)} />
               ))}
             </TabsContent>
           </div>
@@ -397,7 +425,7 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <Card>
                   <CardHeader><CardTitle className="text-base">{selectedRentalTimeline.item?.title || 'Item'}</CardTitle></CardHeader>
-                  <CardContent><RentalTimeline rental={selectedRentalTimeline} /></CardContent>
+                  <CardContent><RentalTimeline rental={selectedRentalTimeline} modifications={timelineModifications} /></CardContent>
                 </Card>
               </div>
             )}

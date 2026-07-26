@@ -143,6 +143,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
   }, [user]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploading) return;
     const files = Array.from(e.target.files || []);
     
     if (files.length + images.length > maxImages) {
@@ -159,9 +160,11 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     const uploadedUrls = await Promise.all(uploadPromises);
     const validUrls = uploadedUrls.filter((url): url is string => url !== null);
     
-    const newImages = [...images, ...validUrls];
-    setImages(newImages);
-    onImagesChange(newImages);
+    setImages(prev => {
+      const newImages = [...prev, ...validUrls];
+      onImagesChange(newImages);
+      return newImages;
+    });
     setUploading(false);
 
     // Clear progress after a short delay
@@ -174,6 +177,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
+    if (uploading) return;
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     
     if (files.length + images.length > maxImages) {
@@ -190,9 +194,11 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     const uploadedUrls = await Promise.all(uploadPromises);
     const validUrls = uploadedUrls.filter((url): url is string => url !== null);
     
-    const newImages = [...images, ...validUrls];
-    setImages(newImages);
-    onImagesChange(newImages);
+    setImages(prev => {
+      const newImages = [...prev, ...validUrls];
+      onImagesChange(newImages);
+      return newImages;
+    });
     setUploading(false);
 
     // Clear progress after a short delay
@@ -201,7 +207,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
     if (validUrls.length > 0) {
       toast.success(`${validUrls.length} image(s) uploaded and optimized`);
     }
-  }, [images, maxImages, onImagesChange, uploadImage]);
+  }, [images, maxImages, onImagesChange, uploadImage, uploading]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

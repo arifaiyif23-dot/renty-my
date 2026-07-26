@@ -49,18 +49,20 @@ export default function SavedSearches() {
 
   const fetchNewCounts = useCallback(async (searchesList: SavedSearch[]) => {
     const counts: Record<string, number> = {};
-    for (const s of searchesList) {
-      if (!s.notify_on_new) continue;
+    // Run counts in parallel and match the Search page's ilike semantics for
+    // location (a free-text field, so exact .eq() almost always returned 0).
+    await Promise.all(searchesList.map(async (s) => {
+      if (!s.notify_on_new) return;
       try {
         let query = supabase.from("items").select("*", { count: "exact", head: true });
         if (s.query_text) query = query.ilike("title", `%${s.query_text}%`);
         if (s.category && s.category !== "all") query = query.eq("category", s.category);
-        if (s.location) query = query.eq("location", s.location);
+        if (s.location) query = query.ilike("location", `%${s.location}%`);
         query = query.gte("created_at", s.created_at);
         const { count } = await query;
         if (count && count > 0) counts[s.id] = count;
       } catch { /* skip */ }
-    }
+    }));
     setNewCounts(counts);
   }, []);
 

@@ -81,6 +81,7 @@ export default function Messages() {
   const isMobile = useIsMobile();
   const messageEndRef = useRef<HTMLDivElement | null>(null);
   
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchAndRefresh = useCallback(async () => { fetchConversations(); }, [user]);
   const { isRefreshing, pullDistance } = usePullToRefresh(fetchAndRefresh);
 
@@ -159,6 +160,8 @@ export default function Messages() {
       };
 
       markMessagesRead().catch(err => { console.error('Failed to mark messages read:', err); });
+      // Optimistically zero this conversation's unread count (don't wait for realtime)
+      setConversations(prev => prev.map(c => c.userId === selectedUserId ? { ...c, unreadCount: 0 } : c));
       
       const threadChannel = supabase
         .channel(`messages-thread-${user.id}-${selectedUserId}`)
@@ -199,7 +202,8 @@ export default function Messages() {
       .from('messages')
       .select('id, sender_id, recipient_id, content, created_at, is_read, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
       .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(200);
 
     if (error) {
       console.error('Error fetching conversations:', error);
@@ -532,7 +536,7 @@ export default function Messages() {
                           handleTyping();
                         }}
                         placeholder="Type a message..."
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && sendMessage()}
                         className="h-12 text-base flex-1 rounded-xl"
                       />
                       <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
@@ -668,7 +672,7 @@ export default function Messages() {
                             handleTyping();
                           }}
                           placeholder="Type a message..."
-                          onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && sendMessage()}
                           className="min-h-[44px] rounded-xl"
                         />
                         <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />

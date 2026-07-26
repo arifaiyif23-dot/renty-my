@@ -73,6 +73,35 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
 
       const sanitizedComment = comment.trim() ? sanitizeMessage(comment.trim()) : null;
 
+      // Upload all images FIRST so a mid-upload failure can't orphan a review with no images
+      const uploadedImageUrls: string[] = [];
+      if (images.length > 0) {
+        toast.info("Compressing and uploading images...");
+        const tempId = crypto.randomUUID();
+
+        for (const image of images) {
+          const optimizedBlob = await optimizeImage(image);
+          const optimizedFile = new File([optimizedBlob], `${image.name.split('.')[0]}.webp`, {
+            type: 'image/webp'
+          });
+
+          const fileName = `${tempId}/${crypto.randomUUID()}.webp`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('review-images')
+            .upload(fileName, optimizedFile);
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('review-images')
+            .getPublicUrl(fileName);
+
+          uploadedImageUrls.push(publicUrl);
+        }
+      }
+
+      // Insert the review row WITH the image URLs in the same logical step
       const { data: reviewData, error: reviewError } = await supabase.from('reviews')
         .insert({
           rental_id: rentalId,
@@ -84,34 +113,15 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
         .select()
         .single();
 
-      if (reviewError) throw reviewError;
+      if (reviewError) {
+        throw new Error(`Failed to save review after uploading images: ${reviewError.message}`);
+      }
 
-      if (images.length > 0) {
-        toast.info("Compressing and uploading images...");
-        
-        for (const image of images) {
-          const optimizedBlob = await optimizeImage(image);
-          const optimizedFile = new File([optimizedBlob], `${image.name.split('.')[0]}.webp`, {
-            type: 'image/webp'
-          });
-          
-          const fileName = `${reviewData.id}/${Math.random()}.webp`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('review-images')
-            .upload(fileName, optimizedFile);
-
-          if (uploadError) throw uploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('review-images')
-            .getPublicUrl(fileName);
-
-          await supabase.from('review_images').insert({
-            review_id: reviewData.id,
-            image_url: publicUrl,
-          });
-        }
+      if (uploadedImageUrls.length > 0) {
+        const { error: imageInsertError } = await supabase.from('review_images').insert(
+          uploadedImageUrls.map((url) => ({ review_id: reviewData.id, image_url: url }))
+        );
+        if (imageInsertError) throw imageInsertError;
       }
 
       toast.success("Review submitted successfully!");

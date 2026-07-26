@@ -1,21 +1,33 @@
-import { CheckCircle, Circle, Clock, Package, Truck, XCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Circle, Clock, Package, Truck, XCircle, AlertTriangle, CalendarPlus, CalendarX } from 'lucide-react';
 import { Rental } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+export interface TimelineModification {
+  id: string;
+  type: 'extension' | 'early_return';
+  status: string;
+  original_end_date: string;
+  new_end_date: string;
+  price_adjustment: number;
+  reason: string | null;
+  requested_at: string;
+}
+
 interface RentalTimelineProps {
   rental: Rental;
+  modifications?: TimelineModification[];
 }
 
 const TERMINAL_FAILED = ['rejected', 'cancelled'];
 const TERMINAL_DISPUTED = ['disputed'];
 
-export function RentalTimeline({ rental }: RentalTimelineProps) {
+export function RentalTimeline({ rental, modifications = [] }: RentalTimelineProps) {
   const isFailed = TERMINAL_FAILED.includes(rental.status);
   const isDisputed = TERMINAL_DISPUTED.includes(rental.status);
   const isTerminal = isFailed || isDisputed;
 
-  const timelineSteps = [
+  const baseSteps = [
     {
       label: 'Booking Created',
       date: rental.created_at,
@@ -46,6 +58,33 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
       status: rental.status === 'completed' ? 'completed' as const : isFailed ? 'failed' as const : isDisputed ? 'failed' as const : 'pending' as const,
       icon: isFailed || isDisputed ? XCircle : CheckCircle,
     },
+  ];
+
+  // Inject modification steps between "Rental Started" and "Rental Ended" (index 2 and 3)
+  const modSteps = modifications
+    .filter(m => m.status === 'approved')
+    .map(m => ({
+      label: m.type === 'extension' ? 'Rental Extended' : 'Early Return',
+      date: m.new_end_date,
+      status: 'completed' as const,
+      icon: m.type === 'extension' ? CalendarPlus : CalendarX,
+      detail: m.type === 'extension'
+        ? `Extended to ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`
+        : `Returning early on ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`,
+    }));
+
+  type TimelineStep = {
+    label: string;
+    date: string | null;
+    status: 'completed' | 'failed' | 'pending';
+    icon: typeof Package;
+    detail?: string;
+  };
+
+  const timelineSteps: TimelineStep[] = [
+    ...baseSteps.slice(0, 3),
+    ...modSteps,
+    ...baseSteps.slice(3),
   ];
 
   return (
@@ -80,14 +119,15 @@ export function RentalTimeline({ rental }: RentalTimelineProps) {
 
             <div className="flex-1">
               <div className="font-medium">{step.label}</div>
-              {step.date && (
+              {step.detail ? (
+                <div className="text-sm text-muted-foreground">{step.detail}</div>
+              ) : step.date ? (
                 <div className="text-sm text-muted-foreground">
                   {format(new Date(step.date), 'MMM d, yyyy')}
                 </div>
-              )}
-              {step.status === 'pending' && !step.date && (
+              ) : step.status === 'pending' ? (
                 <div className="text-sm text-muted-foreground">Pending</div>
-              )}
+              ) : null}
             </div>
           </div>
         );

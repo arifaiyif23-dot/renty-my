@@ -552,6 +552,8 @@ async function handleResolveDispute(
     rentalId: string;
   };
 
+  const refundAmount = typeof resolutionAmount === 'number' && resolutionAmount > 0 ? resolutionAmount : 0;
+
   const { error: disputeError } = await supabase
     .from('disputes')
     .update({
@@ -565,12 +567,49 @@ async function handleResolveDispute(
 
   if (disputeError) { console.error('Dispute update error:', disputeError); return json({ error: 'Failed to update dispute' }, 500); }
 
+  // If a refund was granted, the rental is cancelled (not completed) and the
+  // payment is marked refunded with a pending refund payout for the renter.
+  const rentalStatus = refundAmount > 0 ? 'cancelled' : 'completed';
   const { error: rentalError } = await supabase
     .from('rentals')
-    .update({ is_disputed: false, status: 'completed' })
+    .update({ is_disputed: false, status: rentalStatus })
     .eq('id', rentalId);
 
   if (rentalError) { console.error('Rental update error:', rentalError); return json({ error: 'Failed to update rental' }, 500); }
+
+  if (refundAmount > 0) {
+    // Find the rental's paid payment to attach the refund payout.
+    const { data: payment } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('rental_id', rentalId)
+      .eq('status', 'paid')
+      .maybeSingle();
+
+    if (payment) {
+      const { data: rentalRow } = await supabase
+        .from('rentals')
+        .select('renter_id')
+        .eq('id', rentalId)
+        .single();
+
+      await supabase.from('payments').update({ status: 'refunded', refunded_at: new Date().toISOString() }).eq('id', payment.id);
+
+      if (rentalRow?.renter_id) {
+        const { error: refundError } = await supabase.from('payouts').insert({
+          owner_id: rentalRow.renter_id, // recipient of the refund
+          payment_id: payment.id,
+          rental_id: rentalId,
+          rental_amount: 0,
+          platform_fee: 0,
+          payout_amount: Math.round(refundAmount * 100) / 100,
+          status: 'pending',
+          held_reason: 'Dispute refund (admin)',
+        });
+        if (refundError) console.error('Refund payout insert error:', refundError);
+      }
+    }
+  }
 
   return json({ success: true });
 }

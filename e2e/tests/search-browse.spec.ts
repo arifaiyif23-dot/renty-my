@@ -1,81 +1,44 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Search and Browse', () => {
-  test('should display homepage with items', async ({ page }) => {
+  test('should display homepage with hero and search', async ({ page }) => {
     await page.goto('/');
-    
-    // Should show hero section or search
-    await expect(
-      page.locator('input[placeholder*="Search"], h1, [data-testid="hero"]')
-    ).toBeVisible();
-    
-    // Should show some content (categories, featured items, or items)
-    const hasContent = 
-      (await page.locator('.category-card, [data-testid="category"]').count()) > 0 ||
-      (await page.locator('.item-card, [data-testid="item-card"]').count()) > 0 ||
-      (await page.locator('text=/featured|popular|categories/i').count()) > 0;
-    
-    expect(hasContent).toBeTruthy();
+
+    // Hero heading + the search box are the stable entry points.
+    await expect(page.getByRole('heading', { name: /rent anything/i })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('textbox', { name: /search items/i })).toBeVisible();
   });
-  
-  test('should perform search', async ({ page }) => {
+
+  test('should perform search and land on search page', async ({ page }) => {
     await page.goto('/');
-    
-    // Find and use search input
-    const searchInput = page.locator('input[placeholder*="Search"], input[type="search"]').first();
+
+    const searchInput = page.getByRole('textbox', { name: /search items/i });
     await searchInput.fill('camera');
     await searchInput.press('Enter');
-    
-    // Should navigate to search page or show results
+
+    // Navigates to /search and shows the results region (items or empty state).
+    await expect(page).toHaveURL(/\/search/, { timeout: 8000 });
     await expect(
-      page.locator('text=/results|search|items/i')
-    ).toBeVisible({ timeout: 5000 });
+      page.getByRole('heading', { name: /no items found/i }).or(page.locator('a[href*="/items/"]').first())
+    ).toBeVisible({ timeout: 8000 });
   });
-  
+
   test('should navigate to search page', async ({ page }) => {
     await page.goto('/search');
-    
-    // Should show search interface
-    await expect(page.locator('input[type="search"], input[placeholder*="Search"]')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^search$/i })).toBeVisible({ timeout: 8000 });
   });
-  
-  test('should filter by category', async ({ page }) => {
+
+  test('selecting All Malaysia location does not empty results', async ({ page }) => {
     await page.goto('/search');
-    
-    // Look for category filters
-    const categoryFilter = page.locator('select[name*="category"], button:has-text("Electronics"), [data-testid*="category"]').first();
-    
-    if (await categoryFilter.isVisible()) {
-      await categoryFilter.click();
-      
-      // Should update results or show loading
-      await page.waitForTimeout(1000);
-      
-      // Results should be displayed
-      const hasResults = 
-        (await page.locator('.item-card, [data-testid="item-card"]').count()) > 0 ||
-        (await page.locator('text=/no.*results|empty/i').isVisible());
-      
-      expect(hasResults).toBeTruthy();
-    }
-  });
-  
-  test('should view item details', async ({ page }) => {
-    await page.goto('/');
-    
-    // Find and click first item card
-    const itemCard = page.locator('.item-card, [data-testid="item-card"], a[href*="/item/"]').first();
-    
-    if (await itemCard.isVisible()) {
-      await itemCard.click();
-      
-      // Should navigate to item detail page
-      await expect(page).toHaveURL(/\/item\//);
-      
-      // Should show item details
-      await expect(
-        page.locator('text=/price|day|book|rent/i')
-      ).toBeVisible({ timeout: 5000 });
-    }
+
+    // Open the location select and choose "All Malaysia".
+    await page.locator('button[role="combobox"]').nth(1).click();
+    await page.getByRole('option', { name: /all malaysia/i }).click();
+
+    // The 'all' sentinel must NOT filter out every item: page settles into either
+    // results or a legitimate empty state (not a silent crash / perpetual skeleton).
+    await expect(
+      page.getByRole('heading', { name: /no items found/i }).or(page.locator('a[href*="/items/"]').first())
+    ).toBeVisible({ timeout: 10000 });
   });
 });

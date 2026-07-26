@@ -28,7 +28,7 @@ interface ReviewWithRelations {
   reviewer?: { full_name: string; avatar_url?: string };
   rental?: { item_id?: string; owner_id?: string };
   review_images?: Array<{ image_url: string }>;
-  review_votes?: Array<{ is_helpful: boolean }>;
+  review_votes?: Array<{ is_helpful: boolean; user_id?: string }>;
 }
 
 export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
@@ -113,11 +113,12 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
     if (error) {
       toast.error("Failed to submit vote");
     } else {
-      setReviews(prev => prev.map(r =>
-        r.id === reviewId
-          ? { ...r, review_votes: [...(r.review_votes || []), { is_helpful: isHelpful }] }
-          : r
-      ));
+      setReviews(prev => prev.map(r => {
+        if (r.id !== reviewId) return r;
+        // Replace any existing vote by the current user, else add
+        const others = (r.review_votes || []).filter((v) => v.user_id !== user.id);
+        return { ...r, review_votes: [...others, { is_helpful: isHelpful, user_id: user.id }] };
+      }));
     }
   };
 

@@ -5,6 +5,20 @@ import { toast } from "sonner";
 
 const PUBLIC_VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
+// Convert a URL-safe base64 VAPID public key to the Uint8Array required by
+// PushManager.subscribe's applicationServerKey. Passing the raw base64 string
+// throws InvalidAccessError in Chrome/Firefox.
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export const usePushNotifications = () => {
   const { user } = useAuth();
   const [permission, setPermission] = useState<NotificationPermission>("default");
@@ -55,7 +69,7 @@ export const usePushNotifications = () => {
           }
           sub = await reg.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: PUBLIC_VAPID_KEY,
+            applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY) as BufferSource,
           });
         }
 
@@ -82,6 +96,28 @@ export const usePushNotifications = () => {
     }
   };
 
+  // Unsubscribe and remove the stored subscription so the server stops pushing
+  // to a dead/revoked endpoint (and the next user of this browser profile).
+  const unsubscribe = async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await sub.unsubscribe();
+        if (user) {
+          await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+        }
+      }
+      setSubscription(null);
+      toast.success("Notifications disabled");
+      return true;
+    } catch (error) {
+      console.error("Error unsubscribing:", error);
+      toast.error("Failed to disable notifications");
+      return false;
+    }
+  };
+
   const sendTestNotification = () => {
     if (permission !== "granted") {
       toast.error("Please enable notifications first");
@@ -102,6 +138,7 @@ export const usePushNotifications = () => {
     permission,
     subscription,
     requestPermission,
+    unsubscribe,
     sendTestNotification,
   };
 };

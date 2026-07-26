@@ -191,7 +191,10 @@ export default function Verification() {
       };
 
       if (identityNumber && documentType === 'mykad') {
-        insertPayload.identity_number_validated = true;
+        const validation = validateMyKad(identityNumber);
+        if (validation.isValid) {
+          insertPayload.identity_number_validated = true;
+        }
       }
 
       const { data: verification, error: createError } = await supabase

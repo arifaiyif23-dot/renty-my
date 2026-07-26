@@ -149,26 +149,32 @@ export default function Earnings() {
       toast.error('Please fill in all bank details');
       return;
     }
-    if (!/^\d{6,20}$/.test(bankForm.account_number.replace(/\s/g, ''))) {
+    const isMaskedNumber = bankForm.account_number.includes('****');
+    if (!isMaskedNumber && !/^\d{6,20}$/.test(bankForm.account_number.replace(/\s/g, ''))) {
       toast.error('Account number must be 6-20 digits');
       return;
     }
 
     setSaving(true);
     try {
-      const payload = {
-        user_id: user?.id,
-        ...bankForm
-      };
+      // Don't write back the masked account number; only update it when the user
+      // entered a new full (non-masked) number.
+      const formToSave = isMaskedNumber
+        ? { bank_name: bankForm.bank_name, account_holder_name: bankForm.account_holder_name }
+        : bankForm;
 
       if (bankAccount) {
         const { error } = await supabase
           .from('owner_bank_accounts')
-          .update(bankForm)
+          .update(formToSave)
           .eq('user_id', user?.id);
 
         if (error) throw error;
       } else {
+        const payload = {
+          user_id: user?.id,
+          ...formToSave
+        };
         const { error } = await supabase
           .from('owner_bank_accounts')
           .insert([payload]);

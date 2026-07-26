@@ -58,6 +58,10 @@ export default function UserProfile() {
         setAvgRating(ratingRes.data.reduce((s, r) => s + r.rating, 0) / ratingRes.data.length);
       }
 
+      // Always populate items (even with zero reviews) — previously setItems was
+      // only called inside the itemStats branch, so listings vanished when a user
+      // had items but no reviews yet.
+      const statsMap = new Map<string, { count: number; sum: number }>();
       if (itemsList.length > 0) {
         const { data: itemStats } = await supabase
           .from("reviews")
@@ -65,7 +69,6 @@ export default function UserProfile() {
           .in("rental.item_id", itemsList.map(i => i.id));
 
         if (itemStats) {
-          const statsMap = new Map<string, { count: number; sum: number }>();
           itemStats.forEach((r: { rental: { item_id: string } | null; rating: number }) => {
             const itemId = r.rental?.item_id;
             if (!itemId) return;
@@ -74,17 +77,17 @@ export default function UserProfile() {
             curr.sum += r.rating;
             statsMap.set(itemId, curr);
           });
-
-          setItems(itemsList.map((item) => {
-            const stats = statsMap.get(item.id);
-            return {
-              ...item,
-              _rating: stats ? Math.round((stats.sum / stats.count) * 10) / 10 : 0,
-              _reviewCount: stats?.count || 0,
-            };
-          }));
         }
       }
+
+      setItems(itemsList.map((item) => {
+        const stats = statsMap.get(item.id);
+        return {
+          ...item,
+          _rating: stats ? Math.round((stats.sum / stats.count) * 10) / 10 : 0,
+          _reviewCount: stats?.count || 0,
+        };
+      }));
 
       setProfile(profileRes.data);
     } catch (err) {

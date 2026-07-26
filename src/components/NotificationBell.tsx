@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export const NotificationBell = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,8 +40,9 @@ export const NotificationBell = () => {
         },
         (payload) => {
           const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+          setNotifications(prev =>
+            prev.some(n => n.id === newNotification.id) ? prev : [newNotification, ...prev]
+          );
           
           const importantTypes = ['rental_request', 'rental_approved', 'rental_rejected', 'payment_confirmed', 'dispute_update'];
           if (importantTypes.includes(newNotification.type)) {
@@ -78,7 +79,6 @@ export const NotificationBell = () => {
     }
 
     setNotifications((data || []) as Notification[]);
-    setUnreadCount((data || []).filter(n => !n.is_read).length || 0);
   };
 
   const markAsRead = async (notificationId: string) => {
@@ -91,7 +91,6 @@ export const NotificationBell = () => {
       setNotifications(prev =>
         prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
     }
   };
 

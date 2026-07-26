@@ -24,9 +24,10 @@ interface RentalCardProps {
   onStatusUpdate: (rentalId: string, status: Rental['status']) => Promise<void>;
   onReviewSuccess: () => void;
   hasPendingModification?: boolean;
+  onShowTimeline?: (rental: Rental) => void;
 }
 
-const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: RentalCardProps) => {
+const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, hasPendingModification, onShowTimeline }: RentalCardProps) => {
   const { t } = useTranslation();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
@@ -386,6 +387,18 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
                   {t('rental.leaveReview')}
                 </Button>
               )}
+
+              {onShowTimeline && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full h-9"
+                  onClick={() => onShowTimeline(rental)}
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Timeline
+                </Button>
+              )}
             </div>
           </CardContent>
         </div>
@@ -579,6 +592,17 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
                 onClick={() => setReviewDialogOpen(true)}
               >
                 Leave a Review
+              </Button>
+            )}
+
+            {onShowTimeline && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onShowTimeline(rental)}
+              >
+                <Clock className="h-4 w-4 mr-1" />
+                Timeline
               </Button>
             )}
           </CardContent>

@@ -65,7 +65,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice, promoCodeId, discountAmount, originalAmount, idempotencyKey } = validationResult.data;
+    const { rentalId, promoCodeId, discountAmount, originalAmount, idempotencyKey } = validationResult.data;
     
     // The legacy "create rental + payment in one call" flow trusted client-supplied
     // totalPrice/renterId/ownerId without verification. It has been removed; the

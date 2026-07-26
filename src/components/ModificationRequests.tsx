@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Calendar, DollarSign, CheckCircle, XCircle, Clock, ArrowRight, RotateCcw } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Clock, ArrowRight, RotateCcw } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import {
   AlertDialog,
