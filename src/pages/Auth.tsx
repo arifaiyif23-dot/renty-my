@@ -8,7 +8,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Gift, Home, Loader2, Shield, Users, Lock, CreditCard, Package, Camera, Wrench, Watch, Tent, Bike, Check } from 'lucide-react';
+import { Eye, EyeOff, Gift, Home, Loader2, Shield, Users, Lock, CreditCard } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
@@ -648,50 +648,52 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* Right column — animated hero banner (hidden on mobile) */}
-        <div className="hidden lg:flex relative bg-gradient-to-br from-[#0F2A5F] via-[#0F2A5F] to-[#2563EB] items-center justify-center overflow-hidden">
-          {/* Floating decorative icons */}
-          <div className="absolute top-[12%] left-[15%] opacity-15 animate-float" style={{ animationDelay: '0s' }}>
-            <Package className="h-16 w-16 text-white" />
-          </div>
-          <div className="absolute top-[8%] right-[20%] opacity-15 animate-float" style={{ animationDelay: '1.2s' }}>
-            <Camera className="h-12 w-12 text-white" />
-          </div>
-          <div className="absolute bottom-[22%] left-[10%] opacity-15 animate-float" style={{ animationDelay: '2.4s' }}>
-            <Wrench className="h-14 w-14 text-white" />
-          </div>
-          <div className="absolute top-[45%] right-[12%] opacity-15 animate-float" style={{ animationDelay: '0.8s' }}>
-            <Watch className="h-10 w-10 text-white" />
-          </div>
-          <div className="absolute top-[62%] left-[22%] opacity-15 animate-float" style={{ animationDelay: '3s' }}>
-            <Tent className="h-12 w-12 text-white" />
-          </div>
-          <div className="absolute bottom-[15%] right-[15%] opacity-15 animate-float" style={{ animationDelay: '1.8s' }}>
-            <Bike className="h-14 w-14 text-white" />
-          </div>
+        {/* Right column — premium brand banner (hidden on mobile) */}
+        <div className="hidden lg:flex relative bg-gradient-to-br from-[#0A1628] via-[#0F2A5F] to-[#0A1628] items-center justify-center overflow-hidden">
+          {/* Animated gradient orbs */}
+          <div className="absolute -top-40 -right-20 h-[500px] w-[500px] bg-brand-blue/15 rounded-full blur-[120px] animate-float pointer-events-none" style={{ animationDelay: '0s' }} />
+          <div className="absolute -bottom-32 -left-20 h-[400px] w-[400px] bg-sky/10 rounded-full blur-[100px] animate-float pointer-events-none" style={{ animationDelay: '5s' }} />
+          <div className="absolute top-1/2 left-1/3 h-[300px] w-[300px] bg-[#F59E0B]/5 rounded-full blur-[80px] animate-pulse-glow pointer-events-none" />
 
-          {/* Gradient overlay at bottom for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0F2A5F]/60 via-transparent to-[#0F2A5F]/10 pointer-events-none" />
+          {/* Geometric decorations */}
+          <div className="absolute top-[18%] right-[22%] w-28 h-28 border border-white/10 rounded-full animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+          <div className="absolute bottom-[25%] left-[15%] w-20 h-20 border border-white/10 rounded-full animate-float pointer-events-none" style={{ animationDelay: '3.5s' }} />
+          <div className="absolute top-[55%] right-[30%] w-2 h-2 bg-white/20 rounded-full animate-float pointer-events-none" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute top-[30%] left-[25%] w-1.5 h-1.5 bg-white/15 rounded-full animate-float pointer-events-none" style={{ animationDelay: '4s' }} />
+          <div className="absolute bottom-[40%] right-[18%] w-1.5 h-1.5 bg-white/15 rounded-full animate-float pointer-events-none" style={{ animationDelay: '2.5s' }} />
+
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628]/50 via-transparent to-[#0A1628]/10 pointer-events-none" />
 
           {/* Center content */}
-          <div className="relative z-10 text-center px-12 max-w-lg">
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-white leading-tight mb-4">
+          <div className="relative z-10 text-center px-12 max-w-md">
+            {/* Premium badge */}
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-[11px] text-white/60 tracking-wide mb-8">
+              ★ #1 Platform Sewaan Malaysia
+            </div>
+
+            {/* Heading — Inter light + semibold */}
+            <h1 className="text-4xl md:text-5xl font-sans font-light text-white leading-[1.1] tracking-tight mb-2">
               Sewa Barang.
-              <br />
-              <span className="text-sky-300">Jimat Duit.</span>
             </h1>
-            <p className="text-lg text-white/70 mb-8">
-              Platform sewaan barang No.1 Malaysia
+            <h1 className="text-4xl md:text-5xl font-sans font-semibold leading-[1.1] tracking-tight mb-6 text-gradient-blue">
+              Jimat Duit.
+            </h1>
+
+            <p className="text-sm md:text-base text-white/60 leading-relaxed mb-10 max-w-sm mx-auto">
+              Platform sewaan No.1 Malaysia — ribuan barang untuk disewa, dari kamera hingga alat perkakas.
             </p>
-            <div className="flex flex-col gap-3 items-center">
+
+            {/* Premium stat cards */}
+            <div className="grid grid-cols-3 gap-3">
               {[
-                '10,000+ Pengguna Aktif',
-                'Pembayaran Selamat & Mudah',
-                'Penghantaran Seluruh Malaysia',
-              ].map((text) => (
-                <div key={text} className="flex items-center gap-2 text-white/80">
-                  <Check className="h-4 w-4 text-sky-300 shrink-0" />
-                  <span className="text-sm">{text}</span>
+                { value: '10K+', label: 'Pengguna' },
+                { value: '5K+', label: 'Barang' },
+                { value: '100%', label: 'Selamat' },
+              ].map((stat) => (
+                <div key={stat.label} className="flex flex-col items-center gap-1 px-3 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
+                  <span className="text-lg font-semibold text-white tabular-nums">{stat.value}</span>
+                  <span className="text-[10px] text-white/50">{stat.label}</span>
                 </div>
               ))}
             </div>
