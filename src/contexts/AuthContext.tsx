@@ -23,8 +23,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for auth changes (handles cross-tab sign-in/out)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes (handles cross-tab sign-in/out + password recovery)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Password recovery: the emailed link lands on /auth with a recovery token.
+      // Signal the Auth page to show the new-password form instead of sign-in.
+      if (event === 'PASSWORD_RECOVERY') {
+        window.dispatchEvent(new CustomEvent('renty:password-recovery'));
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (!session?.user) {
@@ -169,12 +174,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      throw error;
-    }
+    // Always clear local state on sign-out, regardless of the API result, so the
+    // UI never keeps rendering protected content for a signed-out user.
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+    if (error) throw error;
   };
 
   return (

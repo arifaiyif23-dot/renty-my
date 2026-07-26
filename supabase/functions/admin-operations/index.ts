@@ -174,17 +174,30 @@ async function handleAssignAdminRole(
     permissions?: string[];
   };
 
-  const { data: userData, error: userError } = await supabase
-    .from('auth.users')
-    .select('id')
-    .eq('email', email)
-    .single();
-
-  if (userError || !userData) {
-    return json({ error: 'User not found' }, 404);
+  // `auth.users` is NOT exposed via PostgREST — querying it as a table always
+  // errors. Use the auth admin API to look the user up by email instead.
+  const normalizedEmail = email.trim().toLowerCase();
+  let targetUserId: string | null = null;
+  try {
+    // listUsers is paginated; scan pages until we find a matching email.
+    let page = 1;
+    const perPage = 1000;
+    // Cap pages to avoid an unbounded loop on very large user bases.
+    while (page <= 20) {
+      const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ page, perPage });
+      if (listError) break;
+      const found = listData?.users?.find((u) => u.email?.toLowerCase() === normalizedEmail);
+      if (found) { targetUserId = found.id; break; }
+      if (!listData?.users || listData.users.length < perPage) break;
+      page += 1;
+    }
+  } catch (lookupErr) {
+    console.error('Auth admin lookup failed:', lookupErr);
   }
 
-  const targetUserId = (userData as { id: string }).id;
+  if (!targetUserId) {
+    return json({ error: 'User not found' }, 404);
+  }
 
   const { error: roleError } = await supabase
     .from('user_roles')
@@ -427,9 +440,11 @@ async function handleBatchVerifyIdentity(
 
     const userIds = [...new Set(requests.map((r: { user_id: string }) => r.user_id))];
 
+    // Match the single-approve path: set verification_level too, otherwise
+    // batch-approved users get a lower trust state than individually approved ones.
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ is_verified: true })
+      .update({ is_verified: true, verification_level: 'kyc' })
       .in('id', userIds);
     if (profileError) { console.error('Batch profile update error:', profileError); return json({ error: 'Failed to update profiles' }, 500); }
 
@@ -638,16 +653,33 @@ async function handleProcessPayout(
     failureReason?: string;
   };
 
+  // Allowlist valid target statuses to prevent arbitrary values being stored.
+  const ALLOWED = ['completed', 'failed'];
+  if (!ALLOWED.includes(status)) {
+    return json({ error: `Invalid payout status. Must be one of: ${ALLOWED.join(', ')}` }, 400);
+  }
+  if (status === 'completed' && !transactionReference) {
+    return json({ error: 'transactionReference is required when marking a payout completed' }, 400);
+  }
+
   const updateData: Record<string, unknown> = { status, processed_at: new Date().toISOString() };
   if (transactionReference) updateData.transaction_reference = transactionReference;
   if (failureReason) updateData.failure_reason = failureReason;
 
-  const { error } = await supabase
+  // CRITICAL: status guard prevents double-processing. Only a payout still in a
+  // processable state can transition — concurrent/duplicate calls get 0 rows.
+  const { data: updated, error } = await supabase
     .from('payouts')
     .update(updateData)
-    .eq('id', payoutId);
+    .eq('id', payoutId)
+    .in('status', ['pending', 'held', 'awaiting_bank_details'])
+    .select('id')
+    .maybeSingle();
 
   if (error) { console.error('Process payout error:', error); return json({ error: 'Failed to process payout' }, 500); }
+  if (!updated) {
+    return json({ error: 'Payout already processed or not in a processable state' }, 409);
+  }
   return json({ success: true });
 }
 

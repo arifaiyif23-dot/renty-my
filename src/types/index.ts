@@ -235,3 +235,41 @@ export interface UserPromoUsage {
   promo_code_id: string;
   used_at: string;
 }
+
+export type ConditionGrade = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' | 'missing';
+export type ReportType = 'pre_rental' | 'post_rental';
+export type ConditionReportStatus = 'draft' | 'submitted' | 'acknowledged';
+
+export interface ConditionReport {
+  id: string;
+  rental_id: string;
+  report_type: ReportType;
+  status: ConditionReportStatus;
+  created_by: string;
+  overall_condition?: ConditionGrade;
+  overall_notes?: string;
+  created_at: string;
+  submitted_at?: string;
+  items?: ConditionReportItem[];
+  signatures?: ConditionSignature[];
+}
+
+export interface ConditionReportItem {
+  id: string;
+  report_id: string;
+  category: string;
+  label: string;
+  condition: ConditionGrade;
+  notes?: string;
+  photo_urls: string[];
+  display_order: number;
+  created_at: string;
+}
+
+export interface ConditionSignature {
+  id: string;
+  report_id: string;
+  signed_by: string;
+  role: 'owner' | 'renter';
+  signed_at: string;
+}

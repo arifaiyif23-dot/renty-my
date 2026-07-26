@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import type { Item } from '@/types';
+import type { Item, Rental, ConditionReport } from '@/types';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ import { ListingAnalytics } from '@/components/ListingAnalytics';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, Package, ShieldCheck, Share2, Pencil, MessageCircle, Loader2, Flag, Eye, Ticket, AlertTriangle } from 'lucide-react';
+import { MapPin, Package, ShieldCheck, Share2, Pencil, MessageCircle, Loader2, Flag, Eye, Ticket, AlertTriangle, FileText } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import BackButton from '@/components/BackButton';
@@ -30,6 +30,7 @@ import { SaveItemButton } from '@/components/SaveItemButton';
 import { SocialProof } from '@/components/SocialProof';
 import StickyBookingBar from '@/components/StickyBookingBar';
 import PeaceOfMind from '@/components/PeaceOfMind';
+import { ConditionReportViewer } from '@/components/ConditionReportViewer';
 import QuickQuestion from '@/components/QuickQuestion';
 import SpecificationsSection from '@/components/SpecificationsSection';
 import { Input } from '@/components/ui/input';
@@ -63,6 +64,10 @@ export default function ItemDetail() {
   const [promoCodeLoading, setPromoCodeLoading] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<{ id: string; code: string; discountType: string; discountAmount: number } | null>(null);
   const [recentViewers, setRecentViewers] = useState(0);
+  const [currentRental, setCurrentRental] = useState<Rental | null>(null);
+  const [conditionReports, setConditionReports] = useState<ConditionReport[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [loadingRental, setLoadingRental] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -105,6 +110,28 @@ export default function ItemDetail() {
 
         if (error) throw error;
         setItem(data);
+
+        // Fetch current user's rental for this item
+        if (user && data) {
+          setLoadingRental(true);
+          supabase
+            .from('rentals')
+            .select('*')
+            .eq('item_id', data.id)
+            .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+            .then(({ data: rentalData }) => {
+              if (mountedRef.current) {
+                setCurrentRental(rentalData || null);
+                setLoadingRental(false);
+              }
+            })
+            .catch(() => {
+              if (mountedRef.current) setLoadingRental(false);
+            });
+        }
 
         addRecentlyViewed({
           id: data.id,
@@ -328,6 +355,14 @@ export default function ItemDetail() {
     navigate('/messages', { state: { recipientId: item?.owner_id } });
   };
 
+  const loadConditionReports = async () => {
+    if (!currentRental) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.functions.invoke('get-condition-report?rental_id=' + currentRental.id);
+    if (data) setConditionReports(data as ConditionReport[]);
+  };
+
   const getRentalDays = () => {
     if (!dateRange?.from || !dateRange?.to) return 0;
     return differenceInDays(dateRange.to, dateRange.from) + 1;
@@ -513,6 +548,16 @@ export default function ItemDetail() {
               )}
 
               <PeaceOfMind />
+
+              {currentRental && ['active', 'completed', 'disputed'].includes(currentRental.status) && (
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => {
+                  loadConditionReports();
+                  setViewerOpen(true);
+                }}>
+                  <FileText className="h-4 w-4" />
+                  View Condition Report
+                </Button>
+              )}
 
               {user?.id === item.owner_id && <ListingAnalytics itemId={item.id} />}
             </GlassCard>
@@ -751,6 +796,14 @@ export default function ItemDetail() {
       </AlertDialog>
 
       <ReportDialog open={showReport} onOpenChange={setShowReport} targetType="item" targetId={id || ""} />
+
+      {conditionReports.length > 0 && (
+        <ConditionReportViewer
+          reports={conditionReports}
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
+        />
+      )}
     </>
   );
 }

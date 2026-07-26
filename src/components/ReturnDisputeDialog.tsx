@@ -62,13 +62,11 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
 
     setIsProcessing(true);
     try {
-      const { error } = await supabase
-        .from('rentals')
-        .update({
-          status: 'completed',
-          return_photos: photoUrls,
-        })
-        .eq('id', rental.id);
+      // Server-side state-machine enforcement (validates role + current status and
+      // triggers payout creation). Replaces the previous direct client update.
+      const { error } = await supabase.functions.invoke('complete-rental', {
+        body: { action: 'complete', rentalId: rental.id, returnPhotos: photoUrls },
+      });
 
       if (error) throw error;
 
@@ -96,27 +94,12 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
 
     setIsProcessing(true);
     try {
-      const { error } = await supabase
-        .from('rentals')
-        .update({
-          status: 'disputed',
-          return_photos: photoUrls,
-          dispute_reason: disputeReason,
-          dispute_status: 'open',
-          is_disputed: true,
-        })
-        .eq('id', rental.id);
+      // Server-side state-machine enforcement; notification is created server-side.
+      const { error } = await supabase.functions.invoke('complete-rental', {
+        body: { action: 'dispute', rentalId: rental.id, returnPhotos: photoUrls, disputeReason },
+      });
 
       if (error) throw error;
-
-      // Notify renter about dispute
-      await supabase.from('notifications').insert({
-        user_id: rental.renter_id,
-        type: 'dispute_opened',
-        title: 'Dispute Raised',
-        message: `The owner has raised a dispute for "${rental.item?.title}". Reason: ${disputeReason}`,
-        link: '/dashboard'
-      });
 
       toast.warning('Dispute raised. Payment is frozen pending admin review.');
       onSuccess();

@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface EkycRequest {
-  provider: 'idenfy' | 'veriff' | 'shuftipro' | 'kenal' | 'manual';
+  provider: 'idenfy' | 'veriff' | 'shuftipro' | 'manual';
   sessionId?: string;
   userId: string;
   identityNumber?: string;
@@ -53,6 +53,14 @@ serve(async (req) => {
     if (!provider) throw new Error('Missing required field: provider');
     if (userId !== user.id) throw new Error('Forbidden: userId mismatch');
 
+    // 'kenal' provider has been disabled: its startEKYC endpoint only *initiates*
+    // a session, so treating status==='success' as a completed verification let
+    // any user self-approve KYC. Remove the provider until a real Kenal webhook
+    // confirms the result asynchronously.
+    if ((provider as string) === 'kenal') {
+      throw new Error('Kenal eKYC provider is currently unavailable');
+    }
+
     // Only admins can use the 'manual' provider
     if (provider === 'manual') {
       const { data: roleData } = await supabase
@@ -80,11 +88,6 @@ serve(async (req) => {
       case 'shuftipro': {
         if (!sessionId) throw new Error('sessionId required for ShuftiPro');
         result = await verifyWithShuftiPro(sessionId);
-        break;
-      }
-      case 'kenal': {
-        if (!sessionId && !identityNumberHash) throw new Error('sessionId or identityNumberHash required for Kenal.io');
-        result = await verifyWithKenal(sessionId || identityNumberHash!, body.fullName);
         break;
       }
       case 'manual': {
@@ -266,36 +269,4 @@ async function verifyWithShuftiPro(sessionId: string): Promise<EkycResult> {
   };
 }
 
-async function verifyWithKenal(refId: string, fullName?: string): Promise<EkycResult> {
-  const apiKey = Deno.env.get('KENAL_API_KEY');
-  if (!apiKey) throw new Error('KENAL_API_KEY not configured');
 
-  const response = await fetchWithTimeout('https://app.kenal.io/api/v1/startEKYC', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      Name: fullName || '',
-      IDNumber: refId.replace(/-/g, ''),
-      RefID: crypto.randomUUID ? crypto.randomUUID() : refId,
-    }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(`Kenal.io API error: ${data.message || response.status}`);
-
-  const passed = data.status === 'success';
-
-  return {
-    success: passed,
-    verificationLevel: passed ? 'kyc' : 'kyc',
-    provider: 'kenal',
-    sessionId: refId,
-    identityVerified: passed,
-    livenessPassed: false,
-    trustScore: passed ? 75 : 50,
-    rawResult: data,
-  };
-}

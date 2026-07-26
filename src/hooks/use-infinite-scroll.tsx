@@ -19,13 +19,23 @@ export function useInfiniteScroll<T>({
   const initialLoadDone = useRef(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelCallbackRef = useRef<HTMLDivElement | null>(null);
+  // Generation counter: incremented on every reset so that in-flight requests
+  // from a previous filter set are ignored when they resolve.
+  const generationRef = useRef(0);
+  // Track in-flight loading synchronously to avoid the stale `loading` closure.
+  const loadingRef = useRef(false);
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loadingRef.current || !hasMore) return;
 
+    const generation = generationRef.current;
+    loadingRef.current = true;
     setLoading(true);
     try {
       const newItems = await fetchFunction(page, pageSize);
+
+      // Bail out if a reset happened while this request was in flight.
+      if (generation !== generationRef.current) return;
 
       if (newItems.length < pageSize) {
         setHasMore(false);
@@ -34,18 +44,24 @@ export function useInfiniteScroll<T>({
       setItems(prev => [...prev, ...newItems]);
       setPage(prev => prev + 1);
     } catch (err) {
+      if (generation !== generationRef.current) return;
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setLoading(false);
+      if (generation === generationRef.current) {
+        loadingRef.current = false;
+        setLoading(false);
+      }
     }
-  }, [fetchFunction, page, pageSize, loading, hasMore]);
+  }, [fetchFunction, page, pageSize, hasMore]);
 
+  // Initial load (and reload after a reset when the sentinel may already be
+  // visible, so the IntersectionObserver would not fire again).
   useEffect(() => {
     if (!initialLoadDone.current && items.length === 0 && !loading) {
       initialLoadDone.current = true;
       loadMore();
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [items.length, loading, loadMore]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -77,10 +93,15 @@ export function useInfiniteScroll<T>({
   }, []);
 
   const reset = useCallback(() => {
+    // Invalidate any in-flight request and reset synchronously, then allow the
+    // load effect to refetch page 1 for the new filter set.
+    generationRef.current += 1;
+    loadingRef.current = false;
     setItems([]);
     setPage(1);
     setHasMore(true);
     setError(null);
+    setLoading(false);
     initialLoadDone.current = false;
   }, []);
 

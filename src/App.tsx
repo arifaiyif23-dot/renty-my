@@ -19,6 +19,7 @@ import PageTransition from "@/components/PageTransition";
 // Eager load critical pages (landing + auth)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthMagicLink from "./pages/AuthMagicLink";
 
 // Lazy load all other pages to reduce main chunk size and prevent TDZ errors
 const Search = lazy(() => import("./pages/Search"));
@@ -80,6 +81,7 @@ function AppRoutes() {
             <Routes>
               <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
               <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
+              <Route path="/auth/magic" element={<ErrorBoundary><AuthMagicLink /></ErrorBoundary>} />
               <Route path="/install" element={<ErrorBoundary><Install /></ErrorBoundary>} />
               <Route path="/dashboard" element={<ErrorBoundary><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
               <Route path="/list-item" element={<ErrorBoundary><ProtectedRoute><ListItem /></ProtectedRoute></ErrorBoundary>} />

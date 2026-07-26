@@ -86,20 +86,32 @@ serve(async (req) => {
       activatedCount = toActivate.length;
     }
 
-    // TRANSITION 2: active → completed (end_date has passed)
+    // TRANSITION 2: active → completed (effective end_date has passed)
+    // Check approved modifications for extended/early-return end dates
+    const { data: approvedMods } = await supabase
+      .from('rental_modifications')
+      .select('rental_id, new_end_date')
+      .eq('status', 'approved');
+    const modEndDates = new Map((approvedMods || []).map(m => [m.rental_id, m.new_end_date]));
+
     const { data: toComplete, error: fetchCompleteError } = await supabase
       .from('rentals')
       .select('id, renter_id, owner_id, item_id, end_date')
-      .eq('status', 'active')
-      .lte('end_date', today);
+      .eq('status', 'active');
+
+    // Filter by effective end_date (use modified end_date if approved modification exists)
+    const rentalsToComplete = (toComplete || []).filter(r => {
+      const effectiveEnd = modEndDates.get(r.id) || r.end_date;
+      return effectiveEnd <= today;
+    });
 
     if (fetchCompleteError) {
       console.error('Error fetching rentals to complete:', fetchCompleteError);
       throw fetchCompleteError;
     }
 
-    if (toComplete && toComplete.length > 0) {
-      console.log(`Found ${toComplete.length} rentals to complete`);
+    if (rentalsToComplete.length > 0) {
+      console.log(`Found ${rentalsToComplete.length} rentals to complete`);
 
       const { error: completeError } = await supabase
         .from('rentals')
@@ -107,7 +119,7 @@ serve(async (req) => {
           status: 'completed',
           updated_at: now.toISOString()
         })
-        .in('id', toComplete.map(r => r.id))
+        .in('id', rentalsToComplete.map(r => r.id))
         .eq('status', 'active'); // TOCTOU guard: only update if still active
 
       if (completeError) {
@@ -116,7 +128,7 @@ serve(async (req) => {
       }
 
       // Send notifications
-      for (const rental of toComplete) {
+      for (const rental of rentalsToComplete) {
         // Notify renter
         await supabase.from('notifications').insert({
           user_id: rental.renter_id,
@@ -136,7 +148,7 @@ serve(async (req) => {
         });
       }
 
-      completedCount = toComplete.length;
+      completedCount = rentalsToComplete.length;
     }
 
     const totalProcessed = activatedCount + completedCount;

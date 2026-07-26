@@ -29,6 +29,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let rental: { id: string; total_price: number; start_date: string; end_date: string; promo_code_id?: string | null; discount_amount?: number | null; original_total_price?: number | null } | undefined;
+
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -65,64 +67,38 @@ serve(async (req) => {
     }
     const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice, promoCodeId, discountAmount, originalAmount, idempotencyKey } = validationResult.data;
     
-    let rental;
-    
-    // NEW FLOW: Check if rental already exists (for approved rentals)
-    if (rentalId) {
-      console.log('Processing payment for existing approved rental:', rentalId);
-      
-      const { data: existingRental, error: fetchError } = await supabase
-        .from('rentals')
-        .select('*')
-        .eq('id', rentalId)
-        .single();
-      
-      if (fetchError || !existingRental) {
-        throw new Error('Rental not found');
-      }
-      
-      if (existingRental.status !== 'approved') {
-        throw new Error(`Rental must be approved before payment. Current status: ${existingRental.status}`);
-      }
-      
-      if (existingRental.renter_id !== user.id) {
-        throw new Error('Forbidden: You can only create payments for your own rentals');
-      }
-      
-      rental = existingRental;
-    } else {
-      // OLD FLOW: Create new rental (for backward compatibility, but shouldn't be used)
-      console.log('Creating new rental (legacy flow):', { itemId, renterId, ownerId });
-      
-      const { data: newRental, error: rentalError } = await supabase
-        .from('rentals')
-        .insert({
-          item_id: itemId,
-          renter_id: renterId,
-          owner_id: ownerId,
-          start_date: startDate,
-          end_date: endDate,
-          total_price: totalPrice,
-          status: 'pending'
-        })
-        .select()
-        .single();
-      
-      if (rentalError) {
-        console.error('Rental creation error:', rentalError);
-        throw rentalError;
-      }
-      
-      rental = newRental;
-      
-      // Log rental creation
-      await supabase.from('payment_flow_logs').insert({
-        rental_id: rental.id,
-        stage: 'rental_created',
-        status: 'success',
-        details: { itemId, renterId, ownerId, startDate, endDate, totalPrice }
-      });
+    // The legacy "create rental + payment in one call" flow trusted client-supplied
+    // totalPrice/renterId/ownerId without verification. It has been removed; the
+    // frontend always creates the rental via request-booking first, so a rentalId
+    // is mandatory here.
+    if (!rentalId) {
+      return new Response(
+        JSON.stringify({ error: 'rentalId is required. Create a booking first.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    console.log('Processing payment for existing approved rental:', rentalId);
+
+    const { data: existingRental, error: fetchError } = await supabase
+      .from('rentals')
+      .select('*')
+      .eq('id', rentalId)
+      .single();
+
+    if (fetchError || !existingRental) {
+      throw new Error('Rental not found');
+    }
+
+    if (existingRental.status !== 'approved') {
+      throw new Error(`Rental must be approved before payment. Current status: ${existingRental.status}`);
+    }
+
+    if (existingRental.renter_id !== user.id) {
+      throw new Error('Forbidden: You can only create payments for your own rentals');
+    }
+
+    rental = existingRental;
     
     console.log('Creating payment for rental:', rental.id);
 
@@ -220,24 +196,33 @@ serve(async (req) => {
       .single();
     
     const feePercentage = parseFloat(feeSetting?.value || '10');
-    const platformFee = (rental.total_price * feePercentage) / 100;
+    // Round to cents so payout + fee always reconcile to the sen.
+    const platformFee = Math.round(((rental.total_price * feePercentage) / 100) * 100) / 100;
     const totalAmount = rental.total_price; // Renter pays rental amount only, platform fee deducted from owner's payout
-    
+
     console.log('Creating payment:', { totalPrice: rental.total_price, platformFee, totalAmount, feePercentage });
-    
+
+    // Guard against an existing OPEN payment (pending/paid). The partial unique
+    // index (migration 20260726000005) also enforces this atomically.
     const { data: existingPayment } = await supabase
       .from('payments')
       .select('id, status')
       .eq('rental_id', rental.id)
+      .in('status', ['pending', 'paid'])
       .maybeSingle();
-    
-    if (existingPayment && existingPayment.status !== 'expired') {
-      throw new Error('Payment already exists for this rental');
+
+    if (existingPayment) {
+      return new Response(
+        JSON.stringify({ error: 'Payment already exists for this rental' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    
+
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
-    
+
+    // Insert as 'draft' first so a crash between bill creation and the update
+    // can't leave an orphaned 'pending' payment blocking retries.
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
       .insert({
@@ -246,7 +231,7 @@ serve(async (req) => {
         platform_fee: platformFee,
         platform_fee_percentage: feePercentage,
         total_amount: totalAmount,
-        status: 'pending',
+        status: 'draft',
         expires_at: expiresAt.toISOString(),
         promo_code_id: promoCodeId || rental.promo_code_id || null,
         discount_amount: discountAmount || rental.discount_amount || 0,
@@ -337,13 +322,16 @@ serve(async (req) => {
     // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
     const billUrl = `https://toyyibpay.com/${billData[0].BillCode}`;
     
+    // Promote draft -> pending and attach the bill details atomically.
     await supabase
       .from('payments')
       .update({
+        status: 'pending',
         toyyibpay_bill_code: billData[0].BillCode,
         toyyibpay_bill_url: billUrl
       })
-      .eq('id', payment.id);
+      .eq('id', payment.id)
+      .eq('status', 'draft');
     
     console.log('ToyyibPay bill created:', billData[0].BillCode);
     

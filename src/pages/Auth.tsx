@@ -58,12 +58,25 @@ export default function Auth() {
   const redirectTo = locState?.redirectTo || (locState?.from ? locState.from.pathname + (locState.from.search || '') : undefined) || oauthRedirect || undefined;
   if (oauthRedirect) sessionStorage.removeItem('renty_oauth_redirect');
 
+  const [isRecovery, setIsRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  // Password recovery: the emailed link lands here with a recovery token. The
+  // AuthContext dispatches 'renty:password-recovery'; also detect the hash directly.
+  useEffect(() => {
+    const onRecovery = () => setIsRecovery(true);
+    window.addEventListener('renty:password-recovery', onRecovery);
+    if (window.location.hash.includes('type=recovery')) setIsRecovery(true);
+    return () => window.removeEventListener('renty:password-recovery', onRecovery);
+  }, []);
+
   // Auto-redirect if already authenticated (handles OAuth callback landing)
   useEffect(() => {
-    if (user) {
+    if (user && !isRecovery) {
       navigate(redirectTo || '/', { replace: true });
     }
-  }, [user, navigate, redirectTo]);
+  }, [user, navigate, redirectTo, isRecovery]);
   const [loginMethod, setLoginMethod] = useState<'magic_link' | 'password'>('magic_link');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -74,6 +87,38 @@ export default function Auth() {
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', confirmPassword: '' });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [preferredRole, setPreferredRole] = useState<'renter' | 'vendor'>('renter');
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const schema = z.string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Must contain uppercase letter')
+      .regex(/[a-z]/, 'Must contain lowercase letter')
+      .regex(/[0-9]/, 'Must contain a number');
+    const parsed = schema.safeParse(newPassword);
+    if (!parsed.success) {
+      toast.error(parsed.error.errors[0].message);
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Password updated! You are now signed in.');
+      setIsRecovery(false);
+      // Clean the recovery hash from the URL.
+      window.history.replaceState(null, '', window.location.pathname);
+      navigate(redirectTo || '/', { replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update password. The link may have expired.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +138,24 @@ export default function Auth() {
         return;
       }
       await signIn(result.data.email, result.data.password);
+
+      // Enforce suspension at login: sign the user back out and block access.
+      const { data: { user: signedInUser } } = await supabase.auth.getUser();
+      if (signedInUser) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('is_suspended, suspension_reason')
+          .eq('id', signedInUser.id)
+          .maybeSingle();
+        if (prof?.is_suspended) {
+          await supabase.auth.signOut();
+          toast.error(prof.suspension_reason
+            ? `Your account has been suspended: ${prof.suspension_reason}`
+            : 'Your account has been suspended. Please contact support.');
+          return;
+        }
+      }
+
       toast.success('Welcome back!');
       navigate(redirectTo || '/');
     } catch (error: unknown) {
@@ -127,20 +190,17 @@ export default function Auth() {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithOtp({
-        email: result.data,
-        options: { emailRedirectTo: `${window.location.origin}/auth` },
+      const { error: fnError } = await supabase.functions.invoke('send-magic-link', {
+        body: { email: result.data },
       });
-      if (error) throw error;
+      if (fnError) throw fnError;
 
       setMagicLinkSent(true);
       toast.success('Magic link sent! Check your email.');
     } catch (error) {
       const msg = error instanceof Error ? error.message : '';
-      if (msg.includes('rate_limit')) {
+      if (msg.includes('Too many requests') || msg.includes('rate')) {
         toast.error('Please wait before requesting another link.');
-      } else if (msg.includes('not found')) {
-        toast.error('No account found with this email. Please sign up first.');
       } else {
         toast.error('Failed to send magic link. Please try again.');
       }
@@ -205,6 +265,50 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  if (isRecovery) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <GlassCard className="w-full max-w-md" padding="lg">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold">Set a new password</h1>
+              <p className="text-sm text-muted-foreground mt-1">Enter and confirm your new password below.</p>
+            </div>
+            <form onSubmit={handleResetPassword} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="new-password" className="text-sm font-medium">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="h-12 text-base rounded-xl"
+                  autoComplete="new-password"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password" className="text-sm font-medium">Confirm New Password</Label>
+                <Input
+                  id="confirm-new-password"
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="h-12 text-base rounded-xl"
+                  autoComplete="new-password"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full h-12 text-base font-medium rounded-xl" disabled={isLoading}>
+                {isLoading ? 'Updating...' : 'Update Password'}
+              </Button>
+            </form>
+          </GlassCard>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

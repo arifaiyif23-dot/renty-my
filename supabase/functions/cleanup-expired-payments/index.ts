@@ -28,62 +28,80 @@ serve(async (req) => {
     
     console.log('Starting expired payment cleanup...');
     
-    // Get expired payments
+    const nowIso = new Date().toISOString();
+
+    // Get expired OPEN payments (pending) AND stale drafts that never got a bill.
     const { data: expiredPayments, error: fetchError } = await supabase
       .from('payments')
-      .select('id, rental_id, toyyibpay_bill_code')
-      .eq('status', 'pending')
-      .lt('expires_at', new Date().toISOString());
-    
+      .select('id, rental_id, toyyibpay_bill_code, status')
+      .in('status', ['pending', 'draft'])
+      .lt('expires_at', nowIso);
+
     if (fetchError) {
       console.error('Error fetching expired payments:', fetchError);
       throw fetchError;
     }
-    
-    console.log(`Found ${expiredPayments?.length || 0} expired payments`);
-    
+
+    console.log(`Found ${expiredPayments?.length || 0} expired/stale payments`);
+
     if (!expiredPayments || expiredPayments.length === 0) {
       return new Response(
         JSON.stringify({ message: 'No expired payments found', count: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    
-    // Mark payments as expired (TOCTOU guard: only if still pending)
+
+    // Mark payments as expired (TOCTOU guard: only if still in an open state)
     const { error: updateError } = await supabase
       .from('payments')
-      .update({ 
+      .update({
         status: 'expired',
-        updated_at: new Date().toISOString()
+        updated_at: nowIso
       })
       .in('id', expiredPayments.map(p => p.id))
-      .eq('status', 'pending');
-    
+      .in('status', ['pending', 'draft']);
+
     if (updateError) {
       console.error('Error updating expired payments:', updateError);
       throw updateError;
     }
-    
+
+    // Only cancel rentals whose payment did NOT get paid concurrently. Fetch the
+    // rental ids that still have no 'paid' payment to avoid cancelling a rental
+    // the user actually paid for in the race window.
+    const rentalIds = [...new Set(expiredPayments.map(p => p.rental_id))];
+    const { data: paidPayments } = await supabase
+      .from('payments')
+      .select('rental_id')
+      .in('rental_id', rentalIds)
+      .eq('status', 'paid');
+    const paidRentalIds = new Set((paidPayments || []).map(p => p.rental_id));
+    const cancellableRentalIds = rentalIds.filter(id => !paidRentalIds.has(id));
+
     // Cancel associated rentals (handle all rental statuses that can have pending payments)
-    const { error: cancelError } = await supabase
-      .from('rentals')
-      .update({ 
-        status: 'cancelled',
-        updated_at: new Date().toISOString()
-      })
-      .in('id', expiredPayments.map(p => p.rental_id))
-      .in('status', ['pending', 'pending_approval', 'approved']);
+    const { error: cancelError } = cancellableRentalIds.length === 0
+      ? { error: null }
+      : await supabase
+        .from('rentals')
+        .update({
+          status: 'cancelled',
+          updated_at: nowIso
+        })
+        .in('id', cancellableRentalIds)
+        .in('status', ['pending', 'pending_approval', 'approved']);
     
     if (cancelError) {
       console.error('Error cancelling rentals:', cancelError);
       throw cancelError;
     }
     
-    // Send notifications to renters
-    const { data: rentals } = await supabase
-      .from('rentals')
-      .select('renter_id, item_id')
-      .in('id', expiredPayments.map(p => p.rental_id));
+    // Send notifications to renters (only for rentals actually cancelled)
+    const { data: rentals } = cancellableRentalIds.length === 0
+      ? { data: [] }
+      : await supabase
+        .from('rentals')
+        .select('renter_id, item_id')
+        .in('id', cancellableRentalIds);
     
     if (rentals) {
       for (const rental of rentals) {

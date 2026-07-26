@@ -9,17 +9,21 @@ import { RentalModificationDialog } from "@/components/RentalModificationDialog"
 import { PayNowButton } from "@/components/PayNowButton";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
+import { ConditionReportWizard } from "@/components/ConditionReportWizard";
+import { ConditionReportViewer } from "@/components/ConditionReportViewer";
 import { format } from "date-fns";
 import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Key, Camera, AlertTriangle, Loader2 } from "lucide-react";
-import { Rental } from "@/types";
+import { Rental, ConditionReport } from "@/types";
 import { toast } from "sonner";
 import { haptics } from "@/utils/haptics";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RentalCardProps {
   rental: Rental;
   isOwner: boolean;
   onStatusUpdate: (rentalId: string, status: Rental['status']) => Promise<void>;
   onReviewSuccess: () => void;
+  hasPendingModification?: boolean;
 }
 
 const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: RentalCardProps) => {
@@ -36,6 +40,30 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
   }>({ open: false, type: null });
   const [handoverDialog, setHandoverDialog] = useState(false);
   const [returnDialog, setReturnDialog] = useState(false);
+  const [conditionWizard, setConditionWizard] = useState<{ open: boolean; type: 'pre_rental' | 'post_rental' }>({ open: false, type: 'pre_rental' });
+  const [conditionReports, setConditionReports] = useState<ConditionReport[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+
+  const loadConditionReports = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.functions.invoke('get-condition-report?rental_id=' + rental.id);
+    if (data) setConditionReports(data as ConditionReport[]);
+  };
+
+  const handleHandoverSuccess = () => {
+    onReviewSuccess();
+    setConditionWizard({ open: true, type: 'pre_rental' });
+  };
+
+  const handleReturnSuccess = () => {
+    onReviewSuccess();
+    setConditionWizard({ open: true, type: 'post_rental' });
+  };
+
+  const handleConditionWizardSuccess = () => {
+    loadConditionReports();
+  };
 
   const canReview = rental.status === 'completed';
   const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
@@ -150,10 +178,18 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
                 className="object-cover w-full h-full"
                 loading="lazy"
               />
-              <Badge className={`absolute top-2 left-2 gap-1 ${getStatusColor(rental.status)}`}>
-                {getStatusIcon(rental.status)}
-                {rental.status}
-              </Badge>
+              <div className="absolute top-2 left-2 flex gap-1">
+                <Badge className={`gap-1 ${getStatusColor(rental.status)}`}>
+                  {getStatusIcon(rental.status)}
+                  {rental.status}
+                </Badge>
+                {hasPendingModification && isOwner && (
+                  <Badge variant="secondary" className="gap-1 animate-pulse">
+                    <Clock3 className="h-3 w-3" />
+                    Pending
+                  </Badge>
+                )}
+              </div>
             </div>
           )}
           
@@ -295,6 +331,20 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
                 </div>
               )}
 
+              {/* View condition report */}
+              {['active', 'completed', 'disputed'].includes(rental.status) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    loadConditionReports();
+                    setViewerOpen(true);
+                  }}
+                >
+                  View Condition Report
+                </Button>
+              )}
+
               {/* View handover/return photos */}
               {rental.status === 'active' && rental.handover_photos && rental.handover_photos.length > 0 && (
                 <Button 
@@ -345,10 +395,18 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
           <CardHeader>
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">{rental.item?.title}</CardTitle>
-              <Badge className={`gap-1 ${getStatusColor(rental.status)}`}>
-                {getStatusIcon(rental.status)}
-                {rental.status}
-              </Badge>
+              <div className="flex gap-1">
+                <Badge className={`gap-1 ${getStatusColor(rental.status)}`}>
+                  {getStatusIcon(rental.status)}
+                  {rental.status}
+                </Badge>
+                {hasPendingModification && isOwner && (
+                  <Badge variant="secondary" className="gap-1 animate-pulse">
+                    <Clock3 className="h-3 w-3" />
+                    Pending
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -467,6 +525,20 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
               </div>
             )}
 
+            {/* View condition report */}
+            {['active', 'completed', 'disputed'].includes(rental.status) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  loadConditionReports();
+                  setViewerOpen(true);
+                }}
+              >
+                View Condition Report
+              </Button>
+            )}
+
             {/* View handover/return photos */}
             {rental.status === 'active' && rental.handover_photos && rental.handover_photos.length > 0 && (
               <Button 
@@ -568,7 +640,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
         rental={rental}
         open={handoverDialog}
         onOpenChange={setHandoverDialog}
-        onSuccess={onReviewSuccess}
+        onSuccess={handleHandoverSuccess}
       />
 
       {/* Return/Dispute Dialog */}
@@ -576,8 +648,27 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess }: R
         rental={rental}
         open={returnDialog}
         onOpenChange={setReturnDialog}
-        onSuccess={onReviewSuccess}
+        onSuccess={handleReturnSuccess}
       />
+
+      {/* Condition Report Wizard */}
+      <ConditionReportWizard
+        rentalId={rental.id}
+        reportType={conditionWizard.type}
+        open={conditionWizard.open}
+        onOpenChange={(open) => setConditionWizard(prev => ({ ...prev, open }))}
+        onSuccess={handleConditionWizardSuccess}
+        itemCategory={rental.item?.category}
+      />
+
+      {/* Condition Report Viewer */}
+      {conditionReports.length > 0 && (
+        <ConditionReportViewer
+          reports={conditionReports}
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
+        />
+      )}
     </>
   );
 });

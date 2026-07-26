@@ -77,6 +77,29 @@ serve(async (req) => {
       throw new Error(`Rental cannot be ${action}ed. Current status: ${rental.status}`);
     }
 
+    // CRITICAL: Re-validate availability before approving. Multiple pending
+    // requests can overlap; approving a second one would double-book the item.
+    if (action === 'approve') {
+      const { data: conflicts, error: conflictError } = await supabase
+        .from('rentals')
+        .select('id')
+        .eq('item_id', rental.item_id)
+        .neq('id', rentalId)
+        .in('status', ['approved', 'paid', 'active'])
+        .lte('start_date', rental.end_date)
+        .gte('end_date', rental.start_date)
+        .limit(1);
+
+      if (conflictError) {
+        console.error('Overlap re-check error:', conflictError);
+        throw new Error('Failed to verify availability');
+      }
+
+      if (conflicts && conflicts.length > 0) {
+        throw new Error('Another approved booking already occupies these dates. Please reject this request.');
+      }
+    }
+
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
 
     // Generate 4-digit pickup code if approving
@@ -144,7 +167,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Rental approval processing error:', error);
     const message = error.message || 'An error occurred while processing the rental';
-    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account');
+    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account') || message.startsWith('Another approved');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 

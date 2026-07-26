@@ -1,7 +1,7 @@
 import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Heart, Star, MapPin } from "lucide-react";
+import { Heart, Star, MapPin, Share2 } from "lucide-react";
 import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,7 +91,7 @@ const ListingCardV2 = memo(({
             } catch { /* silent fail */ }
             setSaving(false);
           }}
-          className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all duration-200 active:scale-90"
+          className="absolute top-3 right-14 min-w-[44px] min-h-[44px] rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all duration-200 active:scale-90"
           aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart
@@ -102,6 +102,25 @@ const ListingCardV2 = memo(({
                 : "text-foreground/70"
             )}
           />
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const shareUrl = `${window.location.origin}/items/${id}`;
+            const shareText = `Check out "${title}" on RENTY — RM${pricePerDay}/day`;
+            if (navigator.share) {
+              navigator.share({ title, text: shareText, url: shareUrl }).catch(() => {});
+            } else {
+              navigator.clipboard.writeText(shareUrl);
+              toast.success('Link copied!');
+            }
+          }}
+          className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all duration-200 active:scale-90"
+          aria-label="Share item"
+        >
+          <Share2 className="h-4 w-4 text-foreground/70" />
         </button>
 
         {badges && badges.length > 0 && (

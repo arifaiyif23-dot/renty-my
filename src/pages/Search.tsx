@@ -136,7 +136,8 @@ export default function Search() {
       if (category !== 'all') q = q.eq('category', category);
       if (minPrice) q = q.gte('price_per_day', parseFloat(minPrice));
       if (maxPrice) q = q.lte('price_per_day', parseFloat(maxPrice));
-      if (userLocation) q = q.ilike('location', `%${userLocation}%`);
+      // 'all' is the "All Malaysia" sentinel — never send it to the DB.
+      if (userLocation && userLocation !== 'all') q = q.ilike('location', `%${userLocation}%`);
 
       const applyCommonFilters = (query: typeof q) => {
         if (instantBookOnly) query = query.eq('instant_book_enabled', true);
@@ -232,11 +233,13 @@ export default function Search() {
     setInitialLoading(true);
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
+  // Clear the initial-loading flag once the first fetch settles — whether it
+  // returned items OR came back empty — so the empty state (not skeletons) shows.
   useEffect(() => {
-    if (items.length > 0 && initialLoading) {
+    if (!loading && initialLoading) {
       setInitialLoading(false);
     }
-  }, [items.length, initialLoading]);
+  }, [loading, initialLoading]);
 
   useEffect(() => {
     const startDate = searchParams.get('start_date');
@@ -260,7 +263,7 @@ export default function Search() {
   }, []);
 
   const activeFiltersCount = [
-    searchQuery, category !== 'all', minPrice, maxPrice, dateRange?.from, userLocation,
+    searchQuery, category !== 'all', minPrice, maxPrice, dateRange?.from, (userLocation && userLocation !== 'all') ? userLocation : '',
   ].filter(Boolean).length;
 
   const CATEGORY_OPTIONS = [
@@ -439,7 +442,7 @@ export default function Search() {
                 <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear maximum price" onClick={() => setMaxPrice('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMaxPrice(''); } }} />
               </Badge>
             )}
-            {userLocation && (
+            {userLocation && userLocation !== 'all' && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 <MapPin className="h-3 w-3" />
                 {userLocation}

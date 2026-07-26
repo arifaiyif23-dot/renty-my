@@ -221,7 +221,7 @@ const Header = () => {
                             {t('nav.myEarnings')}
                           </Link>
                         </DropdownMenuItem>
-                        {isAdminUser && (
+                        {isAdminUser?.isAdmin && (
                           <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>

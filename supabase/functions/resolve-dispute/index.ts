@@ -12,7 +12,7 @@ const resolutionSchema = z.object({
   resolutionNotes: z.string().min(10),
   ownerPercentage: z.number().min(0).max(100).optional(),
   renterPercentage: z.number().min(0).max(100).optional(),
-  customAmount: z.number().optional()
+  customAmount: z.number().positive().optional()
 });
 
 Deno.serve(async (req) => {
@@ -90,7 +90,8 @@ Deno.serve(async (req) => {
       throw new Error('Dispute already resolved');
     }
 
-    const payment = rental.payment;
+    // payment is a one-to-many relation; use the first (paid) payment row.
+    const payment = Array.isArray(rental.payment) ? rental.payment[0] : rental.payment;
     if (!payment) {
       throw new Error('No payment found for this dispute');
     }
@@ -118,14 +119,15 @@ Deno.serve(async (req) => {
         break;
 
       case 'partial_split':
-        if (!validatedData.ownerPercentage || !validatedData.renterPercentage) {
+        if (validatedData.ownerPercentage == null || validatedData.renterPercentage == null) {
           throw new Error('Percentages required for partial split');
         }
         if (validatedData.ownerPercentage + validatedData.renterPercentage !== 100) {
           throw new Error('Percentages must sum to 100');
         }
-        ownerAmount = (totalAmount * validatedData.ownerPercentage) / 100;
-        renterAmount = (totalAmount * validatedData.renterPercentage) / 100;
+        // Round to cents and derive renter from owner to guarantee conservation.
+        ownerAmount = Math.round((totalAmount * validatedData.ownerPercentage) / 100) / 100;
+        renterAmount = Math.round((totalAmount - ownerAmount) * 100) / 100;
         resolutionSplit = {
           owner: validatedData.ownerPercentage / 100,
           renter: validatedData.renterPercentage / 100
@@ -133,32 +135,46 @@ Deno.serve(async (req) => {
         break;
 
       case 'custom':
-        if (!validatedData.customAmount) {
+        if (validatedData.customAmount == null) {
           throw new Error('Custom amount required');
         }
-        renterAmount = validatedData.customAmount;
-        ownerAmount = totalAmount - validatedData.customAmount;
+        renterAmount = Math.round(validatedData.customAmount * 100) / 100;
+        ownerAmount = Math.round((totalAmount - renterAmount) * 100) / 100;
+        if (renterAmount > totalAmount) {
+          throw new Error('Custom amount exceeds total payment');
+        }
         if (ownerAmount < 0) {
           throw new Error('Custom amount exceeds total payment');
         }
         resolutionSplit = {
-          owner: ownerAmount / totalAmount,
-          renter: renterAmount / totalAmount
+          owner: totalAmount > 0 ? ownerAmount / totalAmount : 0,
+          renter: totalAmount > 0 ? renterAmount / totalAmount : 0
         };
         break;
     }
 
     console.log('Resolution amounts:', { ownerAmount, renterAmount });
 
-    // Update payment status
+    // Update payment status — guarded so a concurrent resolution can't regress it.
     const paymentStatus = renterAmount > 0 ? 'refunded' : 'released';
-    await supabaseAdmin
+    const { data: updatedPayment, error: paymentUpdateError } = await supabaseAdmin
       .from('payments')
       .update({
         status: paymentStatus,
         refunded_at: renterAmount > 0 ? new Date().toISOString() : null,
       })
-      .eq('id', payment.id);
+      .eq('id', payment.id)
+      .eq('status', 'paid')
+      .select('id')
+      .maybeSingle();
+
+    if (paymentUpdateError) {
+      console.error('Payment update error:', paymentUpdateError);
+      throw new Error('Failed to update payment');
+    }
+    if (!updatedPayment) {
+      throw new Error('Dispute already resolved');
+    }
 
     // Update rental resolution (using existing dispute columns on rentals table)
     await supabaseAdmin
@@ -176,6 +192,44 @@ Deno.serve(async (req) => {
       .update({ status: rentalStatus })
       .eq('id', validatedData.rentalId);
 
+    // REFUND: there is no live ToyyibPay money movement here, so record a pending
+    // refund payout for the renter. Ops processes it manually from AdminPayouts.
+    // This makes the refund real and auditable instead of a DB-only flag.
+    if (renterAmount > 0) {
+      const { error: refundError } = await supabaseAdmin
+        .from('payouts')
+        .insert({
+          owner_id: rental.renter_id, // recipient of the refund
+          payment_id: payment.id,
+          rental_id: rental.id,
+          rental_amount: 0,
+          platform_fee: 0,
+          payout_amount: renterAmount,
+          status: 'pending',
+          held_reason: `Dispute refund (${validatedData.resolutionType})`,
+        });
+
+      if (refundError) {
+        console.error('Refund payout insert error:', refundError);
+        // Non-fatal: payment/rental already updated; log for ops to reconcile.
+        await supabaseAdmin.from('payment_flow_logs').insert({
+          payment_id: payment.id,
+          rental_id: rental.id,
+          stage: 'refund_payout_created',
+          status: 'error',
+          details: { error: refundError.message, renterAmount }
+        });
+      } else {
+        await supabaseAdmin.from('payment_flow_logs').insert({
+          payment_id: payment.id,
+          rental_id: rental.id,
+          stage: 'refund_payout_created',
+          status: 'success',
+          details: { renterAmount }
+        });
+      }
+    }
+
     // Send notifications
     await supabaseAdmin.from('notifications').insert([
       {
@@ -192,7 +246,7 @@ Deno.serve(async (req) => {
         type: 'payment_received',
         title: 'Dispute Resolved',
         message: renterAmount > 0
-          ? `Dispute resolved. RM ${renterAmount.toFixed(2)} refunded.`
+          ? `Dispute resolved. A refund of RM ${renterAmount.toFixed(2)} has been approved and will be processed within 3-5 business days.`
           : 'Dispute resolved in favor of owner.',
         link: `/rentals/${rental.id}`
       }

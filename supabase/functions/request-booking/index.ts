@@ -7,10 +7,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 const bookingSchema = z.object({
   itemId: z.string().uuid(),
-  startDate: z.string().min(1),
-  endDate: z.string().min(1),
+  startDate: z.string().regex(DATE_RE, 'startDate must be YYYY-MM-DD'),
+  endDate: z.string().regex(DATE_RE, 'endDate must be YYYY-MM-DD'),
   renterId: z.string().uuid(),
   ownerId: z.string().uuid(),
   totalPrice: z.number().positive(),
@@ -18,7 +20,23 @@ const bookingSchema = z.object({
   discountAmount: z.number().min(0).optional(),
   promoCodeId: z.string().uuid().nullable().optional(),
   instantBook: z.boolean().optional().default(false),
-});
+}).refine(
+  (data) => new Date(data.endDate) >= new Date(data.startDate),
+  { message: 'endDate must be on or after startDate' }
+);
+
+// Compute days inclusively (matches client: differenceInDays(to, from) + 1).
+function rentalDays(start: string, end: string): number {
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  return Math.round(ms / 86400000) + 1;
+}
+
+// Tiered discount must mirror the client (ItemDetail.getDiscountPercent).
+function discountPercentForDays(days: number): number {
+  if (days >= 30) return 20;
+  if (days >= 7) return 10;
+  return 0;
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -82,8 +100,34 @@ serve(async (req) => {
       throw new Error('Renter must be verified to create booking requests');
     }
 
+    // Fetch the item ONCE: used for owner verification, instant-book check, and
+    // authoritative server-side price recomputation (never trust the client's price).
+    const { data: itemData, error: itemError } = await supabase
+      .from('items')
+      .select('price_per_day, owner_id, instant_book_enabled, minimum_rental_days, maximum_rental_days')
+      .eq('id', itemId)
+      .single();
+
+    if (itemError || !itemData) {
+      throw new Error('Item not found');
+    }
+
+    if (itemData.owner_id !== ownerId) {
+      throw new Error('Owner mismatch');
+    }
+
+    // Validate rental length constraints.
+    const days = rentalDays(startDate, endDate);
+    if (itemData.minimum_rental_days != null && days < itemData.minimum_rental_days) {
+      throw new Error(`Minimum rental period is ${itemData.minimum_rental_days} day(s)`);
+    }
+    if (itemData.maximum_rental_days != null && days > itemData.maximum_rental_days) {
+      throw new Error(`Maximum rental period is ${itemData.maximum_rental_days} day(s)`);
+    }
+
     // Server-side promo code validation with atomic usage increment (prevents TOCTOU)
     let currentPromoUses = 0;
+    let promoRow: { discount_amount: number; discount_type: string } | null = null;
     if (promoCodeId) {
       const { data: promoCode, error: promoError } = await supabase
         .from('promo_codes')
@@ -120,29 +164,33 @@ serve(async (req) => {
       }
 
       currentPromoUses = promoCode.current_uses;
+      promoRow = { discount_amount: promoCode.discount_amount, discount_type: promoCode.discount_type };
+    }
+
+    // AUTHORITATIVE price recomputation (mirrors ItemDetail.getPriceBreakdown +
+    // getTotalAfterPromo). Reject any client price that doesn't match.
+    const subtotal = days * itemData.price_per_day;
+    const discountPct = discountPercentForDays(days);
+    const durationDiscount = (subtotal * discountPct) / 100;
+    const baseTotal = subtotal - durationDiscount;
+    const promoDiscount = promoRow
+      ? (promoRow.discount_type === 'fixed'
+        ? promoRow.discount_amount
+        : (baseTotal * promoRow.discount_amount) / 100)
+      : 0;
+    const expectedTotal = Math.max(0, Math.round((baseTotal - promoDiscount) * 100) / 100);
+
+    if (Math.abs(totalPrice - expectedTotal) > 0.02) {
+      console.error('Price mismatch:', { clientPrice: totalPrice, expectedTotal, days, subtotal, discountPct, promoDiscount });
+      throw new Error('Price mismatch. Please refresh and try again.');
     }
 
     // Determine rental status
     let rentalStatus = 'pending_approval';
     if (instantBook) {
-      const { data: itemData, error: itemError } = await supabase
-        .from('items')
-        .select('instant_book_enabled, owner_id')
-        .eq('id', itemId)
-        .single();
-
-      if (itemError || !itemData) {
-        throw new Error('Item not found');
-      }
-
       if (!itemData.instant_book_enabled) {
         throw new Error('Instant booking is not available for this item');
       }
-
-      if (itemData.owner_id !== ownerId) {
-        throw new Error('Owner mismatch');
-      }
-
       rentalStatus = 'approved';
     }
 
@@ -153,7 +201,7 @@ serve(async (req) => {
       p_owner_id: ownerId,
       p_start_date: startDate,
       p_end_date: endDate,
-      p_total_price: totalPrice,
+      p_total_price: expectedTotal,
       p_status: rentalStatus,
     });
 
@@ -243,7 +291,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Booking request error:', error);
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must') || message.startsWith('Item is not') || message.startsWith('Failed to check');
+    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must') || message.startsWith('Item is not') || message.startsWith('Failed to check') || message.startsWith('Price mismatch') || message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Owner mismatch') || message.startsWith('Item not found') || message.startsWith('Instant booking') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 

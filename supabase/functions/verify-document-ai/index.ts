@@ -87,6 +87,36 @@ serve(async (req) => {
       throw new Error("Missing required document or selfie URL");
     }
 
+    // Rate limiting: direct invocation of this paid AI endpoint bypassed the
+    // 3/hour limit in submit-verification. Cap AI analyses per user per hour.
+    const RATE_LIMIT = 10;
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count: recentCount, error: rateError } = await supabaseAdmin
+      .from('verification_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .not('ai_analysis_result', 'is', null)
+      .gte('created_at', oneHourAgo);
+
+    if (!rateError && (recentCount ?? 0) >= RATE_LIMIT) {
+      return new Response(
+        JSON.stringify({ error: 'Too many verification attempts. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SSRF guard: only allow image URLs served from this project's Supabase
+    // storage (public or signed). Reject arbitrary external URLs.
+    const projectUrl = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
+    const isAllowedUrl = (u?: string) => {
+      if (!u) return true; // optional fields
+      return u.startsWith(`${projectUrl}/storage/v1/object/`);
+    };
+    const allUrls = [documentFrontUrl, documentBackUrl, selfieUrl, livenessVideoUrl, ...(livenessVideoFrames ?? [])];
+    if (!allUrls.every(isAllowedUrl)) {
+      throw new Error('Invalid document URL. Files must be uploaded to Renty storage first.');
+    }
+
     // Build the analysis prompt
     const analysisPrompt = buildAnalysisPrompt(documentType, fullNameOnDocument, !!documentBackUrl, !!livenessVideoUrl, !!livenessVideoFrames?.length);
 

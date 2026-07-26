@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, MessageCircle, Plus, LayoutDashboard } from "lucide-react";
+import { Home, Search, Heart, MessageCircle, Plus, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ const MobileBottomNav = () => {
   ];
 
   const rightNavItems = [
+    { key: "wishlist", icon: Heart, label: t('nav.wishlist'), path: "/wishlist" },
     { key: "messages", icon: MessageCircle, label: t('nav.messages'), path: "/messages" },
     { key: "dashboard", icon: LayoutDashboard, label: t('nav.dashboard'), path: "/dashboard" },
   ];
