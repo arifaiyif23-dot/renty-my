@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { useLocation } from "react-router-dom";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ArrowLeft, File as FileIcon, Loader2 } from "lucide-react";
+import { Send, ArrowLeft, File as FileIcon, Loader2, RefreshCw } from "lucide-react";
 import { FileAttachment } from "@/components/FileAttachment";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { sanitizeMessage } from "@/utils/sanitize";
 import { safeFormatDate } from "@/utils/securityHelpers";
 import { useTypingIndicator } from "@/hooks/use-typing-indicator";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 
 
 interface Conversation {
@@ -80,6 +81,9 @@ export default function Messages() {
   const isMobile = useIsMobile();
   const messageEndRef = useRef<HTMLDivElement | null>(null);
   
+  const fetchAndRefresh = useCallback(async () => { fetchConversations(); }, [user]);
+  const { isRefreshing, pullDistance } = usePullToRefresh(fetchAndRefresh);
+
   const conversationId = useMemo(() => {
     if (!user?.id || !selectedUserId) return '';
     return [user.id, selectedUserId].sort().join('_');
@@ -371,6 +375,16 @@ export default function Messages() {
   return (
     <>
       <Header />
+      {pullDistance > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
+          <div
+            className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg"
+            style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </div>
+        </div>
+      )}
       <div className="container mx-auto p-3 md:p-4 pb-mobile-nav max-w-7xl">
         {/* Mobile: Conditionally show list OR thread */}
         {isMobile ? (

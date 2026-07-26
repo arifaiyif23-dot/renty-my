@@ -44,7 +44,7 @@ const ListingCardV2 = memo(({
     <Link
       to={`/items/${id}`}
       className={cn(
-        "group block rounded-xl overflow-hidden bg-card border border-border shadow-1 hover:shadow-3 transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group block rounded-xl overflow-hidden bg-card border border-border shadow-1 hover:shadow-3 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className
       )}
     >

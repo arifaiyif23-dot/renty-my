@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ export default function SavedSearches() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searches, setSearches] = useState<SavedSearch[]>([]);
+  const [newCounts, setNewCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editSearch, setEditSearch] = useState<SavedSearch | null>(null);
@@ -37,12 +39,30 @@ export default function SavedSearches() {
 
       if (error) throw error;
       setSearches(data || []);
+      fetchNewCounts(data || []);
     } catch {
       toast.error("Failed to load saved searches");
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchNewCounts = useCallback(async (searchesList: SavedSearch[]) => {
+    const counts: Record<string, number> = {};
+    for (const s of searchesList) {
+      if (!s.notify_on_new) continue;
+      try {
+        let query = supabase.from("items").select("*", { count: "exact", head: true });
+        if (s.query_text) query = query.ilike("title", `%${s.query_text}%`);
+        if (s.category && s.category !== "all") query = query.eq("category", s.category);
+        if (s.location) query = query.eq("location", s.location);
+        query = query.gte("created_at", s.created_at);
+        const { count } = await query;
+        if (count && count > 0) counts[s.id] = count;
+      } catch { /* skip */ }
+    }
+    setNewCounts(counts);
+  }, []);
 
   const toggleNotify = async (search: SavedSearch) => {
     try {
@@ -52,9 +72,11 @@ export default function SavedSearches() {
         .eq("id", search.id);
 
       if (error) throw error;
-      setSearches((prev) =>
-        prev.map((s) => (s.id === search.id ? { ...s, notify_on_new: !s.notify_on_new } : s))
-      );
+      setSearches((prev) => {
+        const updated = prev.map((s) => (s.id === search.id ? { ...s, notify_on_new: !s.notify_on_new } : s));
+        fetchNewCounts(updated);
+        return updated;
+      });
       toast.success(search.notify_on_new ? "Notifications disabled" : "Notifications enabled");
     } catch {
       toast.error("Failed to update");
@@ -139,9 +161,16 @@ export default function SavedSearches() {
               <GlassCard key={search.id} variant="subtle" padding="md" className="hover:border-primary/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {search.label || search.query_text || "Unnamed Search"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">
+                        {search.label || search.query_text || "Unnamed Search"}
+                      </p>
+                      {newCounts[search.id] && (
+                        <Badge variant="default" className="shrink-0 text-[10px] h-5 px-1.5">
+                          {newCounts[search.id]} new
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-1.5 mt-1">
                       {search.query_text && (
                         <span className="text-xs bg-muted px-2 py-0.5 rounded-full">

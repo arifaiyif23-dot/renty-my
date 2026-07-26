@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Plus, Search, Grid3x3, List, Eye,
   Edit, Pause, Play, Trash2, MoreVertical,
-  Calendar, DollarSign, Inbox, Loader2
+  Calendar, DollarSign, Inbox, Loader2, RefreshCw
 } from 'lucide-react';
 import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -165,6 +166,8 @@ export default function MyListings() {
     staleTime: 1000 * 60 * 2,
   });
 
+  const { isRefreshing, pullDistance } = usePullToRefresh(refetch);
+
   const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
 
   const handleStatusChange = async (itemId: string, newStatus: string) => {
@@ -290,9 +293,19 @@ export default function MyListings() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <div className="border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
+        {pullDistance > 0 && (
+          <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
+            <div
+              className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg"
+              style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
+            >
+              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </div>
+          </div>
+        )}
+        <div className="border-b">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
             <div className="min-w-0">
               <h1 className="text-2xl md:text-3xl font-bold">{t('listings.myListings')}</h1>
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'listings' | 'requests')} className="mt-3 w-full">

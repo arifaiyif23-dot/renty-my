@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Search, Mail, ExternalLink, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Mail, ExternalLink, HelpCircle, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import { Link } from "react-router-dom";
 
@@ -114,6 +114,17 @@ export default function Help() {
         <GlassCard padding="lg">
           <h2 className="font-semibold text-lg mb-4">Still Need Help?</h2>
           <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center">
+                <MessageCircle className="h-4 w-4 text-success" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">WhatsApp</p>
+                <a href="https://wa.me/60123456789" target="_blank" rel="noopener noreferrer" className="text-sm text-success hover:underline">
+                  +60 12-345 6789
+                </a>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Mail className="h-4 w-4 text-primary" />

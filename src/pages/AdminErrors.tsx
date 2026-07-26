@@ -4,6 +4,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Bug, RefreshCw, Loader2, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ export default function AdminErrors() {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,7 +67,6 @@ export default function AdminErrors() {
   };
 
   const clearAll = async () => {
-    if (!confirm("Delete all errors?")) return;
     try {
       const { error } = await supabase.from("errors").delete().neq("id", "00000000-0000-0000-0000-000000000000");
       if (error) throw error;
@@ -126,7 +127,7 @@ export default function AdminErrors() {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-            <Button className="rounded-xl" variant="destructive" onClick={clearAll} disabled={errors.length === 0}>
+            <Button className="rounded-xl" variant="destructive" onClick={() => setConfirmClearAll(true)} disabled={errors.length === 0}>
               <Trash2 className="h-4 w-4 mr-2" />
               Clear all
             </Button>
@@ -227,6 +228,20 @@ export default function AdminErrors() {
           </div>
         )}
       </main>
+      <Dialog open={confirmClearAll} onOpenChange={setConfirmClearAll}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete All Errors?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will permanently delete all error records. This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setConfirmClearAll(false)}>Cancel</Button>
+            <Button variant="destructive" className="rounded-xl" onClick={() => { setConfirmClearAll(false); clearAll(); }}>Delete All</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

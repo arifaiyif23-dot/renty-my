@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Header from "@/components/Header";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export default function Privacy() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState<string | null>(null);
 
   const submitRequest = async (type: "export" | "deletion") => {
     if (!user) {
-      toast.error("Sign in dulu untuk buat permintaan data.");
+      toast.error(t('privacy.signInRequired'));
       return;
     }
     setSubmitting(type);
@@ -23,12 +25,12 @@ export default function Privacy() {
       .insert({ user_id: user.id, request_type: type });
     setSubmitting(null);
     if (error) toast.error(error.message);
-    else toast.success("Permintaan direkodkan. Admin akan proses dalam 30 hari.");
+    else toast.success(t('privacy.requestSuccess'));
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="Dasar Privasi — Renty" description="Bagaimana Renty mengumpul, menyimpan, dan melindungi data peribadi anda selari dengan PDPA Malaysia." />
+      <SEO title={t('privacy.title') + " — Renty"} description={t('privacy.subtitle')} />
       <Header />
       <main className="container mx-auto max-w-3xl px-4 py-10 pb-mobile-nav space-y-8">
         <div className="flex items-center gap-3 mb-2">
@@ -36,14 +38,14 @@ export default function Privacy() {
             <Shield className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Dasar Privasi</h1>
+            <h1 className="text-2xl font-bold">{t('privacy.title')}</h1>
             <p className="text-sm text-muted-foreground font-mono">
-              Selari dengan Personal Data Protection Act 2010 (Malaysia)
+              {t('privacy.subtitle')}
             </p>
           </div>
         </div>
 
-        <Section title="1. Data yang Dikumpul">
+        <Section title={t('privacy.section1Title')}>
           <ul className="list-disc pl-6 space-y-1 text-sm">
             <li><b>Akaun:</b> nama penuh, email, nombor telefon, kata laluan (hashed).</li>
             <li><b>e-KYC:</b> nombor MyKad (hashed one-way), gambar dokumen identiti, selfie liveness.</li>
@@ -53,7 +55,7 @@ export default function Privacy() {
           </ul>
         </Section>
 
-        <Section title="2. Tujuan Penggunaan">
+        <Section title={t('privacy.section2Title')}>
           <ul className="list-disc pl-6 space-y-1 text-sm">
             <li>Fasilitasi booking dan pembayaran antara Renter dan Vendor.</li>
             <li>Verifikasi identiti (e-KYC) untuk keselamatan platform.</li>
@@ -66,7 +68,7 @@ export default function Privacy() {
           </p>
         </Section>
 
-        <Section title="3. Subprocessors">
+        <Section title={t('privacy.section3Title')}>
           <p className="text-sm mb-2">Renty menggunakan penyedia pihak ketiga berikut:</p>
           <ul className="list-disc pl-6 space-y-1 text-sm">
             <li><b>Supabase</b> (Singapore region) — pangkalan data, auth, storage.</li>
@@ -76,7 +78,7 @@ export default function Privacy() {
           </ul>
         </Section>
 
-        <Section title="4. Keselamatan Data">
+        <Section title={t('privacy.section4Title')}>
           <ul className="list-disc pl-6 space-y-1 text-sm">
             <li>MyKad disimpan dalam bentuk <b>SHA-256 hash sahaja</b> — tak boleh reverse.</li>
             <li>Nombor akaun bank dan mesej peribadi di-encrypt guna <b>pgcrypto (AES)</b>.</li>
@@ -86,7 +88,7 @@ export default function Privacy() {
           </ul>
         </Section>
 
-        <Section title="5. Tempoh Penyimpanan">
+        <Section title={t('privacy.section5Title')}>
           <ul className="list-disc pl-6 space-y-1 text-sm">
             <li>Data akaun aktif — sepanjang tempoh akaun.</li>
             <li>Dokumen e-KYC — 7 tahun (comply dengan keperluan audit kewangan).</li>
@@ -96,7 +98,7 @@ export default function Privacy() {
           </ul>
         </Section>
 
-        <Section title="6. Hak Anda Di Bawah PDPA">
+        <Section title={t('privacy.section6Title')}>
           <p className="text-sm mb-3">
             Anda berhak untuk mengakses, membetulkan, atau memadam data peribadi anda.
             Guna butang di bawah untuk hantar permintaan formal (kami akan proses dalam
@@ -106,7 +108,7 @@ export default function Privacy() {
           {!user && (
             <Alert className="mb-4 rounded-xl">
               <AlertDescription className="text-sm">
-                Sign in dulu untuk buat permintaan data.
+                {t('privacy.signInPrompt')}
               </AlertDescription>
             </Alert>
           )}
@@ -119,7 +121,7 @@ export default function Privacy() {
               disabled={!user || submitting !== null}
             >
               <Download className="h-4 w-4 mr-2" />
-              {submitting === "export" ? "Menghantar..." : "Request Data Export"}
+              {submitting === "export" ? t('privacy.submitting') : t('privacy.requestExport')}
             </Button>
             <Button
               variant="outline"
@@ -128,20 +130,20 @@ export default function Privacy() {
               disabled={!user || submitting !== null}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {submitting === "deletion" ? "Menghantar..." : "Request Account Deletion"}
+              {submitting === "deletion" ? t('privacy.submitting') : t('privacy.requestDeletion')}
             </Button>
           </div>
         </Section>
 
-        <Section title="7. Hubungi Data Protection Officer">
+        <Section title={t('privacy.section7Title')}>
           <p className="text-sm">
             <Shield className="inline h-4 w-4 mr-1" />
-            Email: <a href="mailto:privacy@renty.my" className="text-primary underline">privacy@renty.my</a>
+            {t('privacy.contactDpo')}
           </p>
         </Section>
 
         <p className="text-xs text-muted-foreground mt-10 font-mono">
-          Dasar Privasi Renty · terakhir dikemas kini {new Date().toLocaleDateString("ms-MY")}
+          {t('privacy.lastUpdated', { date: new Date().toLocaleDateString() })}
         </p>
       </main>
     </div>

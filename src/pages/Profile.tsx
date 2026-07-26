@@ -312,6 +312,53 @@ export default function Profile() {
               <TrustScoreRing score={profile.trust_score ?? 0} size={56} />
             </div>
           </GlassCard>
+
+          <details className="group text-sm">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors list-none flex items-center gap-1 select-none">
+              <span className="inline-block transition-transform group-open:rotate-90">▸</span>
+              How trust score is calculated
+            </summary>
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3 text-success" /> Verified ID
+                </span>
+                <span className={profile.verification_level && profile.verification_level !== 'unverified' ? 'text-success font-medium' : ''}>
+                  {profile.verification_level && profile.verification_level !== 'unverified' ? '+20' : '+0'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  <Package className="h-3 w-3 text-primary" /> Completed Rentals
+                </span>
+                <span className="font-medium">{Math.min(profile.total_rentals_completed || 0, 30)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  <Star className="h-3 w-3 text-amber-500" /> Reviews Received
+                </span>
+                <span className="font-medium">{Math.min(profile.total_reviews_received || 0, 20)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  <CircleAlert className="h-3 w-3 text-primary" /> Profile Completeness
+                </span>
+                <span className="font-medium">+15</span>
+              </div>
+              {profile.response_rate != null && (
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="h-3 w-3 text-primary" /> Response Rate
+                  </span>
+                  <span className="font-medium">{Math.min(Math.round(profile.response_rate / 10), 15)}</span>
+                </div>
+              )}
+              <div className="border-t pt-2 flex justify-between font-medium text-foreground">
+                <span>Total</span>
+                <span>{profile.trust_score ?? 0}/100</span>
+              </div>
+            </div>
+          </details>
         </div>
 
         {(() => {

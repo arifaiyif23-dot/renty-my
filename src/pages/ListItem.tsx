@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSuspensionCheck } from '@/hooks/use-suspension-check';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ import { Switch } from '@/components/ui/switch';
 import { categorySpecLabels } from '@/components/SpecificationsSection';
 
 export default function ListItem() {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -288,46 +290,46 @@ export default function ListItem() {
       <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav">
         <div className="md:hidden mb-4 flex items-center gap-2">
           <BackButton fallbackPath="/" />
-          <h1 className="text-xl font-bold">List Your Item</h1>
+          <h1 className="text-xl font-bold">{t('listItem.title')}</h1>
         </div>
 
         <VerificationRequiredBanner isVerified={profile?.is_verified ?? false} />
 
         <GlassCard padding="lg" className="md:mt-6">
           <div className="hidden md:block mb-6">
-            <h1 className="text-2xl font-bold">List Your Item</h1>
-            <p className="text-muted-foreground text-sm mt-1">Share your item with the community and start earning</p>
+            <h1 className="text-2xl font-bold">{t('listItem.title')}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{t('listItem.subtitle')}</p>
           </div>
 
           <form onSubmit={(e) => { e.preventDefault(); handleSubmit('active'); }} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="item-images" className="text-sm font-medium">Item Images *</Label>
-              <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
-              <p className="text-xs text-muted-foreground">
-                Upload up to 5 images. First image will be the primary photo.
-              </p>
+                <Label htmlFor="item-images" className="text-sm font-medium">{t('listItem.itemImages')} *</Label>
+                <ImageUpload onImagesChange={setImageUrls} maxImages={5} />
+                <p className="text-xs text-muted-foreground">
+                  {t('listItem.uploadHelper')}
+                </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-sm font-medium">Title *</Label>
+              <Label htmlFor="title" className="text-sm font-medium">{t('listItem.titleLabel')} *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="h-12 text-base rounded-xl"
-                placeholder="e.g., Canon EOS R5 Camera"
+                placeholder={t('listItem.titlePlaceholder')}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">Description *</Label>
+              <Label htmlFor="description" className="text-sm font-medium">{t('listItem.descriptionLabel')} *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="min-h-[120px] text-base resize-none rounded-xl"
-                placeholder="Describe your item in detail..."
+                placeholder={t('listItem.descriptionPlaceholder')}
                 maxLength={1000}
                 required
               />
@@ -339,7 +341,7 @@ export default function ListItem() {
             <ContentModerationFeedback result={moderationResult} />
 
             <div className="space-y-2">
-              <Label htmlFor="category" className="text-sm font-medium">Category *</Label>
+              <Label htmlFor="category" className="text-sm font-medium">{t('listItem.categoryLabel')} *</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value as ItemCategory })}
@@ -361,7 +363,7 @@ export default function ListItem() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-sm font-medium">Harga / Hari (RM) *</Label>
+                <Label htmlFor="price" className="text-sm font-medium">{t('listItem.priceLabel')} *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -370,12 +372,12 @@ export default function ListItem() {
                   value={formData.price_per_day}
                   onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
                   className="h-12 text-base rounded-xl"
-                  placeholder="0.00"
+                  placeholder={t('listItem.pricePlaceholder')}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price_hour" className="text-sm font-medium">Harga / Jam (RM)</Label>
+                <Label htmlFor="price_hour" className="text-sm font-medium">{t('listItem.priceHourLabel')}</Label>
                 <Input
                   id="price_hour"
                   type="number"
@@ -384,13 +386,13 @@ export default function ListItem() {
                   value={formData.price_per_hour}
                   onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
                   className="h-12 text-base rounded-xl"
-                  placeholder="Opsyenal"
+                  placeholder={t('listItem.priceHourPlaceholder')}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="deposit" className="text-sm font-medium">Deposit (RM)</Label>
+              <Label htmlFor="deposit" className="text-sm font-medium">{t('listItem.depositLabel')}</Label>
               <Input
                 id="deposit"
                 type="number"
@@ -399,15 +401,15 @@ export default function ListItem() {
                 value={formData.deposit_amount}
                 onChange={(e) => setFormData({ ...formData, deposit_amount: e.target.value })}
                 className="h-12 text-base rounded-xl"
-                placeholder="0.00 (opsyenal)"
+                placeholder={t('listItem.depositPlaceholder')}
               />
               <p className="text-xs text-muted-foreground">
-                Deposit dipulangkan selepas barang dikembalikan dalam keadaan baik.
+                {t('listItem.depositHint')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Kaedah Bayaran</Label>
+              <Label className="text-sm font-medium">{t('listItem.paymentMethod')}</Label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -418,8 +420,8 @@ export default function ListItem() {
                       : 'border-border'
                   }`}
                 >
-                  <div className="font-semibold text-sm">Escrow (auto)</div>
-                  <div className="text-[11px] text-muted-foreground">Platform tahan bayaran</div>
+                  <div className="font-semibold text-sm">{t('listItem.escrowLabel')}</div>
+                  <div className="text-[11px] text-muted-foreground">{t('listItem.escrowDesc')}</div>
                 </button>
                 <button
                   type="button"
@@ -430,15 +432,15 @@ export default function ListItem() {
                       : 'border-border'
                   }`}
                 >
-                  <div className="font-semibold text-sm">Manual (bank)</div>
-                  <div className="text-[11px] text-muted-foreground">Bayar terus ke akaun</div>
+                  <div className="font-semibold text-sm">{t('listItem.manualLabel')}</div>
+                  <div className="text-[11px] text-muted-foreground">{t('listItem.manualDesc')}</div>
                 </button>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Item Condition</Label>
+                <Label className="text-sm font-medium">{t('listItem.itemCondition')}</Label>
                 <Select
                   value={formData.item_condition}
                   onValueChange={(value) => setFormData({ ...formData, item_condition: value })}
@@ -447,15 +449,15 @@ export default function ListItem() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="like_new">Like New</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="new">{t('listItem.conditionNew')}</SelectItem>
+                    <SelectItem value="like_new">{t('listItem.conditionLikeNew')}</SelectItem>
+                    <SelectItem value="good">{t('listItem.conditionGood')}</SelectItem>
+                    <SelectItem value="fair">{t('listItem.conditionFair')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Cancellation Policy</Label>
+                <Label className="text-sm font-medium">{t('listItem.cancellationPolicy')}</Label>
                 <Select
                   value={formData.cancellation_policy}
                   onValueChange={(value) => setFormData({ ...formData, cancellation_policy: value })}
@@ -464,30 +466,30 @@ export default function ListItem() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="flexible">Free cancellation</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="strict">Strict</SelectItem>
+                    <SelectItem value="flexible">{t('listItem.cancellationFlexible')}</SelectItem>
+                    <SelectItem value="moderate">{t('listItem.cancellationModerate')}</SelectItem>
+                    <SelectItem value="strict">{t('listItem.cancellationStrict')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location" className="text-sm font-medium">Location *</Label>
+              <Label htmlFor="location" className="text-sm font-medium">{t('listItem.locationLabel')} *</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 className="h-12 text-base rounded-xl"
-                placeholder="City, State"
+                placeholder={t('listItem.locationPlaceholder')}
                 required
               />
             </div>
 
             <div className="flex items-center justify-between rounded-xl border p-4">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Instant Booking</Label>
-                <p className="text-xs text-muted-foreground">Allow renters to book instantly without waiting for approval</p>
+                <Label className="text-sm font-medium">{t('listItem.instantBooking')}</Label>
+                <p className="text-xs text-muted-foreground">{t('listItem.instantBookingDesc')}</p>
               </div>
               <Switch
                 checked={formData.instant_book_enabled}
@@ -498,8 +500,8 @@ export default function ListItem() {
             {formData.instant_book_enabled && (
               <div className="flex items-center justify-between rounded-xl border p-4">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Auto-approve Bookings</Label>
-                  <p className="text-xs text-muted-foreground">Automatically approve all incoming booking requests</p>
+                  <Label className="text-sm font-medium">{t('listItem.autoApprove')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('listItem.autoApproveDesc')}</p>
                 </div>
                 <Switch
                   checked={formData.auto_approve_bookings}
@@ -509,7 +511,7 @@ export default function ListItem() {
             )}
 
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Specifications</Label>
+              <Label className="text-sm font-medium">{t('listItem.specifications')}</Label>
               {categorySpecLabels[formData.category].map((field) => (
                 <div key={field.key} className="grid grid-cols-2 gap-2 items-center">
                   <Label className="text-xs text-muted-foreground">{field.label}</Label>
@@ -535,14 +537,14 @@ export default function ListItem() {
                   disabled={isLoading}
                   onClick={() => handleSubmit('draft')}
                 >
-                  {isLoading ? 'Saving...' : 'Save as Draft'}
+                  {isLoading ? t('common.loading') : t('listItem.saveDraft')}
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 h-12 text-base font-medium rounded-xl"
                   disabled={isLoading || moderationResult?.isBlocked}
                 >
-                  {isLoading ? 'Publishing...' : moderationResult?.isBlocked ? 'Content Blocked' : 'Publish'}
+                  {isLoading ? t('common.loading') : moderationResult?.isBlocked ? t('listItem.contentBlocked') : t('listItem.publish')}
                 </Button>
               </div>
             </div>

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { invokeAdminOperation } from '@/lib/adminOperations';
 import { toast } from 'sonner';
 import { Loader2, Shield, ShieldCheck, UserPlus, Trash2, Crown, Users } from 'lucide-react';
@@ -42,6 +43,7 @@ export default function AdminManageAdmins() {
   const [newPermissions, setNewPermissions] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
   const [savingPerms, setSavingPerms] = useState<Record<string, boolean>>({});
+  const [confirmRemove, setConfirmRemove] = useState<AdminUser | null>(null);
 
   useEffect(() => {
     fetchAdmins();
@@ -101,7 +103,6 @@ export default function AdminManageAdmins() {
   };
 
   const handleRemoveAdmin = async (admin: AdminUser) => {
-    if (!confirm(`Remove ${admin.fullName || admin.email} as admin?`)) return;
     try {
       await invokeAdminOperation({ action: 'remove_admin_role', userId: admin.userId });
       toast.success('Admin removed');
@@ -222,7 +223,7 @@ export default function AdminManageAdmins() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleRemoveAdmin(admin)}
+                          onClick={() => setConfirmRemove(admin)}
                           className="shrink-0"
                         >
                           <Trash2 className="h-4 w-4 mr-1" /> Remove
@@ -261,6 +262,20 @@ export default function AdminManageAdmins() {
           )}
         </GlassCard>
       </div>
+      <Dialog open={!!confirmRemove} onOpenChange={() => setConfirmRemove(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Admin</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Remove {confirmRemove?.fullName || confirmRemove?.email || 'this user'} as admin?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setConfirmRemove(null)}>Cancel</Button>
+            <Button variant="destructive" className="rounded-xl" onClick={() => { if (confirmRemove) handleRemoveAdmin(confirmRemove); setConfirmRemove(null); }}>Remove</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

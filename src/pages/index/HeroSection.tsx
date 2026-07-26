@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from "@/components/ui/button"
 import { TrustBadge } from "@/components/marketplace/TrustBadge"
 import { SearchBarV2 } from "@/components/SearchBarV2"
-import { Search, Plus, LogIn, ShieldCheck, BadgeCheck, MapPin, Handshake } from "lucide-react"
+import { Search, Plus, LogIn, ShieldCheck, BadgeCheck, MapPin, Handshake, Shield } from "lucide-react"
 
 interface HeroSectionProps {
   totalItemCount: number
@@ -66,6 +66,14 @@ export function HeroSection({ totalItemCount, user, onSearch, onListOrAuth }: He
             <span className="inline-flex items-center gap-2">
               <Handshake className="h-4 w-4 text-primary" />
               {t('home.hero.dijaminTrust')}
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              PDPA Compliant
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs">
+              <span className="px-1.5 py-0.5 rounded bg-muted font-medium">FPX</span>
+              <span className="px-1.5 py-0.5 rounded bg-muted font-medium">DuitNow</span>
             </span>
           </div>
         </div>

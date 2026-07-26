@@ -8,7 +8,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Gift, Home, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Gift, Home, Loader2, Shield, Users, Lock, CreditCard } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
@@ -426,6 +426,25 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </GlassCard>
+
+        <div className="mt-6 max-w-md mx-auto grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30">
+            <Shield className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground">PDPA Compliant</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30">
+            <Lock className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground">256-bit Encryption</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30">
+            <Users className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground">10,000+ Users</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30">
+            <CreditCard className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs text-muted-foreground">FPX & DuitNow</span>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -218,7 +218,7 @@ const Header = () => {
                         <DropdownMenuItem asChild>
                           <Link to="/earnings" className="flex items-center cursor-pointer">
                             <DollarSign className="h-4 w-4 mr-2" />
-                            My Earnings
+                            {t('nav.myEarnings')}
                           </Link>
                         </DropdownMenuItem>
                         {isAdminUser && (

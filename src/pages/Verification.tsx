@@ -101,6 +101,7 @@ export default function Verification() {
 
   const handleSubmit = async () => {
     if (!checkNotSuspended('submit verification documents')) return;
+    if (!user?.id) { toast.error("You must be logged in"); return; }
     if (!documentFront || (!selfie && !livenessVideo)) {
       toast.error("Please upload all required documents (front of document and either a selfie or liveness video)");
       return;
@@ -179,7 +180,7 @@ export default function Verification() {
         status: string;
         identity_number_validated?: boolean;
       } = {
-        user_id: user?.id!,
+        user_id: user.id,
         document_type: documentType,
         document_front_url: frontUrl,
         document_back_url: backUrl,
@@ -297,7 +298,46 @@ export default function Verification() {
               </div>
             </div>
             <Progress value={progress} className="h-2" />
-            <p className="text-sm text-muted-foreground mt-2">Step {currentStep} of 6</p>
+            <div className="flex items-start justify-between mt-3 overflow-x-auto pb-1">
+              {[
+                { step: 1, label: 'Document' },
+                { step: 2, label: 'Front' },
+                { step: 3, label: 'Back' },
+                { step: 4, label: 'Selfie' },
+                { step: 5, label: 'IC No.' },
+                { step: 6, label: 'Submit' },
+              ].map((s, i) => {
+                const isActive = currentStep === s.step;
+                const isDone = currentStep > s.step;
+                return (
+                  <div key={s.step} className="flex items-center">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+                          isDone
+                            ? 'bg-primary text-primary-foreground'
+                            : isActive
+                            ? 'bg-primary/20 text-primary border-2 border-primary'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {isDone ? (
+                          <CheckCircle className="h-4 w-4" />
+                        ) : (
+                          <span className="text-xs font-bold">{s.step}</span>
+                        )}
+                      </div>
+                      <span className={`text-[10px] mt-1 whitespace-nowrap ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                        {s.label}
+                      </span>
+                    </div>
+                    {i < 5 && (
+                      <div className={`w-6 sm:w-10 h-0.5 self-center mb-5 ${currentStep > s.step ? 'bg-primary' : 'bg-muted'}`} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </CardHeader>
 
           <CardContent>

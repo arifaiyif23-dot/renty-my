@@ -18,6 +18,7 @@ import { X, ArrowUpDown, SlidersHorizontal, RefreshCw, SearchSlash, BookmarkPlus
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
+import { ScrollToTop } from '@/components/ScrollToTop';
 import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
@@ -493,20 +494,36 @@ export default function Search() {
             ))}
           </div>
         ) : items.length === 0 ? (
-          <EmptyStateV2
-            icon={SearchSlash}
-            title="No Items Found"
-            description="Try adjusting your filters or search terms to find what you're looking for."
-            actionLabel="Clear Filters"
-            onAction={() => {
-              setSearchQuery('');
-              setCategory('all');
-              setMinPrice('');
-              setMaxPrice('');
-              setUserLocation('');
-              setDateRange(undefined);
-            }}
-          />
+          <div className="text-center">
+            <EmptyStateV2
+              icon={SearchSlash}
+              title="No Items Found"
+              description="Try adjusting your filters or search terms to find what you're looking for."
+              actionLabel="Clear Filters"
+              onAction={() => {
+                setSearchQuery('');
+                setCategory('all');
+                setMinPrice('');
+                setMaxPrice('');
+                setUserLocation('');
+                setDateRange(undefined);
+              }}
+            />
+            <div className="mt-4">
+              <p className="text-xs text-muted-foreground mb-2">Browse categories:</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {['electronics', 'vehicles', 'tools', 'sports', 'party', 'fashion'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat as ItemCategory)}
+                    className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors capitalize"
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
             {items.map((item) => (
@@ -532,6 +549,7 @@ export default function Search() {
           </div>
         )}
       </div>
+      <ScrollToTop />
     </>
   );
 }

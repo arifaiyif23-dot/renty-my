@@ -9,7 +9,7 @@ interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
 const variantStyles: Record<string, string> = {
   subtle: "glass-1",
   elevated: "glass-2 shadow-3",
-  interactive: "glass-1 shadow-1 hover:shadow-3 hover-lift cursor-pointer",
+  interactive: "glass-1 shadow-1 hover:shadow-3 hover-lift cursor-pointer active:scale-[0.98]",
 };
 
 const paddingStyles: Record<string, string> = {

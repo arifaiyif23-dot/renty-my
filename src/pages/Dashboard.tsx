@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import Header from '@/components/Header';
+import { ScrollToTop } from '@/components/ScrollToTop';
 import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -373,6 +374,7 @@ export default function Dashboard() {
           </DialogContent>
         </Dialog>
       </div>
+      <ScrollToTop />
     </>
   );
 }

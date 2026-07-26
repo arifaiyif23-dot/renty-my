@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Search, MapPin, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface SearchBarV2Props {
   className?: string;
@@ -16,6 +17,7 @@ const MALAYSIA_STATES = [
 ];
 
 const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -80,7 +82,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Search items..."
+          placeholder={t('search.placeholder')}
           className={cn(
             "flex-1 bg-transparent border-none outline-none placeholder:text-muted-foreground/60 font-medium",
             isHero ? "text-base" : "text-sm"
@@ -109,7 +111,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             {showLocation && (
               <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
                 <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                  Select state
+                  {t('search.selectState')}
                 </p>
                 <div className="max-h-48 overflow-y-auto space-y-0.5">
                   <button
@@ -147,7 +149,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
               type="button"
               onClick={() => setQuery("")}
               className="p-1 rounded-lg hover:bg-muted transition-colors"
-              aria-label="Clear search"
+              aria-label={t('common.clear')}
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>

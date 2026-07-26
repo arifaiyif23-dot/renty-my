@@ -9,6 +9,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
 import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
 import Header from '@/components/Header';
+import { SkeletonV2 } from '@/components/SkeletonV2';
 import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import {
   Dialog,
@@ -210,8 +211,18 @@ export default function Earnings() {
     return (
       <>
         <Header />
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
+          <div className="flex items-center gap-3 mb-8">
+            <SkeletonV2 variant="circular" className="h-10 w-10" />
+            <div className="space-y-2">
+              <SkeletonV2 variant="text" className="h-7 w-40" />
+              <SkeletonV2 variant="text" className="h-4 w-56" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[...Array(4)].map((_, i) => <SkeletonV2 key={i} variant="card" className="h-24" />)}
+          </div>
+          <SkeletonV2 variant="card" className="h-64" />
         </div>
       </>
     );
