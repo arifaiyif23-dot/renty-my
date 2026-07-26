@@ -4,7 +4,7 @@
 
 -- Set default encryption key in app.settings if not already set
 INSERT INTO platform_settings (key, value)
-SELECT 'encryption_key', 'r3nty_pr0d_m5g_enc_k3y_2026_a8f7b2c9d1e4'
+SELECT 'encryption_key', to_jsonb('r3nty_pr0d_m5g_enc_k3y_2026_a8f7b2c9d1e4'::TEXT)
 WHERE NOT EXISTS (
   SELECT 1 FROM platform_settings WHERE key = 'encryption_key'
 );
