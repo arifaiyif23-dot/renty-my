@@ -83,7 +83,6 @@ export interface Profile {
   preferred_role?: string;
   terms_accepted_at?: string;
   terms_version?: number;
-  bio?: string;
   is_deleted?: boolean;
   deleted_at?: string;
   last_active_at?: string;

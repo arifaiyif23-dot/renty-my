@@ -24,7 +24,7 @@ export default function AdminAutomation() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch cron job logs
-  const { data: cronLogs, isLoading: cronLoading, refetch: refetchCronLogs } = useQuery({
+  const { data: cronLogs, isLoading: cronLoading, isError: cronError, refetch: refetchCronLogs } = useQuery({
     queryKey: ["cron-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -40,7 +40,7 @@ export default function AdminAutomation() {
   });
 
   // Fetch payment flow logs
-  const { data: paymentLogs, isLoading: paymentLoading, refetch: refetchPaymentLogs } = useQuery({
+  const { data: paymentLogs, isLoading: paymentLoading, isError: paymentError, refetch: refetchPaymentLogs } = useQuery({
     queryKey: ["payment-flow-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -56,7 +56,7 @@ export default function AdminAutomation() {
   });
 
   // Fetch recent payments
-  const { data: recentPayments, isLoading: paymentsLoading } = useQuery({
+  const { data: recentPayments, isLoading: paymentsLoading, isError: recentPaymentsError } = useQuery({
     queryKey: ["recent-payments"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -103,11 +103,32 @@ export default function AdminAutomation() {
   };
 
   const loading = cronLoading || paymentLoading || paymentsLoading;
+  const anyError = cronError || paymentError || recentPaymentsError;
 
   if (loading) {
     return (
       <AdminLayout>
         <div className="flex justify-center py-20"><RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+      </AdminLayout>
+    );
+  }
+
+  if (anyError) {
+    return (
+      <AdminLayout>
+        <div className="px-4 py-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Failed to load monitoring data</AlertTitle>
+            <AlertDescription>
+              Some data could not be loaded. Try refreshing.
+            </AlertDescription>
+          </Alert>
+          <Button className="mt-4 rounded-xl" onClick={() => { refetchCronLogs(); refetchPaymentLogs(); }}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
       </AdminLayout>
     );
   }

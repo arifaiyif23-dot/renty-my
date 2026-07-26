@@ -55,20 +55,22 @@ export function useAdminVerificationData() {
   const [fraudAlerts, setFraudAlerts] = useState<FraudAlert[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterDocType, setFilterDocType] = useState("all");
   const [filterRiskLevel, setFilterRiskLevel] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
     resetStats();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, filterDocType, filterRiskLevel]);
 
-  const fetchData = async () => {
+  const fetchData = async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (isInitial) setLoading(true);
+      else setRefreshing(true);
 
       const { data: verificationsData, error: verError } = await supabase
         .from('verification_requests')
@@ -156,6 +158,7 @@ export function useAdminVerificationData() {
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -177,6 +180,7 @@ export function useAdminVerificationData() {
     fraudAlerts,
     stats,
     loading,
+    refreshing,
     filterStatus,
     setFilterStatus,
     filterDocType,

@@ -24,6 +24,7 @@ const BackButton = ({ fallbackPath = "/", className }: BackButtonProps) => {
       size="icon"
       onClick={handleBack}
       className={className}
+      aria-label="Go back"
     >
       <ArrowLeft className="h-5 w-5" />
     </Button>

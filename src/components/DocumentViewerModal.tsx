@@ -242,22 +242,22 @@ export function DocumentViewerModal({
               </Tabs>
 
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" onClick={handleZoomOut} title="Zoom Out (-)">
+                <Button variant="ghost" size="icon" onClick={handleZoomOut} aria-label="Zoom Out">
                   <ZoomOut className="h-4 w-4" />
                 </Button>
                 <span className="text-sm font-medium w-16 text-center">{Math.round(zoom * 100)}%</span>
-                <Button variant="ghost" size="icon" onClick={handleZoomIn} title="Zoom In (+)">
+                <Button variant="ghost" size="icon" onClick={handleZoomIn} aria-label="Zoom In">
                   <ZoomIn className="h-4 w-4" />
                 </Button>
                 <div className="w-px h-6 bg-border mx-2" />
-                <Button variant="ghost" size="icon" onClick={handleRotateCcw} title="Rotate CCW (Shift+R)">
+                <Button variant="ghost" size="icon" onClick={handleRotateCcw} aria-label="Rotate counter-clockwise">
                   <RotateCcw className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleRotateCw} title="Rotate CW (R)">
+                <Button variant="ghost" size="icon" onClick={handleRotateCw} aria-label="Rotate clockwise">
                   <RotateCw className="h-4 w-4" />
                 </Button>
                 <div className="w-px h-6 bg-border mx-2" />
-                <Button variant="ghost" size="icon" onClick={handleResetView} title="Reset View (0)">
+                <Button variant="ghost" size="icon" onClick={handleResetView} aria-label="Reset view">
                   <Maximize2 className="h-4 w-4" />
                 </Button>
               </div>

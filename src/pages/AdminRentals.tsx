@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
 import { CalendarCheck, Loader2, Filter } from "lucide-react";
+import { toast } from "sonner";
 
 interface AdminRental {
   id: string;
@@ -84,8 +85,9 @@ export default function AdminRentals() {
         completed: completedRes.count || 0,
         disputed: disputedRes.count || 0,
       });
-    } catch (error) {
-      console.error("Error fetching rentals:", error);
+    } catch (err) {
+      console.error("Error fetching rentals:", err);
+      toast.error("Failed to load rentals");
     } finally {
       setLoading(false);
     }

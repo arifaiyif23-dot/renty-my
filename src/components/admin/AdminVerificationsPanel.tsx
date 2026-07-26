@@ -58,6 +58,17 @@ function getStatusBadge(status: string) {
   }
 }
 
+function extractStoragePath(url: string): string {
+  if (!url) return url;
+  try {
+    const urlObj = new URL(url);
+    const match = urlObj.pathname.match(/\/storage\/v1\/object\/(?:public\/)?verification-documents\/(.+)$/);
+    if (match) return `verification-documents/${match[1]}`;
+  } catch {}
+  if (url.startsWith('verification-documents/')) return url;
+  return `verification-documents/${url}`;
+}
+
 export function AdminVerificationsPanel({
   verifications,
   filterStatus,
@@ -199,23 +210,29 @@ export function AdminVerificationsPanel({
                   variant="outline"
                   size="sm"
                   className="rounded-xl"
-                  onClick={async () => {
-                    try {
-                      if (verification.document_front_url) {
-                        const frontUrl = await getSignedUrl(verification.document_front_url);
-                        window.open(frontUrl, '_blank');
+                  onClick={() => {
+                    // Open windows synchronously to avoid popup blockers
+                    const frontWin = verification.document_front_url ? window.open('', '_blank') : null;
+                    const backWin = verification.document_back_url ? window.open('', '_blank') : null;
+                    const selfieWin = verification.selfie_url ? window.open('', '_blank') : null;
+                    (async () => {
+                      try {
+                        if (frontWin && verification.document_front_url) {
+                          const url = await getSignedUrl(extractStoragePath(verification.document_front_url));
+                          frontWin.location.href = url;
+                        }
+                        if (backWin && verification.document_back_url) {
+                          const url = await getSignedUrl(extractStoragePath(verification.document_back_url));
+                          backWin.location.href = url;
+                        }
+                        if (selfieWin && verification.selfie_url) {
+                          const url = await getSignedUrl(extractStoragePath(verification.selfie_url));
+                          selfieWin.location.href = url;
+                        }
+                      } catch {
+                        toast.error("Failed to load documents");
                       }
-                      if (verification.document_back_url) {
-                        const backUrl = await getSignedUrl(verification.document_back_url);
-                        window.open(backUrl, '_blank');
-                      }
-                      if (verification.selfie_url) {
-                        const selfieUrl = await getSignedUrl(verification.selfie_url);
-                        window.open(selfieUrl, '_blank');
-                      }
-                    } catch {
-                      toast.error("Failed to load documents");
-                    }
+                    })();
                   }}
                 >
                   <Eye className="h-4 w-4 mr-2" />

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
 import { CreditCard, Loader2, Filter } from "lucide-react";
+import { toast } from "sonner";
 
 interface AdminPayment {
   id: string;
@@ -80,8 +81,9 @@ export default function AdminPayments() {
         completedCount: paidPayments.length,
         refundedCount: refundedRes.count || 0,
       });
-    } catch (error) {
-      console.error("Error fetching payments:", error);
+    } catch (err) {
+      console.error("Error fetching payments:", err);
+      toast.error("Failed to load payments");
     } finally {
       setLoading(false);
     }
@@ -103,8 +105,9 @@ export default function AdminPayments() {
       const { data, error } = await query;
       if (error) throw error;
       setPayouts(data || []);
-    } catch (error) {
-      console.error("Error fetching payouts:", error);
+    } catch (err) {
+      console.error("Error fetching payouts:", err);
+      toast.error("Failed to load payouts");
     } finally {
       setLoading(false);
     }

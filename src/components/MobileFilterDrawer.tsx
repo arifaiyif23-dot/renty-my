@@ -159,6 +159,7 @@ const MobileFilterDrawer = ({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label={gettingLocation ? "Getting location..." : "Use my location"}
                   className="absolute right-0 top-0 h-12"
                   onClick={getUserLocation}
                   disabled={gettingLocation}

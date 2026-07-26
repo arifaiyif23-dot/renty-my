@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Keyboard, Loader2 } from "lucide-react";
+import { Keyboard, Loader2, RefreshCw } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -24,6 +24,7 @@ export default function AdminVerification() {
     fraudAlerts,
     stats,
     loading,
+    refreshing,
     filterStatus,
     setFilterStatus,
     filterDocType,
@@ -108,9 +109,14 @@ export default function AdminVerification() {
   return (
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
-          <p className="text-muted-foreground">Review verifications, manage fraud alerts, and approve users</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Verification & Security Dashboard</h1>
+            <p className="text-muted-foreground">Review verifications, manage fraud alerts, and approve users</p>
+          </div>
+          {refreshing && (
+            <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
         </div>
         <div className="flex items-center gap-4">
           <TooltipProvider>

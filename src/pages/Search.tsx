@@ -418,38 +418,38 @@ export default function Search() {
             {searchQuery && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 {searchQuery}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchQuery('')} />
+                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear search" onClick={() => setSearchQuery('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchQuery(''); } }} />
               </Badge>
             )}
             {category !== 'all' && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 {category}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setCategory('all')} />
+                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear category" onClick={() => setCategory('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCategory('all'); } }} />
               </Badge>
             )}
             {minPrice && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 Min RM{minPrice}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setMinPrice('')} />
+                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear minimum price" onClick={() => setMinPrice('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinPrice(''); } }} />
               </Badge>
             )}
             {maxPrice && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 Max RM{maxPrice}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setMaxPrice('')} />
+                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear maximum price" onClick={() => setMaxPrice('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMaxPrice(''); } }} />
               </Badge>
             )}
             {userLocation && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 <MapPin className="h-3 w-3" />
                 {userLocation}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setUserLocation('')} />
+                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear location" onClick={() => setUserLocation('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setUserLocation(''); } }} />
               </Badge>
             )}
             {dateRange?.from && dateRange?.to && (
               <Badge variant="secondary" className="gap-1.5 rounded-full">
                 {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => setDateRange(undefined)} />
+                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear date range" onClick={() => setDateRange(undefined)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDateRange(undefined); } }} />
               </Badge>
             )}
             <button

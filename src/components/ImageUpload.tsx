@@ -340,6 +340,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
               <Button
                 variant="destructive"
                 size="icon"
+                aria-label={`Remove image ${index + 1}`}
                 className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm z-10"
                 onClick={(e) => {
                   e.stopPropagation();

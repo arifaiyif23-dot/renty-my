@@ -70,6 +70,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
             size="icon"
             className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 md:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
             onClick={goToPrevious}
+            aria-label="Previous image"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -78,6 +79,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
             size="icon"
             className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 md:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
             onClick={goToNext}
+            aria-label="Next image"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
@@ -98,6 +100,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
             <button
               key={image.id}
               onClick={() => setCurrentIndex(index)}
+              aria-label={`Go to image ${index + 1}`}
               className={cn(
                 "flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
                 index === currentIndex

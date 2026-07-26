@@ -191,6 +191,7 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
                 />
                 <button
                   onClick={() => removeImage(index)}
+                  aria-label={`Remove image ${index + 1}`}
                   className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="h-4 w-4" />

@@ -3,7 +3,7 @@
 declare const self: ServiceWorkerGlobalScope;
 
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { registerRoute } from 'workbox-routing';
 import { NetworkFirst, CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
@@ -11,22 +11,42 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 cleanupOutdatedCaches();
 self.skipWaiting();
-self.clients.claim();
 
-registerRoute(
-  new NavigationRoute(
-    new NetworkFirst({
-      cacheName: 'navigation-cache',
-      networkTimeoutSeconds: 3,
-      plugins: [
-        new ExpirationPlugin({
-          maxEntries: 1,
-          maxAgeSeconds: 60 * 60,
-        }),
-      ],
-    })
-  )
-);
+// Enable navigation preload for faster navigations
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      await self.clients.claim();
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
+    })()
+  );
+});
+
+// Navigation route with offline fallback
+const navigationStrategy = new NetworkFirst({
+  cacheName: 'navigation-cache',
+  networkTimeoutSeconds: 3,
+  plugins: [
+    new ExpirationPlugin({
+      maxEntries: 20,
+      maxAgeSeconds: 60 * 60 * 24,
+    }),
+  ],
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      navigationStrategy.handle({ event, request: event.request }).catch(async () => {
+        const cache = await caches.open('navigation-cache');
+        const cachedResponse = await cache.match('/');
+        return cachedResponse || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
+      })
+    );
+  }
+});
 
 registerRoute(
   /^https:\/\/.*\.supabase\.co\/.*/i,

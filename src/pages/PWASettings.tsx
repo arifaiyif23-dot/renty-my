@@ -2,8 +2,11 @@ import Header from "@/components/Header";
 import { PWAFeatures } from "@/components/PWAFeatures";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Smartphone, Zap, Bell, Wifi } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function PWASettings() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -13,21 +16,21 @@ export default function PWASettings() {
             <Smartphone className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">App Settings</h1>
-            <p className="text-sm text-muted-foreground">Configure your RENTY app experience</p>
+            <h1 className="text-2xl font-bold">{t("pwa.appSettings")}</h1>
+            <p className="text-sm text-muted-foreground">{t("pwa.subtitle")}</p>
           </div>
         </div>
 
         <GlassCard padding="lg" className="mb-6">
-          <h2 className="text-lg font-semibold mb-4">Why Install RENTY?</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("pwa.whyInstall")}</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex gap-3">
               <div className="p-2 bg-primary/10 rounded-xl h-fit">
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm mb-1">Lightning Fast</h3>
-                <p className="text-xs text-muted-foreground">Instant loading with cached content. No waiting, just browsing.</p>
+                <h3 className="font-semibold text-sm mb-1">{t("pwa.lightningFast")}</h3>
+                <p className="text-xs text-muted-foreground">{t("pwa.lightningFastDesc")}</p>
               </div>
             </div>
 
@@ -36,8 +39,8 @@ export default function PWASettings() {
                 <Smartphone className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm mb-1">Native Experience</h3>
-                <p className="text-xs text-muted-foreground">Works just like a mobile app. Add to home screen for quick access.</p>
+                <h3 className="font-semibold text-sm mb-1">{t("pwa.nativeExperience")}</h3>
+                <p className="text-xs text-muted-foreground">{t("pwa.nativeExperienceDesc")}</p>
               </div>
             </div>
 
@@ -46,8 +49,8 @@ export default function PWASettings() {
                 <Wifi className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm mb-1">Offline Browsing</h3>
-                <p className="text-xs text-muted-foreground">Browse items even when offline. Perfect for spotty connections.</p>
+                <h3 className="font-semibold text-sm mb-1">{t("pwa.offlineBrowsing")}</h3>
+                <p className="text-xs text-muted-foreground">{t("pwa.offlineBrowsingDesc")}</p>
               </div>
             </div>
 
@@ -56,8 +59,8 @@ export default function PWASettings() {
                 <Bell className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm mb-1">Push Notifications</h3>
-                <p className="text-xs text-muted-foreground">Never miss a booking or message. Get notified instantly.</p>
+                <h3 className="font-semibold text-sm mb-1">{t("pwa.pushNotifications")}</h3>
+                <p className="text-xs text-muted-foreground">{t("pwa.pushNotificationsDesc")}</p>
               </div>
             </div>
           </div>
@@ -66,33 +69,33 @@ export default function PWASettings() {
         <PWAFeatures />
 
         <GlassCard padding="lg" className="mt-6">
-          <h2 className="text-lg font-semibold mb-4">Installation Guide</h2>
+          <h2 className="text-lg font-semibold mb-4">{t("pwa.installGuide")}</h2>
 
           <div className="space-y-4">
             <div>
-              <h3 className="font-semibold text-sm mb-2">On iOS (Safari)</h3>
+              <h3 className="font-semibold text-sm mb-2">{t("pwa.iosTitle")}</h3>
               <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Tap the Share button (square with arrow)</li>
-                <li>Scroll down and tap "Add to Home Screen"</li>
-                <li>Tap "Add" to confirm</li>
+                <li>{t("pwa.iosStep1")}</li>
+                <li>{t("pwa.iosStep2")}</li>
+                <li>{t("pwa.iosStep3")}</li>
               </ol>
             </div>
 
             <div>
-              <h3 className="font-semibold text-sm mb-2">On Android (Chrome)</h3>
+              <h3 className="font-semibold text-sm mb-2">{t("pwa.androidTitle")}</h3>
               <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Tap the menu button (three dots)</li>
-                <li>Tap "Install app" or "Add to Home Screen"</li>
-                <li>Tap "Install" to confirm</li>
+                <li>{t("pwa.androidStep1")}</li>
+                <li>{t("pwa.androidStep2")}</li>
+                <li>{t("pwa.androidStep3")}</li>
               </ol>
             </div>
 
             <div>
-              <h3 className="font-semibold text-sm mb-2">On Desktop (Chrome/Edge)</h3>
+              <h3 className="font-semibold text-sm mb-2">{t("pwa.desktopTitle")}</h3>
               <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Click the install icon in the address bar</li>
-                <li>Or use browser menu → "Install RENTY"</li>
-                <li>Click "Install" to confirm</li>
+                <li>{t("pwa.desktopStep1")}</li>
+                <li>{t("pwa.desktopStep2")}</li>
+                <li>{t("pwa.desktopStep3")}</li>
               </ol>
             </div>
           </div>
