@@ -43,6 +43,8 @@
     "dashboard": "Papan Pemuka",
     "signIn": "Log Masuk",
     "signOut": "Log Keluar",
+    "signOutConfirmTitle": "Adakah anda pasti mahu log keluar?",
+    "signOutConfirmDesc": "Anda perlu log masuk semula untuk mengakses akaun anda.",
     "myRentals": "Sewaan Saya",
     "myEarnings": "Pendapatan Saya",
     "saved": "Disimpan"
@@ -151,7 +153,8 @@
       "active": "Aktif",
       "pending": "Menunggu",
       "messages": "Mesej",
-      "listings": "Penyenaraian"
+      "listings": "Penyenaraian",
+      "dashboard": "Papan Pemuka"
     }
   },
   "search": {
@@ -176,7 +179,23 @@
     "noItems": "Tiada Item Dijumpai",
     "noItemsDesc": "Cuba laraskan tapisan atau istilah carian anda untuk mencari apa yang anda cari.",
     "clearFilters": "Kosongkan Tapisan",
-    "selectState": "Pilih negeri"
+    "selectState": "Pilih negeri",
+    "resetAll": "Set Semula",
+    "location": "Lokasi",
+    "enterLocation": "Masukkan lokasi",
+    "dateRange": "Julat Tarikh",
+    "priceRange": "Julat Harga (RM)",
+    "minimum": "Minimum",
+    "maximum": "Maksimum",
+    "applyFilters": "Guna Tapisan",
+    "bookNow": "Tempah Sekarang",
+    "categoryElectronics": "Elektronik",
+    "categoryVehicles": "Kenderaan",
+    "categoryTools": "Alatan",
+    "categorySports": "Sukan",
+    "categoryParty": "Parti",
+    "categoryFashion": "Fesyen",
+    "categoryOther": "Lain-lain"
   },
   "listItem": {
     "title": "Senaraikan Item Anda",
@@ -364,7 +383,11 @@
     "rentalCalendar": "Kalendar Sewaan",
     "noActiveRentals": "Tiada sewaan aktif",
     "noPendingRentals": "Tiada sewaan menunggu",
-    "noPastRentals": "Tiada sewaan lepas"
+    "noPastRentals": "Tiada sewaan lepas",
+    "noActiveRentalsDesc": "Anda tiada sewaan aktif buat masa ini. Layari item untuk mencari sesuatu untuk disewa.",
+    "noPendingRentalsDesc": "Tiada permintaan sewaan menunggu. Cari item yang anda suka dan hantar permintaan tempahan.",
+    "noPastRentalsDesc": "Sewaan lepas anda akan muncul di sini setelah anda melengkapkan sewaan.",
+    "failedToLoadStats": "Gagal memuatkan statistik papan pemuka"
   },
   "profile": {
     "myProfile": "Profil Saya",
@@ -572,6 +595,32 @@
     "section13Title": "13. Penggantungan & Penamatan Akaun",
     "section14Title": "14. Undang-undang Terpakai",
     "section15Title": "15. Hubungi Kami"
+  },
+  "handover": {
+    "title": "Mulakan Proses Serahan",
+    "uploadDesc": "Muat naik foto keadaan item sebelum serahan",
+    "codeDesc": "Masukkan kod 4-digit daripada penyewa",
+    "uploadPhotos": "Muat Naik Foto Bukti",
+    "minPhotos": "Sekurang-kurangnya 1 foto diperlukan",
+    "uploadFailed": "Gagal memuat naik foto",
+    "photosUploaded": "{{count}} foto dimuat naik",
+    "photosCount": "Foto dimuat naik: {{count}}",
+    "codeLabel": "Masukkan Kod Ambilan Penyewa",
+    "codePlaceholder": "Kod 4-digit",
+    "codeHint": "Penyewa harus menunjukkan kod ambilan 4-digit mereka",
+    "invalidCode": "Kod ambilan tidak sah",
+    "nextVerify": "Seterusnya: Sahkan Kod",
+    "startRental": "Mulakan Sewaan",
+    "starting": "Memulakan...",
+    "rentalStarted": "Sewaan berjaya dimulakan!",
+    "failedToStart": "Gagal memulakan sewaan"
+  },
+  "verification": {
+    "verified": "Akaun Disahkan",
+    "verifiedDesc": "Identiti anda telah disahkan. Anda boleh menyenaraikan item untuk disewa.",
+    "required": "Pengesahan Diperlukan",
+    "requiredDesc": "Anda mesti mengesahkan identiti (MyKad/Pasport) sebelum menyenaraikan item. Ini membantu memastikan platform kami selamat dan dipercayai.",
+    "verifyNow": "Sahkan Sekarang"
   },
   "footer": {
     "tagline": "Sewakan apa sahaja yang anda perlukan, daripada orang yang boleh dipercayai. Pasaran sewa rakan ke rakan Malaysia.",

@@ -20,7 +20,7 @@ export default function Wishlist() {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
-  const { data: items = [], isLoading, refetch } = useWishlistQuery(user?.id);
+  const { data: items = [], isLoading, isError, error, refetch } = useWishlistQuery(user?.id);
   const removeItemMutation = useToggleWishlistMutation();
 
   useEffect(() => {
@@ -97,6 +97,16 @@ export default function Wishlist() {
               <SkeletonCard key={i} />
             ))}
           </div>
+        ) : isError ? (
+          <EnhancedEmptyState
+            icon={RefreshCw}
+            title="Failed to load wishlist"
+            description={error instanceof Error ? error.message : 'An error occurred while loading your wishlist. Please try again.'}
+            actionLabel="Try Again"
+            onAction={() => refetch()}
+            showRetry
+            onRetry={() => refetch()}
+          />
         ) : items.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {items.map((item) => (

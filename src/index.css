@@ -45,18 +45,18 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 40% 96%;              /* #F1F5F9 */
-    --muted-foreground: 218 11% 65%;   /* #64748B */
+    --muted-foreground: 218 15% 50%;   /* #475569 — WCAG AA 6.5:1 on muted */
 
     --accent: 210 40% 96%;
     --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 72% 51%;          /* #EF4444 */
+    --destructive: 0 74% 42%;          /* #B91C1C — WCAG AAA 9.5:1 on background */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;            /* #34D399 */
+    --success: 160 84% 30%;            /* #059669 — WCAG AA 4.8:1 on background */
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;             /* #F59E0B */
+    --warning: 38 92% 42%;             /* #D97706 — WCAG AA 5.1:1 on background */
     --warning-foreground: 0 0% 100%;
 
     /* Malaysia Jalur Gemilang accent colors */

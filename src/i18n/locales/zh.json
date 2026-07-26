@@ -153,7 +153,8 @@
       "active": "活跃",
       "pending": "待处理",
       "messages": "消息",
-      "listings": "列表"
+      "listings": "列表",
+      "dashboard": "仪表板"
     }
   },
   "search": {
@@ -178,7 +179,23 @@
     "noItems": "未找到物品",
     "noItemsDesc": "请调整筛选条件或搜索词以找到您需要的内容。",
     "clearFilters": "清除筛选",
-    "selectState": "选择州属"
+    "selectState": "选择州属",
+    "resetAll": "重置所有",
+    "location": "位置",
+    "enterLocation": "输入位置",
+    "dateRange": "日期范围",
+    "priceRange": "价格范围（RM）",
+    "minimum": "最低",
+    "maximum": "最高",
+    "applyFilters": "应用筛选",
+    "bookNow": "立即预订",
+    "categoryElectronics": "电子产品",
+    "categoryVehicles": "车辆",
+    "categoryTools": "工具",
+    "categorySports": "体育",
+    "categoryParty": "派对",
+    "categoryFashion": "时尚",
+    "categoryOther": "其他"
   },
   "listItem": {
     "title": "列出您的物品",
@@ -366,7 +383,11 @@
     "rentalCalendar": "租赁日历",
     "noActiveRentals": "暂无活跃租赁",
     "noPendingRentals": "暂无待处理租赁",
-    "noPastRentals": "暂无历史租赁"
+    "noPastRentals": "暂无历史租赁",
+    "noActiveRentalsDesc": "您目前没有活跃的租赁。浏览物品以寻找要租赁的东西。",
+    "noPendingRentalsDesc": "没有待处理的租赁请求。找到您喜欢的物品并发送预订请求。",
+    "noPastRentalsDesc": "完成租赁后，您过去的租赁将出现在此处。",
+    "failedToLoadStats": "加载仪表板统计信息失败"
   },
   "itemDetail": {
     "pageTitle": "物品详情 | Renty",
@@ -574,6 +595,32 @@
     "section13Title": "13. 账户暂停与终止",
     "section14Title": "14. 适用法律",
     "section15Title": "15. 联系我们"
+  },
+  "handover": {
+    "title": "开始交接流程",
+    "uploadDesc": "上传交接前的物品状况照片",
+    "codeDesc": "输入租客提供的4位验证码",
+    "uploadPhotos": "上传证据照片",
+    "minPhotos": "至少需要1张照片",
+    "uploadFailed": "上传照片失败",
+    "photosUploaded": "已上传{{count}}张照片",
+    "photosCount": "已上传照片：{{count}}",
+    "codeLabel": "输入租客的取货码",
+    "codePlaceholder": "4位验证码",
+    "codeHint": "租客应向您展示他们的4位取货码",
+    "invalidCode": "取货码无效",
+    "nextVerify": "下一步：验证代码",
+    "startRental": "开始租赁",
+    "starting": "正在开始...",
+    "rentalStarted": "租赁已成功开始！",
+    "failedToStart": "开始租赁失败"
+  },
+  "verification": {
+    "verified": "已验证账户",
+    "verifiedDesc": "您的身份已验证。您可以列出物品出租。",
+    "required": "需要验证",
+    "requiredDesc": "在列出物品之前，您必须验证身份（MyKad/护照）。这有助于确保我们平台的安全和可信度。",
+    "verifyNow": "立即验证"
   },
   "footer": {
     "tagline": "租您所需，从您信任的人那里。马来西亚点对点租赁平台。",

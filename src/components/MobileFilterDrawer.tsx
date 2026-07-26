@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ const MobileFilterDrawer = ({
   setUserLocation,
   activeFiltersCount,
 }: MobileFilterDrawerProps) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
 
@@ -91,7 +93,7 @@ const MobileFilterDrawer = ({
       <DrawerTrigger asChild>
         <Button variant="outline" className="gap-2 relative">
           <Filter className="h-4 w-4" />
-          Filters
+          {t('search.filters')}
           {activeFiltersCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
               {activeFiltersCount}
@@ -102,14 +104,14 @@ const MobileFilterDrawer = ({
       <DrawerContent className="max-h-[90vh]">
         <DrawerHeader className="border-b sticky top-0 bg-background z-10">
           <div className="flex items-center justify-between">
-            <DrawerTitle>Filters</DrawerTitle>
+            <DrawerTitle>{t('search.filters')}</DrawerTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={resetFilters}
               className="text-destructive"
             >
-              Reset All
+              {t('search.resetAll')}
             </Button>
           </div>
         </DrawerHeader>
@@ -118,23 +120,23 @@ const MobileFilterDrawer = ({
           {/* Category Filter */}
           <Collapsible defaultOpen>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-accent rounded-lg">
-              <Label className="text-base font-semibold cursor-pointer">Category</Label>
+              <Label className="text-base font-semibold cursor-pointer">{t('common.category')}</Label>
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3">
               <Select value={category} onValueChange={(value) => setCategory(value as ItemCategory | 'all')}>
                 <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder={t('common.category')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="vehicles">Vehicles</SelectItem>
-                  <SelectItem value="tools">Tools</SelectItem>
-                  <SelectItem value="sports">Sports</SelectItem>
-                  <SelectItem value="party">Party</SelectItem>
-                  <SelectItem value="fashion">Fashion</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="all">{t('search.categoryAll')}</SelectItem>
+                  <SelectItem value="electronics">{t('search.categoryElectronics')}</SelectItem>
+                  <SelectItem value="vehicles">{t('search.categoryVehicles')}</SelectItem>
+                  <SelectItem value="tools">{t('search.categoryTools')}</SelectItem>
+                  <SelectItem value="sports">{t('search.categorySports')}</SelectItem>
+                  <SelectItem value="party">{t('search.categoryParty')}</SelectItem>
+                  <SelectItem value="fashion">{t('search.categoryFashion')}</SelectItem>
+                  <SelectItem value="other">{t('search.categoryOther')}</SelectItem>
                 </SelectContent>
               </Select>
             </CollapsibleContent>
@@ -143,13 +145,13 @@ const MobileFilterDrawer = ({
           {/* Location Filter */}
           <Collapsible defaultOpen>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-accent rounded-lg">
-              <Label className="text-base font-semibold cursor-pointer">Location</Label>
+              <Label className="text-base font-semibold cursor-pointer">{t('search.location')}</Label>
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3">
               <div className="relative">
                 <Input
-                  placeholder="Enter location"
+                  placeholder={t('search.enterLocation')}
                   value={userLocation}
                   onChange={(e) => setUserLocation(e.target.value)}
                   className="h-12 pr-12"
@@ -174,7 +176,7 @@ const MobileFilterDrawer = ({
           {/* Date Range Filter */}
           <Collapsible>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-accent rounded-lg">
-              <Label className="text-base font-semibold cursor-pointer">Date Range</Label>
+              <Label className="text-base font-semibold cursor-pointer">{t('search.dateRange')}</Label>
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3">
@@ -192,27 +194,29 @@ const MobileFilterDrawer = ({
           {/* Price Range Filter */}
           <Collapsible>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-accent rounded-lg">
-              <Label className="text-base font-semibold cursor-pointer">Price Range (RM)</Label>
+              <Label className="text-base font-semibold cursor-pointer">{t('search.priceRange')}</Label>
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3 space-y-3">
               <div>
-                <Label htmlFor="min-price" className="text-sm mb-2 block">Minimum</Label>
+                <Label htmlFor="min-price" className="text-sm mb-2 block">{t('search.minimum')}</Label>
                 <Input
                   id="min-price"
                   type="number"
-                  placeholder="Min RM"
+                  inputMode="decimal"
+                  placeholder={t('search.minPrice')}
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   className="h-12"
                 />
               </div>
               <div>
-                <Label htmlFor="max-price" className="text-sm mb-2 block">Maximum</Label>
+                <Label htmlFor="max-price" className="text-sm mb-2 block">{t('search.maximum')}</Label>
                 <Input
                   id="max-price"
                   type="number"
-                  placeholder="Max RM"
+                  inputMode="decimal"
+                  placeholder={t('search.maxPrice')}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   className="h-12"
@@ -228,7 +232,7 @@ const MobileFilterDrawer = ({
             className="w-full h-12 text-base font-medium" 
             onClick={() => setOpen(false)}
           >
-            Apply Filters
+            {t('search.applyFilters')}
           </Button>
         </div>
       </DrawerContent>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ interface HandoverDialogProps {
 }
 
 export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: HandoverDialogProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'upload' | 'verify'>('upload');
   const [, setPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
@@ -52,7 +54,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
         .upload(fileName, file);
 
       if (error) {
-        toast.error('Failed to upload photo');
+        toast.error(t('handover.uploadFailed'));
         console.error(error);
         continue;
       }
@@ -65,12 +67,12 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
     }
 
     setPhotoUrls(prev => [...prev, ...uploadedUrls]);
-    toast.success(`${files.length} photo(s) uploaded`);
+    toast.success(t('handover.photosUploaded', { count: files.length }));
   };
 
   const handleVerifyCode = async () => {
     if (enteredCode !== rental.pickup_code) {
-      toast.error('Invalid pickup code');
+      toast.error(t('handover.invalidCode'));
       return;
     }
 
@@ -87,11 +89,11 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
 
       if (error) throw error;
 
-      toast.success('Rental Started Successfully! 🎉');
+      toast.success(t('handover.rentalStarted'));
       onSuccess();
       handleOpenChange(false);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'Failed to start rental');
+      toast.error(error instanceof Error ? error.message : t('handover.failedToStart'));
     } finally {
       setIsProcessing(false);
     }
@@ -103,11 +105,11 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Start Handover Process</DialogTitle>
+          <DialogTitle>{t('handover.title')}</DialogTitle>
           <DialogDescription>
             {step === 'upload' 
-              ? 'Upload photos of the item condition before handover'
-              : 'Enter the 4-digit code from the renter'}
+              ? t('handover.uploadDesc')
+              : t('handover.codeDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -124,9 +126,9 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
               />
               <label htmlFor="handover-photos" className="cursor-pointer">
                 <Upload className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm font-medium">Upload Evidence Photos</p>
+                <p className="text-sm font-medium">{t('handover.uploadPhotos')}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  At least 1 photo required
+                  {t('handover.minPhotos')}
                 </p>
               </label>
             </div>
@@ -147,26 +149,26 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
             <div className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg">
               <Camera className="h-5 w-5 text-primary" />
               <p className="text-sm text-primary">
-                Photos uploaded: {photoUrls.length}
+                {t('handover.photosCount', { count: photoUrls.length })}
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-lg">
-              <Label htmlFor="pickup-code">Enter Renter's Pickup Code</Label>
+              <Label htmlFor="pickup-code">{t('handover.codeLabel')}</Label>
               <Input
                 id="pickup-code"
                 type="text"
                 maxLength={4}
-                placeholder="4-digit code"
+                placeholder={t('handover.codePlaceholder')}
                 value={enteredCode}
                 onChange={(e) => setEnteredCode(e.target.value.replace(/\D/g, ''))}
                 className="text-center text-2xl font-mono mt-2"
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              The renter should show you their 4-digit pickup code
+              {t('handover.codeHint')}
             </p>
           </div>
         )}
@@ -177,7 +179,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
             onClick={() => handleOpenChange(false)}
             className="w-full sm:w-auto"
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           {step === 'upload' ? (
             <Button
@@ -186,7 +188,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
               disabled={!canProceedToVerify}
               className="w-full sm:w-auto"
             >
-              Next: Verify Code
+              {t('handover.nextVerify')}
             </Button>
           ) : (
             <Button
@@ -195,7 +197,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
               disabled={enteredCode.length !== 4 || isProcessing}
               className="w-full sm:w-auto"
             >
-              {isProcessing ? 'Starting...' : 'Start Rental'}
+              {isProcessing ? t('handover.starting') : t('handover.startRental')}
             </Button>
           )}
         </DialogFooter>

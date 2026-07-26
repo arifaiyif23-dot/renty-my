@@ -75,7 +75,7 @@ export const PWAInstallPrompt = () => {
       <Card className="p-4 shadow-lg border-2 border-primary/20 bg-card">
         <button
           onClick={handleDismiss}
-          className="absolute top-2 right-2 p-1 hover:bg-accent rounded-full transition-colors"
+          className="absolute top-2 right-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-accent rounded-full transition-colors"
           aria-label="Dismiss"
         >
           <X className="w-4 h-4" />

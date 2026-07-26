@@ -102,6 +102,7 @@ export const SaveItemButton = ({ itemId, variant = "ghost", size = "icon" }: Sav
       onClick={handleToggleSave}
       disabled={loading}
       className="transition-all"
+      aria-label={displayState ? 'Remove from wishlist' : 'Add to wishlist'}
     >
       <Heart 
         className={`h-5 w-5 transition-all ${

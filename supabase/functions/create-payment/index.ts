@@ -18,6 +18,7 @@ const createPaymentSchema = z.object({
   promoCodeId: z.string().uuid().nullable().optional(),
   discountAmount: z.number().min(0).optional(),
   originalAmount: z.number().positive().optional(),
+  idempotencyKey: z.string().uuid().optional(),
 }).refine(
   (data) => data.rentalId || (data.itemId && data.startDate && data.endDate && data.renterId && data.ownerId && data.totalPrice != null),
   { message: 'Provide either rentalId (for existing rental) or all fields: itemId, startDate, endDate, renterId, ownerId, totalPrice' }
@@ -62,7 +63,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice, promoCodeId, discountAmount, originalAmount } = validationResult.data;
+    const { rentalId, itemId, startDate, endDate, renterId, ownerId, totalPrice, promoCodeId, discountAmount, originalAmount, idempotencyKey } = validationResult.data;
     
     let rental;
     
@@ -171,6 +172,47 @@ serve(async (req) => {
       throw new Error('Payment is already being processed for this rental');
     }
 
+    // Idempotency check: if idempotencyKey provided, return existing payment data
+    if (idempotencyKey) {
+      const { data: existingByIdempotency } = await supabase
+        .from('payments')
+        .select('id, status, toyyibpay_bill_url')
+        .eq('idempotency_key', idempotencyKey)
+        .maybeSingle();
+
+      if (existingByIdempotency) {
+        if (existingByIdempotency.status === 'paid') {
+          // Already paid — release lock and return success
+          await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
+          return new Response(
+            JSON.stringify({
+              success: true,
+              rentalId: rental.id,
+              paymentId: existingByIdempotency.id,
+              paymentUrl: existingByIdempotency.toyyibpay_bill_url,
+              idempotent: true,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (existingByIdempotency.status === 'pending' && existingByIdempotency.toyyibpay_bill_url) {
+          // Still pending with a bill URL — redirect user back to existing bill
+          await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
+          return new Response(
+            JSON.stringify({
+              success: true,
+              rentalId: rental.id,
+              paymentId: existingByIdempotency.id,
+              paymentUrl: existingByIdempotency.toyyibpay_bill_url,
+              idempotent: true,
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        // Expired or failed — continue to create new payment
+      }
+    }
+
     const { data: feeSetting } = await supabase
       .from('platform_settings')
       .select('value')
@@ -209,6 +251,7 @@ serve(async (req) => {
         promo_code_id: promoCodeId || rental.promo_code_id || null,
         discount_amount: discountAmount || rental.discount_amount || 0,
         original_amount: originalAmount || rental.original_total_price || rental.total_price,
+        idempotency_key: idempotencyKey || null,
       })
       .select()
       .single();
@@ -263,11 +306,15 @@ serve(async (req) => {
     console.log('Creating ToyyibPay bill with amount:', billAmount);
     
     // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
     const toyyibPayResponse = await fetch('https://toyyibpay.com/index.php/api/createBill', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: toyyibPayParams.toString()
+      body: toyyibPayParams.toString(),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     
     const billData = await toyyibPayResponse.json();
     

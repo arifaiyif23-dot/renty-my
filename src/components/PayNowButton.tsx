@@ -72,6 +72,8 @@ export function PayNowButton({ rental }: PayNowButtonProps) {
     try {
       toast.info('Creating payment link...');
 
+      const idempotencyKey = crypto.randomUUID();
+
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           rentalId: rental.id,
@@ -84,6 +86,7 @@ export function PayNowButton({ rental }: PayNowButtonProps) {
           promoCodeId: rental.promo_code_id,
           discountAmount: rental.discount_amount,
           originalAmount: rental.original_total_price,
+          idempotencyKey,
         }
       });
 

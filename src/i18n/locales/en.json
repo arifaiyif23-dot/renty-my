@@ -153,7 +153,8 @@
       "active": "Active",
       "pending": "Pending",
       "messages": "Messages",
-      "listings": "Listings"
+      "listings": "Listings",
+      "dashboard": "Dashboard"
     }
   },
   "search": {
@@ -178,7 +179,23 @@
     "noItems": "No Items Found",
     "noItemsDesc": "Try adjusting your filters or search terms to find what you're looking for.",
     "clearFilters": "Clear Filters",
-    "selectState": "Select state"
+    "selectState": "Select state",
+    "resetAll": "Reset All",
+    "location": "Location",
+    "enterLocation": "Enter location",
+    "dateRange": "Date Range",
+    "priceRange": "Price Range (RM)",
+    "minimum": "Minimum",
+    "maximum": "Maximum",
+    "applyFilters": "Apply Filters",
+    "bookNow": "Book Now",
+    "categoryElectronics": "Electronics",
+    "categoryVehicles": "Vehicles",
+    "categoryTools": "Tools",
+    "categorySports": "Sports",
+    "categoryParty": "Party",
+    "categoryFashion": "Fashion",
+    "categoryOther": "Other"
   },
   "listItem": {
     "title": "List Your Item",
@@ -366,7 +383,11 @@
     "rentalCalendar": "Rental Calendar",
     "noActiveRentals": "No active rentals",
     "noPendingRentals": "No pending rentals",
-    "noPastRentals": "No past rentals"
+    "noPastRentals": "No past rentals",
+    "noActiveRentalsDesc": "You don't have any active rentals right now. Browse items to find something to rent.",
+    "noPendingRentalsDesc": "No pending rental requests. Find something you like and send a booking request.",
+    "noPastRentalsDesc": "Your past rentals will appear here once you complete a rental.",
+    "failedToLoadStats": "Failed to load dashboard stats"
   },
   "profile": {
     "myProfile": "My Profile",
@@ -574,6 +595,32 @@
     "section13Title": "13. Account Suspension & Termination",
     "section14Title": "14. Governing Law",
     "section15Title": "15. Contact Us"
+  },
+  "handover": {
+    "title": "Start Handover Process",
+    "uploadDesc": "Upload photos of the item condition before handover",
+    "codeDesc": "Enter the 4-digit code from the renter",
+    "uploadPhotos": "Upload Evidence Photos",
+    "minPhotos": "At least 1 photo required",
+    "uploadFailed": "Failed to upload photo",
+    "photosUploaded": "{{count}} photo(s) uploaded",
+    "photosCount": "Photos uploaded: {{count}}",
+    "codeLabel": "Enter Renter's Pickup Code",
+    "codePlaceholder": "4-digit code",
+    "codeHint": "The renter should show you their 4-digit pickup code",
+    "invalidCode": "Invalid pickup code",
+    "nextVerify": "Next: Verify Code",
+    "startRental": "Start Rental",
+    "starting": "Starting...",
+    "rentalStarted": "Rental started successfully!",
+    "failedToStart": "Failed to start rental"
+  },
+  "verification": {
+    "verified": "Verified Account",
+    "verifiedDesc": "Your identity is verified. You can list items for rent.",
+    "required": "Verification Required",
+    "requiredDesc": "You must verify your identity (MyKad/Passport) before listing items. This helps keep our platform safe and trustworthy.",
+    "verifyNow": "Verify Now"
   },
   "footer": {
     "tagline": "Rent anything you need, from people you can trust. Malaysia's peer-to-peer rental marketplace.",

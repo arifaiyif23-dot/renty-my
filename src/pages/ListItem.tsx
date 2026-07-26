@@ -366,11 +366,13 @@ export default function ListItem() {
                 <Label htmlFor="price" className="text-sm font-medium">{t('listItem.priceLabel')} *</Label>
                 <Input
                   id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.price_per_day}
-                  onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9.]/g, '');
+                    setFormData({ ...formData, price_per_day: v });
+                  }}
                   className="h-12 text-base rounded-xl"
                   placeholder={t('listItem.pricePlaceholder')}
                   required
@@ -380,11 +382,13 @@ export default function ListItem() {
                 <Label htmlFor="price_hour" className="text-sm font-medium">{t('listItem.priceHourLabel')}</Label>
                 <Input
                   id="price_hour"
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.price_per_hour}
-                  onChange={(e) => setFormData({ ...formData, price_per_hour: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9.]/g, '');
+                    setFormData({ ...formData, price_per_hour: v });
+                  }}
                   className="h-12 text-base rounded-xl"
                   placeholder={t('listItem.priceHourPlaceholder')}
                 />
@@ -395,11 +399,13 @@ export default function ListItem() {
               <Label htmlFor="deposit" className="text-sm font-medium">{t('listItem.depositLabel')}</Label>
               <Input
                 id="deposit"
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
+                inputMode="decimal"
                 value={formData.deposit_amount}
-                onChange={(e) => setFormData({ ...formData, deposit_amount: e.target.value })}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9.]/g, '');
+                  setFormData({ ...formData, deposit_amount: v });
+                }}
                 className="h-12 text-base rounded-xl"
                 placeholder={t('listItem.depositPlaceholder')}
               />

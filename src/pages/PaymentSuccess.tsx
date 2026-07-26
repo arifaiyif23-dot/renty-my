@@ -15,6 +15,7 @@ export default function PaymentSuccess() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [confirmed, setConfirmed] = useState(false);
   const [paymentInfo, setPaymentInfo] = useState<{ amount: number; itemTitle: string } | null>(null);
   const status = searchParams.get('status_id');
   const orderId = searchParams.get('order_id');
@@ -23,16 +24,17 @@ export default function PaymentSuccess() {
   const [redirectCountdown, setRedirectCountdown] = useState(15);
 
   useEffect(() => {
-    if (!user || status !== '1') {
+    if (user && status === '1' && orderId) {
+      verifyPayment();
+    } else {
+      // No user, no orderId, or not a success status — stop loading immediately
       setLoading(false);
-      return;
     }
-    fetchLatestPayment();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, status]);
 
   useEffect(() => {
-    if (loading || paymentInfo) return;
+    if (loading || confirmed) return;
     const interval = setInterval(() => {
       setRedirectCountdown((c) => {
         if (c <= 1) {
@@ -44,9 +46,9 @@ export default function PaymentSuccess() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [loading, paymentInfo, navigate]);
+  }, [loading, confirmed, navigate]);
 
-  const fetchLatestPayment = async () => {
+  const verifyPayment = async () => {
     try {
       if (!orderId) {
         setLoading(false);
@@ -73,6 +75,7 @@ export default function PaymentSuccess() {
         return;
       }
 
+      setConfirmed(true);
       setPaymentInfo({
         amount: Number(data.total_amount),
         itemTitle: ((data.rental as { item: { title: string } })?.item?.title) || 'your rental',
@@ -85,6 +88,10 @@ export default function PaymentSuccess() {
     }
   };
 
+  // Require BOTH URL param success AND DB confirmation before showing success UI
+  const showSuccess = status === '1' && confirmed;
+  const showFailure = !loading && !showSuccess;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -96,7 +103,7 @@ export default function PaymentSuccess() {
     );
   }
 
-  if (status === '1') {
+  if (showSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <GlassCard className="max-w-md w-full text-center" padding="lg">
@@ -195,28 +202,33 @@ export default function PaymentSuccess() {
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <GlassCard className="max-w-md w-full text-center" padding="lg">
-        <div className="w-20 h-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-          <XCircle className="h-12 w-12 text-destructive" />
-        </div>
-        <h1 className="text-2xl font-bold mb-2">{t('paymentSuccess.failedTitle')}</h1>
-        <p className="text-muted-foreground mb-2">
-          {t('paymentSuccess.failedDescription')}
-        </p>
-        <p className="text-xs text-muted-foreground mb-6">
-          {t('paymentSuccess.failedHelp')}
-        </p>
-        {!user && (
-          <p className="text-xs text-muted-foreground mb-4 flex items-center justify-center gap-1">
-            <Timer className="h-3 w-3" /> {t('paymentSuccess.redirecting', { count: redirectCountdown })}
+  if (showFailure) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <GlassCard className="max-w-md w-full text-center" padding="lg">
+          <div className="w-20 h-20 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+            <XCircle className="h-12 w-12 text-destructive" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">{t('paymentSuccess.failedTitle')}</h1>
+          <p className="text-muted-foreground mb-2">
+            {t('paymentSuccess.failedDescription')}
           </p>
-        )}
-        <Button onClick={() => navigate('/dashboard')} className="w-full rounded-xl">
-          {user ? t('paymentSuccess.backToDashboard') : t('paymentSuccess.tryAgain')}
-        </Button>
-      </GlassCard>
-    </div>
-  );
+          <p className="text-xs text-muted-foreground mb-6">
+            {t('paymentSuccess.failedHelp')}
+          </p>
+          {!user && (
+            <p className="text-xs text-muted-foreground mb-4 flex items-center justify-center gap-1">
+              <Timer className="h-3 w-3" /> {t('paymentSuccess.redirecting', { count: redirectCountdown })}
+            </p>
+          )}
+          <Button onClick={() => navigate('/dashboard')} className="w-full rounded-xl">
+            {user ? t('paymentSuccess.backToDashboard') : t('paymentSuccess.tryAgain')}
+          </Button>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  // Fallback — should not reach here
+  return null;
 }

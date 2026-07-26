@@ -3,19 +3,21 @@ import { Home, Search, MessageCircle, Plus, LayoutDashboard } from "lucide-react
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const MobileBottomNav = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { user } = useAuth();
   
   const navItems = [
-    { key: "home", icon: Home, label: "Home", path: "/" },
-    { key: "browse", icon: Search, label: "Browse", path: "/search" },
+    { key: "home", icon: Home, label: t('nav.home'), path: "/" },
+    { key: "browse", icon: Search, label: t('nav.browse'), path: "/search" },
   ];
 
   const rightNavItems = [
-    { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages" },
-    { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { key: "messages", icon: MessageCircle, label: t('nav.messages'), path: "/messages" },
+    { key: "dashboard", icon: LayoutDashboard, label: t('nav.dashboard'), path: "/dashboard" },
   ];
 
   return (
@@ -51,7 +53,6 @@ const MobileBottomNav = () => {
             <Button
               size="icon"
               className="h-14 w-14 rounded-full shadow-lg -mt-8"
-              aria-label="List a new item"
             >
               <Plus className="h-6 w-6" aria-hidden="true" />
             </Button>

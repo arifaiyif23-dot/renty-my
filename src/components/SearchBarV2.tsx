@@ -148,7 +148,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="p-1 rounded-lg hover:bg-muted transition-colors"
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
               aria-label={t('common.clear')}
             >
               <X className="h-4 w-4 text-muted-foreground" />

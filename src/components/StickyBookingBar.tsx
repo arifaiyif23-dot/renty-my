@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface StickyBookingBarProps {
   pricePerDay: number;
@@ -27,8 +28,9 @@ export default function StickyBookingBar({
   totalPrice,
   dateLabel,
 }: StickyBookingBarProps) {
+  const { t } = useTranslation();
   const hasDates = !!dateLabel;
-  const buttonLabel = isLoading ? "Processing..." : !hasDates ? "Select Dates" : instantBookEnabled ? "Instant Book" : "Book Now";
+  const buttonLabel = isLoading ? t('itemDetail.processing') : !hasDates ? t('itemDetail.selectDates') : instantBookEnabled ? t('itemDetail.instantBook') : t('search.bookNow');
 
   return (
     <div
@@ -41,11 +43,11 @@ export default function StickyBookingBar({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-1.5">
             <span className="text-lg font-bold tabular-nums">RM{pricePerDay}</span>
-            <span className="text-sm font-normal text-muted-foreground">/day</span>
+            <span className="text-sm font-normal text-muted-foreground">{t('itemDetail.perDay')}</span>
             {totalPrice != null && hasDates && (
               <>
                 <span className="text-muted-foreground mx-1">·</span>
-                <span className="text-sm font-semibold tabular-nums text-primary">RM{totalPrice} total</span>
+                <span className="text-sm font-semibold tabular-nums text-primary">RM{totalPrice} {t('itemDetail.total')}</span>
               </>
             )}
           </div>
