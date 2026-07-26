@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [modifications, setModifications] = useState<ModificationRequestData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRentals, setSelectedRentals] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
   const [selectedRentalTimeline, setSelectedRentalTimeline] = useState<Rental | null>(null);
   const [timelineModifications, setTimelineModifications] = useState<ModificationRequestData[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -202,6 +203,7 @@ export default function Dashboard() {
     const results = await Promise.allSettled(ids.map((id) => updateRentalStatus(id, 'completed')));
     const succeeded = results.filter(r => r.status === 'fulfilled').length;
     setSelectedRentals(new Set());
+    setSelectionMode(false);
     if (succeeded > 0) toast.success(`${succeeded} rental(s) marked as completed`);
   };
 
@@ -209,15 +211,21 @@ export default function Dashboard() {
     const ids = Array.from(selectedRentals);
     const results = await Promise.allSettled(ids.map((id) => updateRentalStatus(id, 'cancelled')));
     setSelectedRentals(new Set());
+    setSelectionMode(false);
     const succeeded = results.filter(r => r.status === 'fulfilled').length;
     if (succeeded > 0) toast.success(`${succeeded} rental(s) cancelled`);
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedRentals(new Set());
   };
 
   if (loading) {
     return (
       <>
         <Header />
-        <div className="container mx-auto p-4 pb-20 md:pb-4">
+        <div className="container mx-auto p-4 pb-mobile-nav">
           <SkeletonV2 variant="text" className="h-8 w-48 mb-6" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[...Array(4)].map((_, i) => <SkeletonV2 key={i} variant="card" className="h-24" />)}
@@ -236,13 +244,13 @@ export default function Dashboard() {
     return (
       <>
         <Header />
-        <div className="container mx-auto p-4 pb-20 md:pb-4">
-          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+        <div className="container mx-auto p-4 pb-mobile-nav">
+          <h1 className="text-2xl font-bold mb-6">{t('dashboard.title')}</h1>
           <EmptyStateV2
             icon={PackageSearch}
-            title="No Rentals Yet"
-            description="Start exploring items to rent or list your own"
-            actionLabel="Browse Items"
+            title={t('dashboard.noRentals')}
+            description={t('dashboard.noRentalsDesc')}
+            actionLabel={t('dashboard.browseItems')}
             onAction={() => navigate('/search')}
           />
         </div>
@@ -267,17 +275,17 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="container mx-auto p-4 pb-20 md:pb-4">
+      <div className="container mx-auto p-4 pb-mobile-nav">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
           <div className="flex gap-2">
             <Badge variant="outline" className="gap-1 rounded-full">
               <Clock className="h-3 w-3" />
-              {activeCount} Active
+              {activeCount} {t('dashboard.active')}
             </Badge>
             <Button variant="outline" size="sm" className="rounded-xl h-9" onClick={() => setShowCalendar(true)}>
               <CalendarIcon className="h-4 w-4 mr-1.5" />
-              Calendar
+              {t('dashboard.calendarView')}
             </Button>
           </div>
         </div>
@@ -285,7 +293,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Revenue</p>
+              <p className="text-xs text-muted-foreground mb-0.5">{t('dashboard.revenue')}</p>
               <p className="text-lg font-bold tabular-nums">RM{stats.totalRevenue.toLocaleString()}</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
@@ -295,7 +303,7 @@ export default function Dashboard() {
 
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Active</p>
+              <p className="text-xs text-muted-foreground mb-0.5">{t('dashboard.active')}</p>
               <p className="text-lg font-bold tabular-nums">{stats.activeRentals}</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -305,7 +313,7 @@ export default function Dashboard() {
 
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Pending</p>
+              <p className="text-xs text-muted-foreground mb-0.5">{t('dashboard.pending')}</p>
               <p className="text-lg font-bold tabular-nums">{stats.pendingRequests}</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
@@ -315,7 +323,7 @@ export default function Dashboard() {
 
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Listings</p>
+              <p className="text-xs text-muted-foreground mb-0.5">{t('dashboard.listings')}</p>
               <p className="text-lg font-bold tabular-nums">{stats.myListings}</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -326,7 +334,7 @@ export default function Dashboard() {
 
         {userRentals.some(r => r.status === 'pending_approval') && (
           <div className="mb-6">
-            <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Incoming Requests</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">{t('dashboard.incomingRequests')}</h2>
             <IncomingRequests rentals={userRentals} onUpdate={fetchRentals} />
           </div>
         )}
@@ -362,21 +370,41 @@ export default function Dashboard() {
                   description={t('dashboard.noActiveRentalsDesc')}
                   variant="compact"
                 />
-              ) : filterRentals(['paid', 'active']).map(rental => (
-                  <div key={rental.id} className="relative">
-                    <div className="absolute left-3 top-3 z-10">
-                      <Checkbox checked={selectedRentals.has(rental.id)} onCheckedChange={() => toggleRentalSelection(rental.id)} className="bg-card border-border" />
-                    </div>
-                    <RentalCard
-                      rental={rental}
-                      isOwner={rental.owner_id === user?.id}
-                      onStatusUpdate={updateRentalStatus}
-                      onReviewSuccess={fetchRentals}
-                      hasPendingModification={pendingModRentalIds.has(rental.id)}
-                      onShowTimeline={(r) => setSelectedRentalTimeline(r)}
-                    />
+              ) : (
+                <>
+                  {/* Selection toolbar — keeps checkboxes off the cards until needed */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {selectionMode ? `${selectedRentals.size} selected` : `${filterRentals(['paid', 'active']).length} active`}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => (selectionMode ? exitSelectionMode() : setSelectionMode(true))}
+                    >
+                      {selectionMode ? 'Done' : 'Select'}
+                    </Button>
                   </div>
-              ))}
+                  {filterRentals(['paid', 'active']).map(rental => (
+                    <div key={rental.id} className="relative">
+                      {selectionMode && (
+                        <div className="absolute left-3 top-3 z-10">
+                          <Checkbox checked={selectedRentals.has(rental.id)} onCheckedChange={() => toggleRentalSelection(rental.id)} className="bg-card border-border" />
+                        </div>
+                      )}
+                      <RentalCard
+                        rental={rental}
+                        isOwner={rental.owner_id === user?.id}
+                        onStatusUpdate={updateRentalStatus}
+                        onReviewSuccess={fetchRentals}
+                        hasPendingModification={pendingModRentalIds.has(rental.id)}
+                        onShowTimeline={(r) => setSelectedRentalTimeline(r)}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="pending" className="space-y-3 mt-4">
@@ -409,7 +437,7 @@ export default function Dashboard() {
 
         <BulkActionsBar
           selectedCount={selectedRentals.size}
-          onClearSelection={() => setSelectedRentals(new Set())}
+          onClearSelection={exitSelectionMode}
           onBulkComplete={handleBulkComplete}
           onBulkCancel={handleBulkCancel}
           showComplete={true}
@@ -419,7 +447,7 @@ export default function Dashboard() {
         <Dialog open={!!selectedRentalTimeline} onOpenChange={() => setSelectedRentalTimeline(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Rental Timeline</DialogTitle>
+              <DialogTitle>{t('dashboard.rentalTimeline')}</DialogTitle>
             </DialogHeader>
             {selectedRentalTimeline && (
               <div className="space-y-4">

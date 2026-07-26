@@ -31,7 +31,8 @@
     "title": "Title",
     "images": "Images",
     "per_day": "per day",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "tryAgain": "Try Again"
   },
   "nav": {
     "home": "Home",
@@ -47,7 +48,9 @@
     "signOutConfirmDesc": "You will need to sign in again to access your account.",
     "myRentals": "My Rentals",
     "myEarnings": "My Earnings",
-    "saved": "Saved"
+    "saved": "Saved",
+    "menu": "Menu",
+    "verification": "Verification"
   },
   "home": {
     "hero": {
@@ -250,7 +253,15 @@
     "title": "My Wishlist",
     "noItems": "No Saved Items",
     "noItemsDesc": "Start adding items to your wishlist to see them here",
-    "browseItems": "Browse Items"
+    "browseItems": "Browse Items",
+    "savedItems": "saved items",
+    "refreshed": "Wishlist refreshed",
+    "removed": "Removed from wishlist",
+    "undo": "Undo",
+    "removeFailed": "Failed to remove item",
+    "failedToLoad": "Failed to load wishlist",
+    "exploreCategories": "Explore Categories",
+    "seoDesc": "View your saved items and favorites"
   },
   "listings": {
     "myListings": "My Listings",
@@ -367,7 +378,19 @@
     "completeDescription": "Confirm rental completion? The rental will be marked as completed.",
     "confirmCompletion": "Confirm Completion",
     "markActive": "Mark Active",
-    "paymentFrozen": "Payment frozen pending admin review"
+    "paymentFrozen": "Payment frozen pending admin review",
+    "viewConditionReport": "View Condition Report",
+    "rateExperience": "Rate your experience",
+    "statusLabels": {
+      "pending_approval": "Pending Approval",
+      "approved": "Approved",
+      "paid": "Paid",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected",
+      "disputed": "Disputed"
+    }
   },
   "dashboard": {
     "myRentals": "My Rentals",
@@ -387,7 +410,13 @@
     "noActiveRentalsDesc": "You don't have any active rentals right now. Browse items to find something to rent.",
     "noPendingRentalsDesc": "No pending rental requests. Find something you like and send a booking request.",
     "noPastRentalsDesc": "Your past rentals will appear here once you complete a rental.",
-    "failedToLoadStats": "Failed to load dashboard stats"
+    "failedToLoadStats": "Failed to load dashboard stats",
+    "title": "Dashboard",
+    "revenue": "Revenue",
+    "listings": "Listings",
+    "incomingRequests": "Incoming Requests",
+    "select": "Select",
+    "done": "Done"
   },
   "profile": {
     "myProfile": "My Profile",

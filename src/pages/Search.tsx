@@ -306,7 +306,7 @@ export default function Search() {
               <button
                 key={search}
                 onClick={() => { setSearchQuery(search); saveSearch(search); }}
-                className="px-3 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors font-medium"
+                className="px-3 py-1.5 min-h-[36px] text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors font-medium"
               >
                 {search}
               </button>
@@ -314,11 +314,11 @@ export default function Search() {
           </div>
         )}
 
-        {/* Filters Row */}
+        {/* Filters Row — selects share one row evenly on mobile */}
         <div className="flex flex-wrap items-center gap-2 mb-5">
           {/* Category Select */}
           <Select value={category} onValueChange={(v) => setCategory(v as ItemCategory | 'all')}>
-            <SelectTrigger className="w-auto h-10 min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+            <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-auto h-10 sm:min-w-[130px] rounded-xl bg-white border border-border shadow-1">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -330,8 +330,8 @@ export default function Search() {
 
           {/* Location Select */}
           <Select value={userLocation} onValueChange={setUserLocation}>
-            <SelectTrigger className="w-auto h-10 min-w-[130px] rounded-xl bg-white border border-border shadow-1">
-              <MapPin className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+            <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-auto h-10 sm:min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+              <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
@@ -344,8 +344,8 @@ export default function Search() {
 
           {/* Sort */}
           <Select value={sortBy} onValueChange={(v: 'newest' | 'price_low' | 'price_high') => setSortBy(v)}>
-            <SelectTrigger className="w-auto h-10 min-w-[130px] rounded-xl bg-white border border-border shadow-1">
-              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+            <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-auto h-10 sm:min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -368,7 +368,7 @@ export default function Search() {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80" align="start">
+            <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80" align="start">
               <AdvancedSearchFilters
                 verifiedOnly={verifiedOnly}
                 setVerifiedOnly={setVerifiedOnly}
@@ -419,40 +419,52 @@ export default function Search() {
         {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (
           <div className="flex flex-wrap gap-2 mb-5">
             {searchQuery && (
-              <Badge variant="secondary" className="gap-1.5 rounded-full">
+              <Badge variant="secondary" className="gap-1 rounded-full">
                 {searchQuery}
-                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear search" onClick={() => setSearchQuery('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSearchQuery(''); } }} />
+                <button type="button" aria-label="Clear search" onClick={() => setSearchQuery('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             )}
             {category !== 'all' && (
-              <Badge variant="secondary" className="gap-1.5 rounded-full">
+              <Badge variant="secondary" className="gap-1 rounded-full">
                 {category}
-                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear category" onClick={() => setCategory('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCategory('all'); } }} />
+                <button type="button" aria-label="Clear category" onClick={() => setCategory('all')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             )}
             {minPrice && (
-              <Badge variant="secondary" className="gap-1.5 rounded-full">
+              <Badge variant="secondary" className="gap-1 rounded-full">
                 Min RM{minPrice}
-                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear minimum price" onClick={() => setMinPrice('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinPrice(''); } }} />
+                <button type="button" aria-label="Clear minimum price" onClick={() => setMinPrice('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             )}
             {maxPrice && (
-              <Badge variant="secondary" className="gap-1.5 rounded-full">
+              <Badge variant="secondary" className="gap-1 rounded-full">
                 Max RM{maxPrice}
-                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear maximum price" onClick={() => setMaxPrice('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMaxPrice(''); } }} />
+                <button type="button" aria-label="Clear maximum price" onClick={() => setMaxPrice('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             )}
             {userLocation && userLocation !== 'all' && (
-              <Badge variant="secondary" className="gap-1.5 rounded-full">
+              <Badge variant="secondary" className="gap-1 rounded-full">
                 <MapPin className="h-3 w-3" />
                 {userLocation}
-                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear location" onClick={() => setUserLocation('')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setUserLocation(''); } }} />
+                <button type="button" aria-label="Clear location" onClick={() => setUserLocation('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             )}
             {dateRange?.from && dateRange?.to && (
-              <Badge variant="secondary" className="gap-1.5 rounded-full">
+              <Badge variant="secondary" className="gap-1 rounded-full">
                 {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
-                <X className="h-3 w-3 cursor-pointer" role="button" tabIndex={0} aria-label="Clear date range" onClick={() => setDateRange(undefined)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDateRange(undefined); } }} />
+                <button type="button" aria-label="Clear date range" onClick={() => setDateRange(undefined)} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             )}
             <button
@@ -485,7 +497,7 @@ export default function Search() {
             </Button>
           </GlassCard>
         ) : initialLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 md:gap-5">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-border">
                 <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
@@ -528,7 +540,7 @@ export default function Search() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 md:gap-5">
             {items.map((item) => (
               <ListingCardV2
                 key={item.id}

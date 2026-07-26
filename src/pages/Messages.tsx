@@ -430,7 +430,7 @@ export default function Messages() {
                 </GlassCard>
               </div>
             ) : (
-              <div className="h-[calc(100dvh-88px)] flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
+              <div className="h-[calc(100dvh-152px)] flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
                 {/* Thread Header with Back Button */}
                 <div className="z-10 bg-card border-b p-3 flex items-center gap-3 min-h-[60px]">
                   <Button variant="ghost" size="icon" onClick={handleBackToList} className="flex-shrink-0">
@@ -518,8 +518,8 @@ export default function Messages() {
                   </div>
                 </ScrollArea>
 
-                {/* Input Bar - Sticky at bottom */}
-                <div className="bg-card border-t p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+                {/* Input Bar - sits just above the mobile bottom nav */}
+                <div className="bg-card border-t p-3">
                   <div className="space-y-2">
                     <FileAttachment 
                       onFileSelect={(url, type) => {

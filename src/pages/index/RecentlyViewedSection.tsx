@@ -27,7 +27,7 @@ export function RecentlyViewedSection({ items, onNavigate }: RecentlyViewedSecti
             {t('home.recentlyViewed.viewAll')}
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 md:gap-5">
           {items.slice(0, 6).map(item => (
             <ListingCardV2
               key={item.id}

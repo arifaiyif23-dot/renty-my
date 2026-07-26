@@ -80,6 +80,17 @@ React 18 + Vite 5 + TypeScript + Supabase + Tailwind CSS + shadcn/ui + React Rou
 - **Misc**: push VAPID key converted via `urlBase64ToUint8Array` + `unsubscribe()`; messages limited to 200 + IME Enter guard + optimistic unread reset; ReviewForm uploads images before insert; ListingEditDialog image save uses delete/insert/update-by-id (no duplicates); NotificationBell derives unread count + dedup; Earnings masked account number no longer written back; UserProfile items show with zero reviews; video liveness blob uses negotiated MIME; CORS tightened to FRONTEND_URL on magic-link + condition-report fns; verify-document-ai rate-limited (10/hr) + storage-URL allowlist (SSRF guard).
 - **E2E**: playwright.config baseURL fixed to dev port 8080; auth/responsive/search specs rewritten to match the real UI (magic-link default, terms checkbox, id selectors).
 
+## Mobile UI Tidiness Pass (July 2026)
+Minimal Tailwind-only tweaks (no redesign, no theme/logic changes). All listing grids are **2-column on mobile**.
+- **2-col grids**: `grid-cols-2 gap-3` at base in `NewestListingsSection`, `RecentlyViewedSection`, `Search`, `ItemDetail` (similar items), `MyListings`. `Wishlist` intentionally stays 1-col (uses swipe-to-delete).
+- **`ListingCardV2`** compacted for narrow cards: `p-2.5`, `text-xs` title, smaller price/save/share/badge on mobile.
+- **Sticky bars**: new `.bottom-mobile-nav` utility (`bottom: calc(4rem + safe-area)`) in `index.css` — `StickyBookingBar` now sits ABOVE `MobileBottomNav` (no overlap). Standardized `pb-mobile-nav` on `Dashboard`/`Earnings`/`MyListings`; `ItemDetail` uses `pb-44` to clear both bars.
+- **Header**: removed duplicate mobile Search icon (bottom-nav "Browse" covers it); bottom-nav FAB `-mt-8`→`-mt-5`.
+- **Hero/Search filters**: trust-badge row is `text-xs` with 2 items `hidden sm:inline-flex`; Search filter selects are `flex-1 min-w-0` (one even row on mobile); filter popover `w-[calc(100vw-2rem)]`.
+- **Messages**: mobile thread height `100dvh-152px` so the input bar clears the bottom nav; removed duplicate safe-area padding on input.
+- **Dashboard**: active-rental bulk checkboxes moved into a **selection mode** (Select/Done toolbar) instead of always floating over cards.
+- **Touch targets**: `SearchBarV2` clear button `min-h/w-[44px]`; recent-search chips `min-h-[36px]`; all 6 Search filter-chip `X`s converted from SVG `role="button"` to real `<button className="p-1.5">`; SearchBarV2 location dropdown `max-w-[calc(100vw-2rem)]`.
+
 ## Monitoring (recommended)
 - **Vercel Analytics** — enable from Vercel dashboard (free, zero code)
 - **Vercel Speed Insights** — enable from Vercel dashboard (free, zero code)

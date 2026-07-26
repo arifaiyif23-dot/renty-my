@@ -50,28 +50,28 @@ export function HeroSection({ totalItemCount, user, onSearch, onListOrAuth }: He
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:gap-x-8 sm:gap-y-3 text-xs sm:text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 sm:gap-2">
               <ShieldCheck className="h-4 w-4 text-success" />
               {t('home.hero.verifiedOwners')}
             </span>
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 sm:gap-2">
               <BadgeCheck className="h-4 w-4 text-brand-blue" />
               {t('home.hero.securePayments')}
             </span>
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 sm:gap-2">
               <MapPin className="h-4 w-4 text-brand-blue" />
               {t('home.hero.localPickup')}
             </span>
-            <span className="inline-flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-2">
               <Handshake className="h-4 w-4 text-primary" />
               {t('home.hero.dijaminTrust')}
             </span>
-            <span className="inline-flex items-center gap-2">
+            <span className="hidden sm:inline-flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
               PDPA Compliant
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs">
               <span className="px-1.5 py-0.5 rounded bg-muted font-medium">FPX</span>
               <span className="px-1.5 py-0.5 rounded bg-muted font-medium">DuitNow</span>
             </span>

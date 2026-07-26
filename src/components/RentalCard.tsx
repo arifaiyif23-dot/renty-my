@@ -69,6 +69,9 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
   const canReview = rental.status === 'completed';
   const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
 
+  const statusLabel = (status: Rental['status']) =>
+    t(`rental.statusLabels.${status}`, { defaultValue: status });
+
   const getStatusColor = (status: Rental['status']) => {
     switch (status) {
       case 'pending_approval':
@@ -182,7 +185,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               <div className="absolute top-2 left-2 flex gap-1">
                 <Badge className={`gap-1 ${getStatusColor(rental.status)}`}>
                   {getStatusIcon(rental.status)}
-                  {rental.status}
+                  {statusLabel(rental.status)}
                 </Badge>
                 {hasPendingModification && isOwner && (
                   <Badge variant="secondary" className="gap-1 animate-pulse">
@@ -342,7 +345,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                     setViewerOpen(true);
                   }}
                 >
-                  View Condition Report
+                  {t('rental.viewConditionReport')}
                 </Button>
               )}
 
@@ -351,7 +354,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                 <Button 
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(rental.handover_photos[0], '_blank')}
+                  onClick={() => window.open(rental.handover_photos[0], '_blank', 'noopener')}
                 >
                   {t('rental.viewHandoverPhotos')} ({rental.handover_photos.length})
                 </Button>
@@ -411,7 +414,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               <div className="flex gap-1">
                 <Badge className={`gap-1 ${getStatusColor(rental.status)}`}>
                   {getStatusIcon(rental.status)}
-                  {rental.status}
+                  {statusLabel(rental.status)}
                 </Badge>
                 {hasPendingModification && isOwner && (
                   <Badge variant="secondary" className="gap-1 animate-pulse">
@@ -548,7 +551,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                   setViewerOpen(true);
                 }}
               >
-                View Condition Report
+                {t('rental.viewConditionReport')}
               </Button>
             )}
 
@@ -557,9 +560,9 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               <Button 
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(rental.handover_photos[0], '_blank')}
+                onClick={() => window.open(rental.handover_photos[0], '_blank', 'noopener')}
               >
-                View Handover Photos ({rental.handover_photos.length})
+                {t('rental.viewHandoverPhotos')} ({rental.handover_photos.length})
               </Button>
             )}
 
@@ -634,7 +637,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rate your experience</DialogTitle>
+            <DialogTitle>{t('rental.rateExperience')}</DialogTitle>
           </DialogHeader>
           <ReviewForm 
             rentalId={rental.id} 

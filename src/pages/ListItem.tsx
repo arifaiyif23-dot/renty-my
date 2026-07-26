@@ -534,7 +534,7 @@ export default function ListItem() {
               ))}
             </div>
 
-            <div className="sticky bottom-16 md:bottom-0 left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
+            <div className="sticky bottom-mobile-nav left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
               <div className="flex gap-3">
                 <Button
                   type="button"

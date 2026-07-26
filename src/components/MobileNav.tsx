@@ -3,14 +3,15 @@ import { PrefetchLink } from "@/components/PrefetchLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, 
-  Package, 
-  TrendingUp, 
-  MessageCircle, 
-  User, 
-  LogOut 
+import { useTranslation } from "react-i18next";
+import {
+  LayoutDashboard,
+  Package,
+  TrendingUp,
+  MessageCircle,
+  User,
+  ShieldCheck,
+  Heart,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -19,7 +20,8 @@ interface MobileNavProps {
 }
 
 const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
+  const { t } = useTranslation();
 
   const userInitials = profile?.full_name
     ?.split(" ")
@@ -28,23 +30,20 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
     .toUpperCase() || "U";
 
   const navItems: { icon: React.ComponentType<{ className?: string }>; label: string; path: string; prefetch?: boolean }[] = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-    { icon: Package, label: "My Listings", path: "/my-listings" },
-    { icon: TrendingUp, label: "My Earnings", path: "/earnings", prefetch: true },
-    { icon: MessageCircle, label: "Messages", path: "/messages" },
-    { icon: User, label: "Profile", path: "/profile" },
+    { icon: LayoutDashboard, label: t('nav.dashboard'), path: "/dashboard" },
+    { icon: Package, label: t('nav.myListings'), path: "/my-listings" },
+    { icon: TrendingUp, label: t('nav.myEarnings'), path: "/earnings", prefetch: true },
+    { icon: MessageCircle, label: t('nav.messages'), path: "/messages" },
+    { icon: Heart, label: t('nav.wishlist'), path: "/wishlist" },
+    { icon: ShieldCheck, label: t('nav.verification'), path: "/verification" },
+    { icon: User, label: t('nav.profile'), path: "/profile" },
   ];
-
-  const handleSignOut = async () => {
-    await signOut();
-    onOpenChange(false);
-  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[85vw] max-w-[320px] flex flex-col p-0 gap-0">
         <SheetHeader className="px-6 pt-6 pb-0">
-          <SheetTitle>Menu</SheetTitle>
+          <SheetTitle>{t('nav.menu')}</SheetTitle>
         </SheetHeader>
 
         {/* User Profile Section */}
@@ -79,19 +78,6 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
               );
             })}
           </nav>
-
-          {user && (
-            <div className="mt-auto px-6 pb-6">
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-5 w-5" />
-                Sign Out
-              </Button>
-            </div>
-          )}
         </div>
       </SheetContent>
     </Sheet>

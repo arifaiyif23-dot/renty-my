@@ -6,22 +6,28 @@ export async function waitForLoadingToFinish(page: Page) {
   });
 }
 
+// Fill the List Item form. The real page (src/pages/ListItem.tsx) uses `id`
+// selectors and a Radix Select for category, plus a required Location field.
 export async function fillItemForm(page: Page, itemData: {
   title: string;
   description: string;
   pricePerDay: string;
   category: string;
 }) {
-  await page.fill('input[name="title"]', itemData.title);
-  await page.fill('textarea[name="description"]', itemData.description);
-  await page.fill('input[name="pricePerDay"]', itemData.pricePerDay);
-  await page.selectOption('select[name="category"]', itemData.category);
+  await page.fill('#title', itemData.title);
+  await page.fill('#description', itemData.description);
+  await page.fill('#price', itemData.pricePerDay);
+  // Radix Select: open the trigger then pick the option by its visible label.
+  await page.locator('#category').click();
+  await page.getByRole('option', { name: new RegExp(`^${itemData.category}$`, 'i') }).first().click();
+  // Location is required for publishing.
+  await page.fill('#location', 'Kuala Lumpur');
 }
 
-export async function uploadTestImage(page: Page, selector = 'input[type="file"]') {
+export async function uploadTestImage(page: Page) {
   const buffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
-  
-  await page.setInputFiles(selector, {
+  // The ImageUpload component exposes a hidden #gallery-upload file input.
+  await page.setInputFiles('#gallery-upload', {
     name: 'test-image.png',
     mimeType: 'image/png',
     buffer,

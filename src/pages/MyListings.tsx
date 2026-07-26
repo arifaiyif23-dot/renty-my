@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -292,7 +293,8 @@ export default function MyListings() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-mobile-nav">
+        <Header />
         {pullDistance > 0 && (
           <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
             <div
@@ -449,7 +451,7 @@ export default function MyListings() {
           isLoading ? (
             <div className={cn(
               viewMode === 'grid'
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                ? 'grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-6'
                 : 'space-y-4'
             )}>
               {[...Array(6)].map((_, i) => (
@@ -475,7 +477,7 @@ export default function MyListings() {
           ) : (
             <div className={cn(
               viewMode === 'grid'
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                ? 'grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-6'
                 : 'space-y-4'
             )}>
               {filteredItems.map((item: { id: string; title: string; item_images?: { image_url: string; is_primary: boolean }[] }) => {

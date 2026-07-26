@@ -25,7 +25,7 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 md:gap-5">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-border">
                 <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
@@ -37,7 +37,7 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
             ))}
           </div>
         ) : items.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 md:gap-5">
             {items.map(item => (
               <ListingCardV2
                 key={item.id}

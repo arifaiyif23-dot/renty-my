@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { PrefetchLink } from "@/components/PrefetchLink";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Search, Heart, Shield, Settings, DollarSign, LogOut, LayoutDashboard, Users, Flag, TicketPercent, AlertTriangle, Zap, Activity } from "lucide-react";
+import { User, Menu, Shield, DollarSign, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -164,20 +164,9 @@ const Header = () => {
               {user ? (
                 <>
                   <NotificationBell />
-                  
-                  {/* Search Icon (Mobile) */}
-                  {isMobile && (
-                    <Link to="/search">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="md:hidden min-h-[44px] min-w-[44px]"
-                        aria-label="Search items"
-                      >
-                        <Search className="h-5 w-5" />
-                      </Button>
-                    </Link>
-                  )}
+
+                  {/* Mobile search is covered by the bottom-nav "Browse" tab, so the
+                      header search icon is intentionally not rendered on mobile. */}
 
                   {/* Desktop List Item Button */}
                   <Link to="/list-item" className="hidden md:inline-flex">
@@ -210,12 +199,6 @@ const Header = () => {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/wishlist" className="flex items-center cursor-pointer">
-                            <Heart className="h-4 w-4 mr-2" />
-                            {t('nav.wishlist')}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
                           <Link to="/earnings" className="flex items-center cursor-pointer">
                             <DollarSign className="h-4 w-4 mr-2" />
                             {t('nav.myEarnings')}
@@ -224,64 +207,11 @@ const Header = () => {
                         {isAdminUser?.isAdmin && (
                           <>
                             <DropdownMenuSeparator />
+                            {/* Admin links live in the AdminSidebar; keep just the entry point here */}
                             <DropdownMenuItem asChild>
                               <PrefetchLink to="/admin" className="flex items-center cursor-pointer">
-                                <LayoutDashboard className="h-4 w-4 mr-2" />
-                                Admin: Dashboard
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/verifications" className="flex items-center cursor-pointer">
                                 <Shield className="h-4 w-4 mr-2" />
-                                Admin: Verifications
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/users" className="flex items-center cursor-pointer">
-                                <Users className="h-4 w-4 mr-2" />
-                                Admin: Users
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/reports" className="flex items-center cursor-pointer">
-                                <Flag className="h-4 w-4 mr-2" />
-                                Admin: Reports
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/promo-codes" className="flex items-center cursor-pointer">
-                                <TicketPercent className="h-4 w-4 mr-2" />
-                                Admin: Promo Codes
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/payouts" className="flex items-center cursor-pointer">
-                                <DollarSign className="h-4 w-4 mr-2" />
-                                Admin: Payouts
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/disputes" className="flex items-center cursor-pointer">
-                                <AlertTriangle className="h-4 w-4 mr-2" />
-                                Admin: Disputes
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/automation" className="flex items-center cursor-pointer">
-                                <Zap className="h-4 w-4 mr-2" />
-                                Admin: Automation
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/health" className="flex items-center cursor-pointer">
-                                <Activity className="h-4 w-4 mr-2" />
-                                Admin: Health
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin/settings" className="flex items-center cursor-pointer">
-                                <Settings className="h-4 w-4 mr-2" />
-                                Admin: Settings
+                                Admin Panel
                               </PrefetchLink>
                             </DropdownMenuItem>
                           </>

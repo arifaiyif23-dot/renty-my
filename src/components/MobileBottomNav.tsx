@@ -53,7 +53,7 @@ const MobileBottomNav = () => {
           <Link to={user ? "/list-item" : "/auth"} aria-label="List a new item">
             <Button
               size="icon"
-              className="h-14 w-14 rounded-full shadow-lg -mt-8"
+              className="h-14 w-14 rounded-full shadow-lg -mt-5"
             >
               <Plus className="h-6 w-6" aria-hidden="true" />
             </Button>

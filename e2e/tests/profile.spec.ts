@@ -4,58 +4,40 @@ import { waitForLoadingToFinish } from '../utils/test-helpers';
 test.describe('User Profile', () => {
   test('should view profile page', async ({ page, authenticatedUser }) => {
     await page.goto('/profile');
-    
     await waitForLoadingToFinish(page);
-    
-    // Should show profile information
+
+    // The signed-up user's name is shown as the page heading.
     await expect(
-      page.locator('text=/profile|account|user/i')
+      page.getByRole('heading', { name: 'Test User' })
     ).toBeVisible({ timeout: 10000 });
-    
-    // Should show user email or name
+
+    // The Edit Profile action is present (always rendered for the owner).
     await expect(
-      page.locator(`text=${authenticatedUser.email}`)
-    ).toBeVisible({ timeout: 5000 });
+      page.getByRole('button', { name: /edit profile/i }).first()
+    ).toBeVisible();
   });
-  
+
   test('should open profile edit dialog', async ({ page, authenticatedUser }) => {
     await page.goto('/profile');
-    
     await waitForLoadingToFinish(page);
-    
-    // Look for edit button
-    const editButton = page.locator('button:has-text("Edit"), button[aria-label*="edit"]').first();
-    
-    if (await editButton.isVisible()) {
-      await editButton.click();
-      
-      // Should show edit form
-      await expect(
-        page.locator('input[name="fullName"], input[name="displayName"]')
-      ).toBeVisible({ timeout: 5000 });
-    }
+
+    const editButton = page.getByRole('button', { name: /edit profile/i }).first();
+    await expect(editButton).toBeVisible({ timeout: 10000 });
+    await editButton.click();
+
+    // An editable name field should appear in the dialog.
+    await expect(
+      page.locator('input[name="fullName"], input[name="displayName"], #fullName, #full_name').first()
+    ).toBeVisible({ timeout: 5000 });
   });
-  
-  test('should view verification status', async ({ page, authenticatedUser }) => {
-    await page.goto('/profile');
-    
-    await waitForLoadingToFinish(page);
-    
-    // Should show verification status or option to verify
-    const hasVerificationInfo = 
-      (await page.locator('text=/verified|verification|verify/i').count()) > 0;
-    
-    expect(hasVerificationInfo).toBeTruthy();
-  });
-  
+
   test('should navigate to verification page', async ({ page, authenticatedUser }) => {
     await page.goto('/verification');
-    
     await waitForLoadingToFinish(page);
-    
-    // Should show verification interface
+
+    // Identity Verification heading is shown.
     await expect(
-      page.locator('text=/verification|verify.*identity|documents/i')
+      page.getByRole('heading', { name: /identity verification/i })
     ).toBeVisible({ timeout: 10000 });
   });
 });

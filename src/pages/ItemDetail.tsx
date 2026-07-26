@@ -405,7 +405,7 @@ export default function ItemDetail() {
       <>
         <SEO title={t('itemDetail.pageTitle')} />
         <Header />
-        <div className="container mx-auto px-4 py-6 pb-32 md:pb-4">
+        <div className="container mx-auto px-4 py-6 pb-44 md:pb-4">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <SkeletonV2 variant="rectangular" className="aspect-video rounded-2xl" />
@@ -452,7 +452,7 @@ export default function ItemDetail() {
       <SEO title={`${item.title} — RENTY`} description={item.description} image={item.images?.[0]?.image_url} />
       <Header />
 
-      <div className="container mx-auto px-4 py-4 pb-32 md:pb-4">
+      <div className="container mx-auto px-4 py-4 pb-44 md:pb-4">
         <div className="md:hidden mb-3">
           <BackButton fallbackPath="/search" />
         </div>
@@ -565,7 +565,7 @@ export default function ItemDetail() {
             {similarItems.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold tracking-tight">{t('itemDetail.similarItems')}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {loadingSimilar ? (
                     [...Array(2)].map((_, i) => (
                       <div key={i} className="rounded-xl overflow-hidden border border-border">

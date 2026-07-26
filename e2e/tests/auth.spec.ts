@@ -46,9 +46,7 @@ test.describe('Authentication Flow', () => {
 
   test('should show error for invalid login credentials', async ({ page }) => {
     await page.goto('/auth');
-    // Switch from the default magic-link view to the password form.
-    await page.getByRole('button', { name: /sign in with password/i }).click();
-
+    // The Login tab defaults to the password form (no method toggle needed).
     await page.fill('#login-email', 'nonexistent@example.com');
     await page.fill('#login-password', 'wrongpassword');
     await page.getByRole('button', { name: /^sign in$/i }).click();

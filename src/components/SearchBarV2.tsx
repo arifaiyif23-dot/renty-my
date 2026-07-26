@@ -109,7 +109,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             </button>
 
             {showLocation && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
+              <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
                 <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">
                   {t('search.selectState')}
                 </p>
@@ -148,7 +148,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
               aria-label={t('common.clear')}
             >
               <X className="h-4 w-4 text-muted-foreground" />

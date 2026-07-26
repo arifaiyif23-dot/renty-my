@@ -13,8 +13,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useWishlistQuery, useToggleWishlistMutation } from "@/hooks/use-items-query";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 
 export default function Wishlist() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -31,7 +33,7 @@ export default function Wishlist() {
 
   const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
     await refetch();
-    toast.success('Wishlist refreshed');
+    toast.success(t('wishlist.refreshed'));
   }, isMobile);
 
   const removeFromWishlist = async (itemId: string) => {
@@ -41,9 +43,9 @@ export default function Wishlist() {
       old?.filter(item => item.id !== itemId) || []
     );
 
-    const undoToast = toast.success('Removed from wishlist', {
+    const undoToast = toast.success(t('wishlist.removed'), {
       action: {
-        label: 'Undo',
+        label: t('wishlist.undo'),
         onClick: () => {
           queryClient.setQueryData(['wishlist', user?.id], previousItems);
           toast.dismiss(undoToast);
@@ -62,15 +64,15 @@ export default function Wishlist() {
       queryClient.setQueryData(['wishlist', user?.id], previousItems);
       toast.dismiss(undoToast);
       console.error('Error removing item:', error);
-      toast.error('Failed to remove item');
+      toast.error(t('wishlist.removeFailed'));
     }
   };
 
   return (
     <>
       <SEO
-        title="My Wishlist"
-        description="View your saved items and favorites"
+        title={t('wishlist.title')}
+        description={t('wishlist.seoDesc')}
       />
       <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
@@ -86,8 +88,8 @@ export default function Wishlist() {
             <Heart className="h-5 w-5 text-destructive" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">My Wishlist</h1>
-            <p className="text-sm text-muted-foreground">{items.length} saved items</p>
+            <h1 className="text-2xl font-bold">{t('wishlist.title')}</h1>
+            <p className="text-sm text-muted-foreground">{items.length} {t('wishlist.savedItems')}</p>
           </div>
         </div>
 
@@ -100,9 +102,9 @@ export default function Wishlist() {
         ) : isError ? (
           <EnhancedEmptyState
             icon={RefreshCw}
-            title="Failed to load wishlist"
+            title={t('wishlist.failedToLoad')}
             description={error instanceof Error ? error.message : 'An error occurred while loading your wishlist. Please try again.'}
-            actionLabel="Try Again"
+            actionLabel={t('common.tryAgain')}
             onAction={() => refetch()}
             showRetry
             onRetry={() => refetch()}
@@ -121,11 +123,11 @@ export default function Wishlist() {
         ) : (
           <EnhancedEmptyState
             icon={Heart}
-            title="No Saved Items Yet"
+            title={t('wishlist.noItems')}
             description="Save items you love to easily find them later. Tap the heart icon on any listing to add it here."
-            actionLabel="Browse Items"
+            actionLabel={t('wishlist.browseItems')}
             onAction={() => navigate('/search')}
-            secondaryActionLabel="Explore Categories"
+            secondaryActionLabel={t('wishlist.exploreCategories')}
             onSecondaryAction={() => navigate('/')}
           />
         )}

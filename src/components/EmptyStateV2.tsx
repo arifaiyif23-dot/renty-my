@@ -11,6 +11,7 @@ interface EmptyStateV2Props {
   actionLabel?: string;
   onAction?: () => void;
   className?: string;
+  variant?: 'default' | 'compact';
 }
 
 const EmptyStateV2 = ({
@@ -20,19 +21,21 @@ const EmptyStateV2 = ({
   actionLabel,
   onAction,
   className,
+  variant = 'default',
 }: EmptyStateV2Props) => {
+  const isCompact = variant === 'compact';
   return (
     <GlassCard
       variant="subtle"
       padding="lg"
       className={cn("text-center", className)}
     >
-      <div className="flex flex-col items-center gap-4 py-8">
-        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
-          <Icon className="h-8 w-8 text-muted-foreground/60" />
+      <div className={cn("flex flex-col items-center gap-4", isCompact ? "py-4" : "py-8")}>
+        <div className={cn("rounded-2xl bg-muted flex items-center justify-center", isCompact ? "w-12 h-12" : "w-16 h-16")}>
+          <Icon className={cn("text-muted-foreground/60", isCompact ? "h-6 w-6" : "h-8 w-8")} />
         </div>
         <div className="max-w-xs">
-          <h3 className="text-lg font-semibold mb-1">{title}</h3>
+          <h3 className={cn("font-semibold mb-1", isCompact ? "text-base" : "text-lg")}>{title}</h3>
           {description && (
             <p className="text-sm text-muted-foreground leading-relaxed">
               {description}

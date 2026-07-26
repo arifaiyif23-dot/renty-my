@@ -217,7 +217,7 @@ export default function Earnings() {
     return (
       <>
         <Header />
-        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
+        <div className="container mx-auto px-4 py-8 pb-mobile-nav md:pb-8">
           <div className="flex items-center gap-3 mb-8">
             <SkeletonV2 variant="circular" className="h-10 w-10" />
             <div className="space-y-2">
@@ -237,7 +237,7 @@ export default function Earnings() {
   return (
     <>
       <Header />
-      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 py-8 pb-mobile-nav md:pb-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">

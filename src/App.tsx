@@ -5,7 +5,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "next-themes";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -132,18 +131,18 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
-      <ErrorBoundary>
-        <Sonner />
-        <BrowserRouter>
-          <TooltipProvider>
-            <AuthProvider>
-              <AppRoutes />
-            </AuthProvider>
-          </TooltipProvider>
-        </BrowserRouter>
-      </ErrorBoundary>
-    </ThemeProvider>
+    {/* Dark mode is intentionally disabled — no `.dark` token block exists, so a
+        theme toggle would produce broken contrast. The provider was removed. */}
+    <ErrorBoundary>
+      <Sonner />
+      <BrowserRouter>
+        <TooltipProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </TooltipProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
 

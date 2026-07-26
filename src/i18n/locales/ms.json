@@ -31,7 +31,8 @@
     "title": "Tajuk",
     "images": "Gambar",
     "per_day": "sehari",
-    "error": "Ralat berlaku"
+    "error": "Ralat berlaku",
+    "tryAgain": "Cuba Lagi"
   },
   "nav": {
     "home": "Utama",
@@ -47,7 +48,9 @@
     "signOutConfirmDesc": "Anda perlu log masuk semula untuk mengakses akaun anda.",
     "myRentals": "Sewaan Saya",
     "myEarnings": "Pendapatan Saya",
-    "saved": "Disimpan"
+    "saved": "Disimpan",
+    "menu": "Menu",
+    "verification": "Pengesahan"
   },
   "home": {
     "hero": {
@@ -247,10 +250,18 @@
     "required": "*"
   },
   "wishlist": {
-    "title": "Senarai Hajat Saya",
+    "title": "Kegemaran Saya",
     "noItems": "Tiada Item Disimpan",
-    "noItemsDesc": "Mula tambah item ke senarai hajat anda untuk melihatnya di sini",
-    "browseItems": "Layari Item"
+    "noItemsDesc": "Mula tambah item ke senarai kegemaran anda untuk melihatnya di sini",
+    "browseItems": "Semak Item",
+    "savedItems": "item disimpan",
+    "refreshed": "Senarai kegemaran disegarkan",
+    "removed": "Dibuang daripada kegemaran",
+    "undo": "Buat asal",
+    "removeFailed": "Gagal membuang item",
+    "failedToLoad": "Gagal memuatkan kegemaran",
+    "exploreCategories": "Terokai Kategori",
+    "seoDesc": "Lihat item dan kegemaran yang anda simpan"
   },
   "listings": {
     "myListings": "Penyenaraian Saya",
@@ -367,7 +378,19 @@
     "completeDescription": "Sahkan pelengkapan sewaan? Sewaan akan ditandakan sebagai lengkap.",
     "confirmCompletion": "Sahkan Pelengkapan",
     "markActive": "Tandakan Aktif",
-    "paymentFrozen": "Pembayaran dibekukan menunggu semakan admin"
+    "paymentFrozen": "Pembayaran dibekukan menunggu semakan admin",
+    "viewConditionReport": "Lihat Laporan Keadaan",
+    "rateExperience": "Nilai pengalaman anda",
+    "statusLabels": {
+      "pending_approval": "Menunggu Kelulusan",
+      "approved": "Diluluskan",
+      "paid": "Dibayar",
+      "active": "Aktif",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan",
+      "rejected": "Ditolak",
+      "disputed": "Pertikaian"
+    }
   },
   "dashboard": {
     "myRentals": "Sewaan Saya",
@@ -387,7 +410,13 @@
     "noActiveRentalsDesc": "Anda tiada sewaan aktif buat masa ini. Layari item untuk mencari sesuatu untuk disewa.",
     "noPendingRentalsDesc": "Tiada permintaan sewaan menunggu. Cari item yang anda suka dan hantar permintaan tempahan.",
     "noPastRentalsDesc": "Sewaan lepas anda akan muncul di sini setelah anda melengkapkan sewaan.",
-    "failedToLoadStats": "Gagal memuatkan statistik papan pemuka"
+    "failedToLoadStats": "Gagal memuatkan statistik papan pemuka",
+    "title": "Papan Pemuka",
+    "revenue": "Pendapatan",
+    "listings": "Senarai",
+    "incomingRequests": "Permintaan Masuk",
+    "select": "Pilih",
+    "done": "Selesai"
   },
   "profile": {
     "myProfile": "Profil Saya",

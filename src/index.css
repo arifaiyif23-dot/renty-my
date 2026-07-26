@@ -145,9 +145,11 @@
 
   .pb-mobile-nav { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
   .mb-mobile-nav { margin-bottom:  calc(4.5rem + env(safe-area-inset-bottom)); }
+  .bottom-mobile-nav { bottom: calc(4rem + env(safe-area-inset-bottom)); }
   @media (min-width: 768px) {
     .pb-mobile-nav { padding-bottom: 0; }
     .mb-mobile-nav { margin-bottom: 0; }
+    .bottom-mobile-nav { bottom: 0; }
   }
 
   .touch-target { min-height: 44px; min-width: 44px; }

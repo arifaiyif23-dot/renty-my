@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { LucideIcon, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 interface EnhancedEmptyStateProps {
@@ -27,6 +28,7 @@ export default function EnhancedEmptyState({
   onRetry,
   variant = "default",
 }: EnhancedEmptyStateProps) {
+  const { t } = useTranslation();
   const isCompact = variant === "compact";
   
   return (
@@ -98,7 +100,7 @@ export default function EnhancedEmptyState({
             className="w-full text-muted-foreground"
             size={isCompact ? "sm" : "default"}
           >
-            Try Again
+            {t('common.tryAgain')}
           </Button>
         )}
       </div>
