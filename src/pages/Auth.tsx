@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -40,8 +40,7 @@ const signUpSchema = z.object({
     .max(128, 'Password too long')
     .regex(/[A-Z]/, 'Must contain uppercase letter')
     .regex(/[a-z]/, 'Must contain lowercase letter')
-    .regex(/[0-9]/, 'Must contain a number')
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Must contain a special character'),
+    .regex(/[0-9]/, 'Must contain a number'),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -73,11 +72,11 @@ export default function Auth() {
 
   // Auto-redirect if already authenticated (handles OAuth callback landing)
   useEffect(() => {
-    if (user && !isRecovery) {
+    if (user && !isRecovery && !signedUpRef.current) {
       navigate(redirectTo || '/', { replace: true });
     }
   }, [user, navigate, redirectTo, isRecovery]);
-  const [loginMethod, setLoginMethod] = useState<'magic_link' | 'password'>('magic_link');
+  const [loginMethod, setLoginMethod] = useState<'magic_link' | 'password'>('password');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
@@ -87,6 +86,9 @@ export default function Auth() {
   const [signupData, setSignupData] = useState({ email: '', password: '', fullName: '', confirmPassword: '' });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [preferredRole, setPreferredRole] = useState<'renter' | 'vendor'>('renter');
+  const [showConfirmEmail, setShowConfirmEmail] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
+  const signedUpRef = useRef(false);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,10 +233,13 @@ export default function Auth() {
         toast.error('Too many signup attempts. Please try again later.');
         return;
       }
-      await signUp(result.data.email, result.data.password, result.data.fullName, preferredRole);
-      // Retry profile update a few times to handle trigger race condition
+      const signupEmailVal = result.data.email;
+      await signUp(signupEmailVal, result.data.password, result.data.fullName, preferredRole);
+
+      // Check if auto-logged in (email confirmation disabled) or needs confirmation
       const { data: { user: newUser } } = await supabase.auth.getUser();
       if (newUser) {
+        // Auto-logged in — retry profile update and navigate
         for (let attempt = 0; attempt < 5; attempt++) {
           const { error: updateError } = await supabase
             .from('profiles')
@@ -246,9 +251,14 @@ export default function Auth() {
           if (!updateError) break;
           if (attempt < 4) await new Promise(r => setTimeout(r, 600));
         }
+        signedUpRef.current = true;
+        toast.success("Account created! Welcome to Renty!");
+        navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : (redirectTo || "/"));
+      } else {
+        // Email confirmation required — show confirmation screen
+        setSignupEmail(signupEmailVal);
+        setShowConfirmEmail(true);
       }
-      toast.success("Account created! Welcome to Renty!");
-      navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : (redirectTo || "/"));
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
 
@@ -481,6 +491,32 @@ export default function Auth() {
                 </TabsContent>
 
                 <TabsContent value="signup">
+                  {showConfirmEmail ? (
+                    <div className="text-center py-8 space-y-4">
+                      <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                        <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Check your email</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          We sent a confirmation link to <strong>{signupEmail}</strong>
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Click the link in the email to confirm your account and sign in.
+                        </p>
+                      </div>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={() => setShowConfirmEmail(false)}
+                      >
+                        Back to sign up
+                      </Button>
+                    </div>
+                  ) : (
+                  <>
                   <Alert className="mb-4 border-primary bg-primary/5 rounded-xl">
                     <Gift className="h-4 w-4 text-primary" />
                     <AlertDescription className="text-sm">
@@ -623,6 +659,8 @@ export default function Auth() {
                       {isLoading ? 'Creating account...' : 'Create Account'}
                     </Button>
                   </form>
+                  </>
+                  )}
                 </TabsContent>
               </Tabs>
             </GlassCard>

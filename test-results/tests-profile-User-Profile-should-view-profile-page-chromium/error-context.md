@@ -1,0 +1,109 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - link "Skip to main content" [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - main [ref=e5]:
+      - generic [ref=e7]:
+        - generic [ref=e9]:
+          - link "Renty" [ref=e10] [cursor=pointer]:
+            - /url: /
+            - img "Renty" [ref=e11]
+          - link [ref=e12] [cursor=pointer]:
+            - /url: /
+            - button [ref=e13]:
+              - img
+        - generic [ref=e14]:
+          - generic [ref=e16]:
+            - generic [ref=e17]:
+              - generic [ref=e18]:
+                - heading "Welcome to RENTY" [level=1] [ref=e19]
+                - paragraph [ref=e20]: Sign in or create an account to continue
+              - generic [ref=e21]:
+                - tablist [ref=e22]:
+                  - tab "Login" [ref=e23] [cursor=pointer]
+                  - tab "Sign Up" [selected] [ref=e24] [cursor=pointer]
+                - tabpanel "Sign Up" [ref=e25]:
+                  - alert [ref=e26]:
+                    - img [ref=e27]
+                    - generic [ref=e31]:
+                      - strong [ref=e32]: Welcome Offer!
+                      - text: Use code WELCOME50 for 50% off your first rental!
+                  - generic [ref=e33]:
+                    - generic [ref=e34]:
+                      - text: Saya nak…
+                      - generic [ref=e35]:
+                        - button "Sewa barang Cari & tempah" [ref=e36] [cursor=pointer]:
+                          - generic [ref=e37]: Sewa barang
+                          - generic [ref=e38]: Cari & tempah
+                        - button "Sewakan barang Jadi vendor" [ref=e39] [cursor=pointer]:
+                          - generic [ref=e40]: Sewakan barang
+                          - generic [ref=e41]: Jadi vendor
+                    - generic [ref=e42]:
+                      - text: Full Name
+                      - textbox "Full Name" [ref=e43]:
+                        - /placeholder: John Doe
+                        - text: Test User
+                    - generic [ref=e44]:
+                      - text: Email
+                      - textbox "Email" [ref=e45]:
+                        - /placeholder: your@email.com
+                        - text: test-1785061537928@example.com
+                    - generic [ref=e46]:
+                      - text: Password
+                      - generic [ref=e47]:
+                        - textbox "Password" [ref=e48]: Test123!@#
+                        - button "Show password" [ref=e49] [cursor=pointer]:
+                          - img
+                    - generic [ref=e50]:
+                      - text: Confirm Password
+                      - generic [ref=e51]:
+                        - textbox "Confirm Password" [ref=e52]: Test123!@#
+                        - button "Show password" [ref=e53] [cursor=pointer]:
+                          - img
+                    - generic [ref=e54]:
+                      - checkbox "Saya bersetuju dengan Terma & Syarat dan Dasar Privasi Renty (termasuk pemprosesan data di bawah PDPA)." [checked] [ref=e55] [cursor=pointer]:
+                        - generic:
+                          - img
+                      - checkbox [checked]
+                      - generic [ref=e56] [cursor=pointer]:
+                        - text: Saya bersetuju dengan
+                        - link "Terma & Syarat" [ref=e57]:
+                          - /url: /terms
+                        - text: dan
+                        - link "Dasar Privasi" [ref=e58]:
+                          - /url: /privacy
+                        - text: Renty (termasuk pemprosesan data di bawah PDPA).
+                    - button "Create Account" [ref=e59] [cursor=pointer]
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - img [ref=e62]
+                - generic [ref=e64]: PDPA Compliant
+              - generic [ref=e65]:
+                - img [ref=e66]
+                - generic [ref=e69]: 256-bit Encryption
+              - generic [ref=e70]:
+                - img [ref=e71]
+                - generic [ref=e76]: 10,000+ Users
+              - generic [ref=e77]:
+                - img [ref=e78]
+                - generic [ref=e80]: FPX & DuitNow
+          - generic [ref=e82]:
+            - generic [ref=e83]: "★ #1 Platform Sewaan Malaysia"
+            - heading "Sewa Barang." [level=1] [ref=e84]
+            - heading "Jimat Duit." [level=1] [ref=e85]
+            - paragraph [ref=e86]: Platform sewaan No.1 Malaysia — ribuan barang untuk disewa, dari kamera hingga alat perkakas.
+            - generic [ref=e87]:
+              - generic [ref=e88]:
+                - generic [ref=e89]: 10K+
+                - generic [ref=e90]: Pengguna
+              - generic [ref=e91]:
+                - generic [ref=e92]: 5K+
+                - generic [ref=e93]: Barang
+              - generic [ref=e94]:
+                - generic [ref=e95]: 100%
+                - generic [ref=e96]: Selamat
+```

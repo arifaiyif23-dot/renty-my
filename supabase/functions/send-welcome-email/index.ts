@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://renty.my';
+const frontendUrl = FRONTEND_URL;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': FRONTEND_URL,
