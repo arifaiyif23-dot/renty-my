@@ -256,9 +256,18 @@ serve(async (req) => {
     
     const billAmount = String(Math.round(totalAmount * 100));
     
+    const isSandbox = Deno.env.get('TOYYIBPAY_SANDBOX') === 'true';
+    const toyyibPaySecretKey = isSandbox
+      ? Deno.env.get('TOYYIBPAY_SANDBOX_SECRET_KEY')!
+      : Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
+    const toyyibPayCategoryCode = isSandbox
+      ? Deno.env.get('TOYYIBPAY_SANDBOX_CATEGORY_CODE')!
+      : Deno.env.get('TOYYIBPAY_CATEGORY_CODE')!;
+    const toyyibPayBaseUrl = isSandbox ? 'https://dev.toyyibpay.com' : 'https://toyyibpay.com';
+
     const toyyibPayParams = new URLSearchParams({
-      userSecretKey: Deno.env.get('TOYYIBPAY_SECRET_KEY')!,
-      categoryCode: Deno.env.get('TOYYIBPAY_CATEGORY_CODE')!,
+      userSecretKey: toyyibPaySecretKey,
+      categoryCode: toyyibPayCategoryCode,
       billName: `Rental Payment`,
       billDescription: `Rental from ${rental.start_date} to ${rental.end_date}`,
       billPriceSetting: '1',
@@ -276,11 +285,11 @@ serve(async (req) => {
       billContentEmail: `Your rental payment of RM ${billAmount}`
     });
     
-    console.log('Creating ToyyibPay bill with amount:', billAmount);
+    console.log('Creating ToyyibPay bill with amount:', billAmount, isSandbox ? '(sandbox)' : '(production)');
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
-    const toyyibPayResponse = await fetch('https://toyyibpay.com/index.php/api/createBill', {
+    const toyyibPayResponse = await fetch(`${toyyibPayBaseUrl}/index.php/api/createBill`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: toyyibPayParams.toString(),
@@ -306,7 +315,7 @@ serve(async (req) => {
       throw new Error('Failed to create ToyyibPay bill');
     }
     
-    const billUrl = `https://toyyibpay.com/${billData[0].BillCode}`;
+    const billUrl = `${toyyibPayBaseUrl}/${billData[0].BillCode}`;
     
     await supabase
       .from('payments')
