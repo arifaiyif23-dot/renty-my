@@ -29,7 +29,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let lockAcquired = false;
+  let supabase;
   let rental: { id: string; total_price: number; start_date: string; end_date: string; promo_code_id?: string | null; discount_amount?: number | null; original_total_price?: number | null } | undefined;
+  let payment: { id: string } | undefined;
 
   try {
     const authHeader = req.headers.get('Authorization');
@@ -39,7 +42,7 @@ serve(async (req) => {
     
     const token = authHeader.replace('Bearer ', '');
     
-    const supabase = createClient(
+    supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
@@ -67,10 +70,6 @@ serve(async (req) => {
     }
     const { rentalId, promoCodeId, discountAmount, originalAmount, idempotencyKey } = validationResult.data;
     
-    // The legacy "create rental + payment in one call" flow trusted client-supplied
-    // totalPrice/renterId/ownerId without verification. It has been removed; the
-    // frontend always creates the rental via request-booking first, so a rentalId
-    // is mandatory here.
     if (!rentalId) {
       return new Response(
         JSON.stringify({ error: 'rentalId is required. Create a booking first.' }),
@@ -102,7 +101,6 @@ serve(async (req) => {
     
     console.log('Creating payment for rental:', rental.id);
 
-    // Server-side promo code re-validation
     if (promoCodeId) {
       const { data: promoCode, error: promoError } = await supabase
         .from('promo_codes')
@@ -138,17 +136,18 @@ serve(async (req) => {
       }
     }
 
-    // Acquire payment lock to prevent race conditions
+    // Acquire payment lock
     const { data: acquired } = await supabase.rpc('acquire_payment_lock', {
       p_rental_id: rental.id,
       p_user_id: user.id
     });
-    
+
     if (!acquired) {
       throw new Error('Payment is already being processed for this rental');
     }
+    lockAcquired = true;
 
-    // Idempotency check: if idempotencyKey provided, return existing payment data
+    // Idempotency check
     if (idempotencyKey) {
       const { data: existingByIdempotency } = await supabase
         .from('payments')
@@ -158,8 +157,6 @@ serve(async (req) => {
 
       if (existingByIdempotency) {
         if (existingByIdempotency.status === 'paid') {
-          // Already paid — release lock and return success
-          await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
           return new Response(
             JSON.stringify({
               success: true,
@@ -172,8 +169,6 @@ serve(async (req) => {
           );
         }
         if (existingByIdempotency.status === 'pending' && existingByIdempotency.toyyibpay_bill_url) {
-          // Still pending with a bill URL — redirect user back to existing bill
-          await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
           return new Response(
             JSON.stringify({
               success: true,
@@ -185,7 +180,6 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        // Expired or failed — continue to create new payment
       }
     }
 
@@ -196,14 +190,11 @@ serve(async (req) => {
       .single();
     
     const feePercentage = parseFloat(feeSetting?.value || '10');
-    // Round to cents so payout + fee always reconcile to the sen.
     const platformFee = Math.round(((rental.total_price * feePercentage) / 100) * 100) / 100;
-    const totalAmount = rental.total_price; // Renter pays rental amount only, platform fee deducted from owner's payout
+    const totalAmount = rental.total_price;
 
     console.log('Creating payment:', { totalPrice: rental.total_price, platformFee, totalAmount, feePercentage });
 
-    // Guard against an existing OPEN payment (pending/paid). The partial unique
-    // index (migration 20260726000005) also enforces this atomically.
     const { data: existingPayment } = await supabase
       .from('payments')
       .select('id, status')
@@ -221,9 +212,7 @@ serve(async (req) => {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
 
-    // Insert as 'draft' first so a crash between bill creation and the update
-    // can't leave an orphaned 'pending' payment blocking retries.
-    const { data: payment, error: paymentError } = await supabase
+    const { data: paymentData, error: paymentError } = await supabase
       .from('payments')
       .insert({
         rental_id: rental.id,
@@ -254,11 +243,11 @@ serve(async (req) => {
       throw paymentError;
     }
     
+    payment = paymentData;
     console.log('Payment created:', payment.id);
     
-    // Log payment creation
     await supabase.from('payment_flow_logs').insert({
-      payment_id: payment.id,
+      payment_id: paymentData.id,
       rental_id: rental.id,
       stage: 'payment_created',
       status: 'success',
@@ -285,12 +274,11 @@ serve(async (req) => {
       billSplitPaymentArgs: '',
       billPaymentChannel: '0',
       billContentEmail: `Your rental payment of RM ${billAmount}`,
-      billChargeToCustomer: '2' // Platform absorbs gateway fees - customer pays exact amount shown
+      billChargeToCustomer: '2'
     });
     
     console.log('Creating ToyyibPay bill with amount:', billAmount);
     
-    // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
     const toyyibPayResponse = await fetch('https://toyyibpay.com/index.php/api/createBill', {
@@ -319,10 +307,8 @@ serve(async (req) => {
       throw new Error('Failed to create ToyyibPay bill');
     }
     
-    // PRODUCTION: Use toyyibpay.com (not dev.toyyibpay.com)
     const billUrl = `https://toyyibpay.com/${billData[0].BillCode}`;
     
-    // Promote draft -> pending and attach the bill details atomically.
     await supabase
       .from('payments')
       .update({
@@ -335,7 +321,6 @@ serve(async (req) => {
     
     console.log('ToyyibPay bill created:', billData[0].BillCode);
     
-    // Log bill creation
     await supabase.from('payment_flow_logs').insert({
       payment_id: payment.id,
       rental_id: rental.id,
@@ -343,9 +328,6 @@ serve(async (req) => {
       status: 'success',
       details: { billCode: billData[0].BillCode, billUrl, amount: billAmount }
     });
-    
-    // Release payment lock on success
-    await supabase.rpc('release_payment_lock', { p_rental_id: rental.id });
     
     return new Response(
       JSON.stringify({
@@ -361,17 +343,30 @@ serve(async (req) => {
     
   } catch (error) {
     console.error('Payment creation error:', error);
-    try {
-      await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
-    } catch { /* ignore release errors */ }
     const message = error instanceof Error ? error.message : 'Payment processing failed';
-    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account');
+
+    try {
+      await supabase.from('payment_flow_logs').insert({
+        payment_id: payment?.id,
+        rental_id: rental?.id,
+        stage: 'catch_all',
+        status: 'error',
+        details: { error: message, name: error instanceof Error ? error.name : undefined }
+      });
+    } catch { /* ignore logging errors */ }
+
     return new Response(
-      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      JSON.stringify({ error: message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
+  } finally {
+    if (lockAcquired && supabase) {
+      try {
+        await supabase.rpc('release_payment_lock', { p_rental_id: rental?.id });
+      } catch { /* ignore release errors */ }
+    }
   }
 });
