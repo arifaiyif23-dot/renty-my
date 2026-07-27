@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
+import { useVerificationStatusQuery } from "@/hooks/use-profile-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Camera, Upload, CheckCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, FileText, User, IdCard } from "lucide-react";
+import { Camera, Upload, CheckCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, ShieldAlert, FileText, User, IdCard } from "lucide-react";
 import Header from "@/components/Header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { VideoLivenessCapture } from "@/components/VideoLivenessCapture";
@@ -24,6 +25,7 @@ export default function Verification() {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as { redirectTo?: string })?.redirectTo;
+  const { data: existingVerification, isLoading: checkLoading } = useVerificationStatusQuery(user?.id);
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [documentType, setDocumentType] = useState<DocumentType>("mykad");
   const [documentFront, setDocumentFront] = useState<File | null>(null);
@@ -280,6 +282,53 @@ export default function Verification() {
     }
   };
 
+  if (checkLoading) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (existingVerification?.status === 'approved') {
+    return <Navigate to="/profile" replace />;
+  }
+
+  if (existingVerification?.status === 'pending') {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+          <div className="mb-6">
+            <Button variant="ghost" onClick={() => navigate('/profile')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Profile
+            </Button>
+          </div>
+          <Card>
+            <CardContent className="space-y-6 text-center py-8">
+              <div className="h-16 w-16 mx-auto bg-warning/10 rounded-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-warning" />
+              </div>
+              <h3 className="text-lg font-semibold">Under Review</h3>
+              <p className="text-muted-foreground">
+                Your verification is being reviewed by our team. We'll notify you within 24-48 hours.
+              </p>
+              <Button onClick={() => navigate('/profile')} className="mt-4">
+                Return to Profile
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Header />
@@ -290,6 +339,22 @@ export default function Verification() {
             Back to Profile
           </Button>
         </div>
+
+        {existingVerification?.status === 'rejected' && (
+          <div className="mb-6 p-4 rounded-lg border border-destructive/30 bg-destructive/10">
+            <div className="flex items-start gap-3">
+              <ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-destructive mb-1">Verification Rejected</p>
+                <p className="text-destructive/80">
+                  {existingVerification.rejection_reason
+                    ? `Reason: ${existingVerification.rejection_reason}`
+                    : 'Your previous verification was rejected. Please review your documents and try again.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Card>
           <CardHeader>

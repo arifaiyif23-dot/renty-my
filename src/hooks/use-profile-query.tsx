@@ -39,7 +39,7 @@ export const useVerificationStatusQuery = (userId?: string) => {
 
       const { data, error } = await supabase
         .from('verification_requests')
-        .select('status, created_at, overall_confidence_score')
+        .select('status, created_at, overall_confidence_score, rejection_reason')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)

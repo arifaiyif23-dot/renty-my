@@ -3,12 +3,17 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types';
 
+export interface SignUpResult {
+  userId: string | undefined;
+  autoLoggedIn: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
   error: string | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<SignUpResult>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -131,7 +136,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, preferredRole?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, preferredRole?: string): Promise<SignUpResult> => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -162,6 +167,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Don't throw - user signup succeeded
       }
     }
+
+    return { userId: data?.user?.id, autoLoggedIn: !!data?.session };
   };
 
   const signIn = async (email: string, password: string) => {

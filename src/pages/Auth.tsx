@@ -234,12 +234,10 @@ export default function Auth() {
         return;
       }
       const signupEmailVal = result.data.email;
-      await signUp(signupEmailVal, result.data.password, result.data.fullName, preferredRole);
+      const { userId, autoLoggedIn } = await signUp(signupEmailVal, result.data.password, result.data.fullName, preferredRole);
 
-      // Check if auto-logged in (email confirmation disabled) or needs confirmation
-      const { data: { user: newUser } } = await supabase.auth.getUser();
-      if (newUser) {
-        // Auto-logged in — retry profile update and navigate
+      // Always write terms_accepted_at — runs for both auto-login and email-confirmation flows
+      if (userId) {
         for (let attempt = 0; attempt < 5; attempt++) {
           const { error: updateError } = await supabase
             .from('profiles')
@@ -247,10 +245,13 @@ export default function Auth() {
               terms_accepted_at: new Date().toISOString(),
               terms_version: TERMS_VERSION,
             })
-            .eq('id', newUser.id);
+            .eq('id', userId);
           if (!updateError) break;
           if (attempt < 4) await new Promise(r => setTimeout(r, 600));
         }
+      }
+
+      if (autoLoggedIn) {
         signedUpRef.current = true;
         toast.success("Account created! Welcome to Renty!");
         navigate(preferredRole === 'vendor' ? "/vendor-onboarding" : (redirectTo || "/"));

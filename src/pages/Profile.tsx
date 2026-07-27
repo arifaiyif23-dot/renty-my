@@ -146,7 +146,11 @@ export default function Profile() {
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Verification Rejected</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Your verification was rejected. Please review your documents and try again.
+                  Your verification was rejected.
+                  {verificationStatus.rejection_reason && (
+                    <> Reason: {verificationStatus.rejection_reason}</>
+                  )}
+                  {' '}Please review your documents and try again.
                 </p>
                 <Button size="sm" variant="destructive" onClick={() => navigate('/verification')}>
                   <ShieldCheck className="h-4 w-4 mr-2" />
