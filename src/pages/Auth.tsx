@@ -57,16 +57,20 @@ export default function Auth() {
   const redirectTo = locState?.redirectTo || (locState?.from ? locState.from.pathname + (locState.from.search || '') : undefined) || oauthRedirect || undefined;
   if (oauthRedirect) sessionStorage.removeItem('renty_oauth_redirect');
 
-  const [isRecovery, setIsRecovery] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(() => {
+    // Snapshot hash BEFORE the supabase-js SDK cleans it in getSession().
+    // Also check our own reset=true query param as a durable fallback.
+    const hash = window.location.hash;
+    const search = window.location.search;
+    return hash.includes('type=recovery') || search.includes('reset=true');
+  });
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  // Password recovery: the emailed link lands here with a recovery token. The
-  // AuthContext dispatches 'renty:password-recovery'; also detect the hash directly.
+  // Password recovery: also listen for cross-tab / late events.
   useEffect(() => {
     const onRecovery = () => setIsRecovery(true);
     window.addEventListener('renty:password-recovery', onRecovery);
-    if (window.location.hash.includes('type=recovery')) setIsRecovery(true);
     return () => window.removeEventListener('renty:password-recovery', onRecovery);
   }, []);
 
