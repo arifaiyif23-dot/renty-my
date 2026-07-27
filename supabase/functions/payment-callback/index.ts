@@ -13,12 +13,12 @@ interface ToyyibPayTransaction {
   billpaymentTransactionId?: string;
 }
 
-async function fetchBillStatus(billCode: string, secretKey: string): Promise<{ status: string | null; transactionId: string | null; raw: unknown }> {
+async function fetchBillStatus(billCode: string, secretKey: string, baseUrl: string): Promise<{ status: string | null; transactionId: string | null; raw: unknown }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
     const body = new URLSearchParams({ userSecretKey: secretKey, billCode });
-    const res = await fetch('https://toyyibpay.com/index.php/api/getBillTransactions', {
+    const res = await fetch(`${baseUrl}/index.php/api/getBillTransactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
@@ -52,7 +52,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
     
-    const secretKey = Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
+    const isSandbox = Deno.env.get('TOYYIBPAY_SANDBOX') === 'true';
+    const toyyibPaySecretKey = isSandbox
+      ? Deno.env.get('TOYYIBPAY_SANDBOX_SECRET_KEY')!
+      : Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
+    const toyyibPayBaseUrl = isSandbox ? 'https://dev.toyyibpay.com' : 'https://toyyibpay.com';
     const signature = url.searchParams.get('signature');
 
     const { data: payment } = await supabase
@@ -90,7 +94,7 @@ serve(async (req) => {
     let verifiedStatus: string | null = null;
     let verifiedTransactionId: string | null = transactionId;
     try {
-      const verified = await fetchBillStatus(billCodeToVerify, secretKey);
+      const verified = await fetchBillStatus(billCodeToVerify, toyyibPaySecretKey, toyyibPayBaseUrl);
       verifiedStatus = verified.status;
       verifiedTransactionId = verified.transactionId || transactionId;
       console.log('ToyyibPay verified status:', { billCode: billCodeToVerify, verifiedStatus, callbackStatus: status });
