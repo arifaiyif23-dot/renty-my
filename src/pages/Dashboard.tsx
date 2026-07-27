@@ -423,7 +423,7 @@ export default function Dashboard() {
             <TabsContent value="past" className="space-y-3 mt-4">
               {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
                 <EmptyStateV2
-                  icon={Calendar as React.ComponentType<{ className?: string }>}
+                  icon={CalendarIcon as React.ComponentType<{ className?: string }>}
                   title={t('dashboard.noPastRentals')}
                   description={t('dashboard.noPastRentalsDesc')}
                   variant="compact"
