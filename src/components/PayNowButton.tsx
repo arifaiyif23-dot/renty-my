@@ -74,7 +74,7 @@ export function PayNowButton({ rental }: PayNowButtonProps) {
 
       const idempotencyKey = crypto.randomUUID();
 
-      const { data, error } = await supabase.functions.invoke('create-payment', {
+      const { data, error, response: payResponse } = await supabase.functions.invoke('create-payment', {
         body: {
           rentalId: rental.id,
           itemId: rental.item_id,
@@ -90,7 +90,16 @@ export function PayNowButton({ rental }: PayNowButtonProps) {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        let msg = error.message;
+        if (payResponse) {
+          try {
+            const body = await payResponse.json();
+            if (body?.error) msg = body.error;
+          } catch {}
+        }
+        throw new Error(msg);
+      }
 
       haptics.success();
       toast.success('Redirecting to payment...');
