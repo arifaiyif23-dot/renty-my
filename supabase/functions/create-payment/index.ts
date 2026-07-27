@@ -254,7 +254,7 @@ serve(async (req) => {
       details: { totalAmount, platformFee, expiresAt: expiresAt.toISOString() }
     });
     
-    const billAmount = (Math.round(totalAmount * 100) / 100).toFixed(2);
+    const billAmount = String(Math.round(totalAmount * 100));
     
     const toyyibPayParams = new URLSearchParams({
       userSecretKey: Deno.env.get('TOYYIBPAY_SECRET_KEY')!,
