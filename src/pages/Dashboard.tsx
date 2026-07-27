@@ -55,14 +55,6 @@ export default function Dashboard() {
     initialTab: 'active',
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchRentals();
-      fetchStats();
-      fetchModifications();
-    }
-  }, [user, fetchRentals, fetchStats, fetchModifications]);
-
   const fetchStats = useCallback(async () => {
     if (!user) return;
     try {
@@ -143,6 +135,14 @@ export default function Dashboard() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRentals();
+      fetchStats();
+      fetchModifications();
+    }
+  }, [user, fetchRentals, fetchStats, fetchModifications]);
 
   const fetchRentalModifications = useCallback(async (rentalId: string) => {
     const { data } = await supabase
