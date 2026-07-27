@@ -282,7 +282,7 @@ serve(async (req) => {
       billSplitPayment: '0',
       billSplitPaymentArgs: '',
       billPaymentChannel: '0',
-      billContentEmail: `Your rental payment of RM ${billAmount}`
+      billContentEmail: `Your rental payment of RM ${totalAmount.toFixed(2)}`
     });
     
     console.log('Creating ToyyibPay bill with amount:', billAmount, isSandbox ? '(sandbox)' : '(production)');

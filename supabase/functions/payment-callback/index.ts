@@ -39,13 +39,34 @@ async function fetchBillStatus(billCode: string, secretKey: string, baseUrl: str
 
 serve(async (req) => {
   try {
-    const url = new URL(req.url);
-    const billCode = url.searchParams.get('billcode');
-    const status = url.searchParams.get('status_id');
-    const transactionId = url.searchParams.get('transaction_id');
-    const paymentId = url.searchParams.get('order_id');
+    // Read params from POST body (form-encoded) for server-to-server callback,
+    // fall back to URL query params (GET) for return URL redirects.
+    let billCode: string | null = null;
+    let status: string | null = null;
+    let transactionId: string | null = null;
+    let paymentId: string | null = null;
+
+    const contentType = req.headers.get('content-type') || '';
+    if (req.method === 'POST' && contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await req.formData();
+      billCode = formData.get('billcode') as string | null;
+      status = formData.get('status') as string | null;
+      transactionId = formData.get('refno') as string | null;
+      paymentId = formData.get('order_id') as string | null;
+    } else {
+      const url = new URL(req.url);
+      billCode = url.searchParams.get('billcode');
+      status = url.searchParams.get('status_id');
+      transactionId = url.searchParams.get('transaction_id') || url.searchParams.get('refno');
+      paymentId = url.searchParams.get('order_id');
+    }
     
     console.log('ToyyibPay callback:', { billCode, status, transactionId, paymentId });
+    
+    if (!paymentId) {
+      console.error('No order_id in callback');
+      return new Response('Missing order_id', { status: 400 });
+    }
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -57,7 +78,6 @@ serve(async (req) => {
       ? Deno.env.get('TOYYIBPAY_SANDBOX_SECRET_KEY')!
       : Deno.env.get('TOYYIBPAY_SECRET_KEY')!;
     const toyyibPayBaseUrl = isSandbox ? 'https://dev.toyyibpay.com' : 'https://toyyibpay.com';
-    const signature = url.searchParams.get('signature');
 
     const { data: payment } = await supabase
       .from('payments')
@@ -120,7 +140,6 @@ serve(async (req) => {
         .update({
           status: 'paid',
           toyyibpay_transaction_id: verifiedTransactionId,
-          toyyibpay_signature: signature,
           payment_verified_at: new Date().toISOString(),
           paid_at: new Date().toISOString()
         })
