@@ -167,31 +167,28 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    let userId: string | null = null;
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (!authError && user) {
+          userId = user.id;
 
-    const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
-      p_user_id: user.id
-    });
-    if (suspendError) {
-      return new Response(
-        JSON.stringify({ error: 'Your account has been suspended. Contact support for assistance.' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+          const { error: suspendError } = await supabase.rpc('check_user_not_suspended', {
+            p_user_id: userId
+          });
+          if (suspendError) {
+            return new Response(
+              JSON.stringify({ error: 'Your account has been suspended. Contact support for assistance.' }),
+              { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+      } catch {
+        // JWT verification failed — proceed without user context
+      }
     }
 
     const { title, description } = await req.json();
@@ -203,13 +200,15 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Validating content for user ${user.id}`);
+    if (userId) {
+      console.log(`Validating content for user ${userId}`);
+    }
     
     const result = validateContent(title, description);
     
     // Log blocked attempts
-    if (!result.isValid) {
-      console.log(`Content blocked for user ${user.id}:`, {
+    if (!result.isValid && userId) {
+      console.log(`Content blocked for user ${userId}:`, {
         detectedKeywords: result.detectedKeywords,
         detectedPatterns: result.detectedPatterns,
         severity: result.severity
@@ -220,7 +219,7 @@ serve(async (req) => {
       const sanitizedTitle = redact(title.replace(/\+?6?01[\d\s-]{6,}/g, '[PHONE]'), 100);
       const sanitizedDesc = redact(description.replace(/\+?6?01[\d\s-]{6,}/g, '[PHONE]'), 200);
       await supabase.from('content_moderation_log').insert({
-        user_id: user.id,
+        user_id: userId,
         content_type: 'listing',
         blocked_content: `Title: ${sanitizedTitle} Description: ${sanitizedDesc}`,
         detected_keywords: [...result.detectedKeywords, ...result.detectedPatterns],

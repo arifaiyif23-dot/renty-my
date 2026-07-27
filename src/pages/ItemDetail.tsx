@@ -330,7 +330,7 @@ export default function ItemDetail() {
           : ((originalTotal || 0) * ((appliedPromo.discountAmount || 0) / 100)))
         : 0;
 
-      const { error } = await supabase.functions.invoke('request-booking', {
+      const bookingResult = await supabase.functions.invoke('request-booking', {
         body: {
           itemId: item.id, startDate: dateRange.from.toISOString().split('T')[0],
           endDate: dateRange.to.toISOString().split('T')[0], renterId: user.id,
@@ -338,7 +338,16 @@ export default function ItemDetail() {
           discountAmount: promoDiscount, promoCodeId: appliedPromo?.id || null, instantBook,
         }
       });
-      if (error) throw error;
+      if (bookingResult.error) {
+        let msg = bookingResult.error.message;
+        if (bookingResult.response) {
+          try {
+            const body = await bookingResult.response.json();
+            if (body?.error) msg = body.error;
+          } catch {}
+        }
+        throw new Error(msg);
+      }
       toast.success(instantBook ? t('itemDetail.bookingConfirmed') : t('itemDetail.requestSent'));
       navigate('/dashboard');
     } catch (error: unknown) {

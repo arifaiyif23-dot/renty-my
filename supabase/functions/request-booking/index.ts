@@ -291,11 +291,18 @@ serve(async (req) => {
   } catch (error) {
     console.error('Booking request error:', error);
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-    const isExpected = message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must') || message.startsWith('Item is not') || message.startsWith('Failed to check') || message.startsWith('Price mismatch') || message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Owner mismatch') || message.startsWith('Item not found') || message.startsWith('Instant booking') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already');
+    
+    let status = 500;
+    if (message.startsWith('Unauthorized')) status = 401;
+    else if (message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must')) status = 403;
+    else if (message.startsWith('Item is not') || message.startsWith('Failed to check') || message.startsWith('Price mismatch')) status = 409;
+    else if (message.startsWith('Owner mismatch') || message.startsWith('Item not found')) status = 404;
+    else if (message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Instant booking') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already')) status = 400;
+
     return new Response(
-      JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
+      JSON.stringify({ error: status === 500 ? 'An unexpected error occurred. Please try again.' : message }),
       { 
-        status: 500, 
+        status, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
