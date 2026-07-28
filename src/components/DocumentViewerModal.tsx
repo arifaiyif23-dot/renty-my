@@ -299,7 +299,7 @@ export function DocumentViewerModal({
                 </Button>
               )}
               {onApprove && (
-                <Button onClick={onApprove} className="min-w-32 bg-success hover:bg-success/90">
+                <Button variant="success" onClick={onApprove} className="min-w-32">
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Approve
                 </Button>

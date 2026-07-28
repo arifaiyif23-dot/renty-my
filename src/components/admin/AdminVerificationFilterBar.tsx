@@ -91,9 +91,9 @@ export function AdminVerificationFilterBar({
               <Badge className="rounded-full" variant="secondary">{selectedCount} selected</Badge>
               <Button
                 size="sm"
+                variant="success"
                 onClick={onBatchApprove}
                 disabled={processing}
-                className="bg-success hover:bg-success/90 rounded-xl"
               >
                 {processing ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

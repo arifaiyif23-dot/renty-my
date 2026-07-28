@@ -129,7 +129,7 @@ export default function AdminDisputes() {
 
   return (
     <AdminLayout>
-      <main className="px-4 py-6 max-w-6xl">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -234,7 +234,7 @@ export default function AdminDisputes() {
             ))}
           </div>
         )}
-      </main>
+      </div>
     </AdminLayout>
   );
 }

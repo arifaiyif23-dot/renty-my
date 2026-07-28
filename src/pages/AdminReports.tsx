@@ -233,11 +233,10 @@ export default function AdminReports() {
                     Investigate
                   </Button>
                   <Button
-                    variant="default"
+                    variant="success"
                     size="sm"
                     onClick={() => handleAction(selectedReport.id, 'resolved')}
                     disabled={processing === selectedReport.id}
-                    className="rounded-xl bg-success hover:bg-success/90"
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Resolve

@@ -199,7 +199,7 @@ export default function AdminUserDetail() {
               {!profile.is_verified && (
                 <Button
                   size="sm"
-                  className="bg-success hover:bg-success/90 rounded-xl"
+                  variant="success"
                   onClick={handleVerify}
                   disabled={processing === "verify"}
                 >

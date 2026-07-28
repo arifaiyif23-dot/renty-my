@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Loader2, TrendingUp, AlertTriangle, Shield, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -62,11 +63,11 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Manage verifications, fraud alerts, and platform security</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <a href="/admin/health" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">System Health</a>
-            <a href="/admin/disputes" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Disputes</a>
-            <a href="/admin/payouts" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Payouts</a>
-            <a href="/admin/automation" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Automation</a>
-            <a href="/admin/settings" className="text-sm px-3 py-1.5 rounded-md border bg-card hover:bg-accent">Settings</a>
+            <Button variant="outline" size="sm" asChild><Link to="/admin/health">System Health</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link to="/admin/disputes">Disputes</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link to="/admin/payouts">Payouts</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link to="/admin/automation">Automation</Link></Button>
+            <Button variant="outline" size="sm" asChild><Link to="/admin/settings">Settings</Link></Button>
           </div>
         </div>
 

@@ -119,7 +119,7 @@ export function AdminVerificationsPanel({
               <span className="text-sm font-medium">
                 {selectedVerifications.size} selected
               </span>
-              <Button size="sm" onClick={onBulkApprove} className="rounded-xl bg-success hover:bg-success/90">
+              <Button size="sm" variant="success" onClick={onBulkApprove}>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Bulk Approve
               </Button>

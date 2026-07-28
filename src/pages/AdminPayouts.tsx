@@ -167,7 +167,7 @@ export default function AdminPayouts() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <DollarSign className="h-8 w-8" />

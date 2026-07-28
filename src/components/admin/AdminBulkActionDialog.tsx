@@ -64,8 +64,7 @@ export function AdminBulkActionDialog({
           <Button
             onClick={onConfirm}
             disabled={processing || (action === 'reject' && !rejectionReason)}
-            className={action === 'approve' ? 'bg-success hover:bg-success/90' : ''}
-            variant={action === 'reject' ? 'destructive' : 'default'}
+            variant={action === 'approve' ? 'success' : action === 'reject' ? 'destructive' : 'default'}
           >
             {processing ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />

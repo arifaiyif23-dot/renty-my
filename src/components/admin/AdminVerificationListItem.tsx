@@ -156,8 +156,8 @@ export function AdminVerificationListItem({
           <>
             <Button
               size="sm"
+              variant="success"
               onClick={() => onApprove(verification)}
-              className="rounded-xl bg-success hover:bg-success/90"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Approve

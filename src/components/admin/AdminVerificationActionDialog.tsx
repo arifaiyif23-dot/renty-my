@@ -73,8 +73,7 @@ export function AdminVerificationActionDialog({
           <Button
             onClick={onConfirm}
             disabled={processing || (actionType === 'reject' && !rejectionReason)}
-            className={actionType === 'approve' ? 'bg-success hover:bg-success/90' : ''}
-            variant={actionType === 'reject' ? 'destructive' : 'default'}
+            variant={actionType === 'approve' ? 'success' : actionType === 'reject' ? 'destructive' : 'default'}
           >
             {processing ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />

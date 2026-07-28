@@ -116,7 +116,7 @@ export default function AdminAutomation() {
   if (anyError) {
     return (
       <AdminLayout>
-        <div className="px-4 py-8">
+      <div className="max-w-7xl mx-auto">
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Failed to load monitoring data</AlertTitle>
@@ -124,7 +124,7 @@ export default function AdminAutomation() {
               Some data could not be loaded. Try refreshing.
             </AlertDescription>
           </Alert>
-          <Button className="mt-4 rounded-xl" onClick={() => { refetchCronLogs(); refetchPaymentLogs(); }}>
+          <Button className="mt-4 rounded-xl" onClick={() => { refetchCronLogs(); refetchPaymentLogs(); }} disabled={refreshing}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
           </Button>
