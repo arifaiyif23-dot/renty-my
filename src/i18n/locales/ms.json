@@ -54,49 +54,15 @@
   },
   "home": {
     "hero": {
-      "tagline": "Pasaran Sewaan Paling Dipercayai di Malaysia",
-      "heading1": "Sewakan apa sahaja yang anda perlukan,",
-      "heading2": "dari orang berdekatan.",
-      "description": "Cari kamera, alat, kenderaan dan banyak lagi — daripada pemilik yang disahkan berhampiran anda.",
-      "itemsAvailable": "{{count}}+ item tersedia di seluruh Malaysia.",
-      "browseButton": "Layari item",
-      "listButton": "Senaraikan item anda",
-      "joinButton": "Sertai secara percuma",
-      "verifiedOwners": "Pemilik disahkan",
-      "securePayments": "Pembayaran selamat",
-      "localPickup": "Ambilan tempatan",
-      "dijaminTrust": "Dijamin trust"
+      "tagline": "Platform Sewaan No.1 Malaysia",
+      "heading1": "Sewa Barang.",
+      "heading2": "Jimat Duit.",
+      "description": "Ribuan barang untuk disewa. Dari kamera ke kereta.",
+      "itemsAvailable": "{{count}}+ barang tersedia."
     },
     "categories": {
       "title": "Layari kategori",
       "viewAll": "Lihat semua"
-    },
-    "howItWorks": {
-      "title": "Cara ia berfungsi",
-      "subtitle": "Menyewa daripada jiran tidak pernah semudah ini",
-      "step1": {
-        "title": "Cari apa yang anda perlukan",
-        "description": "Layari ribuan item dari kamera hingga alat. Tapis mengikut lokasi, kategori dan harga."
-      },
-      "step2": {
-        "title": "Tempah & bayar dengan selamat",
-        "description": "Hantar permintaan, setujui tarikh, dan bayar dengan selamat dalam aplikasi. Pembayaran anda dilindungi."
-      },
-      "step3": {
-        "title": "Ambil & nikmati",
-        "description": "Temui pemilik, periksa item, dan mula menggunakannya. Pulangkan bila selesai."
-      }
-    },
-    "ownerCta": {
-      "title": "Jana wang dengan menyewakan barang anda",
-      "description": "Tukar barang terbiar anda kepada pendapatan. Senaraikan secara percuma, tetapkan harga, dan mula menjana wang.",
-      "button": "Mula menjana wang"
-    },
-    "stats": {
-      "itemsAvailable": "Item Tersedia",
-      "verifiedMembers": "Ahli Disahkan",
-      "successfulRentals": "Sewaan Berjaya",
-      "avgRating": "Purata Penilaian"
     },
     "newestListings": {
       "title": "Penyenaraian Terbaharu",
@@ -104,60 +70,6 @@
       "noListings": "Tiada penyenaraian lagi",
       "noListingsDesc": "Jadilah yang pertama menyenaraikan sesuatu untuk disewa.",
       "listItem": "Senaraikan item"
-    },
-    "recentlyViewed": {
-      "title": "Teruskan melayari",
-      "viewAll": "Lihat semua"
-    },
-    "whyRenty": {
-      "title": "Mengapa pilih Renty?",
-      "subtitle": "Kami menjadikan penyewaan rakan-ke-rakan selamat, mudah dan bermanfaat",
-      "verifiedIdentity": {
-        "title": "Identiti Disahkan",
-        "desc": "Setiap pemilik disahkan melalui pemeriksaan identiti kami, supaya anda tahu dari siapa anda menyewa."
-      },
-      "securePayment": {
-        "title": "Pembayaran Selamat",
-        "desc": "Bayar dalam aplikasi dengan sistem pembayaran selamat kami. Dana disimpan dengan selamat sehingga sewaan selesai."
-      },
-      "disputeProtection": {
-        "title": "Perlindungan Pertikaian",
-        "desc": "Proses penyelesaian yang adil untuk kedua-dua pemilik dan penyewa. Kami sedia membantu jika berlaku sebarang masalah."
-      },
-      "localPickup": {
-        "title": "Ambilan Tempatan",
-        "desc": "Temui pemilik berdekatan, periksa item secara bersemuka, dan elakkan caj penghantaran. Sewa tempatan, jimat lebih."
-      },
-      "flexibleDuration": {
-        "title": "Tempoh Fleksibel",
-        "desc": "Sewa mengikut hari, hujung minggu, atau minggu. Hanya bayar untuk masa yang anda perlukan."
-      },
-      "communityDriven": {
-        "title": "Didorong Komuniti",
-        "desc": "Sertai komuniti penyewaan Malaysia yang semakin berkembang. Kongsi, jimat wang, dan kurangkan sisa bersama."
-      }
-    },
-    "testimonials": {
-      "title": "Apa kata pengguna kami",
-      "subtitle": "Cerita sebenar daripada komuniti Renty di Malaysia"
-    },
-    "appDownload": {
-      "badge": "PWA Sedia",
-      "title": "Bawa Renty bersama anda",
-      "description": "Pasang Renty pada peranti anda untuk pengalaman yang lebih pantas seperti aplikasi. Berfungsi di luar talian juga.",
-      "feature1": "Pasang pada mana-mana peranti — telefon, tablet atau desktop",
-      "feature2": "Pengalaman aplikasi skrin penuh dengan ikon skrin utama",
-      "feature3": "Pemberitahuan tolak untuk mesej dan kemas kini sewaan",
-      "installButton": "Pasang aplikasi",
-      "installSuccess": "Renty berjaya dipasang!"
-    },
-    "welcome": {
-      "welcomeBack": "Selamat kembali",
-      "active": "Aktif",
-      "pending": "Menunggu",
-      "messages": "Mesej",
-      "listings": "Penyenaraian",
-      "dashboard": "Papan Pemuka"
     }
   },
   "search": {

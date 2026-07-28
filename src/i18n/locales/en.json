@@ -55,48 +55,14 @@
   "home": {
     "hero": {
       "tagline": "Malaysia's Trusted Rental Marketplace",
-      "heading1": "Rent anything you need,",
-      "heading2": "from people nearby.",
-      "description": "Find cameras, tools, vehicles, and more — from verified owners near you.",
-      "itemsAvailable": "{{count}}+ items available across Malaysia.",
-      "browseButton": "Browse items",
-      "listButton": "List your items",
-      "joinButton": "Join for free",
-      "verifiedOwners": "Verified owners",
-      "securePayments": "Secure payments",
-      "localPickup": "Local pickup",
-      "dijaminTrust": "Dijamin trust"
+      "heading1": "Sewa Barang.",
+      "heading2": "Jimat Duit.",
+      "description": "Ribuan barang untuk disewa. Dari kamera ke kereta.",
+      "itemsAvailable": "{{count}}+ barang tersedia."
     },
     "categories": {
       "title": "Browse categories",
       "viewAll": "View all"
-    },
-    "howItWorks": {
-      "title": "How it works",
-      "subtitle": "Renting from your neighbors has never been easier",
-      "step1": {
-        "title": "Find what you need",
-        "description": "Browse thousands of items from cameras to tools. Filter by location, category, and price."
-      },
-      "step2": {
-        "title": "Book & pay securely",
-        "description": "Send a request, agree on dates, and pay securely in-app. Your payment is protected."
-      },
-      "step3": {
-        "title": "Pick up & enjoy",
-        "description": "Meet the owner, inspect the item, and start using it. Return it when you're done."
-      }
-    },
-    "ownerCta": {
-      "title": "Earn money renting out your stuff",
-      "description": "Turn your idle items into income. List for free, set your price, and start earning.",
-      "button": "Start earning"
-    },
-    "stats": {
-      "itemsAvailable": "Items Available",
-      "verifiedMembers": "Verified Members",
-      "successfulRentals": "Successful Rentals",
-      "avgRating": "Avg Rating"
     },
     "newestListings": {
       "title": "Newest listings",
@@ -104,60 +70,6 @@
       "noListings": "No listings yet",
       "noListingsDesc": "Be the first to list something for rent.",
       "listItem": "List an item"
-    },
-    "recentlyViewed": {
-      "title": "Continue browsing",
-      "viewAll": "View all"
-    },
-    "whyRenty": {
-      "title": "Why choose Renty?",
-      "subtitle": "We make peer-to-peer renting safe, simple, and rewarding",
-      "verifiedIdentity": {
-        "title": "Verified Identity",
-        "desc": "Every owner is verified through our identity checks, so you know who you're renting from."
-      },
-      "securePayment": {
-        "title": "Secure Payment",
-        "desc": "Pay in-app with our secure payment system. Funds are held safely until the rental is complete."
-      },
-      "disputeProtection": {
-        "title": "Dispute Protection",
-        "desc": "Fair resolution process for both owners and renters. We're here to help if anything goes wrong."
-      },
-      "localPickup": {
-        "title": "Local Pickup",
-        "desc": "Meet nearby owners, inspect items in person, and avoid shipping fees. Rent local, save more."
-      },
-      "flexibleDuration": {
-        "title": "Flexible Duration",
-        "desc": "Rent by the day, weekend, or week. Only pay for the time you actually need."
-      },
-      "communityDriven": {
-        "title": "Community Driven",
-        "desc": "Join Malaysia's growing rental community. Share, save money, and reduce waste together."
-      }
-    },
-    "testimonials": {
-      "title": "What our users say",
-      "subtitle": "Real stories from the Renty community in Malaysia"
-    },
-    "appDownload": {
-      "badge": "PWA Ready",
-      "title": "Take Renty with you",
-      "description": "Install Renty on your device for a faster, app-like experience. Works offline too.",
-      "feature1": "Install on any device — phone, tablet, or desktop",
-      "feature2": "Full-screen app experience with home screen icon",
-      "feature3": "Push notifications for messages and rental updates",
-      "installButton": "Install the app",
-      "installSuccess": "Renty installed!"
-    },
-    "welcome": {
-      "welcomeBack": "Welcome back",
-      "active": "Active",
-      "pending": "Pending",
-      "messages": "Messages",
-      "listings": "Listings",
-      "dashboard": "Dashboard"
     }
   },
   "search": {

@@ -51,7 +51,7 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
         ) : isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 md:grid-cols-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="surface-default p-4 text-center">
+              <div key={i} className="card-base p-4 text-center">
                 <SkeletonV2 variant="circular" className="w-10 h-10 mx-auto mb-2" />
                 <SkeletonV2 variant="text" className="h-3 w-2/3 mx-auto" />
               </div>

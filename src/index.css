@@ -3,93 +3,58 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Chunk';
-  src: url('/fonts/Chunk.otf') format('opentype'),
-       url('/fonts/Chunk.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ============================================================
-   Renty — Design System v6 | Navy + Blue + Sky Premium
+   Renty — Design System v7 | Clean + Premium + Minimal
    ============================================================ */
 
 @layer base {
   :root {
-    /* Background — white-slate (clean, premium) */
-    --background: 210 40% 98%;         /* #F8FAFC */
-    --foreground: 222 47% 11%;         /* #0F172A */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
-    --card: 0 0% 100%;                 /* white */
+    --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary — deep navy blue (trust, premium) */
-    --primary: 224 71% 22%;            /* #0F2A5F */
+    --primary: 224 71% 22%;
     --primary-foreground: 0 0% 100%;
 
-    /* Brand Blue — action, CTAs */
-    --brand-blue: 217 91% 60%;         /* #2563EB */
+    --brand-blue: 217 91% 60%;
     --brand-blue-foreground: 0 0% 100%;
 
-    /* Sky Accent — highlights, secondary */
-    --sky: 199 89% 56%;                /* #38BDF8 */
-    --sky-foreground: 0 0% 100%;
-
-    /* Secondary — maps to brand-blue */
     --secondary: 217 91% 60%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;              /* #F1F5F9 */
-    --muted-foreground: 218 15% 50%;   /* #475569 — WCAG AA 6.5:1 on muted */
+    --muted: 210 40% 96%;
+    --muted-foreground: 218 15% 50%;
 
     --accent: 210 40% 96%;
     --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 74% 42%;          /* #B91C1C — WCAG AAA 9.5:1 on background */
+    --destructive: 0 74% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 30%;            /* #059669 — WCAG AA 4.8:1 on background */
+    --success: 160 84% 30%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 42%;             /* #D97706 — WCAG AA 5.1:1 on background */
+    --warning: 38 92% 42%;
     --warning-foreground: 0 0% 100%;
 
-    /* Malaysia Jalur Gemilang accent colors */
-    --malaysia-blue: 242 80% 20%;
-    --malaysia-red: 360 100% 40%;
-    --malaysia-yellow: 48 100% 50%;
-
-    --border: 220 13% 91%;             /* #E2E8F0 */
+    --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 224 71% 22%;               /* primary */
+    --ring: 224 71% 22%;
 
-    --radius: 1.25rem;                 /* 20px */
+    --radius: 1rem;
 
-    --sidebar-background: 224 71% 22%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 71% 35%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 224 71% 30%;
-    --sidebar-ring: 217 91% 60%;
-
-    /* Premium shadow system */
-    --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02);
-    --shadow-2: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-    --shadow-3: 0 10px 20px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
-    --shadow-4: 0 20px 30px -10px rgba(15, 23, 42, 0.10), 0 8px 12px -6px rgba(15, 23, 42, 0.06);
+    --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-2: 0 4px 12px rgba(15, 23, 42, 0.06);
+    --shadow-3: 0 12px 24px rgba(15, 23, 42, 0.08);
+    --shadow-4: 0 20px 32px rgba(15, 23, 42, 0.10);
   }
 }
 
-/* ============================================================
-   Base
-   ============================================================ */
 @layer base {
   * { @apply border-border; }
 
@@ -102,31 +67,28 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 16px;
-    line-height: 1.55;
+    line-height: 1.5;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1, h2, h3, h4 {
     @apply font-semibold text-foreground;
     letter-spacing: -0.025em;
     line-height: 1.15;
   }
 
-  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
-  h2 { font-size: 26px; font-weight: 600; }
-  h3 { font-size: 20px; font-weight: 600; }
-  h4 { font-size: 18px; font-weight: 600; }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+  h2 { font-size: 22px; font-weight: 600; }
+  h3 { font-size: 18px; font-weight: 600; }
+  h4 { font-size: 16px; font-weight: 600; }
 
-  small, .text-small { font-size: 14px; }
+  small { font-size: 13px; }
   .text-caption { font-size: 12px; line-height: 1.4; }
 
-  .tabular, .mono-stamp {
+  .tabular {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
   }
 
   * { -webkit-tap-highlight-color: transparent; }
@@ -136,16 +98,14 @@
   }
 }
 
-/* ============================================================
-   Utilities
-   ============================================================ */
 @layer utilities {
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .safe-area-top    { padding-top:    env(safe-area-inset-top); }
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
 
   .pb-mobile-nav { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
-  .mb-mobile-nav { margin-bottom:  calc(4.5rem + env(safe-area-inset-bottom)); }
+  .mb-mobile-nav { margin-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
   .bottom-mobile-nav { bottom: calc(4rem + env(safe-area-inset-bottom)); }
+
   @media (min-width: 768px) {
     .pb-mobile-nav { padding-bottom: 0; }
     .mb-mobile-nav { margin-bottom: 0; }
@@ -154,113 +114,56 @@
 
   .touch-target { min-height: 44px; min-width: 44px; }
 
-  /* Premium shadow classes (backward-compatible names) */
   .shadow-1 { box-shadow: var(--shadow-1); }
   .shadow-2 { box-shadow: var(--shadow-2); }
   .shadow-3 { box-shadow: var(--shadow-3); }
   .shadow-4 { box-shadow: var(--shadow-4); }
 
-  /* Surface classes */
-  .surface-default {
+  .card-base {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  .surface-default:hover {
-    border-color: hsl(var(--border) / 0.7);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-1);
   }
 
-  .surface-elevated {
-    background: hsl(var(--popover));
-    border: 1px solid hsl(var(--border) / 0.6);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
+  .press {
+    @apply transition-transform duration-150 active:scale-[0.98];
   }
 
-  /* Controlled glassmorphism */
-  .glass-1 {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-  .glass-2 {
-    background: rgba(255, 255, 255, 0.48);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  /* Interactive */
   .hover-lift {
     @apply transition-all duration-200;
   }
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-3);
   }
-  .hover-lift:active {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .press {
-    @apply transition-transform duration-150 active:scale-[0.97];
-  }
-
-  /* Gradient text utility */
-  .text-gradient-blue {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-blue)) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Content spacing */
-  .content-spacing > * + * { margin-top: 1.5rem; }
 }
 
-/* ============================================================
-   Animations
-   ============================================================ */
 @layer utilities {
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fade-out {
-    from { opacity: 1; }
-    to   { opacity: 0; }
+    to { opacity: 1; transform: translateY(0); }
   }
   @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.96); }
-    to   { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
   }
   @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
   }
   @keyframes slide-up {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes slide-down {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  .animate-fade-in  { animation: fade-in 0.2s ease-out both; }
-  .animate-fade-out { animation: fade-out 0.14s ease-out both; }
-  .animate-scale-in { animation: scale-in 0.2s ease-out both; }
-  .animate-shimmer  { animation: shimmer 1.5s ease-in-out infinite; background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.4) 50%, hsl(var(--muted)) 75%); background-size: 200% 100%; }
+  .animate-fade-in { animation: fade-in 0.2s ease-out both; }
+  .animate-scale-in { animation: scale-in 0.18s ease-out both; }
+  .animate-shimmer { animation: shimmer 1.5s ease-in-out infinite; background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.4) 50%, hsl(var(--muted)) 75%); background-size: 200% 100%; }
   .animate-slide-up { animation: slide-up 0.3s ease-out both; }
-  .animate-slide-down { animation: slide-down 0.2s ease-out both; }
-  .animate-enter    { animation: fade-in 0.2s ease-out, scale-in 0.2s ease-out; }
+  .animate-enter { animation: fade-in 0.2s ease-out, scale-in 0.18s ease-out; }
 }
 
-/* Skip-to-main (a11y) */
 .skip-to-main {
   position: absolute;
   left: -9999px;

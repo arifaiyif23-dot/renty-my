@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { PrefetchLink } from "@/components/PrefetchLink";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, Shield, DollarSign, LogOut } from "lucide-react";
+import { User, Menu, LogOut, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,7 +28,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { haptics } from "@/utils/haptics";
-import { useAdminCheck } from "@/hooks/use-admin-check";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,6 +35,7 @@ const Header = () => {
   const { t } = useTranslation();
   const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -58,9 +57,6 @@ const Header = () => {
     .join("")
     .toUpperCase() || "U";
 
-  const { data: isAdminUser } = useAdminCheck(user?.id);
-
-  // Fetch unread message count
   useEffect(() => {
     if (!user) return;
 
@@ -71,7 +67,6 @@ const Header = () => {
           .select('*', { count: 'exact', head: true })
           .eq('recipient_id', user.id)
           .eq('is_read', false);
-        
         if (error) throw error;
         setUnreadCount(count || 0);
       } catch (err) {
@@ -81,7 +76,6 @@ const Header = () => {
 
     fetchUnreadCount();
 
-    // Subscribe to realtime changes
     const channel = supabase
       .channel(`unread-messages-${user.id}`)
       .on(
@@ -109,127 +103,79 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-14 md:h-16 items-center justify-between gap-2">
-            {/* Mobile Menu Button + Logo */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto px-4 max-w-5xl">
+          <div className="flex h-14 items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {isMobile && user && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden min-h-[44px] min-w-[44px]"
+                  className="md:hidden"
                   onClick={() => setMobileNavOpen(true)}
                   aria-label="Open navigation menu"
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
               )}
-              <Link to="/" className="flex items-center" aria-label="Go to RENTY homepage">
-                <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" loading="lazy" />
+              <Link to="/" className="flex items-center" aria-label="Renty homepage">
+                <img src="/logo.png" alt="Renty" className="h-7 w-auto" />
               </Link>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link to="/search" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                {t('nav.browse')}
-              </Link>
-              {user && (
-                <>
-                  <Link to="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                    {t('nav.myRentals')}
-                  </Link>
-                  <Link to="/messages" className="text-sm font-medium text-foreground hover:text-primary transition-colors relative">
-                    {t('nav.messages')}
-                    {unreadCount > 0 && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                      >
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </Badge>
-                    )}
-                  </Link>
-                  <Link to="/wishlist" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-                    {t('nav.wishlist')}
-                  </Link>
-                </>
-              )}
-            </nav>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1">
               <LanguageSwitcher />
               {user ? (
                 <>
                   <NotificationBell />
-
-                  {/* Mobile search is covered by the bottom-nav "Browse" tab, so the
-                      header search icon is intentionally not rendered on mobile. */}
-
-                  {/* Desktop List Item Button */}
-                  <Link to="/list-item" className="hidden md:inline-flex">
-                    <Button size="sm">
+                  <Link to="/list-item" className="hidden md:inline-flex mr-1">
+                    <Button size="sm" className="gap-1.5">
+                      <Plus className="h-4 w-4" />
                       {t('listItem.title')}
                     </Button>
                   </Link>
-
-                  {/* Desktop User Menu */}
-                  {!isMobile && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="rounded-full min-h-[44px] min-w-[44px]"
-                          aria-label="Open user menu"
-                        >
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || 'User avatar'} />
-                            <AvatarFallback>{userInitials}</AvatarFallback>
-                          </Avatar>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem asChild>
-                          <Link to="/profile" className="flex items-center cursor-pointer">
-                            <User className="h-4 w-4 mr-2" />
-                            {t('nav.profile')}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/earnings" className="flex items-center cursor-pointer">
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            {t('nav.myEarnings')}
-                          </Link>
-                        </DropdownMenuItem>
-                        {isAdminUser?.isAdmin && (
-                          <>
-                            <DropdownMenuSeparator />
-                            {/* Admin links live in the AdminSidebar; keep just the entry point here */}
-                            <DropdownMenuItem asChild>
-                              <PrefetchLink to="/admin" className="flex items-center cursor-pointer">
-                                <Shield className="h-4 w-4 mr-2" />
-                                Admin Panel
-                              </PrefetchLink>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                          <LogOut className="h-4 w-4 mr-2" />
-                          {t('nav.signOut')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || 'User'} />
+                          <AvatarFallback>{userInitials}</AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard" className="cursor-pointer">My Rentals</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/messages" className="cursor-pointer">
+                          Messages
+                          {unreadCount > 0 && (
+                            <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-[10px]">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </Badge>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/wishlist" className="cursor-pointer">Saved</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile" className="cursor-pointer">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        {t('nav.signOut')}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
-                    <User className="h-4 w-4 mr-0 sm:mr-2" />
-                    <span className="hidden sm:inline">{t('nav.signIn')}</span>
+                    <User className="h-4 w-4 mr-1.5" />
+                    Sign in
                   </Button>
                 </Link>
               )}
@@ -238,10 +184,8 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Mobile Navigation Drawer */}
       <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
 
-      {/* Sign Out Confirmation Dialog */}
       <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

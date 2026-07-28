@@ -9,20 +9,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-1 hover:bg-primary/90 hover:shadow-2",
-        destructive: "bg-destructive text-destructive-foreground shadow-1 hover:bg-destructive/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-1 hover:bg-secondary/90",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        brand: "bg-brand-blue text-brand-blue-foreground shadow-1 hover:bg-brand-blue/90 hover:shadow-2",
-        sky: "bg-sky text-sky-foreground shadow-1 hover:bg-sky/90 hover:shadow-2",
-        glass: "glass-1 text-foreground hover:bg-white/80 shadow-1 hover:shadow-2",
+        brand: "bg-brand-blue text-brand-blue-foreground hover:bg-brand-blue/90",
       },
       size: {
         default: "h-10 min-h-[44px] px-4 py-2",
-        sm: "h-9 rounded-lg px-3",
-        lg: "h-12 rounded-xl px-8 text-base",
+        sm: "h-9 rounded-lg px-3 text-xs",
+        lg: "h-12 rounded-xl px-6 text-base",
         icon: "h-10 w-10 min-h-[44px] min-w-[44px]",
       },
     },
@@ -47,5 +45,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants };

@@ -6,12 +6,6 @@ interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: "sm" | "md" | "lg" | "none";
 }
 
-const variantStyles: Record<string, string> = {
-  subtle: "glass-1",
-  elevated: "glass-2 shadow-3",
-  interactive: "glass-1 shadow-1 hover:shadow-3 hover-lift cursor-pointer active:scale-[0.98]",
-};
-
 const paddingStyles: Record<string, string> = {
   sm: "p-4",
   md: "p-5",
@@ -20,13 +14,12 @@ const paddingStyles: Record<string, string> = {
 };
 
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ className, variant = "subtle", padding = "md", children, ...props }, ref) => {
+  ({ className, padding = "md", children, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          "rounded-xl transition-all duration-200",
-          variantStyles[variant],
+          "card-base transition-shadow duration-200 hover:shadow-2",
           paddingStyles[padding],
           className
         )}

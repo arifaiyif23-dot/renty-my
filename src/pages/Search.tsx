@@ -7,75 +7,51 @@ import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
 import { SearchBarV2 } from '@/components/SearchBarV2';
 import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import { SkeletonV2 } from '@/components/SkeletonV2';
-import { GlassCard } from '@/components/ui/GlassCard';
 import SEO from '@/components/SEO';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { X, ArrowUpDown, SlidersHorizontal, RefreshCw, SearchSlash, BookmarkPlus, MapPin } from 'lucide-react';
+import { X, ArrowUpDown, SlidersHorizontal, SearchSlash, MapPin, BookmarkPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import Header from '@/components/Header';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
-import { useVoiceSearch } from '@/hooks/use-voice-search';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { getVerifiedUserIds } from '@/utils/verifiedFilter';
 import { toast } from 'sonner';
 import { MALAYSIA_STATES } from '@/components/SearchBarV2';
 
-const FILTERS_STORAGE_KEY = 'renty:searchFilters:v1';
-
-type PersistedFilters = {
-  category?: string;
-  minPrice?: string;
-  maxPrice?: string;
-  userLocation?: string;
-  sortBy?: 'newest' | 'price_low' | 'price_high';
-  verifiedOnly?: boolean;
-  instantBookOnly?: boolean;
-  itemCondition?: string;
-  maxDistance?: number;
-};
-
-function loadFilters(): PersistedFilters {
-  try {
-    const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
+const CATEGORY_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'electronics', label: 'Electronics' },
+  { value: 'vehicles', label: 'Vehicles' },
+  { value: 'tools', label: 'Tools' },
+  { value: 'sports', label: 'Sports' },
+  { value: 'party', label: 'Party' },
+  { value: 'fashion', label: 'Fashion' },
+  { value: 'other', label: 'Other' },
+];
 
 export default function Search() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const persisted = (typeof window !== 'undefined') ? loadFilters() : {};
-  const [category, setCategory] = useState<ItemCategory | 'all'>((persisted.category as ItemCategory | 'all') || 'all');
-  const [minPrice, setMinPrice] = useState(persisted.minPrice || '');
-  const [maxPrice, setMaxPrice] = useState(persisted.maxPrice || '');
+  const [category, setCategory] = useState<ItemCategory | 'all'>('all');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [userLocation, setUserLocation] = useState<string>(persisted.userLocation || '');
-  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>((persisted.sortBy as 'newest' | 'price_low' | 'price_high') || 'newest');
-  const [verifiedOnly, setVerifiedOnly] = useState(!!persisted.verifiedOnly);
-  const [instantBookOnly, setInstantBookOnly] = useState(!!persisted.instantBookOnly);
-  const [itemCondition, setItemCondition] = useState<string>(persisted.itemCondition || 'all');
-  const [maxDistance, setMaxDistance] = useState(persisted.maxDistance ?? 50);
+  const [userLocation, setUserLocation] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'price_low' | 'price_high'>('newest');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [instantBookOnly, setInstantBookOnly] = useState(false);
+  const [itemCondition, setItemCondition] = useState('all');
+  const [maxDistance, setMaxDistance] = useState(50);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const { isListening, transcript } = useVoiceSearch();
-
-  useEffect(() => {
-    const payload: PersistedFilters = {
-      category, minPrice, maxPrice, userLocation, sortBy,
-      verifiedOnly, instantBookOnly, itemCondition, maxDistance,
-    };
-    try { localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload)); } catch { /* skip */ }
-  }, [category, minPrice, maxPrice, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, maxDistance]);
 
   useEffect(() => {
     try {
@@ -85,21 +61,6 @@ export default function Search() {
       localStorage.removeItem('recentSearches');
     }
   }, []);
-
-  useEffect(() => {
-    if (transcript && !isListening) {
-      setSearchQuery(transcript);
-      saveSearch(transcript);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transcript, isListening]);
-
-  const saveSearch = (query: string) => {
-    if (!query.trim()) return;
-    const updated = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
-    setRecentSearches(updated);
-    localStorage.setItem('recentSearches', JSON.stringify(updated));
-  };
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -136,7 +97,6 @@ export default function Search() {
       if (category !== 'all') q = q.eq('category', category);
       if (minPrice) q = q.gte('price_per_day', parseFloat(minPrice));
       if (maxPrice) q = q.lte('price_per_day', parseFloat(maxPrice));
-      // 'all' is the "All Malaysia" sentinel — never send it to the DB.
       if (userLocation && userLocation !== 'all') q = q.ilike('location', `%${userLocation}%`);
 
       const applyCommonFilters = (query: typeof q) => {
@@ -233,8 +193,6 @@ export default function Search() {
     setInitialLoading(true);
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
-  // Clear the initial-loading flag once the first fetch settles — whether it
-  // returned items OR came back empty — so the empty state (not skeletons) shows.
   useEffect(() => {
     if (!loading && initialLoading) {
       setInitialLoading(false);
@@ -242,71 +200,53 @@ export default function Search() {
   }, [loading, initialLoading]);
 
   useEffect(() => {
+    const q = searchParams.get('q');
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
     const location = searchParams.get('location');
     const categoryParam = searchParams.get('category');
 
-    if (startDate && endDate) {
-      setDateRange({ from: new Date(startDate), to: new Date(endDate) });
-    }
-    if (location) {
-      setUserLocation(location);
-    }
-    if (categoryParam) {
-      setCategory(categoryParam as ItemCategory | 'all');
-    }
+    if (q) setSearchQuery(q);
+    if (startDate && endDate) setDateRange({ from: new Date(startDate), to: new Date(endDate) });
+    if (location) setUserLocation(location);
+    if (categoryParam) setCategory(categoryParam as ItemCategory | 'all');
   }, [searchParams]);
 
   useEffect(() => {
     setInitialLoading(false);
   }, []);
 
+  const saveSearch = (query: string) => {
+    if (!query.trim()) return;
+    const updated = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
+
   const activeFiltersCount = [
     searchQuery, category !== 'all', minPrice, maxPrice, dateRange?.from, (userLocation && userLocation !== 'all') ? userLocation : '',
   ].filter(Boolean).length;
 
-  const CATEGORY_OPTIONS = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'vehicles', label: 'Vehicles' },
-    { value: 'tools', label: 'Tools' },
-    { value: 'sports', label: 'Sports' },
-    { value: 'party', label: 'Party' },
-    { value: 'fashion', label: 'Fashion' },
-    { value: 'other', label: 'Other' },
-  ];
-
   return (
     <>
       <SEO
-        title="Search Items — RENTY"
-        description="Browse thousands of items available for rent across Malaysia. Find vehicles, gadgets, tools, and more."
+        title="Search — RENTY"
+        description="Browse thousands of items available for rent across Malaysia."
       />
       <Header />
 
-      <div className="container mx-auto px-4 py-6 pb-mobile-nav">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Search</h1>
-          <span className="text-sm text-muted-foreground">
-            {loading ? 'Searching...' : `${items.length} items`}
-          </span>
-        </div>
-
-        {/* Search Bar */}
+      <div className="mx-auto px-4 py-6 max-w-5xl pb-mobile-nav">
         <div className="mb-5">
           <SearchBarV2 variant="inline" onSearch={(q) => saveSearch(q)} />
         </div>
 
-        {/* Recent Searches */}
         {recentSearches.length > 0 && !loading && (
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium">Recent:</span>
+          <div className="mb-4 flex flex-wrap items-center gap-1.5">
             {recentSearches.map((search) => (
               <button
                 key={search}
                 onClick={() => { setSearchQuery(search); saveSearch(search); }}
-                className="px-3 py-1.5 min-h-[36px] text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors font-medium"
+                className="px-2.5 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors"
               >
                 {search}
               </button>
@@ -314,11 +254,9 @@ export default function Search() {
           </div>
         )}
 
-        {/* Filters Row — selects share one row evenly on mobile */}
-        <div className="flex flex-wrap items-center gap-2 mb-5">
-          {/* Category Select */}
+        <div className="flex items-center gap-2 mb-4">
           <Select value={category} onValueChange={(v) => setCategory(v as ItemCategory | 'all')}>
-            <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-auto h-10 sm:min-w-[130px] rounded-xl bg-white border border-border shadow-1">
+            <SelectTrigger className="h-9 text-xs min-w-[100px] rounded-lg">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -328,10 +266,9 @@ export default function Search() {
             </SelectContent>
           </Select>
 
-          {/* Location Select */}
           <Select value={userLocation} onValueChange={setUserLocation}>
-            <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-auto h-10 sm:min-w-[130px] rounded-xl bg-white border border-border shadow-1">
-              <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0 text-muted-foreground" />
+            <SelectTrigger className="h-9 text-xs min-w-[100px] rounded-lg">
+              <MapPin className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
@@ -342,33 +279,30 @@ export default function Search() {
             </SelectContent>
           </Select>
 
-          {/* Sort */}
           <Select value={sortBy} onValueChange={(v: 'newest' | 'price_low' | 'price_high') => setSortBy(v)}>
-            <SelectTrigger className="flex-1 min-w-0 sm:flex-none sm:w-auto h-10 sm:min-w-[130px] rounded-xl bg-white border border-border shadow-1">
-              <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 shrink-0 text-muted-foreground" />
-              <SelectValue placeholder="Sort by" />
+            <SelectTrigger className="h-9 text-xs min-w-[90px] rounded-lg">
+              <ArrowUpDown className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
+              <SelectValue placeholder="Sort" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="price_low">Price: Low to High</SelectItem>
-              <SelectItem value="price_high">Price: High to Low</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="price_low">Low Price</SelectItem>
+              <SelectItem value="price_high">High Price</SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Advanced Filters */}
           <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 rounded-xl border border-border shadow-1">
-                <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
-                Filters
+              <Button variant="outline" size="sm" className="h-9 rounded-lg relative">
+                <SlidersHorizontal className="h-3.5 w-3.5" />
                 {activeFiltersCount > 0 && (
-                  <span className="ml-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  <span className="ml-1.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
                     {activeFiltersCount}
                   </span>
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80" align="start">
+            <PopoverContent className="w-72" align="start">
               <AdvancedSearchFilters
                 verifiedOnly={verifiedOnly}
                 setVerifiedOnly={setVerifiedOnly}
@@ -383,12 +317,11 @@ export default function Search() {
             </PopoverContent>
           </Popover>
 
-          {/* Save Search */}
           {user && (searchQuery || category !== 'all' || userLocation) && (
             <Button
               variant="ghost"
-              size="sm"
-              className="h-10"
+              size="icon"
+              className="h-9 w-9 rounded-lg"
               onClick={async () => {
                 try {
                   const { error } = await supabase.from('saved_searches').insert({
@@ -409,99 +342,90 @@ export default function Search() {
                 }
               }}
             >
-              <BookmarkPlus className="h-4 w-4 mr-1" />
-              Save
+              <BookmarkPlus className="h-4 w-4" />
             </Button>
           )}
         </div>
 
-        {/* Active Filter Chips */}
         {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (
-          <div className="flex flex-wrap gap-2 mb-5">
+          <div className="flex flex-wrap gap-1.5 mb-4">
             {searchQuery && (
-              <Badge variant="secondary" className="gap-1 rounded-full">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {searchQuery}
-                <button type="button" aria-label="Clear search" onClick={() => setSearchQuery('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
-                  <X className="h-3 w-3" />
+                <button type="button" onClick={() => setSearchQuery('')} className="-m-1 p-1">
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
             )}
             {category !== 'all' && (
-              <Badge variant="secondary" className="gap-1 rounded-full">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {category}
-                <button type="button" aria-label="Clear category" onClick={() => setCategory('all')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
-                  <X className="h-3 w-3" />
+                <button type="button" onClick={() => setCategory('all')} className="-m-1 p-1">
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
             )}
             {minPrice && (
-              <Badge variant="secondary" className="gap-1 rounded-full">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 Min RM{minPrice}
-                <button type="button" aria-label="Clear minimum price" onClick={() => setMinPrice('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
-                  <X className="h-3 w-3" />
+                <button type="button" onClick={() => setMinPrice('')} className="-m-1 p-1">
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
             )}
             {maxPrice && (
-              <Badge variant="secondary" className="gap-1 rounded-full">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 Max RM{maxPrice}
-                <button type="button" aria-label="Clear maximum price" onClick={() => setMaxPrice('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
-                  <X className="h-3 w-3" />
+                <button type="button" onClick={() => setMaxPrice('')} className="-m-1 p-1">
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
             )}
             {userLocation && userLocation !== 'all' && (
-              <Badge variant="secondary" className="gap-1 rounded-full">
-                <MapPin className="h-3 w-3" />
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {userLocation}
-                <button type="button" aria-label="Clear location" onClick={() => setUserLocation('')} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
-                  <X className="h-3 w-3" />
+                <button type="button" onClick={() => setUserLocation('')} className="-m-1 p-1">
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
             )}
             {dateRange?.from && dateRange?.to && (
-              <Badge variant="secondary" className="gap-1 rounded-full">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
-                <button type="button" aria-label="Clear date range" onClick={() => setDateRange(undefined)} className="-m-1 p-1.5 rounded-full hover:bg-muted/60 transition-colors">
-                  <X className="h-3 w-3" />
+                <button type="button" onClick={() => setDateRange(undefined)} className="-m-1 p-1">
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
             )}
             <button
               onClick={() => {
-                setSearchQuery('');
-                setCategory('all');
-                setMinPrice('');
-                setMaxPrice('');
-                setUserLocation('');
-                setDateRange(undefined);
+                setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice('');
+                setUserLocation(''); setDateRange(undefined);
               }}
-              className="text-xs text-muted-foreground hover:text-foreground font-medium px-2 transition-colors"
+              className="text-[11px] text-muted-foreground hover:text-foreground px-1.5"
             >
-              Clear all
+              Clear
             </button>
           </div>
         )}
 
-        {/* Results */}
         {error ? (
-          <GlassCard variant="subtle" padding="lg" className="text-center py-12">
-            <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-              <SearchSlash className="h-7 w-7 text-destructive" />
+          <div className="card-base p-8 text-center">
+            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+              <SearchSlash className="h-6 w-6 text-destructive" />
             </div>
-            <h3 className="text-lg font-semibold mb-1">Something went wrong</h3>
-            <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <Button variant="outline" onClick={reset} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
+            <h3 className="font-semibold mb-1">Something went wrong</h3>
+            <p className="text-sm text-muted-foreground mb-3">{error}</p>
+            <Button variant="outline" size="sm" onClick={reset}>
               Try Again
             </Button>
-          </GlassCard>
+          </div>
         ) : initialLoading ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 md:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-border">
                 <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
-                <div className="p-4 space-y-3">
+                <div className="p-3 space-y-2">
                   <SkeletonV2 variant="text" className="h-4 w-3/4" />
                   <SkeletonV2 variant="text" className="h-3 w-1/2" />
                 </div>
@@ -512,35 +436,14 @@ export default function Search() {
           <div className="text-center">
             <EmptyStateV2
               icon={SearchSlash}
-              title="No Items Found"
-              description="Try adjusting your filters or search terms to find what you're looking for."
+              title="No items found"
+              description="Try adjusting your filters or search terms."
               actionLabel="Clear Filters"
-              onAction={() => {
-                setSearchQuery('');
-                setCategory('all');
-                setMinPrice('');
-                setMaxPrice('');
-                setUserLocation('');
-                setDateRange(undefined);
-              }}
+              onAction={() => { setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice(''); setUserLocation(''); setDateRange(undefined); }}
             />
-            <div className="mt-4">
-              <p className="text-xs text-muted-foreground mb-2">Browse categories:</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {['electronics', 'vehicles', 'tools', 'sports', 'party', 'fashion'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setCategory(cat as ItemCategory)}
-                    className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors capitalize"
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 md:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((item) => (
               <ListingCardV2
                 key={item.id}
@@ -556,11 +459,11 @@ export default function Search() {
           </div>
         )}
 
-        <div ref={setSentinelRef} className="h-10 w-full" />
+        <div ref={setSentinelRef} className="h-8 w-full" />
 
         {loading && hasMore && (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+          <div className="flex justify-center py-6">
+            <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
           </div>
         )}
       </div>
