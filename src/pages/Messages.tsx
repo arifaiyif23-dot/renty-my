@@ -628,6 +628,7 @@ export default function Messages() {
                                       src={msg.attachment_url} 
                                       alt="Attachment" 
                                       className="rounded-lg max-w-full h-auto"
+                                      loading="lazy"
                                     />
                                   ) : (
                                     <a 
