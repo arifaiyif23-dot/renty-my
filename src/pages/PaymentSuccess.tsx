@@ -49,43 +49,49 @@ export default function PaymentSuccess() {
   }, [loading, confirmed, navigate]);
 
   const verifyPayment = async () => {
-    try {
-      if (!orderId) {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+
+    // 1) Call verify-payment edge function for authoritative check via ToyyibPay API
+    if (billCode) {
+      const { data: verifyData } = await supabase.functions.invoke('verify-payment', {
+        body: { billCode, paymentId: orderId }
+      });
+      if (verifyData?.verified) {
+        setConfirmed(true);
         setLoading(false);
         return;
       }
+    }
 
-      const { data, error } = await supabase
+    // 2) Poll DB for up to 25 seconds waiting for callback
+    let attempts = 0;
+    const poll = setInterval(async () => {
+      attempts++;
+      const { data: pollData } = await supabase
         .from('payments')
         .select('status, total_amount, rental:rentals!rental_id!inner(item:items(title))')
         .eq('id', orderId)
         .maybeSingle();
 
-      if (error) throw error;
-
-      if (!data) {
-        toast.error(t('paymentSuccess.notFound'));
+      if (pollData?.status === 'paid') {
+        clearInterval(poll);
+        setConfirmed(true);
+        setPaymentInfo({
+          amount: Number(pollData.total_amount),
+          itemTitle: ((pollData.rental as { item: { title: string } })?.item?.title) || 'your rental',
+        });
         setLoading(false);
         return;
       }
-
-      if (data.status !== 'paid') {
+      if (attempts >= 10) {
+        clearInterval(poll);
         toast.error(t('paymentSuccess.notVerified'));
         setLoading(false);
-        return;
       }
-
-      setConfirmed(true);
-      setPaymentInfo({
-        amount: Number(data.total_amount),
-        itemTitle: ((data.rental as { item: { title: string } })?.item?.title) || 'your rental',
-      });
-    } catch (e) {
-      console.error('Payment success fetch error:', e);
-      toast.error(t('paymentSuccess.failedToLoad'));
-    } finally {
-      setLoading(false);
-    }
+    }, 2500);
   };
 
   // Require BOTH URL param success AND DB confirmation before showing success UI
