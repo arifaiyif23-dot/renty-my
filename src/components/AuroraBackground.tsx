@@ -34,9 +34,9 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
       ctx.clearRect(0, 0, w, h);
 
       const blobs = [
-        { x: 0.2, y: 0.3, r: 0.4, color: "hsla(224, 65%, 18%, 0.06)" },
-        { x: 0.8, y: 0.5, r: 0.35, color: "hsla(217, 80%, 54%, 0.05)" },
-        { x: 0.5, y: 0.7, r: 0.3, color: "hsla(224, 65%, 18%, 0.04)" },
+        { x: 0.2, y: 0.3, r: 0.4, color: "hsla(224, 65%, 18%, 0.20)" },
+        { x: 0.8, y: 0.5, r: 0.35, color: "hsla(217, 80%, 54%, 0.18)" },
+        { x: 0.5, y: 0.7, r: 0.3, color: "hsla(224, 65%, 18%, 0.15)" },
       ];
 
       blobs.forEach((blob, i) => {
