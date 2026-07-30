@@ -14,6 +14,7 @@ import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import PageTransition from "@/components/PageTransition";
+import { isNative } from "@/lib/platform";
 
 // Eager load critical pages (landing + auth)
 import Index from "./pages/Index";

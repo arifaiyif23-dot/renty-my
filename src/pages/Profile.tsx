@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, RefreshCw, Bell, Search, HelpCircle, Loader2, MessageCircle, Trash2 } from "lucide-react";
+import { MapPin, Calendar, Edit, ShieldCheck, ShieldAlert, Bell, Search, HelpCircle, Loader2, MessageCircle, Trash2 } from "lucide-react";
 import { UserTrustBadge, TrustScoreRing } from "@/components/trust/UserTrustBadge";
 import { format } from "date-fns";
 import { PageLayout } from "@/components/PageLayout";

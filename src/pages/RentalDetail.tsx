@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { RentalTimeline } from "@/components/RentalTimeline";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
-import { Loader2, ArrowLeft, Calendar, DollarSign, User, Package, Camera, CheckCircle, AlertTriangle } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, DollarSign, User, Camera, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export default function RentalDetail() {
@@ -18,13 +18,13 @@ export default function RentalDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [rental, setRental] = useState<Rental | null>(null);
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<{ id: string; old_status: string; new_status: string; created_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [returnOpen, setReturnOpen] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError(false);
@@ -39,9 +39,9 @@ export default function RentalDetail() {
     const { data: ev } = await supabase.from("booking_events").select("*").eq("rental_id", id).order("created_at", { ascending: true });
     setEvents(ev || []);
     setLoading(false);
-  };
+  }, [id]);
 
-  useEffect(() => { fetchData(); }, [id]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Rental not found</p></div>;

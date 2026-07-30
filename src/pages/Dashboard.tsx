@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Rental } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PageLayout } from "@/components/PageLayout";
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -15,8 +14,6 @@ import { SkeletonV2 } from '@/components/SkeletonV2';
 import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import { PackageSearch, DollarSign, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const DASHBOARD_TABS = ['active', 'pending', 'past'] as const;
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -38,7 +35,7 @@ export default function Dashboard() {
       const totalRevenue = (rentalsData.data || []).filter(r => r.status === 'completed' && r.owner_id === user.id).reduce((sum, r) => sum + Number(r.total_price || 0), 0);
       setStats({ totalRevenue, activeRentals, pendingRequests });
     } catch { /* silent */ }
-  }, [user?.id]);
+  }, [user]);
 
   const fetchRentals = useCallback(async () => {
     try {

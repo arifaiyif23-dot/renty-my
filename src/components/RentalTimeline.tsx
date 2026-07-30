@@ -1,4 +1,4 @@
-import { CheckCircle, Circle, Clock, Package, Truck, XCircle, AlertTriangle, CalendarPlus, CalendarX } from 'lucide-react';
+import { Circle, Clock, Package, Truck, XCircle, AlertTriangle, CreditCard, CheckCircle, Ban, CalendarPlus, CalendarX } from 'lucide-react';
 import { Rental } from '@/types';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -19,49 +19,108 @@ interface RentalTimelineProps {
   modifications?: TimelineModification[];
 }
 
-const TERMINAL_FAILED = ['rejected', 'cancelled'];
-const TERMINAL_DISPUTED = ['disputed'];
+const SOP_SEQUENCE = ['requested', 'payment_pending', 'reserved', 'confirmed', 'active', 'completed'] as const;
+
+type StepStatus = 'completed' | 'failed' | 'pending' | 'warning';
+
+interface TimelineStep {
+  label: string;
+  date: string | null;
+  status: StepStatus;
+  icon: typeof Package;
+  detail?: string;
+}
+
+function stepFor(rental: Rental, status: typeof SOP_SEQUENCE[number], idx: number, currentIdx: number): TimelineStep {
+  const isOverdue = rental.status === 'overdue' && status === 'active';
+  const isDisputed = rental.status === 'disputed' && status === 'active';
+  const dates: Record<string, string | null> = {
+    requested: rental.created_at,
+    payment_pending: null,
+    reserved: null,
+    confirmed: null,
+    active: rental.actual_start_at || null,
+    completed: rental.status === 'completed' || rental.status === 'disputed' ? rental.end_date : null,
+  };
+
+  let stepStatus: StepStatus;
+  if (idx < currentIdx || (idx === currentIdx && rental.status === status)) {
+    stepStatus = isOverdue ? 'warning' : 'completed';
+  } else if (idx === currentIdx) {
+    stepStatus = 'pending';
+  } else {
+    stepStatus = 'pending';
+  }
+
+  const labels: Record<string, string> = {
+    requested: 'Booking Requested',
+    payment_pending: 'Payment Initiated',
+    reserved: 'Payment Confirmed',
+    confirmed: 'Booking Confirmed',
+    active: isOverdue ? 'Overdue' : isDisputed ? 'Return Disputed' : 'Rental Started',
+    completed: rental.status === 'disputed' ? 'Under Review' : 'Rental Completed',
+  };
+
+  const icons: Record<string, typeof Package> = {
+    requested: Package,
+    payment_pending: CreditCard,
+    reserved: CheckCircle,
+    confirmed: CheckCircle,
+    active: isOverdue ? AlertTriangle : isDisputed ? AlertTriangle : Truck,
+    completed: rental.status === 'disputed' ? AlertTriangle : Clock,
+  };
+
+  return {
+    label: labels[status],
+    date: dates[status],
+    status: stepStatus,
+    icon: icons[status],
+  };
+}
 
 export function RentalTimeline({ rental, modifications = [] }: RentalTimelineProps) {
-  const isFailed = TERMINAL_FAILED.includes(rental.status);
-  const isDisputed = TERMINAL_DISPUTED.includes(rental.status);
-  const isTerminal = isFailed || isDisputed;
+  const currentIdx = SOP_SEQUENCE.indexOf(rental.status as typeof SOP_SEQUENCE[number]);
+  const isTerminal = ['rejected', 'cancelled'].includes(rental.status);
+  const isOverdue = rental.status === 'overdue';
+  const isDisputed = rental.status === 'disputed';
 
-  const baseSteps = [
-    {
-      label: 'Booking Created',
-      date: rental.created_at,
-      status: 'completed' as const,
-      icon: Package,
-    },
-    {
-      label: isFailed ? 'Request Declined' : isDisputed ? 'Disputed' : 'Approved',
-      date: isTerminal ? null : rental.created_at,
-      status: isFailed || isDisputed ? 'failed' as const : 'completed' as const,
-      icon: isFailed ? XCircle : isDisputed ? AlertTriangle : CheckCircle,
-    },
-    {
-      label: 'Rental Started',
-      date: rental.actual_start_at || (new Date() >= new Date(rental.start_date) ? rental.start_date : null),
-      status: isTerminal ? 'pending' as const : rental.actual_start_at ? 'completed' as const : new Date() >= new Date(rental.start_date) ? 'completed' as const : 'pending' as const,
-      icon: Truck,
-    },
-    {
-      label: 'Rental Ended',
-      date: new Date() >= new Date(rental.end_date) ? rental.end_date : null,
-      status: isTerminal ? 'pending' as const : rental.status === 'completed' || rental.status === 'disputed' ? 'completed' as const : new Date() >= new Date(rental.end_date) ? 'completed' as const : 'pending' as const,
-      icon: Clock,
-    },
-    {
-      label: isDisputed ? 'Under Review' : isFailed ? 'Not Completed' : 'Completed',
-      date: rental.status === 'completed' ? rental.end_date : null,
-      status: rental.status === 'completed' ? 'completed' as const : isFailed ? 'failed' as const : isDisputed ? 'failed' as const : 'pending' as const,
-      icon: isFailed || isDisputed ? XCircle : CheckCircle,
-    },
-  ];
+  const steps: TimelineStep[] = SOP_SEQUENCE.map((s, i) => {
+    if (isTerminal && i > currentIdx) return null;
+    if (isOverdue && i > SOP_SEQUENCE.indexOf('active')) return null;
+    if (isDisputed && i > SOP_SEQUENCE.indexOf('active')) return null;
+    return stepFor(rental, s, i, currentIdx);
+  }).filter(Boolean) as TimelineStep[];
 
-  // Inject modification steps between "Rental Started" and "Rental Ended" (index 2 and 3)
-  const modSteps = modifications
+  if (isTerminal) {
+    const reasonLabel = rental.status === 'rejected' ? 'Booking Declined' : 'Booking Cancelled';
+    steps.push({
+      label: reasonLabel,
+      date: rental.updated_at,
+      status: 'failed',
+      icon: rental.status === 'rejected' ? XCircle : Ban,
+    });
+  }
+
+  if (isOverdue) {
+    steps.push({
+      label: 'Rental Overdue — Return Pending',
+      date: null,
+      status: 'warning',
+      icon: AlertTriangle,
+    });
+  }
+
+  if (isDisputed) {
+    steps.push({
+      label: 'Dispute Raised — Awaiting Admin Review',
+      date: null,
+      status: 'failed',
+      icon: AlertTriangle,
+    });
+  }
+
+  // Inject modification steps between Rental Started and Rental Completed
+  const modSteps: TimelineStep[] = modifications
     .filter(m => m.status === 'approved')
     .map(m => ({
       label: m.type === 'extension' ? 'Rental Extended' : 'Early Return',
@@ -73,42 +132,32 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
         : `Returning early on ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`,
     }));
 
-  type TimelineStep = {
-    label: string;
-    date: string | null;
-    status: 'completed' | 'failed' | 'pending';
-    icon: typeof Package;
-    detail?: string;
-  };
-
-  const timelineSteps: TimelineStep[] = [
-    ...baseSteps.slice(0, 3),
-    ...modSteps,
-    ...baseSteps.slice(3),
-  ];
+  const activeIdx = steps.findIndex(s => s.label.includes('Rental Started') || s.label === 'Overdue' || s.label === 'Return Disputed');
+  const combined = activeIdx >= 0
+    ? [...steps.slice(0, activeIdx + 1), ...modSteps, ...steps.slice(activeIdx + 1)]
+    : steps;
 
   return (
     <div className="relative">
-      {timelineSteps.map((step, index) => {
+      {combined.map((step, index) => {
         const Icon = step.icon;
-        const isLast = index === timelineSteps.length - 1;
+        const isLast = index === combined.length - 1;
 
         return (
-          <div key={step.label} className="flex gap-4 pb-8 relative">
+          <div key={`${step.label}-${index}`} className="flex gap-4 pb-8 relative">
             {!isLast && (
-              <div
-                className={cn(
-                  "absolute left-4 top-8 w-0.5 h-full",
-                  step.status === 'completed' ? 'bg-primary' : 'bg-muted'
-                )}
-              />
+              <div className={cn(
+                "absolute left-4 top-8 w-0.5 h-full",
+                (step.status === 'completed' || (step.status === 'warning' && !isLast)) ? 'bg-primary' : 'bg-muted'
+              )} />
             )}
 
             <div className={cn(
               "relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 flex-shrink-0",
               step.status === 'completed' && 'bg-primary border-primary text-primary-foreground',
               step.status === 'pending' && 'bg-muted border-muted-foreground/30 text-muted-foreground',
-              step.status === 'failed' && 'bg-destructive border-destructive text-destructive-foreground'
+              step.status === 'failed' && 'bg-destructive border-destructive text-destructive-foreground',
+              step.status === 'warning' && 'bg-warning border-warning text-warning-foreground'
             )}>
               {step.status === 'pending' ? (
                 <Circle className="h-4 w-4 fill-current" />
@@ -127,6 +176,8 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
                 </div>
               ) : step.status === 'pending' ? (
                 <div className="text-sm text-muted-foreground">Pending</div>
+              ) : step.status === 'warning' ? (
+                <div className="text-sm text-warning">Action required</div>
               ) : null}
             </div>
           </div>

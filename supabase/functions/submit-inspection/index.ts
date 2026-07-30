@@ -69,9 +69,9 @@ serve(async (req) => {
       JSON.stringify(rpcResult),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('submit-inspection error:', error);
-    const message = error?.message || 'An unexpected error occurred';
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Item') || message.startsWith('Invalid') || message.startsWith('Your account');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),

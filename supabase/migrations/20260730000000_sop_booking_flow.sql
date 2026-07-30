@@ -328,13 +328,8 @@ BEGIN
     (status = 'payment_pending' AND updated_at < NOW() - INTERVAL '30 minutes') OR
     (status = 'reserved' AND updated_at < NOW() - INTERVAL '48 hours')
   )
-  AND id IN (
-    SELECT r.id FROM public.rentals r
-    LEFT JOIN public.booking_events be ON be.rental_id = r.id AND be.event_type = 'status_change'
-    WHERE be.id IS NULL
-    LIMIT 50
-  )
-  RETURNING id, item_id;
+  RETURNING id, item_id
+  LIMIT 50;
 END;
 $$;
 

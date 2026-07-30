@@ -155,9 +155,9 @@ serve(async (req) => {
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('confirm-handover error:', error);
-    const message = error?.message || 'An unexpected error occurred';
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Rental') || message.startsWith('Your account') || message.startsWith('Invalid');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),

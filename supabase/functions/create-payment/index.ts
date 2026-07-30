@@ -326,6 +326,13 @@ serve(async (req) => {
       })
       .eq('id', payment.id)
       .eq('status', 'draft');
+
+    // SOP: transition rental from requested → payment_pending
+    await supabase
+      .from('rentals')
+      .update({ status: 'payment_pending' })
+      .eq('id', rental.id)
+      .eq('status', 'requested');
     
     console.log('ToyyibPay bill created:', billData[0].BillCode);
     

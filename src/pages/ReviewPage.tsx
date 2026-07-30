@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Rental } from "@/types";
 import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export default function ReviewPage() {
   const { rentalId } = useParams<{ rentalId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [rental, setRental] = useState<any>(null);
+  const [rental, setRental] = useState<Rental | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [submitted, setSubmitted] = useState(false);

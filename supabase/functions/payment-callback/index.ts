@@ -80,7 +80,7 @@ serve(async (req) => {
         paid_at: new Date().toISOString()
       }).eq('id', paymentId).eq('status', 'pending');
 
-      await supabase.from('rentals').update({ status: 'reserved' }).eq('id', payment.rental_id);
+      await supabase.from('rentals').update({ status: 'reserved' }).eq('id', payment.rental_id).in('status', ['payment_pending']);
 
       await supabase.from('notifications').insert({
         user_id: payment.rental?.owner_id,

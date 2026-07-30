@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import type { Item, Rental, ConditionReport } from '@/types';
+import type { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
-import { MapPin, Share2, MessageCircle, Loader2, ChevronDown, Star } from 'lucide-react';
+import { MapPin, Share2, MessageCircle, Loader2, ChevronDown } from 'lucide-react';
 import { isNative } from '@/lib/platform';
 import type { DateRange } from 'react-day-picker';
 import { PageLayout } from '@/components/PageLayout';
@@ -50,10 +50,7 @@ export default function ItemDetail() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
-  const [currentRental, setCurrentRental] = useState<Rental | null>(null);
   const [, setLoadingRental] = useState(false);
-  const [conditionReports, setConditionReports] = useState<ConditionReport[]>([]);
-  const [viewerOpen, setViewerOpen] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -104,8 +101,8 @@ export default function ItemDetail() {
             .order('created_at', { ascending: false })
             .limit(1)
             .single()
-            .then(({ data: rentalData }) => {
-              if (mountedRef.current) { setCurrentRental(rentalData || null); setLoadingRental(false); }
+            .then(() => {
+              if (mountedRef.current) { setLoadingRental(false); }
             })
             .catch(() => { if (mountedRef.current) setLoadingRental(false); });
         }

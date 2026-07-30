@@ -5,12 +5,13 @@ import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, DollarSign, CreditCard, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 
 export default function PaymentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [payment, setPayment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
