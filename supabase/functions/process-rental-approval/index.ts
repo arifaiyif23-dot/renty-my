@@ -55,7 +55,7 @@ serve(async (req) => {
     // Get rental details
     const { data: rental, error: rentalError } = await supabase
       .from('rentals')
-      .select('*, item:items(title), renter:profiles!rentals_renter_id_fkey(full_name)')
+      .select('*, item:items(title), renter:profiles!rentals_renter_id_fkey(full_name), payments:payments(id, total_amount, rental_amount, platform_fee, status)')
       .eq('id', rentalId)
       .single();
 
@@ -141,6 +141,44 @@ serve(async (req) => {
       details: { ownerId: user.id, action, timestamp: new Date().toISOString() }
     });
 
+    // If rejecting a reserved (paid) booking, create a refund payout for the renter
+    if (action === 'reject') {
+      const payments = Array.isArray(rental.payments) ? rental.payments : [];
+      const paidPayment = payments.find((p: Record<string, unknown>) => p.status === 'paid');
+      if (paidPayment) {
+        const refundAmount = Math.round(Number(paidPayment.total_amount) * 100) / 100;
+        const { error: refundError } = await supabase
+          .from('payouts')
+          .insert({
+            owner_id: rental.renter_id,
+            payment_id: paidPayment.id,
+            rental_id: rental.id,
+            rental_amount: 0,
+            platform_fee: 0,
+            payout_amount: refundAmount,
+            status: 'pending',
+            held_reason: 'Owner rejected booking (reserved→cancelled)',
+          });
+
+        if (refundError) {
+          console.error('Refund payout insert error:', refundError);
+          await supabase.from('payment_flow_logs').insert({
+            rental_id: rentalId,
+            stage: 'refund_payout_created',
+            status: 'error',
+            details: { error: refundError.message, refundAmount }
+          });
+        } else {
+          await supabase.from('payment_flow_logs').insert({
+            rental_id: rentalId,
+            stage: 'refund_payout_created',
+            status: 'success',
+            details: { refundAmount }
+          });
+        }
+      }
+    }
+
     // Create notification for renter
     const notificationMessage = action === 'approve' 
       ? `Your booking for "${rental.item.title}" has been confirmed! Show the pickup code at handover.`
@@ -167,9 +205,9 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Rental approval processing error:', error);
-    const message = error.message || 'An error occurred while processing the rental';
+    const message = error instanceof Error ? error.message : 'An error occurred while processing the rental';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account') || message.startsWith('Another approved');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),

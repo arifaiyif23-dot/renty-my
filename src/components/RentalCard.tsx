@@ -151,20 +151,26 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
   const handleConfirmAction = async () => {
     if (!confirmDialog.action) return;
 
-    const statusMap = {
-      approve: 'confirmed' as Rental['status'],
-      reject: 'rejected' as Rental['status'],
-      active: 'active' as Rental['status'],
-      complete: 'completed' as Rental['status'],
-    };
-
     haptics.medium();
     setIsUpdating(true);
     try {
-      await onStatusUpdate(rental.id, statusMap[confirmDialog.action]);
+      if (confirmDialog.action === 'approve' || confirmDialog.action === 'reject') {
+        const { error } = await supabase.functions.invoke('process-rental-approval', {
+          body: { rentalId: rental.id, action: confirmDialog.action === 'approve' ? 'approve' : 'reject' }
+        });
+        if (error) throw new Error(error.message);
+      } else {
+        const statusMap: Record<string, Rental['status']> = {
+          active: 'active',
+          complete: 'completed',
+        };
+        await onStatusUpdate(rental.id, statusMap[confirmDialog.action]);
+      }
       haptics.success();
-    } catch {
+      onReviewSuccess();
+    } catch (err) {
       haptics.error();
+      toast.error(err instanceof Error ? err.message : 'Failed to process action');
     } finally {
       setIsUpdating(false);
       setConfirmDialog({ open: false, action: null });
