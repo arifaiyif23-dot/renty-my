@@ -102,6 +102,10 @@ export default {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' }
         },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-6px)' }
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -109,7 +113,8 @@ export default {
         'fade-in': 'fade-in 0.2s ease-out both',
         'scale-in': 'scale-in 0.18s ease-out both',
         shimmer: 'shimmer 1.5s ease-in-out infinite',
-        enter: 'fade-in 0.2s ease-out, scale-in 0.18s ease-out'
+        enter: 'fade-in 0.2s ease-out, scale-in 0.18s ease-out',
+        float: 'float 3s ease-in-out infinite',
       },
       scale: {
         '98': '0.98',

@@ -72,10 +72,15 @@
   "home": {
     "hero": {
       "tagline": "Malaysia's Trusted Rental Marketplace",
-      "heading1": "Sewa Barang.",
-      "heading2": "Jimat Duit.",
-      "description": "Ribuan barang untuk disewa. Dari kamera ke kereta.",
-      "itemsAvailable": "{{count}}+ barang tersedia."
+      "heading1": "Own less.",
+      "heading2": "Experience more.",
+      "description": "Rent anything you need from people around you. From cameras to cars — discover a better way to live.",
+      "itemsAvailable": "{{count}}+ items available.",
+      "trustItems": [
+        "Verified Users",
+        "Secure Payment",
+        "Community Powered"
+      ]
     },
     "categories": {
       "title": "Browse categories",
@@ -133,6 +138,20 @@
       }
     },
     "stats": {
+      "trustTitle": "Built on Trust",
+      "trustSubtitle": "Every rental is backed by verification, security, and community",
+      "verified": {
+        "title": "Verified Users",
+        "desc": "Every member is identity-verified. Know exactly who you're renting from or to."
+      },
+      "secure": {
+        "title": "Secure Payment",
+        "desc": "Funds are held safely in escrow until the rental is complete. Peace of mind for both sides."
+      },
+      "community": {
+        "title": "Community Powered",
+        "desc": "Real people, real reviews, real accountability. Built on trust that grows with every rental."
+      },
       "itemsAvailable": "Items available",
       "verifiedMembers": "Verified members",
       "successfulRentals": "Successful rentals",

@@ -7,6 +7,15 @@ interface AuroraBackgroundProps {
   variant?: "hero" | "accent" | "empty";
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  alpha: number;
+}
+
 const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -19,6 +28,7 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
 
     let animationId: number;
     let time = 0;
+    const particles: Particle[] = [];
 
     const resize = () => {
       canvas.width = canvas.offsetWidth;
@@ -27,21 +37,36 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
     resize();
     window.addEventListener("resize", resize);
 
+    // Initialize particles
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x: Math.random(),
+        y: Math.random(),
+        vx: (Math.random() - 0.5) * 0.002,
+        vy: (Math.random() - 0.5) * 0.002,
+        size: Math.random() * 3 + 1,
+        alpha: Math.random() * 0.3 + 0.1,
+      });
+    }
+
     const draw = () => {
-      time += 0.003;
+      time += 0.002;
       const w = canvas.width;
       const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
 
+      // Aurora blobs — Apple-inspired blue/purple/green
       const blobs = [
-        { x: 0.2, y: 0.3, r: 0.4, color: "hsla(224, 65%, 18%, 0.20)" },
-        { x: 0.8, y: 0.5, r: 0.35, color: "hsla(217, 80%, 54%, 0.18)" },
-        { x: 0.5, y: 0.7, r: 0.3, color: "hsla(224, 65%, 18%, 0.15)" },
+        { x: 0.15, y: 0.25, r: 0.45, color: "hsla(217, 80%, 54%, 0.15)" },
+        { x: 0.85, y: 0.45, r: 0.4, color: "hsla(280, 60%, 50%, 0.12)" },
+        { x: 0.5, y: 0.75, r: 0.35, color: "hsla(152, 60%, 40%, 0.10)" },
+        { x: 0.25, y: 0.6, r: 0.3, color: "hsla(217, 80%, 54%, 0.08)" },
+        { x: 0.7, y: 0.2, r: 0.25, color: "hsla(280, 60%, 50%, 0.10)" },
       ];
 
       blobs.forEach((blob, i) => {
-        const x = w * (blob.x + Math.sin(time + i * 2) * 0.08);
-        const y = h * (blob.y + Math.cos(time * 0.7 + i * 1.5) * 0.08);
+        const x = w * (blob.x + Math.sin(time + i * 1.8) * 0.06);
+        const y = h * (blob.y + Math.cos(time * 0.6 + i * 1.3) * 0.06);
         const r = w * blob.r;
 
         const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -51,6 +76,23 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Subtle particle sparkle
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > 1) p.vx *= -1;
+        if (p.y < 0 || p.y > 1) p.vy *= -1;
+
+        const px = w * p.x;
+        const py = h * p.y;
+        const pulse = Math.sin(time * 3 + p.x * 10) * 0.3 + 0.7;
+
+        ctx.beginPath();
+        ctx.arc(px, py, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(217, 80%, 70%, ${p.alpha * pulse})`;
         ctx.fill();
       });
 
@@ -64,7 +106,7 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
     };
   }, []);
 
-  const heightClass = variant === "hero" ? "min-h-[60vh]" : variant === "empty" ? "min-h-[40vh]" : "min-h-[30vh]";
+  const heightClass = variant === "hero" ? "min-h-[70vh]" : variant === "empty" ? "min-h-[40vh]" : "min-h-[30vh]";
 
   return (
     <div className={cn("relative overflow-hidden", heightClass, className)}>

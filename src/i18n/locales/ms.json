@@ -68,10 +68,15 @@
   "home": {
     "hero": {
       "tagline": "Platform Sewaan No.1 Malaysia",
-      "heading1": "Sewa Barang.",
-      "heading2": "Jimat Duit.",
-      "description": "Ribuan barang untuk disewa. Dari kamera ke kereta.",
-      "itemsAvailable": "{{count}}+ barang tersedia."
+      "heading1": "Kurang milik.",
+      "heading2": "Lebih alami.",
+      "description": "Sewa apa sahaja yang anda perlukan daripada orang di sekeliling anda. Dari kamera ke kereta — temui cara hidup yang lebih baik.",
+      "itemsAvailable": "{{count}}+ barang tersedia.",
+      "trustItems": [
+        "Pengguna Disahkan",
+        "Bayaran Selamat",
+        "Didorong Komuniti"
+      ]
     },
     "categories": {
       "title": "Layari kategori",
@@ -129,6 +134,20 @@
       }
     },
     "stats": {
+      "trustTitle": "Dibina Atas Kepercayaan",
+      "trustSubtitle": "Setiap sewaan disokong oleh pengesahan, keselamatan, dan komuniti",
+      "verified": {
+        "title": "Pengguna Disahkan",
+        "desc": "Setiap ahli disahkan identitinya. Tahu dengan siapa anda menyewa atau menyewakan."
+      },
+      "secure": {
+        "title": "Bayaran Selamat",
+        "desc": "Dana disimpan dengan selamat dalam escrow sehingga sewaan selesai. Ketenangan fikiran untuk kedua-dua pihak."
+      },
+      "community": {
+        "title": "Didorong Komuniti",
+        "desc": "Orang sebenar, ulasan sebenar, akauntabiliti sebenar. Dibina atas kepercayaan yang berkembang dengan setiap sewaan."
+      },
       "itemsAvailable": "Barangan tersedia",
       "verifiedMembers": "Ahli disahkan",
       "successfulRentals": "Sewaan berjaya",

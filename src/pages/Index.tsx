@@ -6,6 +6,7 @@ import { useIndexData } from "@/hooks/use-index-data"
 import { HeroSection } from "@/pages/index/HeroSection"
 import { CategoriesSection } from "@/pages/index/CategoriesSection"
 import { NewestListingsSection } from "@/pages/index/NewestListingsSection"
+import { RecentlyViewedSection } from "@/pages/index/RecentlyViewedSection"
 import { HowItWorksSection } from "@/pages/index/HowItWorksSection"
 import { WhyRentySection } from "@/pages/index/WhyRentySection"
 import { TrustStatsSection } from "@/pages/index/TrustStatsSection"
@@ -24,6 +25,7 @@ const Index = () => {
     categories,
     totalItemCount,
     trustStats,
+    recentlyViewed,
   } = useIndexData()
 
   const isLoading = loading
@@ -61,6 +63,10 @@ const Index = () => {
 
       <NewestListingsSection items={featuredItems} isLoading={isLoading} onNavigate={navigate} />
 
+      {recentlyViewed.length > 0 && (
+        <RecentlyViewedSection items={recentlyViewed} onNavigate={navigate} />
+      )}
+
       <HowItWorksSection />
 
       <WhyRentySection />
@@ -71,7 +77,6 @@ const Index = () => {
 
       <OwnerCTASection onNavigate={navigate} />
 
-      {/* App install prompt is a mobile concern; desktop uses browser */}
       <div className="md:hidden">
         <AppDownloadSection onNavigate={navigate} />
       </div>
