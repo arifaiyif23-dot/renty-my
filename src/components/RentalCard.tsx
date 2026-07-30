@@ -373,6 +373,14 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
                   </p>
                 </div>
               )}
+              {!isOwner && rental.status === 'cancelled' && (
+                <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                  <p className="text-sm text-destructive-foreground flex items-center gap-2">
+                    <XCircle className="h-4 w-4" />
+                    {t('rental.bookingCancelled')}
+                  </p>
+                </div>
+              )}
 
               {/* Disputed status */}
               {rental.status === 'disputed' && (
@@ -600,12 +608,28 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
                 </p>
               </div>
             )}
+            {!isOwner && rental.status === 'payment_pending' && (
+              <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                <p className="text-sm text-warning flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  {t('rental.paymentProcessing')}
+                </p>
+              </div>
+            )}
 
             {!isOwner && rental.status === 'rejected' && (
               <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
                 <p className="text-sm text-destructive-foreground flex items-center gap-2">
                   <XCircle className="h-4 w-4" />
                   {t('rental.requestDeclined')}
+                </p>
+              </div>
+            )}
+            {!isOwner && rental.status === 'cancelled' && (
+              <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                <p className="text-sm text-destructive-foreground flex items-center gap-2">
+                  <XCircle className="h-4 w-4" />
+                  {t('rental.bookingCancelled')}
                 </p>
               </div>
             )}

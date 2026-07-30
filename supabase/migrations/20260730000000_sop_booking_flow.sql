@@ -126,7 +126,7 @@ BEGIN
 
   IF NOT (
     (OLD.status = 'draft' AND NEW.status = 'requested') OR
-    (OLD.status = 'requested' AND NEW.status IN ('payment_pending', 'rejected', 'cancelled')) OR
+    (OLD.status = 'requested' AND NEW.status IN ('payment_pending', 'cancelled')) OR
     (OLD.status = 'payment_pending' AND NEW.status IN ('reserved', 'cancelled')) OR
     (OLD.status = 'reserved' AND NEW.status IN ('confirmed', 'cancelled')) OR
     (OLD.status = 'confirmed' AND NEW.status IN ('active', 'cancelled')) OR
@@ -135,7 +135,7 @@ BEGIN
     (OLD.status = 'disputed' AND NEW.status IN ('completed', 'cancelled'))
   ) THEN
     RAISE EXCEPTION 'Invalid rental status transition: % -> %', OLD.status, NEW.status
-      USING HINT = 'SOP: draft→requested→payment_pending→reserved→confirmed→active. Valid transitions: draft→requested, requested→payment_pending/rejected/cancelled, payment_pending→reserved/cancelled, reserved→confirmed/cancelled, confirmed→active/cancelled, active→completed/disputed/overdue, overdue→completed/disputed, disputed→completed/cancelled';
+      USING HINT = 'SOP: draft→requested→payment_pending→reserved→confirmed→active. Valid transitions: draft→requested, requested→payment_pending/cancelled, payment_pending→reserved/cancelled, reserved→confirmed/cancelled, confirmed→active/cancelled, active→completed/disputed/overdue, overdue→completed/disputed, disputed→completed/cancelled';
   END IF;
 
   RETURN NEW;

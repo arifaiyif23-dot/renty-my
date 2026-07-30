@@ -205,7 +205,7 @@ export default function Search() {
     const location = searchParams.get('location');
     const categoryParam = searchParams.get('category');
 
-    if (q) setSearchQuery(q);
+    if (q !== null) setSearchQuery(q);
     if (startDate && endDate) setDateRange({ from: new Date(startDate), to: new Date(endDate) });
     if (location) setUserLocation(location);
     if (categoryParam) setCategory(categoryParam as ItemCategory | 'all');
@@ -265,7 +265,8 @@ export default function Search() {
         </aside>
 
         <div className="flex-1 min-w-0">
-        <div className="mb-5">
+        {/* Mobile needs its own search bar; desktop uses the navbar's inline search */}
+        <div className="mb-5 lg:hidden">
           <SearchBarV2 variant="inline" onSearch={(q) => saveSearch(q)} />
         </div>
 
@@ -440,7 +441,7 @@ export default function Search() {
             </Button>
           </div>
         ) : initialLoading ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-border">
                 <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
@@ -460,7 +461,7 @@ export default function Search() {
             onAction={() => { setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice(''); setUserLocation(''); setDateRange(undefined); }}
           />
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((item) => (
               <ListingCard
                 key={item.id}

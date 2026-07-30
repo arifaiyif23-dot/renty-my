@@ -7,20 +7,27 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  /** Optional JSON-LD structured data object(s) injected as application/ld+json */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-export default function SEO({ 
-  title, 
-  description, 
+export default function SEO({
+  title,
+  description,
   image = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
   url = isNative() ? "" : window.location.href,
-  type = "website"
+  type = "website",
+  jsonLd
 }: SEOProps) {
   if (isNative()) return null;
   const fullTitle = `${title} | RENTY - Malaysia's Rental Platform`;
-  
+  const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+
   return (
     <Helmet>
+      {jsonLdItems.map((data, i) => (
+        <script key={i} type="application/ld+json">{JSON.stringify(data)}</script>
+      ))}
       {/* Primary Meta Tags */}
       <title>{fullTitle}</title>
       <meta name="title" content={fullTitle} />

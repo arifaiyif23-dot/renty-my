@@ -23,7 +23,8 @@ test.describe('Responsive Design', () => {
     await page.setViewportSize({ width: 834, height: 1194 }); // iPad Pro 11"
     await page.goto('/');
 
-    await expect(page.getByRole('textbox', { name: /search items/i })).toBeVisible({ timeout: 8000 });
+    // Desktop navbar + hero both render a search box at >=md; assert the hero one.
+    await expect(page.getByRole('textbox', { name: /search items/i }).last()).toBeVisible({ timeout: 8000 });
   });
 
   test('should handle click interactions on mobile', async ({ page, browserName }) => {

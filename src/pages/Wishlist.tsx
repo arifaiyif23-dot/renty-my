@@ -74,7 +74,7 @@ export default function Wishlist() {
         title={t('wishlist.title')}
         description={t('wishlist.seoDesc')}
       />
-      <div className="container mx-auto p-4 pb-mobile-nav">
+      <div>
         {pullDistance > 0 && (
           <div className="flex justify-center py-3">
             <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg" style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}>
@@ -93,7 +93,7 @@ export default function Wishlist() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {[...Array(6)].map((_, i) => (
               <SkeletonCard key={i} />
             ))}
@@ -109,7 +109,7 @@ export default function Wishlist() {
             onRetry={() => refetch()}
           />
         ) : items.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {items.map((item) => (
               <SwipeableWishlistItem
                 key={item.id}

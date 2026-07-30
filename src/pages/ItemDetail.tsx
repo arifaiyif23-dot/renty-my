@@ -277,8 +277,9 @@ export default function ItemDetail() {
           <BackButton fallbackPath="/search" />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-          <div className="space-y-5">
+        {/* Mobile: stacked. Desktop: 12-col marketplace layout — gallery span 7, sticky booking sidebar span 5 */}
+        <div className="grid md:grid-cols-12 gap-6 lg:gap-10">
+          <div className="space-y-5 md:col-span-7">
             <ImageCarousel images={item.images || []} title={item.title} />
 
             <div className="space-y-4">
@@ -292,7 +293,7 @@ export default function ItemDetail() {
                       </Badge>
                     )}
                   </div>
-                  <h1 className="text-xl md:text-2xl font-bold tracking-tight mb-1">{item.title}</h1>
+                  <h1 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight mb-1">{item.title}</h1>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <SaveItemButton itemId={item.id} />
@@ -329,7 +330,7 @@ export default function ItemDetail() {
                 )}
               </div>
 
-              <div className="text-sm text-muted-foreground leading-relaxed">
+              <div className="text-sm md:text-[15px] text-muted-foreground leading-relaxed max-w-prose">
                 <p>
                   {showFullDesc || !descriptionTruncated
                     ? item.description
@@ -370,34 +371,10 @@ export default function ItemDetail() {
                 <ReviewsList itemId={id || ''} />
               </div>
             </div>
-
-            {similarItems.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold">Similar Items</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {loadingSimilar ? (
-                    [...Array(2)].map((_, i) => (
-                      <div key={i} className="rounded-xl overflow-hidden border border-border">
-                        <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
-                        <div className="p-3 space-y-2"><SkeletonV2 variant="text" /><SkeletonV2 variant="text" className="w-1/2" /></div>
-                      </div>
-                    ))
-                  ) : (
-                    similarItems.slice(0, 2).map((si) => (
-                      <ListingCard
-                        key={si.id} id={si.id} title={si.title}
-                        image={si.images?.[0]?.image_url || ''}
-                        pricePerDay={si.price_per_day} category={si.category} location={si.location}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
-          <div id="booking-section" className="space-y-4 sticky top-20 self-start">
-            <div className="card-base p-6 space-y-4">
+          <div id="booking-section" className="space-y-4 md:col-span-5 md:sticky md:top-24 self-start">
+            <div className="card-base p-6 lg:p-7 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-2xl font-bold">RM{Number(item.price_per_day).toFixed(0)}</span>
@@ -464,6 +441,31 @@ export default function ItemDetail() {
             </div>
           </div>
         </div>
+
+        {/* Similar items — full-width row on desktop, tucked under content on mobile */}
+        {similarItems.length > 0 && (
+          <div className="space-y-4 mt-8 md:mt-12">
+            <h3 className="font-semibold md:text-lg">Similar Items</h3>
+            <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
+              {loadingSimilar ? (
+                [...Array(4)].map((_, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden border border-border">
+                    <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
+                    <div className="p-3 space-y-2"><SkeletonV2 variant="text" /><SkeletonV2 variant="text" className="w-1/2" /></div>
+                  </div>
+                ))
+              ) : (
+                similarItems.slice(0, 4).map((si) => (
+                  <ListingCard
+                    key={si.id} id={si.id} title={si.title}
+                    image={si.images?.[0]?.image_url || ''}
+                    pricePerDay={si.price_per_day} category={si.category} location={si.location}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {user?.id !== item.owner_id && (

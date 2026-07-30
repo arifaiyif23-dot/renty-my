@@ -158,19 +158,19 @@ const ListingCard = memo(({
 
         {pricePerDay > 0 && (
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/70 backdrop-blur-sm rounded-lg px-2 py-0.5 sm:px-2.5 sm:py-1">
-            <span className="font-bold text-xs sm:text-sm tabular-nums">RM{pricePerDay}</span>
-            <span className="text-[10px] sm:text-xs text-muted-foreground">/day</span>
+            <span className="font-bold text-xs sm:text-sm lg:text-base tabular-nums">RM{pricePerDay}</span>
+            <span className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground">/day</span>
           </div>
         )}
       </div>
 
-      <div className="p-2.5 sm:p-4">
+      <div className="p-2.5 sm:p-4 lg:p-5">
         <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-1">
-          <h3 className="font-semibold text-xs sm:text-sm leading-snug line-clamp-2 flex-1">
+          <h3 className="font-semibold text-xs sm:text-sm lg:text-base leading-snug line-clamp-2 flex-1">
             {title}
           </h3>
           {rating > 0 && (
-            <span className="flex items-center gap-1 shrink-0 text-[10px] sm:text-xs">
+            <span className="flex items-center gap-1 shrink-0 text-[10px] sm:text-xs lg:text-sm">
               <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-400 text-amber-400" />
               <span className="font-semibold tabular-nums">{rating.toFixed(1)}</span>
               {reviewCount > 0 && (
@@ -180,13 +180,13 @@ const ListingCard = memo(({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm text-muted-foreground">
           {category && (
-            <span className="bg-muted rounded-md px-1.5 py-0.5 sm:px-2 truncate max-w-[7rem]">{category}</span>
+            <span className="bg-muted rounded-md px-1.5 py-0.5 sm:px-2 truncate max-w-[7rem] lg:max-w-[9rem]">{category}</span>
           )}
           {location && (
             <span className="flex items-center gap-1 truncate">
-              <MapPin className="h-3 w-3 shrink-0" />
+              <MapPin className="h-3 w-3 lg:h-3.5 lg:w-3.5 shrink-0" />
               {location}
               {distance !== undefined && (
                 <span className="tabular-nums whitespace-nowrap shrink-0">· {distance} km</span>
@@ -196,11 +196,11 @@ const ListingCard = memo(({
         </div>
 
         {verificationLevel && verificationLevel !== 'unverified' ? (
-          <div className="mt-1.5">
+          <div className="mt-1.5 lg:mt-2">
             <UserTrustBadge level={verificationLevel} size="sm" />
           </div>
         ) : (
-          <div className="mt-1.5 text-[10px] sm:text-xs text-muted-foreground">New</div>
+          <div className="mt-1.5 lg:mt-2 text-[10px] sm:text-xs text-muted-foreground">New</div>
         )}
       </div>
     </Link>

@@ -3,7 +3,7 @@ export type RestrictionLevel = 'none' | 'warning' | 'limited_access' | 'temporar
 export type RiskLevel = 'low' | 'medium' | 'high';
 export type RentalStatus = 'draft' | 'requested' | 'payment_pending' | 'reserved' | 'confirmed' | 'rejected' | 'active' | 'completed' | 'cancelled' | 'disputed' | 'overdue';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
-export type ItemStatus = 'created' | 'under_review' | 'available' | 'paused' | 'reserved' | 'pickup_pending' | 'active_rental' | 'return_pending' | 'inspection_pending' | 'maintenance' | 'damaged' | 'lost' | 'overdue' | 'disputed';
+export type ItemStatus = 'created' | 'under_review' | 'available' | 'paused' | 'reserved' | 'pickup_pending' | 'active_rental' | 'return_pending' | 'inspection_pending' | 'maintenance' | 'damaged' | 'lost';
 export type ListingStatus = 'active' | 'paused' | 'draft' | 'archived';
 export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received' | 'dispute_opened';
 

@@ -87,6 +87,75 @@
       "noListings": "No listings yet",
       "noListingsDesc": "Be the first to list something for rent.",
       "listItem": "List an item"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "Renting from your neighbours has never been this easy",
+      "step1": {
+        "title": "Find what you need",
+        "description": "Browse thousands of items from cameras to tools. Filter by location, category and price."
+      },
+      "step2": {
+        "title": "Book & pay securely",
+        "description": "Pick your dates, pay in-app. Funds are held safely until the rental is complete."
+      },
+      "step3": {
+        "title": "Pick up & enjoy",
+        "description": "Meet the owner, collect the item, and return it when you are done. That simple."
+      }
+    },
+    "whyRenty": {
+      "title": "Why choose Renty?",
+      "subtitle": "We make peer-to-peer rental safe, simple and rewarding",
+      "verifiedIdentity": {
+        "title": "Verified identity",
+        "desc": "Every owner is verified through our identity checks, so you know who you are renting from."
+      },
+      "securePayment": {
+        "title": "Secure payment",
+        "desc": "Pay in-app with our secure payment system. Funds are held safely until the rental ends."
+      },
+      "disputeProtection": {
+        "title": "Dispute protection",
+        "desc": "If anything goes wrong, our dispute resolution process protects both renters and owners."
+      },
+      "localPickup": {
+        "title": "Local pickup",
+        "desc": "Rent from people near you. No shipping fees, no waiting — just pick up and go."
+      },
+      "flexibleDuration": {
+        "title": "Flexible duration",
+        "desc": "Rent by the day, week or month. Extend anytime with a tap if you need it longer."
+      },
+      "communityDriven": {
+        "title": "Community driven",
+        "desc": "Built on trust and reviews. Real people, real items, real neighbourhoods."
+      }
+    },
+    "stats": {
+      "itemsAvailable": "Items available",
+      "verifiedMembers": "Verified members",
+      "successfulRentals": "Successful rentals",
+      "avgRating": "Average rating"
+    },
+    "testimonials": {
+      "title": "What our users say",
+      "subtitle": "Real stories from the Renty community across Malaysia"
+    },
+    "ownerCta": {
+      "title": "Own something people need?",
+      "description": "Turn your unused items into income. List in minutes and start earning from things sitting idle at home.",
+      "button": "Start earning"
+    },
+    "appDownload": {
+      "badge": "Get the app",
+      "title": "Take Renty everywhere",
+      "description": "Faster booking, instant messages and real-time rental updates — right from your pocket.",
+      "feature1": "Book and manage rentals on the go",
+      "feature2": "Chat instantly with owners and renters",
+      "feature3": "Get notified the moment a request comes in",
+      "installButton": "Install app",
+      "installSuccess": "App installed! Find Renty on your home screen."
     }
   },
   "search": {

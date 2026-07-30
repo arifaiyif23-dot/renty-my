@@ -117,9 +117,11 @@ export default function Dashboard() {
             {filterRentals(['confirmed', 'active', 'overdue']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No active rentals" variant="compact" />
             ) : (
-              filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
-              ))
+              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+                {filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
+                  <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
+                ))}
+              </div>
             )}
           </TabsContent>
 
@@ -132,9 +134,11 @@ export default function Dashboard() {
             {filterRentals(['requested', 'payment_pending', 'reserved']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No pending rentals" variant="compact" />
             ) : (
-              filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
-              ))
+              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+                {filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
+                  <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
+                ))}
+              </div>
             )}
           </TabsContent>
 
@@ -142,9 +146,11 @@ export default function Dashboard() {
             {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No past rentals" variant="compact" />
             ) : (
-              filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
-              ))
+              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+                {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
+                  <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
+                ))}
+              </div>
             )}
           </TabsContent>
         </Tabs>

@@ -83,6 +83,75 @@
       "noListings": "Tiada penyenaraian lagi",
       "noListingsDesc": "Jadilah yang pertama menyenaraikan sesuatu untuk disewa.",
       "listItem": "Senaraikan item"
+    },
+    "howItWorks": {
+      "title": "Cara ia berfungsi",
+      "subtitle": "Menyewa daripada jiran anda tidak pernah semudah ini",
+      "step1": {
+        "title": "Cari apa yang anda perlukan",
+        "description": "Layan beribu-ribu barangan dari kamera hingga peralatan. Tapis mengikut lokasi, kategori dan harga."
+      },
+      "step2": {
+        "title": "Tempah & bayar dengan selamat",
+        "description": "Pilih tarikh anda, bayar dalam aplikasi. Dana disimpan dengan selamat sehingga sewaan selesai."
+      },
+      "step3": {
+        "title": "Ambil & nikmati",
+        "description": "Jumpa pemilik, ambil barangan, dan pulangkan apabila selesai. Semudah itu."
+      }
+    },
+    "whyRenty": {
+      "title": "Kenapa pilih Renty?",
+      "subtitle": "Kami jadikan sewaan rakan-ke-rakan selamat, mudah dan berbaloi",
+      "verifiedIdentity": {
+        "title": "Identiti disahkan",
+        "desc": "Setiap pemilik disahkan melalui semakan identiti kami, jadi anda tahu dengan siapa anda menyewa."
+      },
+      "securePayment": {
+        "title": "Bayaran selamat",
+        "desc": "Bayar dalam aplikasi dengan sistem pembayaran selamat kami. Dana disimpan dengan selamat sehingga sewaan tamat."
+      },
+      "disputeProtection": {
+        "title": "Perlindungan pertikaian",
+        "desc": "Jika berlaku masalah, proses penyelesaian pertikaian kami melindungi kedua-dua penyewa dan pemilik."
+      },
+      "localPickup": {
+        "title": "Pengambilan tempatan",
+        "desc": "Sewa daripada orang berhampiran anda. Tiada caj penghantaran, tiada menunggu — ambil sahaja dan pergi."
+      },
+      "flexibleDuration": {
+        "title": "Tempoh fleksibel",
+        "desc": "Sewa mengikut hari, minggu atau bulan. Lanjutkan bila-bila masa dengan satu sentuhan jika perlu lebih lama."
+      },
+      "communityDriven": {
+        "title": "Didorong komuniti",
+        "desc": "Dibina atas kepercayaan dan ulasan. Orang sebenar, barangan sebenar, kejiranan sebenar."
+      }
+    },
+    "stats": {
+      "itemsAvailable": "Barangan tersedia",
+      "verifiedMembers": "Ahli disahkan",
+      "successfulRentals": "Sewaan berjaya",
+      "avgRating": "Penilaian purata"
+    },
+    "testimonials": {
+      "title": "Apa kata pengguna kami",
+      "subtitle": "Kisah benar daripada komuniti Renty di seluruh Malaysia"
+    },
+    "ownerCta": {
+      "title": "Ada barangan yang orang perlukan?",
+      "description": "Tukarkan barangan terbiar anda kepada pendapatan. Senaraikan dalam beberapa minit dan mula menjana pendapatan daripada barangan di rumah.",
+      "button": "Mula menjana"
+    },
+    "appDownload": {
+      "badge": "Dapatkan aplikasi",
+      "title": "Bawa Renty ke mana-mana",
+      "description": "Tempahan lebih pantas, mesej segera dan kemas kini sewaan masa nyata — terus dari poket anda.",
+      "feature1": "Tempah dan urus sewaan di mana sahaja",
+      "feature2": "Berbual segera dengan pemilik dan penyewa",
+      "feature3": "Dapatkan notifikasi sebaik sahaja permintaan masuk",
+      "installButton": "Pasang aplikasi",
+      "installSuccess": "Aplikasi dipasang! Cari Renty di skrin utama anda."
     }
   },
   "search": {

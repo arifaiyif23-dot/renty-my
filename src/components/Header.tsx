@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
+import { SearchBarV2 } from "@/components/SearchBarV2";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +40,6 @@ const desktopNavLinks = [
   { key: "browse", icon: Search, label: "Browse", path: "/search" },
   { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages", auth: true },
   { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", auth: true },
-  { key: "list", icon: Plus, label: "List Item", path: "/list-item", auth: true, highlight: true },
 ];
 
 const Header = () => {
@@ -116,9 +116,9 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/50 glass">
-        <div className="mx-auto px-4 max-w-7xl">
-          <div className="flex h-14 items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+        <div className="mx-auto px-4 lg:px-8 max-w-7xl">
+          <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-6">
+            <div className="flex items-center gap-2 shrink-0">
               {isMobile && user && (
                 <Button
                   variant="ghost"
@@ -131,11 +131,16 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center" aria-label="Renty homepage">
-                <img src="/logo.png" alt="Renty" className="h-7 w-auto" />
+                <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
               </Link>
             </div>
 
-            <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="Main navigation">
+            {/* Desktop marketplace search — mobile search lives in the bottom nav / hero */}
+            <div className="hidden md:block flex-1 max-w-md lg:max-w-lg">
+              <SearchBarV2 variant="inline" />
+            </div>
+
+            <nav className="hidden md:flex items-center gap-1 shrink-0" role="navigation" aria-label="Main navigation">
               {desktopNavLinks.map((link) => {
                 if (link.auth && !user) return null;
                 const isActive = location.pathname === link.path;
@@ -160,7 +165,7 @@ const Header = () => {
               })}
             </nav>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -175,7 +180,7 @@ const Header = () => {
                 <>
                   <NotificationBell />
                   <Link to="/list-item" className="hidden md:inline-flex mr-1">
-                    <Button size="sm" className="gap-1.5">
+                    <Button size="sm" className="gap-1.5 shadow-1">
                       <Plus className="h-4 w-4" />
                       {t('listItem.title')}
                     </Button>

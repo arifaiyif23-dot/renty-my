@@ -91,6 +91,18 @@ Minimal Tailwind-only tweaks (no redesign, no theme/logic changes). All listing 
 - **Dashboard**: active-rental bulk checkboxes moved into a **selection mode** (Select/Done toolbar) instead of always floating over cards.
 - **Touch targets**: `SearchBarV2` clear button `min-h/w-[44px]`; recent-search chips `min-h-[36px]`; all 6 Search filter-chip `X`s converted from SVG `role="button"` to real `<button className="p-1.5">`; SearchBarV2 location dropdown `max-w-[calc(100vw-2rem)]`.
 
+## Responsive Layout Architecture (Desktop/Mobile Separation)
+Single responsive codebase (no route/layout fork). Breakpoint `md` = 768px; CSS-first (Tailwind classes), `useIsMobile()` only for behavior branches (overlay search, drawer-vs-popover).
+- **`PageLayout`**: `default`/`wide` = `max-w-7xl px-4 md:px-6 lg:px-8` (matches Header). `narrow`/`blank` unchanged. Footer is wrapped in `hidden md:block` — mobile chrome is the bottom nav, not a footer.
+- **`Header`**: desktop navbar `md:h-16` with center inline `SearchBarV2 variant="inline"` (`hidden md:block flex-1 max-w-lg`) + nav links + "List Item" CTA. Mobile row unchanged (hamburger + logo + icons). Desktop nav links live in `desktopNavLinks` (List Item is the CTA button, not a nav link).
+- **`ListingCard`** (the only listing card; `ListingCardV2` was consolidated into it): mobile compact by default, `lg:` desktop density added (`lg:p-5`, `lg:text-base` title, `lg:text-sm` meta/price). No separate desktop component.
+- **Homepage** (`Index.tsx`) renders full marketplace sections: Hero → Categories → Newest → HowItWorks → WhyRenty → TrustStats → Testimonials → OwnerCTA → AppDownload (AppDownload wrapped in `md:hidden`). `NewestListingsSection` grid = `grid-cols-2 lg:grid-cols-4 xl:grid-cols-5`.
+- **ItemDetail**: mobile stacked; desktop `md:grid-cols-12` — gallery span 7, sticky booking sidebar `md:col-span-5 md:sticky md:top-24`. Similar items moved to a full-width row after the grid (`lg:grid-cols-4`).
+- **Search**: desktop `lg:` filter sidebar (w-72 sticky) + `xl:grid-cols-4` results; in-page `SearchBarV2` is `lg:hidden` on desktop (navbar covers it). Mobile uses `MobileFilterDrawer`.
+- **Dashboard**: rental lists are `grid lg:grid-cols-2` on desktop. **Wishlist** `xl:grid-cols-4` (swipe-to-delete stays mobile-only via `useIsMobile`), removed its duplicate inner `container pb-mobile-nav` (PageLayout owns padding). **MyListings** `xl:grid-cols-4`.
+- **SEO**: `SEO` component accepts optional `jsonLd` prop; homepage injects WebSite + SearchAction structured data.
+- **Invariants**: `MobileBottomNav` stays global in App.tsx (`md:hidden`); `.pb-mobile-nav`/`.bottom-mobile-nav` zero out at md in index.css; Capacitor native always renders mobile chrome (viewport < md) — untouched.
+
 ## Monitoring (recommended)
 - **Vercel Analytics** — enable from Vercel dashboard (free, zero code)
 - **Vercel Speed Insights** — enable from Vercel dashboard (free, zero code)
