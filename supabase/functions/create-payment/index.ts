@@ -77,7 +77,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Processing payment for existing approved rental:', rentalId);
+    console.log('Processing payment for existing rental:', rentalId);
 
     const { data: existingRental, error: fetchError } = await supabase
       .from('rentals')
@@ -89,8 +89,8 @@ serve(async (req) => {
       throw new Error('Rental not found');
     }
 
-    if (existingRental.status !== 'approved') {
-      throw new Error(`Rental must be approved before payment. Current status: ${existingRental.status}`);
+    if (existingRental.status !== 'requested') {
+      throw new Error(`Rental must be in 'requested' status for payment. Current status: ${existingRental.status}`);
     }
 
     if (existingRental.renter_id !== user.id) {

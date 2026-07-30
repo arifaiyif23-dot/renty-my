@@ -35,8 +35,8 @@ export function RentalCalendarView({ rentals }: RentalCalendarViewProps) {
             className="rounded-md border"
             modifiers={{
               hasRentals: (date) => getRentalsForDate(date).length > 0,
-              activeRental: (date) => getRentalsForDate(date).some(r => r.status === 'active' || r.status === 'approved'),
-              pendingRental: (date) => getRentalsForDate(date).some(r => r.status === 'pending'),
+              activeRental: (date) => getRentalsForDate(date).some(r => r.status === 'active' || r.status === 'confirmed'),
+              pendingRental: (date) => getRentalsForDate(date).some(r => r.status === 'requested' || r.status === 'reserved'),
             }}
             modifiersClassNames={{
               hasRentals: 'font-bold',

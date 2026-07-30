@@ -43,8 +43,7 @@ export default function UserProfile() {
           .from("items")
           .select("*, images:item_images(*)")
           .eq("owner_id", id)
-          .eq("listing_status", "active")
-          .eq("is_available", true)
+          .eq("status", "available")
           .order("created_at", { ascending: false }),
         supabase.from("reviews").select("rating").eq("reviewee_id", id || ""),
       ]);

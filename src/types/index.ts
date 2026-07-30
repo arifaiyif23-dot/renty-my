@@ -1,6 +1,9 @@
-export type AppRole = 'super_admin' | 'admin' | 'moderator' | 'user';
-export type RentalStatus = 'pending_approval' | 'approved' | 'rejected' | 'paid' | 'pending' | 'active' | 'completed' | 'cancelled' | 'disputed';
+export type AppRole = 'super_admin' | 'admin' | 'moderator' | 'support' | 'user';
+export type RestrictionLevel = 'none' | 'warning' | 'limited_access' | 'temporary_suspension' | 'permanent_suspension' | 'suspended';
+export type RiskLevel = 'low' | 'medium' | 'high';
+export type RentalStatus = 'draft' | 'requested' | 'payment_pending' | 'reserved' | 'confirmed' | 'rejected' | 'active' | 'completed' | 'cancelled' | 'disputed' | 'overdue';
 export type ItemCategory = 'electronics' | 'vehicles' | 'tools' | 'sports' | 'party' | 'fashion' | 'other';
+export type ItemStatus = 'created' | 'under_review' | 'available' | 'paused' | 'reserved' | 'pickup_pending' | 'active_rental' | 'return_pending' | 'inspection_pending' | 'maintenance' | 'damaged' | 'lost' | 'overdue' | 'disputed';
 export type ListingStatus = 'active' | 'paused' | 'draft' | 'archived';
 export type NotificationType = 'rental_request' | 'rental_approved' | 'rental_rejected' | 'payment_received' | 'review_received' | 'message_received' | 'dispute_opened';
 
@@ -70,6 +73,7 @@ export interface Profile {
   verification_level?: VerificationLevel;
   identity_number_hash?: string;
   trust_score?: number;
+  vendor_trust_score?: number;
   ekyc_provider?: string;
   ekyc_session_id?: string;
   ekyc_verified_at?: string;
@@ -80,6 +84,9 @@ export interface Profile {
   is_suspended?: boolean;
   suspension_reason?: string;
   suspended_at?: string;
+  restriction_level?: RestrictionLevel;
+  restriction_reason?: string;
+  restricted_at?: string;
   preferred_role?: string;
   terms_accepted_at?: string;
   terms_version?: number;
@@ -109,6 +116,7 @@ export interface Item {
   longitude?: number;
   is_available: boolean;
   listing_status?: ListingStatus;
+  status?: ItemStatus;
   view_count?: number;
   cancellation_policy?: string;
   deposit_amount?: number;
@@ -150,6 +158,7 @@ export interface Rental {
   pickup_code?: string;
   handover_photos?: string[];
   return_photos?: string[];
+  risk_level?: RiskLevel;
   actual_start_at?: string;
   dispute_reason?: string;
   dispute_status?: 'open' | 'resolved_refund' | 'resolved_payout';

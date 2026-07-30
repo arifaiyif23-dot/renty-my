@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, LogOut, Plus } from "lucide-react";
+import { User, Menu, LogOut, Plus, Home, Search, MessageCircle, LayoutDashboard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "next-themes";
+import { Moon, Sun } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import {
   DropdownMenu,
@@ -28,14 +30,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { haptics } from "@/utils/haptics";
+import { cn } from "@/lib/utils";
 
 import { supabase } from "@/integrations/supabase/client";
+
+const desktopNavLinks = [
+  { key: "home", icon: Home, label: "Home", path: "/" },
+  { key: "browse", icon: Search, label: "Browse", path: "/search" },
+  { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages", auth: true },
+  { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", auth: true },
+  { key: "list", icon: Plus, label: "List Item", path: "/list-item", auth: true, highlight: true },
+];
 
 const Header = () => {
   const { t } = useTranslation();
   const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
+  const location = useLocation();
+  const { theme, setTheme } = useTheme();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -103,8 +115,8 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto px-4 max-w-5xl">
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 glass">
+        <div className="mx-auto px-4 max-w-7xl">
           <div className="flex h-14 items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {isMobile && user && (
@@ -123,7 +135,41 @@ const Header = () => {
               </Link>
             </div>
 
+            <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="Main navigation">
+              {desktopNavLinks.map((link) => {
+                if (link.auth && !user) return null;
+                const isActive = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.key}
+                    to={link.path}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : link.highlight
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    )}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {link.highlight ? null : <link.icon className="h-4 w-4" />}
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
             <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              </Button>
               <LanguageSwitcher />
               {user ? (
                 <>

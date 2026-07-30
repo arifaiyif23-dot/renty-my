@@ -1,9 +1,9 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -60,79 +60,105 @@ const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const AdminUserDetail = lazy(() => import("./pages/AdminUserDetail"));
 const AdminManageAdmins = lazy(() => import("./pages/AdminManageAdmins"));
 const AdminErrors = lazy(() => import("./pages/AdminErrors"));
+const BookingDetail = lazy(() => import("./pages/BookingDetail"));
+const PaymentDetail = lazy(() => import("./pages/PaymentDetail"));
+const RentalDetail = lazy(() => import("./pages/RentalDetail"));
+const ReviewPage = lazy(() => import("./pages/ReviewPage"));
 
 function AppRoutes() {
   useScrollToTop();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isNative()) return;
+    let cancelled = false;
+    import('@capacitor/app').then(({ App }) => {
+      if (cancelled) return;
+      App.addListener('appUrlOpen', (data) => {
+        try {
+          const url = new URL(data.url);
+          if (url.pathname === '/payment-success') {
+            navigate(`/payment-success${url.search}`);
+          } else if (url.pathname === '/auth') {
+            navigate(`/auth${url.search}${url.hash}`);
+          }
+        } catch {
+          // Ignore malformed URLs
+        }
+      });
+    });
+    return () => { cancelled = true; };
+  }, [navigate]);
   
   return (
-    <div className="flex flex-col min-h-screen w-full">
+    <>
       <OfflineIndicator />
       <PWAInstallPrompt />
-      {/* Skip to main content for keyboard navigation */}
       <a href="#main-content" className="skip-to-main">
         Skip to main content
       </a>
-      
       <Suspense fallback={<LoadingSpinner />}>
-        <main id="main-content">
-          <PageTransition key={location.pathname}>
-            <Routes>
-              <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
-              <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
-              <Route path="/auth/magic" element={<ErrorBoundary><AuthMagicLink /></ErrorBoundary>} />
-              <Route path="/install" element={<ErrorBoundary><Install /></ErrorBoundary>} />
-              <Route path="/dashboard" element={<ErrorBoundary><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/list-item" element={<ErrorBoundary><ProtectedRoute><ListItem /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/vendor-onboarding" element={<ErrorBoundary><ProtectedRoute><VendorOnboarding /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/items/:id" element={<ErrorBoundary><ItemDetail /></ErrorBoundary>} />
-              <Route path="/search" element={<ErrorBoundary><Search /></ErrorBoundary>} />
-              <Route path="/messages" element={<ErrorBoundary><ProtectedRoute><Messages /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/profile" element={<ErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/wishlist" element={<ErrorBoundary><ProtectedRoute><Wishlist /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/my-listings" element={<ErrorBoundary><ProtectedRoute><MyListings /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/verification" element={<ErrorBoundary><ProtectedRoute><Verification /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/payment-success" element={<ErrorBoundary><PaymentSuccess /></ErrorBoundary>} />
-              <Route path="/earnings" element={<ErrorBoundary><ProtectedRoute><Earnings /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/payouts" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/verifications" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/settings" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/automation" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/health" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/disputes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDisputes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/users" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/reports" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminReports /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/promo-codes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPromoCodes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/listings" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminListings /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/rentals" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminRentals /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/payments" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/users/:id" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUserDetail /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/manage-admins" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminManageAdmins /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/admin/errors" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminErrors /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/users/:id" element={<ErrorBoundary><UserProfile /></ErrorBoundary>} />
-              <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />
-              <Route path="/notification-settings" element={<ErrorBoundary><ProtectedRoute><NotificationSettings /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/saved-searches" element={<ErrorBoundary><ProtectedRoute><SavedSearches /></ProtectedRoute></ErrorBoundary>} />
-              <Route path="/pwa-settings" element={<ErrorBoundary><PWASettings /></ErrorBoundary>} />
-              <Route path="/offline" element={<ErrorBoundary><Offline /></ErrorBoundary>} />
-              <Route path="/terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
-              <Route path="/privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
-              <Route path="*" element={<ErrorBoundary><NotFound /></ErrorBoundary>} />
-            </Routes>
-          </PageTransition>
-        </main>
+        <PageTransition key={location.pathname}>
+          <Routes>
+            <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+            <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
+            <Route path="/auth/magic" element={<ErrorBoundary><AuthMagicLink /></ErrorBoundary>} />
+            <Route path="/install" element={<ErrorBoundary><Install /></ErrorBoundary>} />
+            <Route path="/dashboard" element={<ErrorBoundary><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/list-item" element={<ErrorBoundary><ProtectedRoute><ListItem /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/vendor-onboarding" element={<ErrorBoundary><ProtectedRoute><VendorOnboarding /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/items/:id" element={<ErrorBoundary><ItemDetail /></ErrorBoundary>} />
+            <Route path="/search" element={<ErrorBoundary><Search /></ErrorBoundary>} />
+            <Route path="/messages" element={<ErrorBoundary><ProtectedRoute><Messages /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/profile" element={<ErrorBoundary><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/wishlist" element={<ErrorBoundary><ProtectedRoute><Wishlist /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/my-listings" element={<ErrorBoundary><ProtectedRoute><MyListings /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/verification" element={<ErrorBoundary><ProtectedRoute><Verification /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/payment-success" element={<ErrorBoundary><PaymentSuccess /></ErrorBoundary>} />
+            <Route path="/earnings" element={<ErrorBoundary><ProtectedRoute><Earnings /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/payouts" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayouts /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/verifications" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminVerification /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/settings" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/automation" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/health" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminHealth /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/disputes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminDisputes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/users" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/reports" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminReports /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/promo-codes" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPromoCodes /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/listings" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminListings /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/rentals" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminRentals /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/payments" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminPayments /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/users/:id" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminUserDetail /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/manage-admins" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminManageAdmins /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/admin/errors" element={<ErrorBoundary><ProtectedRoute><AdminRoute><AdminErrors /></AdminRoute></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/users/:id" element={<ErrorBoundary><UserProfile /></ErrorBoundary>} />
+            <Route path="/disputes" element={<ErrorBoundary><ProtectedRoute><Disputes /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/help" element={<ErrorBoundary><Help /></ErrorBoundary>} />
+            <Route path="/notification-settings" element={<ErrorBoundary><ProtectedRoute><NotificationSettings /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/saved-searches" element={<ErrorBoundary><ProtectedRoute><SavedSearches /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/pwa-settings" element={<ErrorBoundary><PWASettings /></ErrorBoundary>} />
+            <Route path="/offline" element={<ErrorBoundary><Offline /></ErrorBoundary>} />
+            <Route path="/terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
+            <Route path="/privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
+            <Route path="/booking/:id" element={<ErrorBoundary><ProtectedRoute><BookingDetail /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/payment/:id" element={<ErrorBoundary><ProtectedRoute><PaymentDetail /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/rental/:id" element={<ErrorBoundary><ProtectedRoute><RentalDetail /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/review/:rentalId" element={<ErrorBoundary><ProtectedRoute><ReviewPage /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="*" element={<ErrorBoundary><NotFound /></ErrorBoundary>} />
+          </Routes>
+        </PageTransition>
       </Suspense>
       <MobileBottomNav />
-    </div>
+    </>
   );
 }
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    {/* Dark mode is intentionally disabled — no `.dark` token block exists, so a
-        theme toggle would produce broken contrast. The provider was removed. */}
+    {/* ThemeProvider is set up in main.tsx with next-themes. Dark mode CSS variables are defined in index.css.
+        The theme toggle in Header is functional. If dark mode contrast issues arise, adjust `.dark` CSS variables in index.css. */}
     <ErrorBoundary>
       <Sonner />
       <BrowserRouter>

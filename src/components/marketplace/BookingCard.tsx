@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, CheckCircle2, Circle, Loader2 } from "lucide-react";
 
 type BookingStatus =
-  | "pending_approval"
-  | "approved"
-  | "paid"
+  | "requested"
+  | "payment_pending"
+  | "reserved"
+  | "confirmed"
   | "active"
   | "completed"
   | "cancelled"
@@ -33,9 +34,10 @@ interface BookingCardProps {
 }
 
 const STATUS_LABELS: Record<BookingStatus, string> = {
-  pending_approval: "Pending Approval",
-  approved: "Approved",
-  paid: "Paid",
+  requested: "Requested",
+  payment_pending: "Payment Pending",
+  reserved: "Reserved",
+  confirmed: "Confirmed",
   active: "Active",
   completed: "Completed",
   cancelled: "Cancelled",
@@ -43,9 +45,10 @@ const STATUS_LABELS: Record<BookingStatus, string> = {
 };
 
 const STATUS_VARIANTS: Record<BookingStatus, "warning" | "default" | "success" | "secondary" | "destructive"> = {
-  pending_approval: "warning",
-  approved: "default",
-  paid: "default",
+  requested: "warning",
+  payment_pending: "warning",
+  reserved: "default",
+  confirmed: "default",
   active: "success",
   completed: "success",
   cancelled: "destructive",
@@ -55,14 +58,14 @@ const STATUS_VARIANTS: Record<BookingStatus, "warning" | "default" | "success" |
 const getTimeline = (status: BookingStatus): BookingTimelineStep[] => {
   const allSteps = [
     { label: "Requested", status: "done" as const },
-    { label: "Approved", status: "pending" as const },
     { label: "Paid", status: "pending" as const },
+    { label: "Confirmed", status: "pending" as const },
     { label: "Active", status: "pending" as const },
     { label: "Completed", status: "pending" as const },
   ];
 
   const statusOrder: BookingStatus[] = [
-    "pending_approval", "approved", "paid", "active", "completed",
+    "requested", "reserved", "confirmed", "active", "completed",
   ];
 
   const idx = statusOrder.indexOf(status);

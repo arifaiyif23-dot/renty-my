@@ -11,6 +11,7 @@ import {
 interface UserTrustBadgeProps {
   level?: VerificationLevel;
   trustScore?: number;
+  vendorTrustScore?: number;
   showScore?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -24,10 +25,16 @@ const LEVEL_CONFIG: Record<VerificationLevel, { label: string; icon: typeof Shie
   premium: { label: 'Premium Verified', icon: BadgeCheck, color: 'text-blue-500', description: 'Enhanced eKYC verification completed' },
 };
 
-export function UserTrustBadge({ level = 'unverified', trustScore, showScore, size = 'md', className }: UserTrustBadgeProps) {
+export function UserTrustBadge({ level = 'unverified', trustScore, vendorTrustScore, showScore, size = 'md', className }: UserTrustBadgeProps) {
   const config = LEVEL_CONFIG[level];
   const Icon = config.icon;
   const sizeClass = size === 'sm' ? 'h-3.5 w-3.5' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
+
+  const trustLevel = trustScore != null
+    ? trustScore >= 80 ? 'Trusted User'
+      : trustScore >= 50 ? 'Normal User'
+      : 'New User'
+    : null;
 
   return (
     <TooltipProvider>
@@ -52,7 +59,13 @@ export function UserTrustBadge({ level = 'unverified', trustScore, showScore, si
         <TooltipContent side="top">
           <p className="text-sm">{config.description}</p>
           {trustScore != null && (
-            <p className="text-xs text-muted-foreground mt-1">Trust Score: {trustScore}/100</p>
+            <>
+              <p className="text-xs text-muted-foreground mt-1">Renter Trust Score: {trustScore}/100</p>
+              {trustLevel && <p className="text-xs font-medium mt-0.5">{trustLevel}</p>}
+            </>
+          )}
+          {vendorTrustScore != null && (
+            <p className="text-xs text-muted-foreground mt-1">Vendor Trust Score: {vendorTrustScore}/100</p>
           )}
         </TooltipContent>
       </Tooltip>

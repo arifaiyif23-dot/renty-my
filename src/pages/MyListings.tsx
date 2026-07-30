@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
-import Header from '@/components/Header';
+import { PageLayout } from "@/components/PageLayout";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Plus, Search, Grid3x3, List, Eye,
   Edit, Pause, Play, Trash2, MoreVertical,
-  Calendar, DollarSign, Inbox, Loader2, RefreshCw
+  Calendar, DollarSign, Inbox, Loader2, RefreshCw, CheckCircle
 } from 'lucide-react';
 import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import SkeletonCard from '@/components/SkeletonCard';
@@ -46,6 +46,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { InspectionDialog } from '@/components/InspectionDialog';
 import type { ListingEditFormData } from '@/types';
 
 type ViewMode = 'grid' | 'list';
@@ -62,6 +63,7 @@ export default function MyListings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<ListingEditFormData | null>(null);
+  const [inspectionItem, setInspectionItem] = useState<{ id: string; title: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ ids: string[]; bulk: boolean } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'requests'>('listings');
@@ -157,7 +159,7 @@ export default function MyListings() {
           renter:profiles!rentals_renter_id_fkey(*)
         `)
         .eq('owner_id', user.id)
-        .eq('status', 'pending_approval')
+        .eq('status', 'requested')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -177,7 +179,10 @@ export default function MyListings() {
     try {
       const { error } = await supabase
         .from('items')
-        .update({ listing_status: newStatus })
+        .update({
+          listing_status: newStatus,
+          status: newStatus === 'active' ? 'available' : newStatus === 'paused' ? 'paused' : undefined,
+        })
         .eq('id', itemId);
 
       if (error) throw error;
@@ -213,7 +218,7 @@ export default function MyListings() {
       if (archiveIds.length > 0) {
         const { error: archiveError } = await supabase
           .from('items')
-          .update({ listing_status: 'archived', is_available: false })
+          .update({ listing_status: 'archived', is_available: false, status: 'lost' })
           .in('id', archiveIds);
 
         if (archiveError) throw archiveError;
@@ -257,10 +262,11 @@ export default function MyListings() {
     if (bulkProcessing) return;
     setBulkProcessing(true);
     try {
-      const status = action === 'activate' ? 'active' : 'paused';
+      const listStatus = action === 'activate' ? 'active' : 'paused';
+      const itemStatus: string | undefined = action === 'activate' ? 'available' : 'paused';
       const { error } = await supabase
         .from('items')
-        .update({ listing_status: status })
+        .update({ listing_status: listStatus, status: itemStatus })
         .in('id', selectedItems);
 
       if (error) throw error;
@@ -281,9 +287,11 @@ export default function MyListings() {
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'active': return 'default';
+      case 'active': case 'available': return 'default';
       case 'paused': return 'secondary';
-      case 'draft': return 'outline';
+      case 'draft': case 'created': return 'outline';
+      case 'under_review': return 'warning';
+      case 'inspection_pending': return 'warning';
       default: return 'destructive';
     }
   };
@@ -293,8 +301,7 @@ export default function MyListings() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-mobile-nav">
-        <Header />
+    <PageLayout>
         {pullDistance > 0 && (
           <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
             <div
@@ -516,9 +523,9 @@ export default function MyListings() {
                     )}
                     <Badge
                       className="absolute top-2 right-2 rounded-full"
-                      variant={getStatusBadgeVariant(item.listing_status)}
+                      variant={getStatusBadgeVariant((item as { status?: string }).status || item.listing_status)}
                     >
-                      {t(`common.${item.listing_status}`)}
+                      {t(`common.${(item as { status?: string }).status || item.listing_status}`)}
                     </Badge>
                   </div>
                   <CardContent className="p-4">
@@ -561,6 +568,19 @@ export default function MyListings() {
                       </DropdownMenu>
                     </div>
 
+                    {(item as { status?: string }).status === 'inspection_pending' && (
+                      <div className="mt-4 pt-4 border-t">
+                        <Button
+                          variant="default"
+                          className="w-full"
+                          onClick={() => setInspectionItem({ id: item.id, title: item.title })}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {t('listings.completeInspection')}
+                        </Button>
+                      </div>
+                    )}
+
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t">
                       <div className="text-lg font-bold leading-none">
                         RM{item.price_per_day}/{t('common.per_day')}
@@ -597,6 +617,16 @@ export default function MyListings() {
           open={!!editingItem}
           onOpenChange={(open) => !open && setEditingItem(null)}
           listing={editingItem}
+        />
+      )}
+
+      {inspectionItem && (
+        <InspectionDialog
+          itemId={inspectionItem.id}
+          itemTitle={inspectionItem.title}
+          open={!!inspectionItem}
+          onOpenChange={(open) => !open && setInspectionItem(null)}
+          onSuccess={() => refetch()}
         />
       )}
 
@@ -641,6 +671,6 @@ export default function MyListings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageLayout>
   );
 }

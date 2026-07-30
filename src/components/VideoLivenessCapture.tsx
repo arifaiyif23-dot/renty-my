@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Camera, Video, Check } from "lucide-react";
+import { Camera, Video, Check, Smartphone } from "lucide-react";
 import { toast } from "sonner";
+import { isNative } from "@/lib/platform";
 
 interface VideoLivenessCaptureProps {
   onCapture: (videoBlob: Blob, frames: Blob[]) => void;
@@ -14,7 +15,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
   const [countdown, setCountdown] = useState<number | null>(null);
   const [instruction, setInstruction] = useState("Click 'Start' to begin liveness check");
   const [capturedFrames, setCapturedFrames] = useState<Blob[]>([]);
-  
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -27,6 +28,27 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
     };
   }, []);
 
+  if (isNative()) {
+    return (
+      <Card className="p-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">Liveness Check</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Camera liveness check is handled by the native app. Please use the app camera feature to complete verification.
+          </p>
+          {onSkip && (
+            <Button onClick={onSkip} variant="outline" className="w-full">
+              Skip for now
+            </Button>
+          )}
+        </div>
+      </Card>
+    );
+  }
+
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -36,12 +58,12 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
           height: { ideal: 720 }
         }
       });
-      
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      
+
       return stream;
     } catch (error) {
       console.error("Camera access error:", error);
@@ -68,7 +90,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       const ctx = canvas.getContext('2d');
-      
+
       if (!ctx) {
         reject(new Error("Canvas context not available"));
         return;
@@ -88,8 +110,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
   const startLivenessCheck = async () => {
     try {
       await startCamera();
-      
-      // Countdown before recording
+
       setCountdown(3);
       for (let i = 3; i > 0; i--) {
         setCountdown(i);
@@ -97,7 +118,6 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
       }
       setCountdown(null);
 
-      // Start recording
       const stream = streamRef.current;
       if (!stream) throw new Error("Stream not available");
 
@@ -108,11 +128,9 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
           : MediaRecorder.isTypeSupported('video/mp4')
             ? 'video/mp4'
             : undefined;
-      // Remember the negotiated MIME type so the final Blob uses the correct
-      // container (hardcoding 'video/webm' breaks playback on Safari/mp4).
       negotiatedMimeRef.current = mimeType || 'video/webm';
       const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-      
+
       chunksRef.current = [];
       mediaRecorderRef.current = mediaRecorder;
 
@@ -125,7 +143,6 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
       mediaRecorder.start();
       setIsRecording(true);
 
-      // Liveness instructions sequence
       const instructions = [
         { text: "Look straight at the camera", duration: 1500 },
         { text: "Blink twice slowly", duration: 2000 },
@@ -139,8 +156,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
       for (const inst of instructions) {
         setInstruction(inst.text);
         await new Promise(resolve => setTimeout(resolve, inst.duration));
-        
-        // Capture frame at each instruction
+
         try {
           const frame = await captureFrame();
           frames.push(frame);
@@ -151,7 +167,6 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
 
       setCapturedFrames(frames);
 
-      // Set onstop handler BEFORE calling stop to avoid race condition
       mediaRecorder.onstop = () => {
         const videoBlob = new Blob(chunksRef.current, { type: negotiatedMimeRef.current });
         stopCamera();
@@ -159,7 +174,6 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
         onCapture(videoBlob, frames);
       };
 
-      // Stop recording
       mediaRecorder.stop();
       setIsRecording(false);
       setInstruction("Processing...");
@@ -190,7 +204,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
               <div className="text-6xl font-bold text-white">{countdown}</div>
             </div>
           )}
-          
+
           {isRecording && (
             <div className="absolute top-4 left-4 z-10">
               <div className="flex items-center gap-2 bg-destructive/90 text-white px-3 py-2 rounded-full">
@@ -246,7 +260,7 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
               )}
             </>
           )}
-          
+
           {capturedFrames.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-success">
               <Check className="w-4 h-4" />

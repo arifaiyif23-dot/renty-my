@@ -69,7 +69,7 @@ export function useIndexData() {
       const [{ count: unreadCount }, { count: activeCount }, { count: pendingCount }, { count: myListings }] = await Promise.all([
         supabase.from('messages').select('*', { count: 'exact', head: true }).eq('recipient_id', userId).eq('is_read', false),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).or(`renter_id.eq.${userId},owner_id.eq.${userId}`).in('status', ['paid', 'active']),
-        supabase.from('rentals').select('*', { count: 'exact', head: true }).or(`renter_id.eq.${userId},owner_id.eq.${userId}`).in('status', ['pending_approval', 'approved']),
+        supabase.from('rentals').select('*', { count: 'exact', head: true }).or(`renter_id.eq.${userId},owner_id.eq.${userId}`).in('status', ['requested', 'reserved']),
         supabase.from('items').select('*', { count: 'exact', head: true }).eq('owner_id', userId),
       ])
       setAuthSummary({
@@ -87,7 +87,7 @@ export function useIndexData() {
   const fetchTrustStats = async () => {
     try {
       const [itemsResult, usersResult, rentalsResult, reviewsResult] = await Promise.all([
-        supabase.from('items').select('*', { count: 'exact', head: true }).eq('is_available', true),
+        supabase.from('items').select('*', { count: 'exact', head: true }).eq('status', 'available'),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
         supabase.from('reviews').select('rating'),
@@ -120,11 +120,11 @@ export function useIndexData() {
             item_images(image_url),
             profiles!items_owner_id_fkey(is_verified, verification_level)
           `)
-          .eq('is_available', true)
+          .eq('status', 'available')
           .order('created_at', { ascending: false })
           .limit(6),
-        supabase.from('items').select('category, price_per_day').eq('is_available', true).limit(5000),
-        supabase.from('items').select('*', { count: 'exact', head: true }).eq('is_available', true),
+        supabase.from('items').select('category, price_per_day').eq('status', 'available').limit(5000),
+        supabase.from('items').select('*', { count: 'exact', head: true }).eq('status', 'available'),
       ])
 
       if (countResult.count !== null) setTotalItemCount(countResult.count)

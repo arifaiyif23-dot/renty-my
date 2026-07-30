@@ -19,6 +19,7 @@ interface AdminItem {
   location: string;
   is_available: boolean;
   listing_status: string;
+  status?: string;
   created_at: string;
   owner: { full_name: string } | null;
   item_images: { image_url: string }[] | null;
@@ -43,21 +44,23 @@ export default function AdminListings() {
     try {
       let query = supabase
         .from("items")
-        .select("id, title, category, price_per_day, location, is_available, listing_status, created_at, owner:profiles!owner_id(full_name), item_images(image_url)")
+        .select("id, title, category, price_per_day, location, is_available, listing_status, status, created_at, owner:profiles!owner_id(full_name), item_images(image_url)")
         .order("created_at", { ascending: false })
         .limit(100);
 
       if (filterCategory !== "all") {
         query = query.eq("category", filterCategory);
       }
-      if (filterStatus === "visible") {
-        query = query.eq("is_available", true);
-      } else if (filterStatus === "hidden") {
-        query = query.eq("is_available", false);
-      } else if (filterStatus === "active") {
-        query = query.eq("listing_status", "active");
+      if (filterStatus === "available") {
+        query = query.eq("status", "available");
+      } else if (filterStatus === "under_review") {
+        query = query.eq("status", "under_review");
+      } else if (filterStatus === "paused") {
+        query = query.eq("status", "paused");
+      } else if (filterStatus === "maintenance") {
+        query = query.eq("status", "maintenance");
       } else if (filterStatus === "draft") {
-        query = query.eq("listing_status", "draft");
+        query = query.in("status", ["created"]);
       }
 
       const { data, error } = await query;
@@ -74,15 +77,16 @@ export default function AdminListings() {
   const toggleVisibility = async (itemId: string, current: boolean) => {
     setProcessing(itemId);
     try {
+      const nextAvailable = !current;
       const { error } = await supabase
         .from("items")
-        .update({ is_available: !current })
+        .update({ is_available: nextAvailable, status: nextAvailable ? 'available' : 'paused' })
         .eq("id", itemId);
 
       if (error) throw error;
 
       setItems((prev) =>
-        prev.map((i) => (i.id === itemId ? { ...i, is_available: !current } : i))
+        prev.map((i) => (i.id === itemId ? { ...i, is_available: nextAvailable } : i))
       );
       toast.success(current ? "Listing hidden" : "Listing shown");
     } catch (error) {
@@ -149,9 +153,10 @@ export default function AdminListings() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="visible">Visible</SelectItem>
-                <SelectItem value="hidden">Hidden</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="under_review">Pending Review</SelectItem>
+                <SelectItem value="paused">Paused</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
@@ -187,11 +192,21 @@ export default function AdminListings() {
                       <Badge variant="secondary" className="capitalize text-xs rounded-full">
                         {item.category}
                       </Badge>
-                      {item.is_available ? (
-                        <Badge className="bg-success text-xs rounded-full">Visible</Badge>
-                      ) : (
-                        <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
-                      )}
+                      {(() => {
+                        const s = item.status || '';
+                        if (s === 'available') return <Badge className="bg-success text-xs rounded-full">Available</Badge>;
+                        if (s === 'under_review') return <Badge className="bg-warning text-xs rounded-full">Pending Review</Badge>;
+                        if (s === 'created') return <Badge variant="secondary" className="text-xs rounded-full">Draft</Badge>;
+                        if (s === 'paused') return <Badge variant="secondary" className="text-xs rounded-full">Paused</Badge>;
+                        if (s === 'maintenance') return <Badge variant="destructive" className="text-xs rounded-full">Maintenance</Badge>;
+                        if (s === 'damaged') return <Badge variant="destructive" className="text-xs rounded-full">Damaged</Badge>;
+                        if (s === 'lost') return <Badge variant="destructive" className="text-xs rounded-full">Lost</Badge>;
+                        return item.is_available ? (
+                          <Badge className="bg-success text-xs rounded-full">Visible</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-xs rounded-full">Hidden</Badge>
+                        );
+                      })()}
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
                       <span>Owner: {item.owner?.full_name || "Unknown"}</span>
@@ -201,6 +216,52 @@ export default function AdminListings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {(item.status === 'under_review') && (
+                      <>
+                        <Button className="rounded-xl"
+                          size="sm"
+                          variant="default"
+                          onClick={async () => {
+                            setProcessing(item.id);
+                            try {
+                              const { error } = await supabase.functions.invoke('admin-operations', {
+                                body: { action: 'item_review', payload: { itemId: item.id, action: 'approve' } }
+                              });
+                              if (error) throw error;
+                              toast.success('Listing approved');
+                              fetchItems();
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to approve');
+                            } finally { setProcessing(null); }
+                          }}
+                          disabled={processing === item.id}
+                        >
+                          {processing === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                          Approve
+                        </Button>
+                        <Button className="rounded-xl"
+                          size="sm"
+                          variant="destructive"
+                          onClick={async () => {
+                            setProcessing(item.id);
+                            try {
+                              const { error } = await supabase.functions.invoke('admin-operations', {
+                                body: { action: 'item_review', payload: { itemId: item.id, action: 'reject' } }
+                              });
+                              if (error) throw error;
+                              toast.success('Listing rejected');
+                              fetchItems();
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to reject');
+                            } finally { setProcessing(null); }
+                          }}
+                          disabled={processing === item.id}
+                        >
+                          {processing === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-1" />}
+                          Reject
+                        </Button>
+                      </>
+                    )}
                     <Button className="rounded-xl"
                       size="sm"
                       variant="outline"
@@ -209,21 +270,23 @@ export default function AdminListings() {
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    <Button className="rounded-xl"
-                      size="sm"
-                      variant={item.is_available ? "secondary" : "default"}
-                      onClick={() => toggleVisibility(item.id, item.is_available)}
-                      disabled={processing === item.id}
-                    >
-                      {processing === item.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : item.is_available ? (
-                        <EyeOff className="h-4 w-4 mr-1" />
-                      ) : (
-                        <Eye className="h-4 w-4 mr-1" />
-                      )}
-                      {item.is_available ? "Hide" : "Show"}
-                    </Button>
+                    {item.status !== 'under_review' && (
+                      <Button className="rounded-xl"
+                        size="sm"
+                        variant={item.is_available ? "secondary" : "default"}
+                        onClick={() => toggleVisibility(item.id, item.is_available)}
+                        disabled={processing === item.id}
+                      >
+                        {processing === item.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : item.is_available ? (
+                          <EyeOff className="h-4 w-4 mr-1" />
+                        ) : (
+                          <Eye className="h-4 w-4 mr-1" />
+                        )}
+                        {item.is_available ? "Hide" : "Show"}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </GlassCard>

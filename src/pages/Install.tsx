@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Smartphone, CheckCircle2, Zap, Shield, Download } from "lucide-react";
 import SEO from "@/components/SEO";
+import { isNative } from "@/lib/platform";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -18,6 +19,10 @@ const Install = () => {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    if (isNative()) {
+      setIsInstalled(true);
+      return;
+    }
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
@@ -68,14 +73,13 @@ const Install = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-mobile-nav">
+    <PageLayout>
       <SEO
         title="Install RENTY App"
         description="Install RENTY on your device for a faster, app-like experience with offline support"
       />
-      <Header />
 
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="container mx-auto px-0 py-12 max-w-4xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-2">
             Install RENTY
@@ -184,7 +188,7 @@ const Install = () => {
           </ul>
         </GlassCard>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

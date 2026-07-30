@@ -15,6 +15,7 @@ interface VendorCardProps {
   verificationLevel?: VerificationLevel;
   responseTime?: string;
   trustScore?: number;
+  vendorTrustScore?: number;
   onClick?: () => void;
   className?: string;
 }
@@ -28,6 +29,7 @@ const VendorCard = ({
   verificationLevel,
   responseTime,
   trustScore,
+  vendorTrustScore,
   onClick,
   className,
 }: VendorCardProps) => {
@@ -87,6 +89,7 @@ const VendorCard = ({
               <UserTrustBadge
                 level={verificationLevel || "unverified"}
                 trustScore={trustScore}
+                vendorTrustScore={vendorTrustScore}
                 size="sm"
               />
             )}

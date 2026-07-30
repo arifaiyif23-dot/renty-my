@@ -8,6 +8,17 @@ import { ReviewForm } from "@/components/ReviewForm";
 import { RentalModificationDialog } from "@/components/RentalModificationDialog";
 import { PayNowButton } from "@/components/PayNowButton";
 import { HandoverDialog } from "@/components/HandoverDialog";
+import { RentalTimer } from "@/components/RentalTimer";
+import { isNative } from "@/lib/platform";
+
+async function openPhoto(url: string) {
+  if (isNative()) {
+    const { Browser } = await import('@capacitor/browser');
+    await Browser.open({ url });
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
+}
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { ConditionReportWizard } from "@/components/ConditionReportWizard";
 import { ConditionReportViewer } from "@/components/ConditionReportViewer";
@@ -44,6 +55,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
   const [conditionWizard, setConditionWizard] = useState<{ open: boolean; type: 'pre_rental' | 'post_rental' }>({ open: false, type: 'pre_rental' });
   const [conditionReports, setConditionReports] = useState<ConditionReport[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const [vendorNoShowDialog, setVendorNoShowDialog] = useState(false);
 
   const loadConditionReports = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -66,6 +78,23 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
     loadConditionReports();
   };
 
+  const handleReportVendorNoShow = async () => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase.functions.invoke('confirm-handover', {
+        body: { action: 'report_no_show', rentalId: rental.id }
+      });
+      if (error) throw error;
+      toast.success('Rental cancelled. Full refund will be processed.');
+      setVendorNoShowDialog(false);
+      onReviewSuccess();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to report vendor no-show');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const canReview = rental.status === 'completed';
   const revieweeId = isOwner ? rental.renter_id : rental.owner_id;
 
@@ -74,13 +103,17 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
 
   const getStatusColor = (status: Rental['status']) => {
     switch (status) {
-      case 'pending_approval':
+      case 'requested':
+      case 'payment_pending':
         return 'bg-warning/20 text-warning border-warning/30';
-      case 'approved':
+      case 'reserved':
         return 'bg-primary/20 text-primary border-primary/30';
-      case 'paid':
+      case 'confirmed':
+        return 'bg-primary/20 text-primary border-primary/30';
       case 'active':
         return 'bg-success/20 text-success border-success/30';
+      case 'overdue':
+        return 'bg-destructive/20 text-destructive border-destructive/30';
       case 'completed':
         return 'bg-primary/20 text-primary border-primary/30';
       case 'disputed':
@@ -95,14 +128,16 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
 
   const getStatusIcon = (status: Rental['status']) => {
     switch (status) {
-      case 'pending_approval':
+      case 'requested':
+      case 'payment_pending':
         return <Clock className="h-3 w-3" />;
-      case 'approved':
-        return <CheckCircle className="h-3 w-3" />;
-      case 'paid':
+      case 'reserved':
+      case 'confirmed':
       case 'active':
       case 'completed':
         return <CheckCircle className="h-3 w-3" />;
+      case 'overdue':
+        return <AlertTriangle className="h-3 w-3" />;
       case 'disputed':
         return <AlertTriangle className="h-3 w-3" />;
       case 'rejected':
@@ -117,7 +152,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
     if (!confirmDialog.action) return;
 
     const statusMap = {
-      approve: 'approved' as Rental['status'],
+      approve: 'confirmed' as Rental['status'],
       reject: 'rejected' as Rental['status'],
       active: 'active' as Rental['status'],
       complete: 'completed' as Rental['status'],
@@ -223,11 +258,19 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               <p className="text-muted-foreground">{isOwner ? t('rental.renter') : t('rental.owner')}</p>
               <p className="font-medium">{isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
             </div>
+
+            {(rental.status === 'active' || rental.status === 'overdue') && (
+              <RentalTimer
+                startDate={rental.start_date}
+                endDate={rental.end_date}
+                actualStartAt={rental.actual_start_at}
+              />
+            )}
             
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 pt-2">
-              {/* Renter: Pickup code for approved/paid rentals */}
-              {!isOwner && (rental.status === 'approved' || rental.status === 'paid') && rental.pickup_code && (
+              {/* Renter: Pickup code for confirmed rentals */}
+              {!isOwner && rental.status === 'confirmed' && rental.pickup_code && (
                 <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">{t('rental.pickupCode')}</p>
                   <div className="flex items-center justify-center gap-2">
@@ -237,13 +280,13 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                 </div>
               )}
 
-              {/* Renter: Pay Now button for approved rentals */}
-              {!isOwner && rental.status === 'approved' && (
+              {/* Renter: Pay Now button for requested rentals */}
+              {!isOwner && rental.status === 'requested' && (
                 <PayNowButton rental={rental} onPaymentCreated={onReviewSuccess} />
               )}
 
-              {/* Owner: Start Handover for paid rentals */}
-              {isOwner && rental.status === 'paid' && (
+              {/* Owner: Start Handover for confirmed rentals */}
+              {isOwner && rental.status === 'confirmed' && (
                 <Button 
                   variant="default"
                   className="w-full h-12"
@@ -254,10 +297,23 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                 </Button>
               )}
 
-              {/* Owner: Process Return for active rentals */}
-              {isOwner && rental.status === 'active' && (
+              {/* Renter: Report vendor no-show if start date passed */}
+              {!isOwner && rental.status === 'confirmed' && new Date(rental.start_date) < new Date() && (
                 <Button 
-                  variant="default"
+                  variant="outline"
+                  className="w-full h-12 text-destructive border-destructive/30"
+                  onClick={() => setVendorNoShowDialog(true)}
+                  disabled={isUpdating}
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Vendor not showing?
+                </Button>
+              )}
+
+              {/* Owner: Process Return for active/overdue rentals */}
+              {isOwner && (rental.status === 'active' || rental.status === 'overdue') && (
+                <Button 
+                  variant={rental.status === 'overdue' ? 'destructive' : 'default'}
                   className="w-full h-12"
                   onClick={() => setReturnDialog(true)}
                 >
@@ -266,8 +322,8 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                 </Button>
               )}
 
-              {/* Owner actions for pending_approval */}
-              {isOwner && rental.status === 'pending_approval' && (
+              {/* Owner actions for reserved (payment received, waiting confirmation) */}
+              {isOwner && rental.status === 'reserved' && (
                 <>
                   <Button 
                     variant="default"
@@ -280,7 +336,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                     ) : (
                       <CheckCircle className="h-4 w-4 mr-2" />
                     )}
-                    {t('rental.approveRequest')}
+                    {t('rental.confirmBooking')}
                   </Button>
                   <Button 
                     variant="outline"
@@ -299,11 +355,19 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               )}
               
               {/* Status messages for renters */}
-              {!isOwner && rental.status === 'pending_approval' && (
+              {!isOwner && rental.status === 'requested' && (
                 <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
                   <p className="text-sm text-warning flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     {t('rental.waitingApproval')}
+                  </p>
+                </div>
+              )}
+              {!isOwner && rental.status === 'reserved' && (
+                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                  <p className="text-sm text-primary flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {t('rental.waitingConfirm')}
                   </p>
                 </div>
               )}
@@ -336,7 +400,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               )}
 
               {/* View condition report */}
-              {['active', 'completed', 'disputed'].includes(rental.status) && (
+              {['active', 'completed', 'disputed', 'overdue'].includes(rental.status) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -350,17 +414,17 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               )}
 
               {/* View handover/return photos */}
-              {rental.status === 'active' && rental.handover_photos && rental.handover_photos.length > 0 && (
+              {(rental.status === 'active' || rental.status === 'overdue') && rental.handover_photos && rental.handover_photos.length > 0 && (
                 <Button 
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(rental.handover_photos[0], '_blank', 'noopener')}
+                  onClick={() => openPhoto(rental.handover_photos[0])}
                 >
                   {t('rental.viewHandoverPhotos')} ({rental.handover_photos.length})
                 </Button>
               )}
 
-              {!isOwner && rental.status === 'active' && (
+              {!isOwner && (rental.status === 'active' || rental.status === 'overdue') && (
                 <div className="grid grid-cols-2 gap-2">
                   <Button 
                     variant="outline"
@@ -431,9 +495,17 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               <p><strong>{t('rental.total')}:</strong> RM {rental.total_price}</p>
               <p><strong>{isOwner ? t('rental.renter') : t('rental.owner')}:</strong> {isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
             </div>
+
+            {rental.status === 'active' && (
+              <RentalTimer
+                startDate={rental.start_date}
+                endDate={rental.end_date}
+                actualStartAt={rental.actual_start_at}
+              />
+            )}
             
-            {/* Renter: Pickup code for approved/paid rentals */}
-            {!isOwner && (rental.status === 'approved' || rental.status === 'paid') && rental.pickup_code && (
+            {/* Renter: Pickup code for confirmed rentals */}
+            {!isOwner && rental.status === 'confirmed' && rental.pickup_code && (
               <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-1">{t('rental.pickupCode')}</p>
                 <div className="flex items-center justify-center gap-2">
@@ -443,13 +515,13 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               </div>
             )}
 
-            {/* Renter: Pay Now button for approved rentals */}
-            {!isOwner && rental.status === 'approved' && (
+            {/* Renter: Pay Now button for requested rentals */}
+            {!isOwner && rental.status === 'requested' && (
               <PayNowButton rental={rental} onPaymentCreated={onReviewSuccess} />
             )}
 
-            {/* Owner: Start Handover for paid rentals */}
-            {isOwner && rental.status === 'paid' && (
+            {/* Owner: Start Handover for confirmed rentals */}
+            {isOwner && rental.status === 'confirmed' && (
               <Button 
                 variant="default"
                 size="sm"
@@ -460,10 +532,24 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               </Button>
             )}
 
-            {/* Owner: Process Return for active rentals */}
-            {isOwner && rental.status === 'active' && (
+            {/* Renter: Report vendor no-show if start date passed */}
+            {!isOwner && rental.status === 'confirmed' && new Date(rental.start_date) < new Date() && (
               <Button 
-                variant="default"
+                variant="outline"
+                size="sm"
+                className="text-destructive border-destructive/30"
+                onClick={() => setVendorNoShowDialog(true)}
+                disabled={isUpdating}
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Vendor no-show?
+              </Button>
+            )}
+
+            {/* Owner: Process Return for active/overdue rentals */}
+            {isOwner && (rental.status === 'active' || rental.status === 'overdue') && (
+              <Button 
+                variant={rental.status === 'overdue' ? 'destructive' : 'default'}
                 size="sm"
                 onClick={() => setReturnDialog(true)}
               >
@@ -472,8 +558,8 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
               </Button>
             )}
 
-            {/* Owner actions for pending_approval */}
-            {isOwner && rental.status === 'pending_approval' && (
+            {/* Owner actions for reserved (payment received, waiting confirmation) */}
+            {isOwner && rental.status === 'reserved' && (
               <div className="flex gap-2">
                 <Button 
                   variant="default"
@@ -486,7 +572,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                   ) : (
                     <CheckCircle className="h-4 w-4 mr-2" />
                   )}
-                  {t('rental.approve')}
+                  {t('rental.confirmBooking')}
                 </Button>
                 <Button 
                   size="sm" 
@@ -505,11 +591,19 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
             )}
             
             {/* Status messages for renters */}
-            {!isOwner && rental.status === 'pending_approval' && (
+            {!isOwner && rental.status === 'requested' && (
               <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
                 <p className="text-sm text-warning flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   {t('rental.waitingApproval')}
+                </p>
+              </div>
+            )}
+            {!isOwner && rental.status === 'reserved' && (
+              <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                <p className="text-sm text-primary flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  {t('rental.waitingConfirm')}
                 </p>
               </div>
             )}
@@ -542,7 +636,7 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
             )}
 
             {/* View condition report */}
-            {['active', 'completed', 'disputed'].includes(rental.status) && (
+            {['active', 'completed', 'disputed', 'overdue'].includes(rental.status) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -556,18 +650,18 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
             )}
 
             {/* View handover/return photos */}
-            {rental.status === 'active' && rental.handover_photos && rental.handover_photos.length > 0 && (
+            {(rental.status === 'active' || rental.status === 'overdue') && rental.handover_photos && rental.handover_photos.length > 0 && (
               <Button 
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(rental.handover_photos[0], '_blank', 'noopener')}
+                onClick={() => openPhoto(rental.handover_photos[0])}
               >
                 {t('rental.viewHandoverPhotos')} ({rental.handover_photos.length})
               </Button>
             )}
 
             {/* Renter modification options */}
-            {!isOwner && rental.status === 'active' && (
+            {!isOwner && (rental.status === 'active' || rental.status === 'overdue') && (
               <div className="flex gap-2">
                 <Button 
                   size="sm"
@@ -696,6 +790,27 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
           onOpenChange={setViewerOpen}
         />
       )}
+
+      {/* Vendor No-Show Confirmation */}
+      <Dialog open={vendorNoShowDialog} onOpenChange={setVendorNoShowDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Report Vendor No-Show</DialogTitle>
+            <DialogDescription>
+              The vendor has not confirmed the handover. This will cancel the rental and a full refund will be processed.
+              The vendor's trust score will be affected.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setVendorNoShowDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleReportVendorNoShow} disabled={isUpdating}>
+              {isUpdating ? 'Processing...' : 'Confirm No-Show'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 });

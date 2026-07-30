@@ -6,6 +6,7 @@ import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { isNative } from "@/lib/platform";
 
 interface ListingCardV2Props {
   id: string;
@@ -44,7 +45,7 @@ const ListingCardV2 = memo(({
     <Link
       to={`/items/${id}`}
       className={cn(
-        "group block rounded-xl overflow-hidden bg-card border border-border shadow-1 hover:shadow-3 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group block rounded-xl overflow-hidden glass hover:glass-elevated transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className
       )}
     >
@@ -105,12 +106,20 @@ const ListingCardV2 = memo(({
         </button>
 
         <button
-          onClick={(e) => {
+          onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
             const shareUrl = `${window.location.origin}/items/${id}`;
             const shareText = `Check out "${title}" on RENTY — RM${pricePerDay}/day`;
-            if (navigator.share) {
+            if (isNative()) {
+              try {
+                const { Share } = await import('@capacitor/share');
+                await Share.share({ title, text: shareText, url: shareUrl });
+              } catch {
+                navigator.clipboard.writeText(shareUrl);
+                toast.success('Link copied!');
+              }
+            } else if (navigator.share) {
               navigator.share({ title, text: shareText, url: shareUrl }).catch(() => {});
             } else {
               navigator.clipboard.writeText(shareUrl);

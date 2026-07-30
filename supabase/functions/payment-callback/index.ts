@@ -80,10 +80,26 @@ serve(async (req) => {
         paid_at: new Date().toISOString()
       }).eq('id', paymentId).eq('status', 'pending');
 
-      await supabase.from('rentals').update({ status: 'paid' }).eq('id', payment.rental_id);
+      await supabase.from('rentals').update({ status: 'reserved' }).eq('id', payment.rental_id);
+
+      await supabase.from('notifications').insert({
+        user_id: payment.rental?.owner_id,
+        type: 'rental_request',
+        title: 'Payment Received',
+        message: 'Payment has been received for your item. Please confirm the booking to proceed.',
+        link: '/my-listings',
+      });
+
+      await supabase.from('notifications').insert({
+        user_id: payment.rental?.renter_id,
+        type: 'rental_request',
+        title: 'Payment Verified',
+        message: 'Your payment has been verified. Waiting for the owner to confirm your booking.',
+        link: '/dashboard',
+      });
     } else if (verifiedStatus === '3') {
       await supabase.from('payments').update({ status: 'failed' }).eq('id', paymentId).eq('status', 'pending');
-      await supabase.from('rentals').update({ status: 'cancelled' }).eq('id', payment.rental_id).in('status', ['approved']);
+      await supabase.from('rentals').update({ status: 'cancelled' }).eq('id', payment.rental_id).in('status', ['payment_pending']);
     }
 
     return new Response('OK', { status: 200 });

@@ -42,10 +42,10 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
 
       if (error) throw error;
 
-      toast.success(`Booking ${action === 'approve' ? 'approved' : 'declined'} successfully`, {
+      toast.success(`Booking ${action === 'approve' ? 'confirmed' : 'declined'} successfully`, {
         description: action === 'approve' 
-          ? 'The renter has been notified and can now proceed to payment.'
-          : 'The renter has been notified of your decision.'
+          ? 'The renter has been notified. A pickup code has been generated for handover.'
+          : 'The renter has been notified. A refund will be processed.'
       });
       
       onUpdate();
@@ -58,7 +58,7 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
     }
   };
 
-  const pendingRequests = rentals.filter(r => r.status === 'pending_approval');
+  const pendingRequests = rentals.filter(r => r.status === 'reserved');
 
   if (pendingRequests.length === 0) {
     return (
@@ -217,15 +217,15 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
             <AlertDialogDescription>
               {confirmDialog.action === 'approve' ? (
                 <>
-                  By approving, you're confirming that your item is available for rental during the requested dates.
-                  The renter will be notified and can proceed to payment.
+                  Payment has been received. By confirming, you are accepting the booking and a pickup code
+                  will be generated for the renter. The renter will need this code at handover.
                   <br /><br />
                   <strong>Item:</strong> {confirmDialog.rental?.item?.title}<br />
                   <strong>Amount:</strong> RM {confirmDialog.rental?.total_price}
                 </>
               ) : (
                 <>
-                  The renter will be notified that their booking request has been declined.
+                  The renter has already paid. Declining will trigger a refund process.
                   This action cannot be undone.
                 </>
               )}

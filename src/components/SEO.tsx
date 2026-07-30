@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { isNative } from "@/lib/platform";
 
 interface SEOProps {
   title: string;
@@ -12,9 +13,10 @@ export default function SEO({
   title, 
   description, 
   image = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
-  url = window.location.href,
+  url = isNative() ? "" : window.location.href,
   type = "website"
 }: SEOProps) {
+  if (isNative()) return null;
   const fullTitle = `${title} | RENTY - Malaysia's Rental Platform`;
   
   return (

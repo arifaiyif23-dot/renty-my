@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
 import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
-import Header from '@/components/Header';
+import { PageLayout } from "@/components/PageLayout";
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import EnhancedEmptyState from '@/components/EnhancedEmptyState';
 import {
@@ -215,9 +215,8 @@ export default function Earnings() {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto px-4 py-8 pb-mobile-nav md:pb-8">
+      <PageLayout>
+        <div className="">
           <div className="flex items-center gap-3 mb-8">
             <SkeletonV2 variant="circular" className="h-10 w-10" />
             <div className="space-y-2">
@@ -230,14 +229,12 @@ export default function Earnings() {
           </div>
           <SkeletonV2 variant="card" className="h-64" />
         </div>
-      </>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto px-4 py-8 pb-mobile-nav md:pb-8">
+    <PageLayout>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -457,8 +454,7 @@ export default function Earnings() {
             </div>
           )}
         </div>
-      </div>
-    </>
+    </PageLayout>
   );
 }
 

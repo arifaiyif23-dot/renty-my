@@ -23,7 +23,7 @@ interface AdminRental {
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Status" },
-  { value: "pending_approval", label: "Pending Approval" },
+  { value: "requested", label: "Requested" },
   { value: "approved", label: "Approved" },
   { value: "paid", label: "Paid" },
   { value: "active", label: "Active" },

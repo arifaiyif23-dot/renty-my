@@ -21,7 +21,7 @@ export const PWAFeatures = () => {
     }
   };
 
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const isStandalone = isNative() || window.matchMedia('(display-mode: standalone)').matches;
 
   return (
     <div className="space-y-4">

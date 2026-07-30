@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ShieldAlert, CheckCircle2, ArrowRight, X } from 'lucide-react';
+import { ShieldAlert, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useState } from 'react';
 
 interface VerificationRequiredBannerProps {
   isVerified: boolean;
@@ -12,28 +11,8 @@ interface VerificationRequiredBannerProps {
 export function VerificationRequiredBanner({ isVerified }: VerificationRequiredBannerProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [dismissed, setDismissed] = useState(false);
 
-  if (isVerified && !dismissed) {
-    return (
-      <Alert className="mb-4 border-success/50 bg-success/10 relative">
-        <CheckCircle2 className="h-4 w-4 text-success" />
-        <AlertTitle className="text-success">
-          {t('verification.verified', 'Verified Account')}
-        </AlertTitle>
-        <AlertDescription className="text-success">
-          {t('verification.verifiedDesc', 'Your identity is verified. You can list items for rent.')}
-        </AlertDescription>
-        <button
-          onClick={() => setDismissed(true)}
-          className="absolute top-2 right-2 p-1 rounded-md hover:bg-success/20 transition-colors"
-          aria-label="Dismiss"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </Alert>
-    );
-  }
+  if (isVerified) return null;
 
   return (
     <Alert variant="destructive" className="mb-4">

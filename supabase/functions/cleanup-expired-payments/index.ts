@@ -88,7 +88,7 @@ serve(async (req) => {
           updated_at: nowIso
         })
         .in('id', cancellableRentalIds)
-        .in('status', ['pending', 'pending_approval', 'approved']);
+        .in('status', ['requested', 'payment_pending']);
     
     if (cancelError) {
       console.error('Error cancelling rentals:', cancelError);

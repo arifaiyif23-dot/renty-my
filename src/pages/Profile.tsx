@@ -18,7 +18,7 @@ import {
 import { MapPin, Calendar, Star, Package, ShoppingBag, Edit, ShieldCheck, ShieldAlert, RefreshCw, Bell, Search, HelpCircle, Loader2, MessageCircle, Trash2 } from "lucide-react";
 import { UserTrustBadge, TrustScoreRing } from "@/components/trust/UserTrustBadge";
 import { format } from "date-fns";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 import ProfileSkeleton from "@/components/ProfileSkeleton";
 import { toast } from "sonner";
@@ -57,27 +57,21 @@ export default function Profile() {
 
   if (authError && !profile) {
     return (
-      <>
-        <Header />
-        <div className="mx-auto p-4 max-w-4xl pb-mobile-nav text-center py-12">
+      <PageLayout variant="narrow" className="text-center py-12">
           <p className="text-muted-foreground">Failed to load profile</p>
           <Button onClick={() => window.location.reload()} variant="outline" size="sm" className="mt-3">Try Again</Button>
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
   if (!profile) {
-    return <><Header /><div className="mx-auto p-4 max-w-4xl pb-mobile-nav"><ProfileSkeleton /></div></>;
+    return <PageLayout variant="narrow"><ProfileSkeleton /></PageLayout>;
   }
 
   const initials = (profile.full_name || '').split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || 'U';
 
   return (
-    <>
-      <Header />
-
-      <div className="mx-auto p-4 max-w-4xl pb-mobile-nav">
+    <PageLayout variant="narrow">
         {!profile.is_verified && !verificationStatus && (
           <div className="flex items-center justify-between p-3 mb-4 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex items-center gap-2 text-sm">
@@ -137,8 +131,15 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="shrink-0 self-center">
+            <div className="shrink-0 self-center text-center">
               <TrustScoreRing score={profile.trust_score ?? 0} size={48} />
+              {profile.trust_score != null && (
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {profile.trust_score >= 80 ? 'Trusted'
+                    : profile.trust_score >= 50 ? 'Normal'
+                    : 'New User'}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -202,6 +203,6 @@ export default function Profile() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </PageLayout>
   );
 }

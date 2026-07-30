@@ -10,8 +10,9 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 import { MapPin, Share2, MessageCircle, Loader2, ChevronDown, Star } from 'lucide-react';
+import { isNative } from '@/lib/platform';
 import type { DateRange } from 'react-day-picker';
-import Header from '@/components/Header';
+import { PageLayout } from '@/components/PageLayout';
 import BackButton from '@/components/BackButton';
 import ImageCarousel from '@/components/ImageCarousel';
 import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
@@ -84,7 +85,7 @@ export default function ItemDetail() {
           .from('items')
           .select(`
             *,
-            owner:profiles(id, full_name, avatar_url, is_verified, verification_level, trust_score, response_rate, total_rentals_completed, created_at),
+            owner:profiles(id, full_name, avatar_url, is_verified, verification_level, trust_score, vendor_trust_score, response_rate, total_rentals_completed, created_at),
             images:item_images(*)
           `)
           .eq('id', id)
@@ -137,7 +138,7 @@ export default function ItemDetail() {
       const { data, error } = await supabase
         .from('items')
         .select(`id, title, price_per_day, category, location, images:item_images(image_url), owner:owner_id(verification_level)`)
-        .eq('category', category).eq('is_available', true).neq('id', currentItemId).limit(4);
+        .eq('category', category).eq('status', 'available').neq('id', currentItemId).limit(4);
       if (error) throw error;
       setSimilarItems((data || []).map(i => ({ ...i, rating: 0, reviewCount: 0 })));
     } catch { setSimilarItems([]); }
@@ -213,7 +214,7 @@ export default function ItemDetail() {
       });
       if (bookingResult.error) throw new Error(bookingResult.error.message);
       toast.success(instantBook ? t('itemDetail.bookingConfirmed') : t('itemDetail.requestSent'));
-      navigate('/dashboard');
+      navigate(-1);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('itemDetail.anErrorOccurred'));
     } finally { setConfirming(false); setIsBooking(false); }
@@ -240,36 +241,30 @@ export default function ItemDetail() {
 
   if (loading) {
     return (
-      <>
+      <PageLayout>
         <SEO title={t('itemDetail.pageTitle')} />
-        <Header />
-        <div className="mx-auto px-4 py-6 max-w-5xl pb-44 md:pb-4">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <SkeletonV2 variant="rectangular" className="aspect-video rounded-xl" />
-              <div className="space-y-3">
-                <SkeletonV2 variant="text" className="h-8 w-3/4" />
-                <SkeletonV2 variant="text" className="h-4 w-full" />
-              </div>
-            </div>
-            <div className="card-base p-6 space-y-4">
-              <SkeletonV2 variant="text" className="h-6 w-1/2" />
-              <SkeletonV2 variant="rectangular" className="h-64 rounded-xl" />
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <SkeletonV2 variant="rectangular" className="aspect-video rounded-xl" />
+            <div className="space-y-3">
+              <SkeletonV2 variant="text" className="h-8 w-3/4" />
+              <SkeletonV2 variant="text" className="h-4 w-full" />
             </div>
           </div>
+          <div className="card-base p-6 space-y-4">
+            <SkeletonV2 variant="text" className="h-6 w-1/2" />
+            <SkeletonV2 variant="rectangular" className="h-64 rounded-xl" />
+          </div>
         </div>
-      </>
+      </PageLayout>
     );
   }
 
   if (!item) {
     return (
-      <>
-        <Header />
-        <div className="mx-auto px-4 py-12 max-w-5xl pb-mobile-nav text-center">
-          <p className="text-muted-foreground">{loadError || 'Item not found'}</p>
-        </div>
-      </>
+      <PageLayout variant="narrow" className="text-center">
+        <p className="text-muted-foreground">{loadError || 'Item not found'}</p>
+      </PageLayout>
     );
   }
 
@@ -277,11 +272,10 @@ export default function ItemDetail() {
   const descriptionTruncated = item.description && item.description.length > 120;
 
   return (
-    <>
+    <PageLayout>
       <SEO title={`${item.title} — RENTY`} description={item.description} image={item.images?.[0]?.image_url} />
-      <Header />
 
-      <div className="mx-auto px-4 py-4 max-w-5xl pb-44 md:pb-4">
+      <div className="pb-44 md:pb-0">
         <div className="md:hidden mb-3">
           <BackButton fallbackPath="/search" />
         </div>
@@ -305,11 +299,21 @@ export default function ItemDetail() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <SaveItemButton itemId={item.id} />
-                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Share" onClick={() => {
-                    navigator.share?.({ title: item.title, url: window.location.href }).catch(() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      toast.success('Link copied!');
-                    });
+                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Share" onClick={async () => {
+                    if (isNative()) {
+                      try {
+                        const { Share } = await import('@capacitor/share');
+                        await Share.share({ title: item.title, url: window.location.href });
+                      } catch {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success('Link copied!');
+                      }
+                    } else {
+                      navigator.share?.({ title: item.title, url: window.location.href }).catch(() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success('Link copied!');
+                      });
+                    }
                   }}>
                     <Share2 className="h-4 w-4" />
                   </Button>
@@ -350,6 +354,7 @@ export default function ItemDetail() {
                   location={item.location}
                   verificationLevel={item.owner.verification_level}
                   trustScore={item.owner.trust_score}
+                  vendorTrustScore={item.owner.vendor_trust_score}
                   onClick={() => navigate(`/users/${item.owner_id}`)}
                 />
               )}
@@ -513,6 +518,6 @@ export default function ItemDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </PageLayout>
   );
 }

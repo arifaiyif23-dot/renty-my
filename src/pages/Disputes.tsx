@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "@/components/ui/GlassCard";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
 import EnhancedEmptyState from "@/components/EnhancedEmptyState";
 import { format } from "date-fns";
@@ -93,9 +93,7 @@ export default function Disputes() {
   }, [loadDisputes]);
 
   return (
-    <>
-      <Header />
-      <main className="container mx-auto px-4 py-6 pb-24 md:pb-8 max-w-4xl">
+    <PageLayout variant="default" className="max-w-4xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
             <ShieldAlert className="h-5 w-5 text-warning" />

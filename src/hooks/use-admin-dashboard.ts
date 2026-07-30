@@ -121,7 +121,7 @@ export function useAdminDashboard() {
         supabase.from('verification_requests').select('*', { count: 'exact', head: true }),
         supabase.from('verification_requests').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('items').select('*', { count: 'exact', head: true }).eq('is_available', true),
+        supabase.from('items').select('*', { count: 'exact', head: true }).eq('status', 'available'),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).in('status', ['paid', 'active', 'approved']),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
         supabase.from('reports').select('*', { count: 'exact', head: true }).neq('status', 'dismissed'),

@@ -3,6 +3,7 @@ import { ListingCardV2 } from "@/components/marketplace/ListingCardV2"
 import { SkeletonV2 } from "@/components/SkeletonV2"
 import { EmptyStateV2 } from "@/components/EmptyStateV2"
 import { SearchSlash } from "lucide-react"
+import { motion } from "motion/react"
 import type { FeaturedItem } from "@/hooks/use-index-data"
 import { useTranslation } from 'react-i18next'
 
@@ -16,7 +17,7 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
   const { t } = useTranslation()
   return (
     <section className="px-4 py-10 md:py-16">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex items-end justify-between">
           <h2 className="text-xl md:text-2xl font-semibold tracking-tight">{t('home.newestListings.title')}</h2>
           <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')}>
@@ -38,19 +39,26 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
           </div>
         ) : items.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 md:gap-5">
-            {items.map(item => (
-              <ListingCardV2
+            {items.map((item, i) => (
+              <motion.div
                 key={item.id}
-                id={item.id}
-                title={item.title}
-                image={item.image}
-                pricePerDay={item.pricePerDay}
-                category={item.category}
-                location={item.location}
-                rating={item.rating}
-                reviewCount={item.reviewCount}
-                badges={item.verificationLevel && item.verificationLevel !== 'unverified' ? ['verified'] : undefined}
-              />
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <ListingCardV2
+                  id={item.id}
+                  title={item.title}
+                  image={item.image}
+                  pricePerDay={item.pricePerDay}
+                  category={item.category}
+                  location={item.location}
+                  rating={item.rating}
+                  reviewCount={item.reviewCount}
+                  badges={item.verificationLevel && item.verificationLevel !== 'unverified' ? ['verified'] : undefined}
+                />
+              </motion.div>
             ))}
           </div>
         ) : (

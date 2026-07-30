@@ -1,4 +1,7 @@
+import { isNative } from '@/lib/platform';
+
 export const registerServiceWorker = async () => {
+  if (isNative()) return;
   if ('serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {

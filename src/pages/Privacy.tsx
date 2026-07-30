@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -29,10 +29,8 @@ export default function Privacy() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout variant="narrow" className="py-10 space-y-8">
       <SEO title={t('privacy.title') + " — Renty"} description={t('privacy.subtitle')} />
-      <Header />
-      <main className="container mx-auto max-w-3xl px-4 py-10 pb-mobile-nav space-y-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Shield className="h-5 w-5 text-primary" />
@@ -145,8 +143,7 @@ export default function Privacy() {
         <p className="text-xs text-muted-foreground mt-10 font-mono">
           {t('privacy.lastUpdated', { date: new Date().toLocaleDateString() })}
         </p>
-      </main>
-    </div>
+    </PageLayout>
   );
 }
 

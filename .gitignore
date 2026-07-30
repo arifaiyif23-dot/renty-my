@@ -35,3 +35,7 @@ supabase/.temp/
 
 .vercel
 .env*
+
+# Capacitor platforms
+android/
+ios/

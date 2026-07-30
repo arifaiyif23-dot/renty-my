@@ -61,11 +61,16 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
     >
       <div
         className={cn(
-          "relative flex items-center gap-2 rounded-2xl bg-white border transition-all duration-300",
-          focused
+          "relative flex items-center gap-2 rounded-2xl transition-all duration-300",
+          isHero
+            ? "glass h-14 px-4"
+            : "bg-card border border-border h-12 px-3 shadow-1",
+          focused && isHero
+            ? "ring-2 ring-primary/20"
+            : "",
+          focused && !isHero
             ? "border-primary shadow-lg shadow-primary/5 ring-2 ring-primary/10"
-            : "border-border shadow-1 hover:shadow-2",
-          isHero ? "h-14 px-4" : "h-12 px-3"
+            : ""
         )}
       >
         <Search

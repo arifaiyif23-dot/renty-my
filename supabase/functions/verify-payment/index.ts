@@ -17,6 +17,21 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) throw new Error('Unauthorized: No authorization header');
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) throw new Error('Unauthorized: Invalid token');
+
+    const { error: suspendError } = await supabase.rpc('check_user_not_suspended', { p_user_id: user.id });
+    if (suspendError) throw new Error('Your account has been suspended. Contact support for assistance.');
+
     const { billCode, paymentId } = await req.json();
     if (!billCode || !paymentId) {
       return new Response(
@@ -24,11 +39,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
 
     const isSandbox = Deno.env.get('TOYYIBPAY_SANDBOX') === 'true';
     const secretKey = isSandbox

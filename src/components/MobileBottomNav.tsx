@@ -17,7 +17,7 @@ const MobileBottomNav = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t safe-area-bottom"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-elevated border-t-0 safe-area-bottom"
       role="navigation"
       aria-label="Mobile bottom navigation"
     >

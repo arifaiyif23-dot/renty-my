@@ -3,7 +3,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Search, Mail, ExternalLink, HelpCircle, MessageCircle } from "lucide-react";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -21,9 +21,7 @@ export default function Help() {
   );
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+    <PageLayout variant="narrow">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <HelpCircle className="h-5 w-5 text-primary" />
@@ -113,7 +111,6 @@ export default function Help() {
             </div>
           </div>
         </GlassCard>
-      </div>
-    </>
+    </PageLayout>
   );
 }

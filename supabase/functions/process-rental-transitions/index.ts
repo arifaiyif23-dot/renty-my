@@ -28,147 +28,200 @@ serve(async (req) => {
 
     console.log('Starting rental status transitions...');
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
 
-    let activatedCount = 0;
-    let completedCount = 0;
+    const completedCount = 0;
 
-    // TRANSITION 1: approved → active (start_date has arrived)
-    const { data: toActivate, error: fetchActiveError } = await supabase
-      .from('rentals')
-      .select('id, renter_id, owner_id, item_id, start_date')
-      .eq('status', 'approved')
-      .lte('start_date', today);
+    // Note: Handover (paid → active) is now done manually via confirm-handover edge function.
+    // Auto-activation (approved → active) removed as part of Phase 6 SOP flow.
 
-    if (fetchActiveError) {
-      console.error('Error fetching rentals to activate:', fetchActiveError);
-      throw fetchActiveError;
+    // No-show cancellation: cancel paid rentals where start_date + 24h passed without handover
+    let noShowCount = 0;
+    try {
+      const { data: noShowResult } = await supabase.rpc('cancel_no_show_rentals');
+      if (noShowResult && Array.isArray(noShowResult)) {
+        noShowCount = noShowResult.length;
+        if (noShowCount > 0) {
+          console.log(`Cancelled ${noShowCount} no-show rentals`);
+          for (const r of noShowResult) {
+            const isVendorFault = r.no_show_type === 'vendor_no_show';
+            // Renter notification
+            await supabase.from('notifications').insert({
+              user_id: r.renter_id,
+              type: 'rental_request',
+              title: isVendorFault ? 'Vendor No-Show' : 'Pickup Cancelled',
+              message: isVendorFault
+                ? 'The vendor did not show up for handover. Your rental has been cancelled and a full refund will be processed.'
+                : 'Your rental was cancelled because pickup was not completed within 24 hours of the start date.',
+              link: '/dashboard',
+            });
+            // Owner notification for vendor fault
+            if (isVendorFault) {
+              const { data: rental } = await supabase.from('rentals').select('owner_id').eq('id', r.rental_id).single();
+              if (rental) {
+                await supabase.from('notifications').insert({
+                  user_id: rental.owner_id,
+                  type: 'rental_request',
+                  title: 'Vendor No-Show Recorded',
+                  message: 'You did not confirm the handover. This no-show affects your trust score.',
+                  link: '/dashboard',
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('No-show cancellation error:', err);
     }
 
-    if (toActivate && toActivate.length > 0) {
-      console.log(`Found ${toActivate.length} rentals to activate`);
+    // TRANSITION: active → overdue (end_date + 3h grace period passed without return)
+    let overdueCount = 0;
+    try {
+      const { data: overdueResult } = await supabase.rpc('mark_overdue_rentals');
+      if (overdueResult && Array.isArray(overdueResult)) {
+        overdueCount = overdueResult.length;
+        if (overdueCount > 0) {
+          console.log(`Marked ${overdueCount} rentals as overdue`);
+          for (const r of overdueResult) {
+            await supabase.from('notifications').insert({
+              user_id: r.renter_id,
+              type: 'rental_request',
+              title: 'Rental Overdue',
+              message: 'Your rental period has ended and the item has not been returned. Please return it immediately to avoid additional charges.',
+              link: '/dashboard',
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Overdue marking error:', err);
+    }
 
-      const { error: activateError } = await supabase
+    // TRANSITION: overdue → limited_access (24h+ without communication)
+    let escalationCount = 0;
+    try {
+      const { data: escalationResult } = await supabase.rpc('escalate_overdue_rentals');
+      if (escalationResult && Array.isArray(escalationResult)) {
+        escalationCount = escalationResult.length;
+        if (escalationCount > 0) {
+          console.log(`Escalated ${escalationCount} overdue rentals to limited_access`);
+          const rentalIds = escalationResult.map((r: { rental_id: string }) => r.rental_id);
+          const { data: rentals } = await supabase
+            .from('rentals')
+            .select('id, renter_id, owner_id')
+            .in('id', rentalIds);
+          const ownerMap = new Map((rentals || []).map((r: { id: string; owner_id: string }) => [r.id, r.owner_id]));
+          for (const r of escalationResult) {
+            await supabase.from('notifications').insert({
+              user_id: r.renter_id,
+              type: 'rental_request',
+              title: 'Account Restricted',
+              message: 'Your account has been restricted due to an overdue rental with no communication. Please contact support to resolve this.',
+              link: '/dashboard',
+            });
+            const ownerId = ownerMap.get(r.rental_id);
+            if (ownerId) {
+              await supabase.from('notifications').insert({
+                user_id: ownerId,
+                type: 'rental_request',
+                title: 'Overdue Escalated',
+                message: 'The renter has not responded for over 24h. Their account has been restricted. Admin review pending.',
+                link: '/admin/rentals',
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Overdue escalation error:', err);
+    }
+
+    // REMINDERS: 24h before return, return day, payment pending
+    let reminderCount = 0;
+    try {
+      // 24h before return: active/overdue rentals ending in 22-26h
+      const { data: nearReturn, error: nearError } = await supabase
         .from('rentals')
-        .update({ 
-          status: 'active',
-          updated_at: now.toISOString()
-        })
-        .in('id', toActivate.map(r => r.id))
-        .eq('status', 'approved'); // TOCTOU guard: only update if still approved
+        .select('id, renter_id, end_date, item:items(title)')
+        .in('status', ['active', 'overdue'])
+        .gte('end_date', new Date(now.getTime() + 22 * 60 * 60 * 1000).toISOString())
+        .lte('end_date', new Date(now.getTime() + 26 * 60 * 60 * 1000).toISOString());
 
-      if (activateError) {
-        console.error('Error activating rentals:', activateError);
-        throw activateError;
+      if (!nearError && nearReturn) {
+        for (const r of nearReturn) {
+          const title = r.item?.title || 'your rental';
+          await supabase.from('notifications').insert({
+            user_id: r.renter_id,
+            type: 'rental_request',
+            title: 'Return Reminder',
+            message: `"${title}" is due for return in about 24 hours. Please prepare to return it on time.`,
+            link: '/dashboard',
+          }).maybeSingle().catch(() => {});
+          reminderCount++;
+        }
       }
 
-      // Send notifications
-      for (const rental of toActivate) {
-        // Notify renter
-        await supabase.from('notifications').insert({
-          user_id: rental.renter_id,
-          type: 'rental_approved',
-          title: 'Rental Started',
-          message: 'Your rental period has begun. Enjoy your item!',
-          link: `/item/${rental.item_id}`
-        });
-
-        // Notify owner
-        await supabase.from('notifications').insert({
-          user_id: rental.owner_id,
-          type: 'rental_approved',
-          title: 'Rental Active',
-          message: 'The rental period for your item has started.',
-          link: `/dashboard`
-        });
-      }
-
-      activatedCount = toActivate.length;
-    }
-
-    // TRANSITION 2: active → completed (effective end_date has passed)
-    // Check approved modifications for extended/early-return end dates
-    const { data: approvedMods } = await supabase
-      .from('rental_modifications')
-      .select('rental_id, new_end_date')
-      .eq('status', 'approved');
-    const modEndDates = new Map((approvedMods || []).map(m => [m.rental_id, m.new_end_date]));
-
-    const { data: toComplete, error: fetchCompleteError } = await supabase
-      .from('rentals')
-      .select('id, renter_id, owner_id, item_id, end_date')
-      .eq('status', 'active');
-
-    // Filter by effective end_date (use modified end_date if approved modification exists)
-    const rentalsToComplete = (toComplete || []).filter(r => {
-      const effectiveEnd = modEndDates.get(r.id) || r.end_date;
-      return effectiveEnd <= today;
-    });
-
-    if (fetchCompleteError) {
-      console.error('Error fetching rentals to complete:', fetchCompleteError);
-      throw fetchCompleteError;
-    }
-
-    if (rentalsToComplete.length > 0) {
-      console.log(`Found ${rentalsToComplete.length} rentals to complete`);
-
-      const { error: completeError } = await supabase
+      // Return day reminder: rentals ending today (within 0-2h window to avoid duplicates)
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+      const { data: dueToday } = await supabase
         .from('rentals')
-        .update({ 
-          status: 'completed',
-          updated_at: now.toISOString()
-        })
-        .in('id', rentalsToComplete.map(r => r.id))
-        .eq('status', 'active'); // TOCTOU guard: only update if still active
+        .select('id, renter_id, end_date, item:items(title)')
+        .in('status', ['active', 'overdue'])
+        .gte('end_date', todayStart)
+        .lte('end_date', todayEnd);
 
-      if (completeError) {
-        console.error('Error completing rentals:', completeError);
-        throw completeError;
+      if (dueToday) {
+        for (const r of dueToday) {
+          const title = r.item?.title || 'your rental';
+          await supabase.from('notifications').insert({
+            user_id: r.renter_id,
+            type: 'rental_request',
+            title: 'Return Today',
+            message: `"${title}" is due for return today. Please return it to avoid late charges.`,
+            link: '/dashboard',
+          }).maybeSingle().catch(() => {});
+          reminderCount++;
+        }
       }
 
-      // Send notifications
-      for (const rental of rentalsToComplete) {
-        // Notify renter
-        await supabase.from('notifications').insert({
-          user_id: rental.renter_id,
-          type: 'rental_approved',
-          title: 'Rental Completed',
-          message: 'Your rental has ended. Please leave a review!',
-          link: `/item/${rental.item_id}`
-        });
+      // Payment reminder: requested rentals not paid after 30min
+      const { data: unpaid } = await supabase
+        .from('rentals')
+        .select('id, renter_id, created_at')
+        .eq('status', 'requested')
+        .lt('created_at', new Date(now.getTime() - 30 * 60 * 1000).toISOString());
 
-        // Notify owner - payout is now being released
-        await supabase.from('notifications').insert({
-          user_id: rental.owner_id,
-          type: 'payment_received',
-          title: 'Rental Completed - Payout Processing',
-          message: 'Your rental is complete and payout is being processed.',
-          link: `/earnings`
-        });
+      if (unpaid) {
+        for (const r of unpaid) {
+          await supabase.from('notifications').insert({
+            user_id: r.renter_id,
+            type: 'rental_request',
+            title: 'Payment Reminder',
+            message: 'You have a booking waiting for payment. Complete payment to secure your rental.',
+            link: '/dashboard',
+          }).maybeSingle().catch(() => {});
+          reminderCount++;
+        }
       }
-
-      completedCount = rentalsToComplete.length;
+    } catch (err) {
+      console.error('Reminder notification error:', err);
     }
-
-    const totalProcessed = activatedCount + completedCount;
 
     // Log execution
     await supabase.from('cron_job_logs').insert({
       job_name: 'process-rental-transitions',
       status: 'success',
-      records_processed: totalProcessed,
+      records_processed: completedCount + reminderCount,
       executed_at: now.toISOString()
     });
 
-    console.log(`Transitions complete: ${activatedCount} activated, ${completedCount} completed`);
+    console.log(`Transitions complete: ${completedCount} completed`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        activated: activatedCount,
         completed: completedCount,
-        total_processed: totalProcessed,
         timestamp: now.toISOString()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

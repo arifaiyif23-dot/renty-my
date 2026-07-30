@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { StatusStamp } from "@/components/StatusStamp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, FileText } from "lucide-react";
@@ -9,10 +9,8 @@ import SEO from "@/components/SEO";
 export default function Terms() {
   const { t } = useTranslation();
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout variant="narrow" className="py-10">
       <SEO title={t('terms.title') + " — Renty"} description={t('terms.subtitle')} />
-      <Header />
-      <main className="container mx-auto max-w-3xl px-4 py-10 pb-mobile-nav">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <FileText className="h-5 w-5 text-primary" />
@@ -166,8 +164,7 @@ export default function Terms() {
         <p className="text-xs text-muted-foreground mt-10 font-mono">
           {t('terms.lastUpdated', { date: new Date().toLocaleDateString() })}
         </p>
-      </main>
-    </div>
+    </PageLayout>
   );
 }
 

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import Header from '@/components/Header';
+import { PageLayout } from "@/components/PageLayout";
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
@@ -33,8 +33,8 @@ export default function Dashboard() {
       const [rentalsData] = await Promise.all([
         supabase.from('rentals').select('total_price, status').or(`owner_id.eq.${user.id},renter_id.eq.${user.id}`),
       ]);
-      const activeRentals = (rentalsData.data || []).filter(r => ['paid', 'active'].includes(r.status)).length;
-      const pendingRequests = (rentalsData.data || []).filter(r => r.status === 'pending_approval' && r.owner_id === user.id).length;
+      const activeRentals = (rentalsData.data || []).filter(r => ['confirmed', 'active', 'overdue'].includes(r.status)).length;
+      const pendingRequests = (rentalsData.data || []).filter(r => r.status === 'reserved' && r.owner_id === user.id).length;
       const totalRevenue = (rentalsData.data || []).filter(r => r.status === 'completed' && r.owner_id === user.id).reduce((sum, r) => sum + Number(r.total_price || 0), 0);
       setStats({ totalRevenue, activeRentals, pendingRequests });
     } catch { /* silent */ }
@@ -64,18 +64,8 @@ export default function Dashboard() {
     if (user) { fetchRentals(); fetchStats(); }
   }, [user, fetchRentals, fetchStats]);
 
-  const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-    pending_approval: ['approved', 'rejected', 'cancelled'],
-    approved: ['active', 'cancelled'],
-    active: ['completed', 'disputed'],
-    paid: ['active', 'completed', 'cancelled'],
-  };
-
-  const updateRentalStatus = async (rentalId: string, status: Rental['status']) => {
-    const rental = rentals.find(r => r.id === rentalId);
-    if (!rental) throw new Error('Rental not found');
-    if (!ALLOWED_TRANSITIONS[rental.status]?.includes(status)) throw new Error('Invalid transition');
-    const { error } = await supabase.from('rentals').update({ status }).eq('id', rentalId);
+  const updateRentalStatus = async (rentalId: string, newStatus: Rental['status']) => {
+    const { error } = await supabase.from('rentals').update({ status: newStatus }).eq('id', rentalId);
     if (error) throw error;
     fetchRentals();
   };
@@ -84,38 +74,31 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="mx-auto p-4 max-w-5xl pb-mobile-nav">
+      <PageLayout variant="default">
+        <div className="">
           <SkeletonV2 variant="text" className="h-8 w-48 mb-6" />
           <SkeletonV2 variant="card" className="h-48" />
         </div>
-      </>
+      </PageLayout>
     );
   }
 
   if (!loading && rentals.length === 0) {
     return (
-      <>
-        <Header />
-        <div className="mx-auto p-4 max-w-5xl pb-mobile-nav">
+      <PageLayout variant="default">
           <h1 className="text-xl font-bold mb-6">My Rentals</h1>
           <EmptyStateV2 icon={PackageSearch} title="No rentals yet" description="Browse items to start renting." actionLabel="Browse Items" onAction={() => navigate('/search')} />
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
-  const activeCount = filterRentals(['paid', 'active']).length;
-  const pendingCount = filterRentals(['pending_approval', 'approved']).length;
+  const activeCount = filterRentals(['confirmed', 'active', 'overdue']).length;
+  const pendingCount = filterRentals(['requested', 'payment_pending', 'reserved']).length;
   const pastCount = filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length;
   const userRentals = rentals.filter(r => r.owner_id === user?.id);
 
   return (
-    <>
-      <Header />
-
-      <div className="mx-auto p-4 max-w-5xl pb-mobile-nav">
+    <PageLayout variant="default">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-xl font-bold">My Rentals</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -140,25 +123,25 @@ export default function Dashboard() {
           </TabsList>
 
           <TabsContent value="active" className="space-y-3">
-            {filterRentals(['paid', 'active']).length === 0 ? (
+            {filterRentals(['confirmed', 'active', 'overdue']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No active rentals" variant="compact" />
             ) : (
-              filterRentals(['paid', 'active']).map(rental => (
+              filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
                 <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
               ))
             )}
           </TabsContent>
 
           <TabsContent value="pending" className="space-y-3">
-            {userRentals.some(r => r.status === 'pending_approval') && (
+            {userRentals.some(r => r.status === 'reserved') && (
               <div className="mb-4">
                 <IncomingRequests rentals={userRentals} onUpdate={fetchRentals} />
               </div>
             )}
-            {filterRentals(['pending_approval', 'approved']).length === 0 ? (
+            {filterRentals(['requested', 'payment_pending', 'reserved']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No pending rentals" variant="compact" />
             ) : (
-              filterRentals(['pending_approval', 'approved']).map(rental => (
+              filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
                 <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
               ))
             )}
@@ -176,6 +159,6 @@ export default function Dashboard() {
         </Tabs>
       </div>
       <ScrollToTop />
-    </>
+    </PageLayout>
   );
 }

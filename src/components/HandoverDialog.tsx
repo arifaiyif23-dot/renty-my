@@ -78,14 +78,14 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
 
     setIsProcessing(true);
     try {
-      const { error } = await supabase
-        .from('rentals')
-        .update({
-          status: 'active',
-          actual_start_at: new Date().toISOString(),
-          handover_photos: photoUrls,
-        })
-        .eq('id', rental.id);
+      const { error } = await supabase.functions.invoke('confirm-handover', {
+        body: {
+          action: 'confirm',
+          rentalId: rental.id,
+          handoverPhotos: photoUrls,
+          pickupCode: enteredCode,
+        }
+      });
 
       if (error) throw error;
 

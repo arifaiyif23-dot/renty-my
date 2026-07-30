@@ -72,20 +72,20 @@ serve(async (req) => {
       throw new Error('Unauthorized: Only the owner can approve/reject rentals');
     }
 
-    // Verify rental is in pending_approval status
-    if (rental.status !== 'pending_approval') {
+    // Verify rental is in reserved status (payment complete, awaiting owner confirmation)
+    if (rental.status !== 'reserved') {
       throw new Error(`Rental cannot be ${action}ed. Current status: ${rental.status}`);
     }
 
-    // CRITICAL: Re-validate availability before approving. Multiple pending
-    // requests can overlap; approving a second one would double-book the item.
+    // CRITICAL: Re-validate availability before confirming. Another overlapping
+    // booking may have been confirmed after this one's payment was verified.
     if (action === 'approve') {
       const { data: conflicts, error: conflictError } = await supabase
         .from('rentals')
         .select('id')
         .eq('item_id', rental.item_id)
         .neq('id', rentalId)
-        .in('status', ['approved', 'paid', 'active'])
+        .in('status', ['confirmed', 'reserved', 'active'])
         .lte('start_date', rental.end_date)
         .gte('end_date', rental.start_date)
         .limit(1);
@@ -96,13 +96,13 @@ serve(async (req) => {
       }
 
       if (conflicts && conflicts.length > 0) {
-        throw new Error('Another approved booking already occupies these dates. Please reject this request.');
+        throw new Error('Another booking already occupies these dates. Please reject this request.');
       }
     }
 
-    const newStatus = action === 'approve' ? 'approved' : 'rejected';
+    const newStatus = action === 'approve' ? 'confirmed' : 'cancelled';
 
-    // Generate 4-digit pickup code if approving
+    // Generate 4-digit pickup code if confirming
     let pickupCode = null;
     if (action === 'approve') {
       pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -118,7 +118,7 @@ serve(async (req) => {
       .from('rentals')
       .update(updateData)
       .eq('id', rentalId)
-      .eq('status', 'pending_approval')
+      .eq('status', 'reserved')
       .select('id, status')
       .maybeSingle();
 
@@ -128,7 +128,7 @@ serve(async (req) => {
     }
 
     if (!updatedRental) {
-      throw new Error(`Rental status changed before update. Current status is no longer 'pending_approval'.`);
+      throw new Error(`Rental status changed before update. Current status is no longer 'reserved'.`);
     }
 
     console.log(`Rental ${action}ed:`, rentalId);
@@ -143,13 +143,13 @@ serve(async (req) => {
 
     // Create notification for renter
     const notificationMessage = action === 'approve' 
-      ? `Your booking request for "${rental.item.title}" has been approved! You can now proceed to payment.`
-      : `Your booking request for "${rental.item.title}" has been declined by the owner.`;
+      ? `Your booking for "${rental.item.title}" has been confirmed! Show the pickup code at handover.`
+      : `Your booking for "${rental.item.title}" has been declined by the owner. A refund will be processed.`;
 
     await supabase.from('notifications').insert({
       user_id: rental.renter_id,
       type: action === 'approve' ? 'rental_approved' : 'rental_rejected',
-      title: action === 'approve' ? 'Booking Request Approved' : 'Booking Request Declined',
+      title: action === 'approve' ? 'Booking Confirmed' : 'Booking Declined',
       message: notificationMessage,
       link: '/dashboard'
     });
@@ -159,7 +159,10 @@ serve(async (req) => {
         success: true,
         rentalId,
         status: newStatus,
-        message: `Rental ${action}ed successfully`
+        pickupCode: pickupCode || undefined,
+        message: action === 'approve' 
+          ? 'Booking confirmed successfully. Pickup code generated.'
+          : 'Booking declined. Refund will be processed.'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

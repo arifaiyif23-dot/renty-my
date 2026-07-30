@@ -8,6 +8,7 @@ import { Search, Filter, CheckCircle, XCircle, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { getSignedUrl } from "@/utils/signedUrls";
 import { toast } from "sonner";
+import { isNative } from "@/lib/platform";
 
 interface VerificationRequest {
   id: string;
@@ -212,29 +213,35 @@ export function AdminVerificationsPanel({
                   variant="outline"
                   size="sm"
                   className="rounded-xl"
-                  onClick={() => {
-                    // Open windows synchronously to avoid popup blockers
-                    const frontWin = verification.document_front_url ? window.open('', '_blank') : null;
-                    const backWin = verification.document_back_url ? window.open('', '_blank') : null;
-                    const selfieWin = verification.selfie_url ? window.open('', '_blank') : null;
-                    (async () => {
-                      try {
-                        if (frontWin && verification.document_front_url) {
-                          const url = await getSignedUrl(extractStoragePath(verification.document_front_url));
-                          frontWin.location.href = url;
-                        }
-                        if (backWin && verification.document_back_url) {
-                          const url = await getSignedUrl(extractStoragePath(verification.document_back_url));
-                          backWin.location.href = url;
-                        }
-                        if (selfieWin && verification.selfie_url) {
-                          const url = await getSignedUrl(extractStoragePath(verification.selfie_url));
-                          selfieWin.location.href = url;
-                        }
-                      } catch {
-                        toast.error("Failed to load documents");
+                  onClick={async () => {
+                    try {
+                      const urls: string[] = [];
+                      if (verification.document_front_url) {
+                        urls.push(await getSignedUrl(extractStoragePath(verification.document_front_url)));
                       }
-                    })();
+                      if (verification.document_back_url) {
+                        urls.push(await getSignedUrl(extractStoragePath(verification.document_back_url)));
+                      }
+                      if (verification.selfie_url) {
+                        urls.push(await getSignedUrl(extractStoragePath(verification.selfie_url)));
+                      }
+                      if (urls.length === 0) {
+                        toast.error("No documents to view");
+                        return;
+                      }
+                      if (isNative()) {
+                        const { Browser } = await import('@capacitor/browser');
+                        for (const url of urls) {
+                          await Browser.open({ url });
+                        }
+                      } else {
+                        for (const url of urls) {
+                          window.open(url, '_blank', 'noopener');
+                        }
+                      }
+                    } catch {
+                      toast.error("Failed to load documents");
+                    }
                   }}
                 >
                   <Eye className="h-4 w-4 mr-2" />

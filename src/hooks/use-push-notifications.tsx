@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isNative, isWeb } from "@/lib/platform";
 
-const PUBLIC_VAPID_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+type NotificationPermission_ = "granted" | "denied" | "default";
 
-// Convert a URL-safe base64 VAPID public key to the Uint8Array required by
-// PushManager.subscribe's applicationServerKey. Passing the raw base64 string
-// throws InvalidAccessError in Chrome/Firefox.
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -19,124 +17,181 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
-export const usePushNotifications = () => {
-  const { user } = useAuth();
-  const [permission, setPermission] = useState<NotificationPermission>("default");
-  const [isSupported, setIsSupported] = useState(false);
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+async function nativeRequestPermission(userId?: string): Promise<boolean> {
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications');
+    const permResult = await PushNotifications.requestPermissions();
+    if (permResult.receive === 'granted') {
+      PushNotifications.register();
+      PushNotifications.addListener('registration', async (token) => {
+        if (userId) {
+          await supabase.from('push_subscriptions').upsert({
+            user_id: userId,
+            subscription: JSON.stringify({ token: token.value }),
+            endpoint: token.value,
+          }, { onConflict: 'endpoint' });
+        }
+      });
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
 
-  useEffect(() => {
-    const supported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
-    setIsSupported(supported);
+async function nativeUnsubscribe(userId?: string): Promise<boolean> {
+  try {
+    const { PushNotifications } = await import('@capacitor/push-notifications');
+    PushNotifications.unregister();
+    if (userId) {
+      const { Preferences } = await import('@capacitor/preferences');
+      const { value } = await Preferences.get({ key: 'push_token' });
+      if (value) {
+        await supabase.from('push_subscriptions').delete().eq('endpoint', value);
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
+async function webRequestPermission(userId?: string, vapidKey?: string): Promise<boolean> {
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    toast.error("Push notifications are not supported in this browser");
+    return false;
+  }
+
+  try {
+    const result = await Notification.requestPermission();
+    if (result !== "granted") {
+      toast.error("Notification permission denied");
+      return false;
     }
 
-    if (supported) {
-      restoreSubscription();
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+
+    if (!sub) {
+      if (!vapidKey) {
+        toast.error("Push notifications are not configured");
+        return false;
+      }
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
+      });
+    }
+
+    if (userId) {
+      await supabase.from('push_subscriptions').upsert({
+        user_id: userId,
+        subscription: JSON.stringify(sub),
+        endpoint: sub.endpoint,
+      }, { onConflict: 'endpoint' });
+    }
+
+    toast.success("Notifications enabled! You'll get updates on bookings and messages");
+    return true;
+  } catch (error) {
+    console.error("Error requesting notification permission:", error);
+    toast.error("Failed to enable notifications");
+    return false;
+  }
+}
+
+async function webUnsubscribe(userId?: string): Promise<boolean> {
+  if (!('serviceWorker' in navigator)) return false;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await sub.unsubscribe();
+      if (userId) {
+        await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const usePushNotifications = () => {
+  const { user } = useAuth();
+  const [permission, setPermission] = useState<NotificationPermission_>("default");
+  const [isSupported, setIsSupported] = useState(false);
+
+  useEffect(() => {
+    if (isNative()) {
+      setIsSupported(true);
+      import('@capacitor/push-notifications').then(({ PushNotifications }) => {
+        PushNotifications.checkPermissions().then((result) => {
+          setPermission(result.receive);
+        });
+      }).catch(() => {
+        setIsSupported(false);
+      });
+    } else if (isWeb()) {
+      const supported = 'Notification' in window;
+      setIsSupported(supported);
+      if (supported) {
+        setPermission(Notification.permission);
+      }
     }
   }, []);
 
-  const restoreSubscription = async () => {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      setSubscription(sub);
-    } catch {
-      // Service worker not ready yet
+  const requestPermission = useCallback(async () => {
+    if (isNative()) {
+      return nativeRequestPermission(user?.id);
     }
-  };
+    return webRequestPermission(user?.id, import.meta.env.VITE_VAPID_PUBLIC_KEY);
+  }, [user?.id]);
 
-  const requestPermission = async () => {
-    if (!isSupported) {
-      toast.error("Push notifications are not supported in this browser");
-      return false;
+  const unsubscribe = useCallback(async () => {
+    if (isNative()) {
+      return nativeUnsubscribe(user?.id);
     }
+    return webUnsubscribe(user?.id);
+  }, [user?.id]);
 
-    try {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-
-      if (result === "granted") {
-        const reg = await navigator.serviceWorker.ready;
-        let sub = await reg.pushManager.getSubscription();
-
-        if (!sub) {
-          if (!PUBLIC_VAPID_KEY) {
-            toast.error("Push notifications are not configured");
-            return false;
-          }
-          sub = await reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY) as BufferSource,
-          });
-        }
-
-        setSubscription(sub);
-
-        if (user) {
-          await supabase.from('push_subscriptions').upsert({
-            user_id: user.id,
-            subscription: JSON.stringify(sub),
-            endpoint: sub.endpoint,
-          }, { onConflict: 'endpoint' });
-        }
-
-        toast.success("Notifications enabled! You'll get updates on bookings and messages");
-        return true;
-      } else {
-        toast.error("Notification permission denied");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error requesting notification permission:", error);
-      toast.error("Failed to enable notifications");
-      return false;
-    }
-  };
-
-  // Unsubscribe and remove the stored subscription so the server stops pushing
-  // to a dead/revoked endpoint (and the next user of this browser profile).
-  const unsubscribe = async () => {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      if (sub) {
-        await sub.unsubscribe();
-        if (user) {
-          await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-        }
-      }
-      setSubscription(null);
-      toast.success("Notifications disabled");
-      return true;
-    } catch (error) {
-      console.error("Error unsubscribing:", error);
-      toast.error("Failed to disable notifications");
-      return false;
-    }
-  };
-
-  const sendTestNotification = () => {
+  const sendTestNotification = useCallback(async () => {
     if (permission !== "granted") {
       toast.error("Please enable notifications first");
       return;
     }
-
-    new Notification("RENTY", {
-      body: "Notifications are working! You'll receive updates here.",
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
-      tag: "test",
-      requireInteraction: false,
-    });
-  };
+    if (isNative()) {
+      try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        await LocalNotifications.schedule({
+          notifications: [{
+            title: "RENTY",
+            body: "Notifications are working! You'll receive updates here.",
+            id: Date.now(),
+          }]
+        });
+      } catch {
+        toast.error("Notifications not available on this device");
+      }
+    } else if ('Notification' in window) {
+      try {
+        new Notification("RENTY", {
+          body: "Notifications are working! You'll receive updates here.",
+          icon: "/icon-192.png",
+          badge: "/icon-192.png",
+          tag: "test",
+          requireInteraction: false,
+        });
+      } catch {
+        toast.error("Failed to send test notification");
+      }
+    }
+  }, [permission]);
 
   return {
     isSupported,
     permission,
-    subscription,
     requestPermission,
     unsubscribe,
     sendTestNotification,

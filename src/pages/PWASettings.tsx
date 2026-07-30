@@ -1,4 +1,4 @@
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { PWAFeatures } from "@/components/PWAFeatures";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Smartphone, Zap, Bell, Wifi } from "lucide-react";
@@ -8,9 +8,7 @@ export default function PWASettings() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+    <PageLayout className="py-8">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Smartphone className="h-5 w-5 text-primary" />
@@ -100,7 +98,6 @@ export default function PWASettings() {
             </div>
           </div>
         </GlassCard>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

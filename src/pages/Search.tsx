@@ -5,20 +5,20 @@ import { supabase } from '@/integrations/supabase/client';
 import type { ItemCategory } from '@/types';
 import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
 import { SearchBarV2 } from '@/components/SearchBarV2';
-import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import SEO from '@/components/SEO';
+import { PageLayout } from '@/components/PageLayout';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { X, ArrowUpDown, SlidersHorizontal, SearchSlash, MapPin, BookmarkPlus } from 'lucide-react';
+import { X, ArrowUpDown, SearchSlash, MapPin, BookmarkPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
-import Header from '@/components/Header';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
+import { MobileFilterDrawer } from '@/components/MobileFilterDrawer';
+import { AuroraEmptyState } from '@/components/AuroraEmptyState';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { getVerifiedUserIds } from '@/utils/verifiedFilter';
 import { toast } from 'sonner';
@@ -50,7 +50,6 @@ export default function Search() {
   const [instantBookOnly, setInstantBookOnly] = useState(false);
   const [itemCondition, setItemCondition] = useState('all');
   const [maxDistance, setMaxDistance] = useState(50);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
@@ -85,7 +84,7 @@ export default function Search() {
             image_url
           )
         `)
-        .eq('is_available', true);
+        .eq('status', 'available');
 
       if (!selectIdOnly) q = (q as ReturnType<typeof q>).range(start, end);
 
@@ -148,7 +147,7 @@ export default function Search() {
         .from('rentals')
         .select('item_id, start_date, end_date')
         .in('item_id', allIds.map(i => i.id))
-        .in('status', ['pending_approval', 'approved', 'paid', 'active']);
+        .in('status', ['requested', 'payment_pending', 'reserved', 'confirmed', 'active']);
 
       const rentedIds = new Set<string>();
       rentals?.forEach(r => {
@@ -228,14 +227,13 @@ export default function Search() {
   ].filter(Boolean).length;
 
   return (
-    <>
+    <PageLayout>
       <SEO
         title="Search — RENTY"
         description="Browse thousands of items available for rent across Malaysia."
       />
-      <Header />
 
-      <div className="mx-auto px-4 py-6 max-w-5xl pb-mobile-nav">
+      <div>
         <div className="mb-5">
           <SearchBarV2 variant="inline" onSearch={(q) => saveSearch(q)} />
         </div>
@@ -291,31 +289,19 @@ export default function Search() {
             </SelectContent>
           </Select>
 
-          <Popover open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 rounded-lg relative">
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                {activeFiltersCount > 0 && (
-                  <span className="ml-1.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
-                    {activeFiltersCount}
-                  </span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72" align="start">
-              <AdvancedSearchFilters
-                verifiedOnly={verifiedOnly}
-                setVerifiedOnly={setVerifiedOnly}
-                instantBookOnly={instantBookOnly}
-                setInstantBookOnly={setInstantBookOnly}
-                itemCondition={itemCondition}
-                setItemCondition={setItemCondition}
-                maxDistance={maxDistance}
-                setMaxDistance={setMaxDistance}
-                showDistanceFilter={!!userLocation}
-              />
-            </PopoverContent>
-          </Popover>
+          <MobileFilterDrawer activeFiltersCount={activeFiltersCount}>
+            <AdvancedSearchFilters
+              verifiedOnly={verifiedOnly}
+              setVerifiedOnly={setVerifiedOnly}
+              instantBookOnly={instantBookOnly}
+              setInstantBookOnly={setInstantBookOnly}
+              itemCondition={itemCondition}
+              setItemCondition={setItemCondition}
+              maxDistance={maxDistance}
+              setMaxDistance={setMaxDistance}
+              showDistanceFilter={!!userLocation}
+            />
+          </MobileFilterDrawer>
 
           {user && (searchQuery || category !== 'all' || userLocation) && (
             <Button
@@ -433,15 +419,13 @@ export default function Search() {
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center">
-            <EmptyStateV2
-              icon={SearchSlash}
-              title="No items found"
-              description="Try adjusting your filters or search terms."
-              actionLabel="Clear Filters"
-              onAction={() => { setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice(''); setUserLocation(''); setDateRange(undefined); }}
-            />
-          </div>
+          <AuroraEmptyState
+            icon={SearchSlash}
+            title="No items found"
+            description="Try adjusting your filters or search terms."
+            actionLabel="Clear Filters"
+            onAction={() => { setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice(''); setUserLocation(''); setDateRange(undefined); }}
+          />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((item) => (
@@ -468,6 +452,6 @@ export default function Search() {
         )}
       </div>
       <ScrollToTop />
-    </>
+    </PageLayout>
   );
 }

@@ -1,66 +1,68 @@
-/**
- * Haptic feedback utilities for mobile devices
- * Provides tactile feedback for user interactions
- */
+import { isNative } from '@/lib/platform';
+
+async function nativeLight(): Promise<void> {
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    await Haptics.impact({ style: ImpactStyle.Light });
+  } catch { /* haptics not available */ }
+}
+
+async function nativeMedium(): Promise<void> {
+  try {
+    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+    await Haptics.impact({ style: ImpactStyle.Medium });
+  } catch { /* haptics not available */ }
+}
+
+async function nativeSuccess(): Promise<void> {
+  try {
+    const { Haptics, NotificationType } = await import('@capacitor/haptics');
+    await Haptics.notification({ type: NotificationType.Success });
+  } catch { /* haptics not available */ }
+}
+
+async function nativeError(): Promise<void> {
+  try {
+    const { Haptics, NotificationType } = await import('@capacitor/haptics');
+    await Haptics.notification({ type: NotificationType.Error });
+  } catch { /* haptics not available */ }
+}
+
+async function nativeWarning(): Promise<void> {
+  try {
+    const { Haptics, NotificationType } = await import('@capacitor/haptics');
+    await Haptics.notification({ type: NotificationType.Warning });
+  } catch { /* haptics not available */ }
+}
 
 export const haptics = {
-  /**
-   * Light haptic feedback for subtle interactions
-   * Usage: Button taps, list item selections
-   */
-  light: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
+  light: (): void => {
+    if (isNative()) { nativeLight(); return; }
+    if ('vibrate' in navigator) navigator.vibrate(10);
   },
 
-  /**
-   * Medium haptic feedback for important interactions
-   * Usage: Toggle switches, confirmations
-   */
-  medium: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(20);
-    }
+  medium: (): void => {
+    if (isNative()) { nativeMedium(); return; }
+    if ('vibrate' in navigator) navigator.vibrate(20);
   },
 
-  /**
-   * Success haptic pattern
-   * Usage: Successful actions, completions
-   */
-  success: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate([20, 10, 20]);
-    }
+  success: (): void => {
+    if (isNative()) { nativeSuccess(); return; }
+    if ('vibrate' in navigator) navigator.vibrate([20, 10, 20]);
   },
 
-  /**
-   * Error haptic pattern
-   * Usage: Errors, failed actions
-   */
-  error: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate([50, 30, 50]);
-    }
+  error: (): void => {
+    if (isNative()) { nativeError(); return; }
+    if ('vibrate' in navigator) navigator.vibrate([50, 30, 50]);
   },
 
-  /**
-   * Warning haptic pattern
-   * Usage: Warnings, important notices
-   */
-  warning: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate([30, 20, 30]);
-    }
+  warning: (): void => {
+    if (isNative()) { nativeWarning(); return; }
+    if ('vibrate' in navigator) navigator.vibrate([30, 20, 30]);
   },
 
-  /**
-   * Selection haptic feedback
-   * Usage: Selecting items, navigation
-   */
-  selection: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(15);
-    }
+  selection: (): void => {
+    if (isNative()) { nativeLight(); return; }
+    if ('vibrate' in navigator) navigator.vibrate(15);
   },
 };

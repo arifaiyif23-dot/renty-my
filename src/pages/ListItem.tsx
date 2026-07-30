@@ -130,6 +130,7 @@ export default function ListItem() {
             longitude: profile?.longitude,
             listing_status: 'draft',
             is_available: false,
+            status: 'created',
             tags: [],
             instant_book_enabled: formData.instant_book_enabled,
             auto_approve_bookings: formData.auto_approve_bookings,

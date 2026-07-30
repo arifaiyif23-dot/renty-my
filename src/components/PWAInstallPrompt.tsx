@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, Download, Smartphone } from "lucide-react";
+import { isNative } from "@/lib/platform";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -14,7 +15,7 @@ export const PWAInstallPrompt = () => {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
+    if (isNative()) return;
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;

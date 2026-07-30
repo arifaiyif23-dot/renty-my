@@ -19,7 +19,6 @@ const bookingSchema = z.object({
   originalTotalPrice: z.number().positive().optional(),
   discountAmount: z.number().min(0).optional(),
   promoCodeId: z.string().uuid().nullable().optional(),
-  instantBook: z.boolean().optional().default(false),
 }).refine(
   (data) => new Date(data.endDate) >= new Date(data.startDate),
   { message: 'endDate must be on or after startDate' }
@@ -53,7 +52,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { itemId, startDate, endDate, renterId, ownerId, totalPrice, originalTotalPrice, discountAmount, promoCodeId, instantBook } = validationResult.data;
+    const { itemId, startDate, endDate, renterId, ownerId, totalPrice, originalTotalPrice, discountAmount, promoCodeId } = validationResult.data;
     
     console.log('Creating rental request:', { itemId, renterId, ownerId, startDate, endDate, totalPrice, originalTotalPrice, discountAmount, promoCodeId });
     
@@ -104,7 +103,7 @@ serve(async (req) => {
     // authoritative server-side price recomputation (never trust the client's price).
     const { data: itemData, error: itemError } = await supabase
       .from('items')
-      .select('price_per_day, owner_id, instant_book_enabled, minimum_rental_days, maximum_rental_days')
+      .select('price_per_day, owner_id, minimum_rental_days, maximum_rental_days')
       .eq('id', itemId)
       .single();
 
@@ -185,14 +184,8 @@ serve(async (req) => {
       throw new Error('Price mismatch. Please refresh and try again.');
     }
 
-    // Determine rental status
-    let rentalStatus = 'pending_approval';
-    if (instantBook) {
-      if (!itemData.instant_book_enabled) {
-        throw new Error('Instant booking is not available for this item');
-      }
-      rentalStatus = 'approved';
-    }
+    // SOP flow: always create rental as 'requested'; payment happens before owner approval
+    const rentalStatus = 'requested';
 
     // Atomically check overlap and create rental (prevents TOCTOU race condition)
     const { data: rpcResult, error: rpcError } = await supabase.rpc('create_rental_with_overlap_check', {
@@ -216,14 +209,32 @@ serve(async (req) => {
     
     console.log('Rental request created:', rpcResult.rental_id);
 
-    // Generate pickup code for instant bookings (regular bookings get it on owner approval)
-    if (instantBook) {
-      const pickupCode = Math.floor(1000 + Math.random() * 9000).toString();
-      await supabase
-        .from('rentals')
-        .update({ pickup_code: pickupCode })
-        .eq('id', rpcResult.rental_id);
+    // Gap #9: Enforce risk-based actions (risk_level set by BEFORE INSERT trigger)
+    const { data: riskCheck } = await supabase
+      .from('rentals')
+      .select('risk_level')
+      .eq('id', rpcResult.rental_id)
+      .single();
+
+    if (riskCheck?.risk_level === 'high') {
+      await supabase.from('rentals').delete().eq('id', rpcResult.rental_id);
+      if (promoCodeId) {
+        await supabase.rpc('restore_promo_usage', { p_promo_id: promoCodeId });
+      }
+      throw new Error('This booking has been flagged for manual review due to risk assessment. Please contact support.');
     }
+
+    if (riskCheck?.risk_level === 'medium') {
+      await supabase.from('notifications').insert({
+        user_id: ownerId,
+        type: 'rental_request',
+        title: 'Risk Review Required',
+        message: 'This booking is flagged as medium risk. Additional verification may be required before payment.',
+        link: '/my-listings'
+      });
+    }
+
+    // Pickup code is generated on owner confirmation (after payment), not here.
 
     // Atomically increment promo code usage (compare-and-swap — TOCTOU prevention)
     if (promoCodeId) {
@@ -257,33 +268,23 @@ serve(async (req) => {
       rental_id: rpcResult.rental_id,
       stage: 'rental_requested',
       status: 'success',
-      details: { itemId, renterId, ownerId, startDate, endDate, totalPrice, originalTotalPrice, discountAmount, promoCodeId, instantBook }
+      details: { itemId, renterId, ownerId, startDate, endDate, totalPrice, originalTotalPrice, discountAmount, promoCodeId }
     });
 
-    if (instantBook) {
-      await supabase.from('notifications').insert({
-        user_id: ownerId,
-        type: 'rental_approved',
-        title: 'New Instant Booking',
-        message: 'A renter has instantly booked your item. Check your dashboard for details.',
-        link: `/my-listings`
-      });
-    } else {
-      await supabase.from('notifications').insert({
-        user_id: ownerId,
-        type: 'rental_request',
-        title: 'New Booking Request',
-        message: 'You have a new booking request for your item',
-        link: `/my-listings`
-      });
-    }
+    await supabase.from('notifications').insert({
+      user_id: ownerId,
+      type: 'rental_request',
+      title: 'New Booking Request',
+      message: 'You have a new booking request for your item. Awaiting payment from renter.',
+      link: `/my-listings`
+    });
     
     return new Response(
       JSON.stringify({
         success: true,
         rentalId: rpcResult.rental_id,
         status: rentalStatus,
-        message: instantBook ? 'Instant booking confirmed' : 'Booking request sent successfully'
+        message: 'Booking request sent successfully. Proceed to payment.'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -297,7 +298,7 @@ serve(async (req) => {
     else if (message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must')) status = 403;
     else if (message.startsWith('Item is not') || message.startsWith('Failed to check') || message.startsWith('Price mismatch')) status = 409;
     else if (message.startsWith('Owner mismatch') || message.startsWith('Item not found')) status = 404;
-    else if (message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Instant booking') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already')) status = 400;
+    else if (message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already')) status = 400;
 
     return new Response(
       JSON.stringify({ error: status === 500 ? 'An unexpected error occurred. Please try again.' : message }),

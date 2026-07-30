@@ -10,8 +10,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
 
   return (
     <div 
-      className={prefersReducedMotion ? '' : 'animate-fade-in'}
-      style={{ animationDuration: '0.2s' }}
+      className={prefersReducedMotion ? '' : 'animate-enter'}
     >
       {children}
     </div>

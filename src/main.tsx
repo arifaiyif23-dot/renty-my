@@ -2,8 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./index.css";
 import "./i18n/config";
+import { isWeb } from '@/lib/platform';
 import { registerServiceWorker } from './utils/registerServiceWorker';
 import { prefetchRoutes } from '@/hooks/use-prefetch';
 import { logRejection, logCaughtError } from '@/lib/errorLogger';
@@ -11,8 +13,8 @@ import { logRejection, logCaughtError } from '@/lib/errorLogger';
 // Performance monitoring — configure with your analytics provider
 // import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
 
-// Register service worker for offline support
-if (import.meta.env.PROD) {
+// Register service worker for offline support (web only — SW crashes in Capacitor WebView)
+if (import.meta.env.PROD && isWeb()) {
   registerServiceWorker();
 }
 
@@ -29,7 +31,9 @@ if (import.meta.env.PROD) {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </HelmetProvider>
   </StrictMode>
 );

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types';
+import { isNative } from '@/lib/platform';
 
 export interface SignUpResult {
   userId: string | undefined;
@@ -109,13 +110,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Refetch profile when returning to the page (catches updates missed by Realtime)
   useEffect(() => {
     if (!user?.id) return;
+    const refetch = () => fetchProfile(user.id);
+
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        fetchProfile(user.id);
-      }
+      if (document.visibilityState === 'visible') refetch();
     };
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+
+    let cleanupApp: (() => void) | undefined;
+    if (isNative()) {
+      import('@capacitor/app').then(({ App }) => {
+        App.addListener('appStateChange', ({ isActive }) => {
+          if (isActive) refetch();
+        }).then((listener) => {
+          cleanupApp = () => listener.remove();
+        });
+      });
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      cleanupApp?.();
+    };
   }, [user?.id]);
 
   const fetchProfile = async (userId: string) => {
@@ -137,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, fullName: string, preferredRole?: string): Promise<SignUpResult> => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = import.meta.env.VITE_SITE_URL || `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
       email,

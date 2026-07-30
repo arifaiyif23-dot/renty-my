@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
-import Header from "@/components/Header"
-import Footer from "@/components/Footer"
+import { PageLayout } from "@/components/PageLayout"
 import SEO from "@/components/SEO"
 import { useIndexData } from "@/hooks/use-index-data"
 import { HeroSection } from "@/pages/index/HeroSection"
@@ -23,16 +22,14 @@ const Index = () => {
   const isLoading = loading
 
   return (
-    <div className="min-h-screen pb-mobile-nav">
+    <PageLayout variant="full" className="pb-0">
       <SEO
         title={user ? "Renty" : "Renty — Rent Anything in Malaysia"}
         description={`Trusted peer-to-peer rentals. ${totalItemCount || 'Hundreds of'} verified items from cameras to cars.`}
       />
-      <Header />
 
       <HeroSection
         totalItemCount={totalItemCount}
-        user={user}
         onSearch={() => navigate('/search')}
         onListOrAuth={() => navigate(user ? '/list-item' : '/auth')}
       />
@@ -42,9 +39,7 @@ const Index = () => {
       )}
 
       <NewestListingsSection items={featuredItems} isLoading={isLoading} onNavigate={navigate} />
-
-      <Footer />
-    </div>
+    </PageLayout>
   )
 }
 

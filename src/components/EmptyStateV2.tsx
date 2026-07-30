@@ -1,6 +1,5 @@
 import { type ElementType } from "react";
 import { cn } from "@/lib/utils";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Package } from "lucide-react";
 
@@ -25,11 +24,7 @@ const EmptyStateV2 = ({
 }: EmptyStateV2Props) => {
   const isCompact = variant === 'compact';
   return (
-    <GlassCard
-      variant="subtle"
-      padding="lg"
-      className={cn("text-center", className)}
-    >
+    <div className={cn("card-base p-6 text-center", className)}>
       <div className={cn("flex flex-col items-center gap-4", isCompact ? "py-4" : "py-8")}>
         <div className={cn("rounded-2xl bg-muted flex items-center justify-center", isCompact ? "w-12 h-12" : "w-16 h-16")}>
           <Icon className={cn("text-muted-foreground/60", isCompact ? "h-6 w-6" : "h-8 w-8")} />
@@ -48,7 +43,7 @@ const EmptyStateV2 = ({
           </Button>
         )}
       </div>
-    </GlassCard>
+    </div>
   );
 };
 

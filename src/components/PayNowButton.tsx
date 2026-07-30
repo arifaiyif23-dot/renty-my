@@ -17,6 +17,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { haptics } from '@/utils/haptics';
 import { differenceInDays } from 'date-fns';
+import { isNative } from '@/lib/platform';
 
 interface PayNowButtonProps {
   rental: Rental;
@@ -92,19 +93,24 @@ export function PayNowButton({ rental }: PayNowButtonProps) {
 
       if (error) {
         let msg = error.message;
-        if (payResponse) {
-          try {
-            const body = await payResponse.json();
-            if (body?.error) msg = body.error;
-          } catch {}
-        }
+if (payResponse) {
+            try {
+              const body = await payResponse.json();
+              if (body?.error) msg = body.error;
+            } catch { /* response body not available */ }
+          }
         throw new Error(msg);
       }
 
       haptics.success();
       toast.success('Redirecting to payment...');
 
-      window.location.href = data.paymentUrl;
+      if (isNative()) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url: data.paymentUrl });
+      } else {
+        window.location.href = data.paymentUrl;
+      }
 
     } catch (error: unknown) {
       haptics.error();

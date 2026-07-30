@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { ListingCard } from "@/components/ListingCard";
 import SkeletonCard from "@/components/SkeletonCard";
 import EnhancedEmptyState from "@/components/EnhancedEmptyState";
@@ -69,12 +69,11 @@ export default function Wishlist() {
   };
 
   return (
-    <>
+    <PageLayout>
       <SEO
         title={t('wishlist.title')}
         description={t('wishlist.seoDesc')}
       />
-      <Header />
       <div className="container mx-auto p-4 pb-mobile-nav">
         {pullDistance > 0 && (
           <div className="flex justify-center py-3">
@@ -132,7 +131,7 @@ export default function Wishlist() {
           />
         )}
       </div>
-    </>
+    </PageLayout>
   );
 }
 

@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Upload, AlertTriangle, CheckCircle, Shield } from 'lucide-react';
+import { Upload, AlertTriangle, CheckCircle, Shield, Camera } from 'lucide-react';
 import { Rental } from '@/types';
+import { ReturnConditionComparison } from '@/components/ReturnConditionComparison';
 
 interface ReturnDisputeDialogProps {
   rental: Rental;
@@ -133,6 +134,9 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Pre-rental Condition Comparison */}
+          {!path && <ReturnConditionComparison rentalId={rental.id} />}
+
           {/* Path Selection */}
           {!path && (
             <RadioGroup value={path || ''} onValueChange={(v) => setPath(v as 'good' | 'dispute')}>
@@ -232,15 +236,28 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
 
           {/* Good Condition Confirmation */}
           {path === 'good' && photoUrls.length > 0 && (
-            <div className="flex items-start gap-2 p-3 bg-success/10 border border-success/20 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-success">
-                  Ready to Complete
-                </p>
-                <p className="text-success text-xs mt-1">
-                  Confirm the item is returned in good condition. Your payout will be released.
-                </p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 p-3 bg-success/10 border border-success/20 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-success">
+                    Ready to Complete
+                  </p>
+                  <p className="text-success text-xs mt-1">
+                    Confirm the item is returned in good condition. Your payout will be released.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                <Camera className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-primary">
+                    Record return condition
+                  </p>
+                  <p className="text-primary/70 text-xs mt-1">
+                    After completing, you will be prompted to record the return condition for your records.
+                  </p>
+                </div>
               </div>
             </div>
           )}

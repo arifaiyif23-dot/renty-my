@@ -140,6 +140,8 @@ serve(async (req) => {
         return await handleRemoveAdminRole(supabase, payload);
       case 'list_admins':
         return await handleListAdmins(supabase);
+      case 'item_review':
+        return await handleItemReview(supabase, payload, user.id);
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),
@@ -749,6 +751,60 @@ async function handleCleanupPayments(supabase: ReturnType<typeof createClient>) 
   const { data, error } = await supabase.rpc('cleanup_expired_payments');
   if (error) { console.error('Cleanup payments error:', error); return json({ error: 'Failed to cleanup payments' }, 500); }
   return json({ success: true, data });
+}
+
+// --- Item Review (approve/reject) ---
+
+async function handleItemReview(
+  supabase: ReturnType<typeof createClient>,
+  payload: Record<string, unknown>,
+  adminUserId: string
+) {
+  const { itemId, action, reason } = payload as {
+    itemId: string;
+    action: 'approve' | 'reject';
+    reason?: string;
+  };
+
+  if (!itemId || !['approve', 'reject'].includes(action)) {
+    return json({ error: 'itemId and action (approve/reject) required' }, 400);
+  }
+
+  const { data: item, error: itemError } = await supabase
+    .from('items')
+    .select('id, status, owner_id')
+    .eq('id', itemId)
+    .single();
+
+  if (itemError || !item) {
+    return json({ error: 'Item not found' }, 404);
+  }
+
+  if (action === 'approve') {
+    if (item.status !== 'under_review') {
+      return json({ error: `Cannot approve item in '${item.status}' status` }, 409);
+    }
+    const { error: updateError } = await supabase
+      .from('items')
+      .update({ status: 'available', is_available: true, listing_status: 'active' })
+      .eq('id', itemId);
+    if (updateError) throw updateError;
+  } else {
+    const { error: updateError } = await supabase
+      .from('items')
+      .update({ status: 'created', listing_status: 'draft' })
+      .eq('id', itemId);
+    if (updateError) throw updateError;
+  }
+
+  await supabase.from('admin_audit_log').insert({
+    admin_id: adminUserId,
+    action: `item_${action}`,
+    target: itemId,
+    reason: reason || `Admin ${action}d listing`,
+  });
+
+  return json({ success: true, newStatus: action === 'approve' ? 'available' : 'created' });
 }
 
 // --- Sensitive Access Log ---

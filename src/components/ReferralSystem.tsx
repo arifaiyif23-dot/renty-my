@@ -7,6 +7,7 @@ import { Gift, Share2, Copy, Users, TrendingUp, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { isNative } from "@/lib/platform";
 
 interface Referral {
   id: string;
@@ -126,10 +127,15 @@ export const ReferralSystem = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareViaWhatsApp = () => {
+  const shareViaWhatsApp = async () => {
     const referralLink = `${window.location.origin}/?ref=${referralCode}`;
     const message = `Join RENTY and get RM 10 credit! Use my referral code: ${referralCode}\n${referralLink}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    if (isNative()) {
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url: `https://wa.me/?text=${encodeURIComponent(message)}` });
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    }
   };
 
   if (!user) return null;

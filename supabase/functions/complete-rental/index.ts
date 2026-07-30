@@ -70,16 +70,28 @@ serve(async (req) => {
     }
 
     // The rental must be in a returnable state.
-    if (!['paid', 'active'].includes(rental.status)) {
+    if (!['active', 'overdue'].includes(rental.status)) {
       throw new Error(`Rental cannot be processed. Current status: ${rental.status}`);
     }
 
     if (data.action === 'complete') {
+      // Compute late penalty if applicable
+      let penalty = 0;
+      try {
+        const { data: penaltyData } = await supabase.rpc('compute_late_penalty', {
+          p_rental_id: data.rentalId,
+          p_actual_return_date: new Date().toISOString(),
+        });
+        penalty = Number(penaltyData) || 0;
+      } catch (err) {
+        console.error('Late penalty computation error:', err);
+      }
+
       const { data: updated, error: updateError } = await supabase
         .from('rentals')
         .update({ status: 'completed', return_photos: data.returnPhotos })
         .eq('id', data.rentalId)
-        .in('status', ['paid', 'active']) // TOCTOU guard
+        .in('status', ['active', 'overdue']) // TOCTOU guard
         .select('id')
         .maybeSingle();
 
@@ -92,12 +104,14 @@ serve(async (req) => {
         user_id: rental.renter_id,
         type: 'rental_approved',
         title: 'Rental Completed',
-        message: `The return of "${rental.item?.title ?? 'your item'}" was confirmed. Thanks for renting!`,
+        message: penalty > 0
+          ? `The return of "${rental.item?.title ?? 'your item'}" was confirmed. A late return penalty of RM${penalty} has been applied.`
+          : `The return of "${rental.item?.title ?? 'your item'}" was confirmed. Thanks for renting!`,
         link: '/dashboard',
       });
 
       return new Response(
-        JSON.stringify({ success: true, status: 'completed' }),
+        JSON.stringify({ success: true, status: 'completed', late_penalty: penalty }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -113,7 +127,7 @@ serve(async (req) => {
         is_disputed: true,
       })
       .eq('id', data.rentalId)
-      .in('status', ['paid', 'active']) // TOCTOU guard
+      .in('status', ['active', 'overdue']) // TOCTOU guard
       .select('id')
       .maybeSingle();
 

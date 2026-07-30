@@ -13,7 +13,7 @@ import { FileAttachment } from "@/components/FileAttachment";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
 import type { Message } from "@/types";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { sanitizeMessage } from "@/utils/sanitize";
 import { safeFormatDate } from "@/utils/securityHelpers";
@@ -377,8 +377,7 @@ export default function Messages() {
   };
 
   return (
-    <>
-      <Header />
+    <PageLayout>
       {pullDistance > 0 && (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
           <div
@@ -699,6 +698,6 @@ export default function Messages() {
           </>
         )}
       </div>
-    </>
+    </PageLayout>
   );
 }

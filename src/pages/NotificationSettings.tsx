@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Bell, Loader2, ArrowLeft, Save } from "lucide-react";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { useNavigate } from "react-router-dom";
 import type { NotificationPreference } from "@/types";
 
@@ -103,12 +103,9 @@ export default function NotificationSettings() {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav flex items-center justify-center min-h-[50vh]">
+      <PageLayout variant="narrow" className="flex items-center justify-center min-h-[50vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
@@ -128,9 +125,7 @@ export default function NotificationSettings() {
   ];
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav">
+    <PageLayout variant="narrow">
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
@@ -186,7 +181,6 @@ export default function NotificationSettings() {
             Save Preferences
           </Button>
         </GlassCard>
-      </div>
-    </>
+    </PageLayout>
   );
 }
