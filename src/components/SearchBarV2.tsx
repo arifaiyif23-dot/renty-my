@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Search, MapPin, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
 
 interface SearchBarV2Props {
   className?: string;
@@ -24,8 +26,10 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [showLocation, setShowLocation] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [overlayOpen, setOverlayOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const locationRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -39,6 +43,10 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isMobile) {
+      setOverlayOpen(true);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (query.trim()) params.set("q", query.trim());
     else params.delete("q");
@@ -48,120 +56,142 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
     onSearch?.(query);
   };
 
+  const handleOverlaySearch = (q: string) => {
+    setQuery(q);
+    const params = new URLSearchParams(searchParams.toString());
+    if (q.trim()) params.set("q", q.trim());
+    else params.delete("q");
+    if (location) params.set("location", location);
+    else params.delete("location");
+    navigate(`/search?${params.toString()}`);
+    onSearch?.(q);
+  };
+
   const isHero = variant === "hero";
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn(
-        "relative transition-all duration-300",
-        isHero ? "w-full" : "w-full",
-        className
-      )}
-    >
-      <div
+    <>
+      <form
+        onSubmit={handleSubmit}
         className={cn(
-          "relative flex items-center gap-2 rounded-2xl transition-all duration-300",
-          isHero
-            ? "glass h-14 px-4"
-            : "bg-card border border-border h-12 px-3 shadow-1",
-          focused && isHero
-            ? "ring-2 ring-primary/20"
-            : "",
-          focused && !isHero
-            ? "border-primary shadow-lg shadow-primary/5 ring-2 ring-primary/10"
-            : ""
+          "relative transition-all duration-300",
+          isHero ? "w-full" : "w-full",
+          className
         )}
       >
-        <Search
+        <div
           className={cn(
-            "shrink-0 transition-colors duration-200",
-            focused ? "text-primary" : "text-muted-foreground",
-            isHero ? "h-5 w-5" : "h-4 w-4"
+            "relative flex items-center gap-2 rounded-2xl transition-all duration-300",
+            isHero
+              ? "glass h-14 px-4"
+              : "bg-card border border-border h-12 px-3 shadow-1",
+            focused && isHero
+              ? "ring-2 ring-primary/20"
+              : "",
+            focused && !isHero
+              ? "border-primary shadow-lg shadow-primary/5 ring-2 ring-primary/10"
+              : ""
           )}
-        />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          placeholder={t('search.placeholder')}
-          className={cn(
-            "flex-1 bg-transparent border-none outline-none placeholder:text-muted-foreground/60 font-medium",
-            isHero ? "text-base" : "text-sm"
-          )}
-          aria-label="Search items"
-        />
+        >
+          <Search
+            className={cn(
+              "shrink-0 transition-colors duration-200",
+              focused ? "text-primary" : "text-muted-foreground",
+              isHero ? "h-5 w-5" : "h-4 w-4"
+            )}
+          />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => {
+              if (isMobile) { inputRef.current?.blur(); setOverlayOpen(true); return; }
+              setFocused(true);
+            }}
+            onBlur={() => setFocused(false)}
+            placeholder={t('search.placeholder')}
+            className={cn(
+              "flex-1 bg-transparent border-none outline-none placeholder:text-muted-foreground/60 font-medium",
+              isHero ? "text-base" : "text-sm"
+            )}
+            aria-label="Search items"
+          />
 
-        <div className="flex items-center gap-2">
-          <div className="relative" ref={locationRef}>
-            <button
-              type="button"
-              onClick={() => setShowLocation(!showLocation)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200",
-                location
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              )}
-            >
-              <MapPin className={cn(isHero ? "h-4 w-4" : "h-3.5 w-3.5")} />
-              <span className="hidden sm:inline">
-                {location || "Malaysia"}
-              </span>
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="relative" ref={locationRef}>
+              <button
+                type="button"
+                onClick={() => setShowLocation(!showLocation)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200",
+                  location
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                <MapPin className={cn(isHero ? "h-4 w-4" : "h-3.5 w-3.5")} />
+                <span className="hidden sm:inline">
+                  {location || "Malaysia"}
+                </span>
+              </button>
 
-            {showLocation && (
-              <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
-                <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                  {t('search.selectState')}
-                </p>
-                <div className="max-h-48 overflow-y-auto space-y-0.5">
-                  <button
-                    type="button"
-                    onClick={() => { setLocation(""); setShowLocation(false); }}
-                    className={cn(
-                      "w-full text-left px-2 py-1.5 rounded-lg text-sm transition-colors",
-                      !location ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
-                    )}
-                  >
-                    All Malaysia
-                  </button>
-                  {MALAYSIA_STATES.map((state) => (
+              {showLocation && (
+                <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
+                  <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">
+                    {t('search.selectState')}
+                  </p>
+                  <div className="max-h-48 overflow-y-auto space-y-0.5">
                     <button
-                      key={state}
                       type="button"
-                      onClick={() => { setLocation(state); setShowLocation(false); }}
+                      onClick={() => { setLocation(""); setShowLocation(false); }}
                       className={cn(
                         "w-full text-left px-2 py-1.5 rounded-lg text-sm transition-colors",
-                        location === state
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "hover:bg-muted"
+                        !location ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
                       )}
                     >
-                      {state}
+                      All Malaysia
                     </button>
-                  ))}
+                    {MALAYSIA_STATES.map((state) => (
+                      <button
+                        key={state}
+                        type="button"
+                        onClick={() => { setLocation(state); setShowLocation(false); }}
+                        className={cn(
+                          "w-full text-left px-2 py-1.5 rounded-lg text-sm transition-colors",
+                          location === state
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "hover:bg-muted"
+                        )}
+                      >
+                        {state}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+                aria-label={t('common.clear')}
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
             )}
           </div>
-
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
-              aria-label={t('common.clear')}
-            >
-              <X className="h-4 w-4 text-muted-foreground" />
-            </button>
-          )}
         </div>
-      </div>
-    </form>
+      </form>
+
+      <MobileSearchOverlay
+        open={overlayOpen}
+        onClose={() => setOverlayOpen(false)}
+        onSearch={handleOverlaySearch}
+      />
+    </>
   );
 };
 

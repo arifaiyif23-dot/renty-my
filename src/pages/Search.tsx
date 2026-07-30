@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { ItemCategory } from '@/types';
-import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
+import { ListingCard } from '@/components/ListingCard';
 import { SearchBarV2 } from '@/components/SearchBarV2';
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import SEO from '@/components/SEO';
@@ -233,7 +233,38 @@ export default function Search() {
         description="Browse thousands of items available for rent across Malaysia."
       />
 
-      <div>
+      <div className="lg:flex lg:gap-6">
+        <aside className="hidden lg:block w-72 shrink-0 space-y-6">
+          <div className="card-base p-5 sticky top-24 space-y-6">
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground mb-4">Filters</h3>
+              <AdvancedSearchFilters
+                verifiedOnly={verifiedOnly}
+                setVerifiedOnly={setVerifiedOnly}
+                instantBookOnly={instantBookOnly}
+                setInstantBookOnly={setInstantBookOnly}
+                itemCondition={itemCondition}
+                setItemCondition={setItemCondition}
+                maxDistance={maxDistance}
+                setMaxDistance={setMaxDistance}
+                showDistanceFilter={!!userLocation}
+              />
+            </div>
+            <div className="pt-2 border-t border-border">
+              <button
+                onClick={() => {
+                  setVerifiedOnly(false); setInstantBookOnly(false);
+                  setItemCondition('all'); setMaxDistance(25);
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Reset Filters
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <div className="flex-1 min-w-0">
         <div className="mb-5">
           <SearchBarV2 variant="inline" onSearch={(q) => saveSearch(q)} />
         </div>
@@ -289,6 +320,7 @@ export default function Search() {
             </SelectContent>
           </Select>
 
+          <div className="lg:hidden">
           <MobileFilterDrawer activeFiltersCount={activeFiltersCount}>
             <AdvancedSearchFilters
               verifiedOnly={verifiedOnly}
@@ -302,6 +334,7 @@ export default function Search() {
               showDistanceFilter={!!userLocation}
             />
           </MobileFilterDrawer>
+          </div>
 
           {user && (searchQuery || category !== 'all' || userLocation) && (
             <Button
@@ -429,7 +462,7 @@ export default function Search() {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
             {items.map((item) => (
-              <ListingCardV2
+              <ListingCard
                 key={item.id}
                 id={item.id}
                 title={item.title}
@@ -450,6 +483,7 @@ export default function Search() {
             <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
           </div>
         )}
+      </div>
       </div>
       <ScrollToTop />
     </PageLayout>

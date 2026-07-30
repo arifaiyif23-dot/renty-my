@@ -200,7 +200,8 @@ $$;
 -- ============================================
 -- Update cancel_no_show_rentals to differentiate fault
 -- ============================================
-CREATE OR REPLACE FUNCTION public.cancel_no_show_rentals()
+DROP FUNCTION IF EXISTS public.cancel_no_show_rentals();
+CREATE FUNCTION public.cancel_no_show_rentals()
 RETURNS TABLE(rental_id UUID, item_id UUID, renter_id UUID, no_show_type TEXT)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$

@@ -13,7 +13,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
 import { ItemCategory } from '@/types';
 import { ImageUpload } from '@/components/ImageUpload';
-import Header from '@/components/Header';
+import { PageLayout } from "@/components/PageLayout";
 import BackButton from '@/components/BackButton';
 import { validateUserInput } from '@/utils/sanitize';
 import { detectBannedContent, ModerationResult } from '@/utils/contentModeration';
@@ -271,24 +271,19 @@ export default function ListItem() {
 
   if (!user) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4">
-          <GlassCard padding="lg">
+      <PageLayout variant="narrow">
+          <GlassCard padding="lg" className="mt-6">
             <p className="text-center mb-4">Please sign in to list an item</p>
             <Button onClick={() => navigate('/auth')} className="w-full rounded-xl">
               Sign In
             </Button>
           </GlassCard>
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-2xl pb-mobile-nav">
+    <PageLayout variant="narrow">
         <div className="md:hidden mb-4 flex items-center gap-2">
           <BackButton fallbackPath="/" />
           <h1 className="text-xl font-bold">{t('listItem.title')}</h1>
@@ -557,7 +552,6 @@ export default function ListItem() {
             </div>
           </form>
         </GlassCard>
-      </div>
-    </>
+    </PageLayout>
   );
 }

@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Camera, ShieldCheck, Wallet, Sparkles } from "lucide-react";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { toast } from "sonner";
 
 export default function VendorOnboarding() {
@@ -72,9 +72,7 @@ export default function VendorOnboarding() {
   ];
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto px-4 py-8 max-w-2xl pb-mobile-nav">
+    <PageLayout variant="narrow" className="max-w-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-mono uppercase tracking-wider mb-3">
             <Sparkles className="h-3 w-3" /> {t('onboarding.badge')}
@@ -125,7 +123,6 @@ export default function VendorOnboarding() {
             {t('onboarding.later')}
           </Button>
         </div>
-      </div>
-    </>
+    </PageLayout>
   );
 }

@@ -193,7 +193,6 @@ export default function BookingDetail() {
             </Button>
           )}
         </GlassCard>
-      </div>
 
       <AlertDialog open={cancelDialog} onOpenChange={setCancelDialog}>
         <AlertDialogContent>

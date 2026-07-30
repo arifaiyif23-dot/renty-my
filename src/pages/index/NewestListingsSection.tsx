@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ListingCardV2 } from "@/components/marketplace/ListingCardV2"
+import { ListingCard } from "@/components/ListingCard"
 import { SkeletonV2 } from "@/components/SkeletonV2"
 import { EmptyStateV2 } from "@/components/EmptyStateV2"
 import { SearchSlash } from "lucide-react"
@@ -47,7 +47,7 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.4, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
               >
-                <ListingCardV2
+                <ListingCard
                   id={item.id}
                   title={item.title}
                   image={item.image}

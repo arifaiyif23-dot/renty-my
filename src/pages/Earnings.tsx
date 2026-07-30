@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
 import { PageLayout } from "@/components/PageLayout";
 import { SkeletonV2 } from '@/components/SkeletonV2';
-import EnhancedEmptyState from '@/components/EnhancedEmptyState';
+import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import {
   Dialog,
   DialogContent,
@@ -416,7 +416,7 @@ export default function Earnings() {
           </div>
           {payouts.length === 0 ? (
             <GlassCard padding="lg">
-              <EnhancedEmptyState
+              <EmptyStateV2
                 icon={DollarSign}
                 title="No payouts yet"
                 description="Payouts are created automatically when rentals complete"

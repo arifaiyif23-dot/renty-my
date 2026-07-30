@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ListingCardV2 } from "@/components/marketplace/ListingCardV2"
+import { ListingCard } from "@/components/ListingCard"
 import { useTranslation } from 'react-i18next'
 
 interface RecentlyViewedItem {
@@ -29,7 +29,7 @@ export function RecentlyViewedSection({ items, onNavigate }: RecentlyViewedSecti
         </div>
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 md:gap-5">
           {items.slice(0, 6).map(item => (
-            <ListingCardV2
+            <ListingCard
               key={item.id}
               id={item.id}
               title={item.title}

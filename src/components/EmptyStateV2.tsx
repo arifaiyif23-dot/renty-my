@@ -9,6 +9,10 @@ interface EmptyStateV2Props {
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
+  showRetry?: boolean;
+  onRetry?: () => void;
   className?: string;
   variant?: 'default' | 'compact';
 }
@@ -19,6 +23,10 @@ const EmptyStateV2 = ({
   description,
   actionLabel,
   onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
+  showRetry = false,
+  onRetry,
   className,
   variant = 'default',
 }: EmptyStateV2Props) => {
@@ -37,11 +45,23 @@ const EmptyStateV2 = ({
             </p>
           )}
         </div>
-        {actionLabel && onAction && (
-          <Button variant="default" onClick={onAction} className="mt-2">
-            {actionLabel}
-          </Button>
-        )}
+        <div className={cn("flex flex-col gap-2 w-full", isCompact ? "max-w-[200px]" : "max-w-xs")}>
+          {actionLabel && onAction && (
+            <Button variant="default" onClick={onAction} size={isCompact ? "sm" : "default"}>
+              {actionLabel}
+            </Button>
+          )}
+          {secondaryActionLabel && onSecondaryAction && (
+            <Button variant="outline" onClick={onSecondaryAction} size={isCompact ? "sm" : "default"}>
+              {secondaryActionLabel}
+            </Button>
+          )}
+          {showRetry && onRetry && (
+            <Button variant="ghost" onClick={onRetry} size={isCompact ? "sm" : "default"} className="text-muted-foreground">
+              Try Again
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

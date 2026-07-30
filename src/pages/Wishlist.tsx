@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PageLayout } from "@/components/PageLayout";
 import { ListingCard } from "@/components/ListingCard";
 import SkeletonCard from "@/components/SkeletonCard";
-import EnhancedEmptyState from "@/components/EnhancedEmptyState";
+import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import SEO from "@/components/SEO";
 import { Heart, Trash2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -99,7 +99,7 @@ export default function Wishlist() {
             ))}
           </div>
         ) : isError ? (
-          <EnhancedEmptyState
+          <EmptyStateV2
             icon={RefreshCw}
             title={t('wishlist.failedToLoad')}
             description={error instanceof Error ? error.message : 'An error occurred while loading your wishlist. Please try again.'}
@@ -120,7 +120,7 @@ export default function Wishlist() {
             ))}
           </div>
         ) : (
-          <EnhancedEmptyState
+          <EmptyStateV2
             icon={Heart}
             title={t('wishlist.noItems')}
             description="Save items you love to easily find them later. Tap the heart icon on any listing to add it here."

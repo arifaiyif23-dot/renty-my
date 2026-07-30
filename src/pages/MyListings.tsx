@@ -16,7 +16,7 @@ import {
   Edit, Pause, Play, Trash2, MoreVertical,
   Calendar, DollarSign, Inbox, Loader2, RefreshCw, CheckCircle
 } from 'lucide-react';
-import EnhancedEmptyState from '@/components/EnhancedEmptyState';
+import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import SkeletonCard from '@/components/SkeletonCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
 import { toast } from 'sonner';
@@ -472,7 +472,7 @@ export default function MyListings() {
               <Button variant="outline" onClick={() => refetch()} className="rounded-xl">Try Again</Button>
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (
-            <EnhancedEmptyState
+            <EmptyStateV2
               icon={List}
               title={t('listings.noListings')}
               description="Start earning by listing your first item. It only takes a few minutes to set up."

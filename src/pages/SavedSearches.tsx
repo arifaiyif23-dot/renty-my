@@ -224,7 +224,6 @@ export default function SavedSearches() {
             ))}
           </div>
         )}
-      </div>
 
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>

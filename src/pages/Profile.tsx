@@ -179,7 +179,6 @@ export default function Profile() {
             Delete Account
           </button>
         </div>
-      </div>
 
       <ProfileEditDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} onSuccess={() => {}} />
 

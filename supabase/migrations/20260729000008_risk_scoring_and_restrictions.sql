@@ -119,7 +119,8 @@ END;
 $$;
 
 -- Replace check_user_not_suspended to use new restriction system
-CREATE OR REPLACE FUNCTION public.check_user_not_suspended(p_user_id UUID)
+DROP FUNCTION IF EXISTS public.check_user_not_suspended(UUID);
+CREATE FUNCTION public.check_user_not_suspended(p_user_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$

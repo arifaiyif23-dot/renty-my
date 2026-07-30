@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Camera, Upload, CheckCircle, Loader2, ArrowLeft, ArrowRight, ShieldCheck, ShieldAlert, FileText, User, IdCard } from "lucide-react";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { VideoLivenessCapture } from "@/components/VideoLivenessCapture";
 import { validateMyKad } from "@/utils/validation/mykad";
@@ -284,14 +284,9 @@ export default function Verification() {
 
   if (checkLoading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        </div>
-      </>
+      <PageLayout variant="narrow" className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </PageLayout>
     );
   }
 
@@ -301,9 +296,7 @@ export default function Verification() {
 
   if (existingVerification?.status === 'pending') {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+      <PageLayout variant="narrow">
           <div className="mb-6">
             <Button variant="ghost" onClick={() => navigate('/profile')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -324,15 +317,12 @@ export default function Verification() {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-3xl pb-mobile-nav">
+    <PageLayout variant="narrow">
         <div className="mb-6">
           <Button variant="ghost" onClick={() => navigate(redirectTo || '/profile')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -708,7 +698,6 @@ export default function Verification() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </>
+    </PageLayout>
   );
 }

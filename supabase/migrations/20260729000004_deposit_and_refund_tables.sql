@@ -70,16 +70,32 @@ CREATE TABLE IF NOT EXISTS refunds (
 
 ALTER TABLE refunds ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own refunds"
-  ON refunds FOR SELECT
-  USING (
-    auth.uid() = processed_by OR
-    EXISTS (
-      SELECT 1 FROM payments
-      WHERE payments.id = refunds.payment_id
-        AND payments.payer_id = auth.uid()
-    )
-  );
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'payments' AND column_name = 'payer_id') THEN
+    EXECUTE 'CREATE POLICY "Users can view their own refunds"
+      ON refunds FOR SELECT
+      USING (
+        auth.uid() = processed_by OR
+        EXISTS (
+          SELECT 1 FROM payments
+          WHERE payments.id = refunds.payment_id
+            AND payments.payer_id = auth.uid()
+        )
+      )';
+  ELSE
+    CREATE POLICY "Users can view their own refunds"
+      ON refunds FOR SELECT
+      USING (
+        auth.uid() = processed_by OR
+        EXISTS (
+          SELECT 1 FROM payments
+          WHERE payments.id = refunds.payment_id
+            AND payments.rental_id = refunds.rental_id
+        )
+      );
+  END IF;
+END $$;
 
 CREATE POLICY "Admins can view all refunds"
   ON refunds FOR SELECT
@@ -104,7 +120,8 @@ CREATE INDEX IF NOT EXISTS idx_refunds_rental_id ON refunds(rental_id);
 -- ============================================
 ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_check;
 ALTER TABLE payments ADD CONSTRAINT payments_status_check
-  CHECK (status IN ('draft', 'pending', 'completed', 'failed', 'refunded', 'partially_refunded'));
+  CHECK (status IN ('draft', 'pending', 'paid', 'completed', 'failed', 'refunded', 'partially_refunded'))
+  NOT VALID;
 
 -- Also add deposit_amount to payments for tracking
 ALTER TABLE payments
@@ -133,7 +150,7 @@ BEGIN
 
     IF v_deposit_amount > 0 THEN
       INSERT INTO deposits (rental_id, payer_id, amount, status)
-      VALUES (NEW.rental_id, NEW.payer_id, v_deposit_amount, 'held');
+      VALUES (NEW.rental_id, COALESCE(NEW.payer_id, (SELECT renter_id FROM rentals WHERE id = NEW.rental_id)), v_deposit_amount, 'held');
     END IF;
 
     -- Record deposit_amount on the payment for reference

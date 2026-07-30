@@ -15,7 +15,7 @@ import type { DateRange } from 'react-day-picker';
 import { PageLayout } from '@/components/PageLayout';
 import BackButton from '@/components/BackButton';
 import ImageCarousel from '@/components/ImageCarousel';
-import { ListingCardV2 } from '@/components/marketplace/ListingCardV2';
+import { ListingCard } from '@/components/ListingCard';
 import { VendorCard } from '@/components/marketplace/VendorCard';
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import { addRecentlyViewed } from '@/hooks/use-recently-viewed';
@@ -387,7 +387,7 @@ export default function ItemDetail() {
                     ))
                   ) : (
                     similarItems.slice(0, 2).map((si) => (
-                      <ListingCardV2
+                      <ListingCard
                         key={si.id} id={si.id} title={si.title}
                         image={si.images?.[0]?.image_url || ''}
                         pricePerDay={si.price_per_day} category={si.category} location={si.location}

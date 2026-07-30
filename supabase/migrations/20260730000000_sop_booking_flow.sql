@@ -3,12 +3,41 @@
 -- Payment flows BEFORE owner approval (reverse of legacy flow)
 
 -- ============================================
--- Step 1: Drop all triggers referencing rentals.status
+-- Step 1: Drop all triggers & policies referencing rentals.status
 -- ============================================
-DROP TRIGGER IF EXISTS trg_rental_status_transition ON public.rentals;
-DROP TRIGGER IF EXISTS trg_update_item_status_on_rental ON public.rentals;
-DROP TRIGGER IF EXISTS trg_log_booking_event ON public.rentals;
-DROP TRIGGER IF EXISTS trg_payout_on_rental_complete ON public.rentals;
+-- Drop all triggers on rentals (we recreate SOP-compliant ones later)
+DO $$
+DECLARE
+  rec RECORD;
+BEGIN
+  FOR rec IN
+    SELECT trigger_name, event_object_table, trigger_schema
+    FROM information_schema.triggers
+    WHERE event_object_table = 'rentals' AND trigger_schema = 'public'
+  LOOP
+    EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I.%I', rec.trigger_name, rec.trigger_schema, rec.event_object_table);
+  END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- Drop all policies referencing rentals.status
+DO $$
+DECLARE
+  rec RECORD;
+BEGIN
+  FOR rec IN
+    SELECT p.policyname, p.tablename, p.schemaname
+    FROM pg_policies p
+    WHERE p.qual::text LIKE '%rentals.status%'
+       OR p.with_check::text LIKE '%rentals.status%'
+  LOOP
+    RAISE NOTICE 'Dropping policy % on %.%', rec.policyname, rec.schemaname, rec.tablename;
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', rec.policyname, rec.schemaname, rec.tablename);
+  END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
 
 -- ============================================
 -- Step 2: Drop functions that reference rental_status values directly
@@ -31,6 +60,7 @@ CREATE TYPE rental_status_new AS ENUM (
 -- Step 4: Migrate rentals.status to new ENUM
 -- ============================================
 ALTER TABLE public.rentals
+  ALTER COLUMN status DROP DEFAULT,
   ALTER COLUMN status TYPE rental_status_new
   USING (
     CASE status::text
@@ -41,6 +71,7 @@ ALTER TABLE public.rentals
       ELSE status::text::rental_status_new
     END
   );
+ALTER TABLE public.rentals ALTER COLUMN status SET DEFAULT 'draft'::rental_status_new;
 
 -- ============================================
 -- Step 5: Migrate booking_events columns to new ENUM
@@ -312,7 +343,8 @@ COMMENT ON FUNCTION public.expire_stale_bookings IS 'Expires stale bookings: req
 -- ============================================
 -- Step 13: Update cancel_no_show_rentals for SOP (confirmed → no-show)
 -- ============================================
-CREATE OR REPLACE FUNCTION public.cancel_no_show_rentals()
+DROP FUNCTION IF EXISTS public.cancel_no_show_rentals();
+CREATE FUNCTION public.cancel_no_show_rentals()
 RETURNS TABLE(rental_id UUID, item_id UUID, renter_id UUID)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$
@@ -345,7 +377,20 @@ CREATE POLICY "Rental participants can view each other's profiles" ON public.pro
   );
 
 -- ============================================
--- Step 15: Verify migration
+-- Step 15: Recreate policies that reference rentals.status
+-- ============================================
+CREATE POLICY "Users can create reviews for their completed rentals" ON public.reviews FOR INSERT WITH CHECK (
+  auth.uid() = reviewer_id AND
+  EXISTS (
+    SELECT 1 FROM public.rentals
+    WHERE rentals.id = reviews.rental_id
+    AND rentals.status = 'completed'
+    AND (rentals.renter_id = auth.uid() OR rentals.owner_id = auth.uid())
+  )
+);
+
+-- ============================================
+-- Step 16: Verify migration
 -- ============================================
 DO $$
 DECLARE

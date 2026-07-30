@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageLayout } from "@/components/PageLayout";
 import { AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
-import EnhancedEmptyState from "@/components/EnhancedEmptyState";
+import { EmptyStateV2 } from "@/components/EmptyStateV2";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -108,7 +108,7 @@ export default function Disputes() {
           <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : error ? (
           <GlassCard padding="lg">
-            <EnhancedEmptyState
+            <EmptyStateV2
               icon={ShieldAlert}
               title="Failed to load disputes"
               description="Something went wrong while loading your disputes. Please try again."
@@ -118,7 +118,7 @@ export default function Disputes() {
           </GlassCard>
         ) : disputes.length === 0 ? (
           <GlassCard padding="lg">
-            <EnhancedEmptyState
+            <EmptyStateV2
               icon={ShieldAlert}
               title="No disputes"
               description="You haven't been involved in any disputes. Disputes can be opened from a completed rental if there's an issue."
@@ -148,7 +148,6 @@ export default function Disputes() {
             ))}
           </div>
         )}
-      </main>
-    </>
+    </PageLayout>
   );
 }

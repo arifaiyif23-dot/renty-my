@@ -13,7 +13,8 @@ ALTER TABLE profiles ADD CONSTRAINT profiles_restriction_level_check
   ));
 
 -- Update check_user_not_suspended to handle new levels
-CREATE OR REPLACE FUNCTION public.check_user_not_suspended(p_user_id UUID)
+DROP FUNCTION IF EXISTS public.check_user_not_suspended(UUID);
+CREATE FUNCTION public.check_user_not_suspended(p_user_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$

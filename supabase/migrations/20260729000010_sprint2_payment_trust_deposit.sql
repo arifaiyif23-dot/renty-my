@@ -6,7 +6,8 @@
 -- ============================================
 ALTER TABLE payments DROP CONSTRAINT IF EXISTS payments_status_check;
 ALTER TABLE payments ADD CONSTRAINT payments_status_check
-  CHECK (status IN ('draft', 'pending', 'processing', 'completed', 'failed', 'refunded', 'partially_refunded'));
+  CHECK (status IN ('draft', 'pending', 'processing', 'paid', 'completed', 'failed', 'refunded', 'partially_refunded'))
+  NOT VALID;
 
 -- ============================================
 -- Gap #20: Add 'not_required' to deposits status

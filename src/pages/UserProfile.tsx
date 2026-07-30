@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MapPin, Calendar, Package, Star, ArrowLeft, Loader2, MessageCircle, Clock, CheckCircle2 } from "lucide-react";
-import Header from "@/components/Header";
+import { PageLayout } from "@/components/PageLayout";
 import { ListingCard } from "@/components/ListingCard";
 import { ReviewsList } from "@/components/ReviewsList";
 import { UserTrustBadge } from "@/components/trust/UserTrustBadge";
@@ -98,26 +98,20 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav flex items-center justify-center min-h-[50vh]">
+      <PageLayout variant="default" className="max-w-4xl flex items-center justify-center min-h-[50vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
   if (!profile || profile.is_deleted) {
     return (
-      <>
-        <Header />
-        <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav text-center py-20">
+      <PageLayout variant="default" className="max-w-4xl text-center py-20">
           <p className="text-muted-foreground">User not found</p>
           <Button variant="outline" className="mt-4 rounded-xl" asChild>
             <Link to="/">Back to Home</Link>
           </Button>
-        </div>
-      </>
+      </PageLayout>
     );
   }
 
@@ -128,9 +122,7 @@ export default function UserProfile() {
     .toUpperCase();
 
   return (
-    <>
-      <Header />
-      <div className="container mx-auto p-4 max-w-4xl pb-mobile-nav">
+    <PageLayout variant="default" className="max-w-4xl">
         <div className="mb-4">
           <Link to="/search" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
@@ -246,7 +238,6 @@ export default function UserProfile() {
           <h2 className="font-semibold text-lg mb-4">Reviews</h2>
           <ReviewsList userId={id} />
         </GlassCard>
-      </div>
 
       <ReportDialog
         open={showReport}
@@ -254,6 +245,6 @@ export default function UserProfile() {
         targetType="user"
         targetId={id || ""}
       />
-    </>
+    </PageLayout>
   );
 }

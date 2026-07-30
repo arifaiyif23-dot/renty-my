@@ -157,7 +157,6 @@ export default function Dashboard() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
       <ScrollToTop />
     </PageLayout>
   );
