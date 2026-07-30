@@ -26,8 +26,11 @@
     --brand: 224 65% 18%;
     --brand-foreground: 0 0% 100%;
 
-    --secondary: 217 80% 54%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 224 45% 77%;
+    --secondary-foreground: 224 30% 12%;
+
+    --action: 217 80% 54%;
+    --action-foreground: 0 0% 100%;
 
     --muted: 220 15% 94%;
     --muted-foreground: 220 10% 46%;
@@ -69,8 +72,11 @@
     --brand: 224 65% 18%;
     --brand-foreground: 0 0% 100%;
 
-    --secondary: 217 80% 54%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 224 45% 77%;
+    --secondary-foreground: 224 30% 12%;
+
+    --action: 217 80% 54%;
+    --action-foreground: 0 0% 100%;
 
     --muted: 224 20% 16%;
     --muted-foreground: 220 12% 58%;
@@ -157,6 +163,10 @@
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
+  }
+
+  .aspect-golden {
+    aspect-ratio: 1.618;
   }
 
   .glass {

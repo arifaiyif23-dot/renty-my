@@ -180,7 +180,7 @@ const Header = () => {
                 <>
                   <NotificationBell />
                   <Link to="/list-item" className="hidden md:inline-flex mr-1">
-                    <Button size="sm" className="gap-1.5 shadow-1">
+                    <Button className="gap-1.5 shadow-1">
                       <Plus className="h-4 w-4" />
                       {t('listItem.title')}
                     </Button>

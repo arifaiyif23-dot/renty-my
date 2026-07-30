@@ -450,7 +450,7 @@ export default function ItemDetail() {
               {loadingSimilar ? (
                 [...Array(4)].map((_, i) => (
                   <div key={i} className="rounded-xl overflow-hidden border border-border">
-                    <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
+                    <SkeletonV2 variant="rectangular" className="aspect-golden" />
                     <div className="p-3 space-y-2"><SkeletonV2 variant="text" /><SkeletonV2 variant="text" className="w-1/2" /></div>
                   </div>
                 ))

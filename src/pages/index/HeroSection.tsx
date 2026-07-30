@@ -1,7 +1,9 @@
 import { SearchBarV2 } from "@/components/SearchBarV2"
 import { AuroraBackground } from "@/components/AuroraBackground"
-import { ShieldCheck, Users, MapPin, Camera, Car, Wrench, Shirt } from "lucide-react"
+import { ShieldCheck, Users, MapPin, Camera, Car, Wrench, Shirt, Plus } from "lucide-react"
 import { motion } from "motion/react"
+import { Button } from "@/components/ui/button"
+import { Link } from "react-router-dom"
 
 interface HeroSectionProps {
   totalItemCount: number
@@ -34,6 +36,15 @@ export function HeroSection({ totalItemCount }: HeroSectionProps) {
             <div className="max-w-xl mb-4">
               <SearchBarV2 variant="hero" />
             </div>
+
+            <div className="flex items-center gap-3">
+              <Link to="/list-item">
+                <Button variant="brand" size="lg" className="gap-2 shadow-1">
+                  <Plus className="h-5 w-5" />
+                  List Your Item
+                </Button>
+              </Link>
+            </div>
           </motion.div>
 
           <motion.div
@@ -42,7 +53,7 @@ export function HeroSection({ totalItemCount }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="hidden md:flex items-center justify-center"
           >
-            <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-background border border-border overflow-hidden">
+            <div className="relative w-full max-w-md aspect-golden rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/5 to-background border border-border overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--secondary)/0.08),transparent_60%)]" />
               <div className="absolute inset-0 flex items-center justify-center p-8">
                 <div className="grid grid-cols-2 gap-3 w-full">
@@ -71,7 +82,7 @@ export function HeroSection({ totalItemCount }: HeroSectionProps) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="border-t border-border mt-12 md:mt-16"
+        className="border-t border-border mt-8 md:mt-12"
       >
         <div className="mx-auto max-w-7xl px-4 py-5">
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">

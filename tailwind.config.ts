@@ -43,6 +43,10 @@ export default {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))'
         },
+        action: {
+          DEFAULT: 'hsl(var(--action))',
+          foreground: 'hsl(var(--action-foreground))'
+        },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))'
@@ -109,6 +113,9 @@ export default {
       },
       scale: {
         '98': '0.98',
+      },
+      aspectRatio: {
+        'golden': '1.618',
       },
       boxShadow: {
         '1': '0 1px 3px hsl(var(--foreground) / 0.05), 0 1px 2px hsl(var(--foreground) / 0.04)',

@@ -10,9 +10,9 @@ interface TrustStatsSectionProps {
 export function TrustStatsSection({ stats }: TrustStatsSectionProps) {
   const { t } = useTranslation()
   return (
-    <section className="px-4 py-8 md:py-12">
+    <section className="px-4 py-10 md:py-16">
       <div className="mx-auto max-w-5xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
           <GlassCard variant="subtle" padding="md" className="text-center">
             <Package className="h-6 w-6 text-primary mx-auto mb-2" />
             <p className="text-2xl md:text-3xl font-bold tabular-nums text-foreground">{stats.totalItems.toLocaleString()}</p>

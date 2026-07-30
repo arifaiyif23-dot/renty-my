@@ -26,10 +26,10 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 sm:gap-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-border">
-                <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
+                <SkeletonV2 variant="rectangular" className="aspect-golden" />
                 <div className="p-4 space-y-3">
                   <SkeletonV2 variant="text" className="h-4 w-3/4" />
                   <SkeletonV2 variant="text" className="h-3 w-1/2" />
@@ -38,7 +38,7 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
             ))}
           </div>
         ) : items.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 sm:gap-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
             {items.map((item, i) => (
               <motion.div
                 key={item.id}

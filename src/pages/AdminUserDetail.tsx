@@ -172,7 +172,7 @@ export default function AdminUserDetail() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-bold">{profile.full_name || "Unnamed"}</h1>
                 {role === "admin" && <Badge className="bg-destructive rounded-full">Admin</Badge>}
-                {role === "moderator" && <Badge className="bg-secondary rounded-full">Moderator</Badge>}
+                {role === "moderator" && <Badge className="bg-action rounded-full">Moderator</Badge>}
                 {profile.is_verified && <Badge className="bg-success rounded-full">Verified</Badge>}
                 {profile.is_suspended && <Badge className="rounded-full" variant="destructive">Suspended</Badge>}
               </div>

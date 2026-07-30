@@ -297,7 +297,7 @@ export default function Search() {
           </Select>
 
           <Select value={userLocation} onValueChange={setUserLocation}>
-            <SelectTrigger className="h-9 text-xs min-w-[100px] rounded-lg">
+            <SelectTrigger data-testid="search-location" className="h-9 text-xs min-w-[100px] rounded-lg">
               <MapPin className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Location" />
             </SelectTrigger>
@@ -444,7 +444,7 @@ export default function Search() {
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden border border-border">
-                <SkeletonV2 variant="rectangular" className="aspect-[4/3]" />
+                <SkeletonV2 variant="rectangular" className="aspect-golden" />
                 <div className="p-3 space-y-2">
                   <SkeletonV2 variant="text" className="h-4 w-3/4" />
                   <SkeletonV2 variant="text" className="h-3 w-1/2" />

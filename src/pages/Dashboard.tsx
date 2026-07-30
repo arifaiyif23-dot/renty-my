@@ -117,7 +117,7 @@ export default function Dashboard() {
             {filterRentals(['confirmed', 'active', 'overdue']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No active rentals" variant="compact" />
             ) : (
-              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+              <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
                   <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
                 ))}
@@ -134,7 +134,7 @@ export default function Dashboard() {
             {filterRentals(['requested', 'payment_pending', 'reserved']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No pending rentals" variant="compact" />
             ) : (
-              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+              <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
                   <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
                 ))}
@@ -146,7 +146,7 @@ export default function Dashboard() {
             {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
               <EmptyStateV2 icon={PackageSearch} title="No past rentals" variant="compact" />
             ) : (
-              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+              <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
                   <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
                 ))}

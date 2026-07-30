@@ -42,7 +42,7 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
           </Button>
         </div>
         {categories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-5">
             {categories.map((cat, i) => {
               const Icon = CATEGORY_ICONS[cat.name.toLowerCase()] || Package
               const displayName = cat.name.charAt(0).toUpperCase() + cat.name.slice(1)
@@ -76,7 +76,7 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
             })}
           </div>
         ) : isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-5">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="rounded-xl border border-border bg-card p-4">
                 <SkeletonV2 variant="circular" className="w-10 h-10 mb-3" />

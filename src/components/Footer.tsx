@@ -34,7 +34,7 @@ const Footer = () => {
 
           {/* Column 2 — Quick Links */}
           <div>
-            <h4 className="text-sm font-semibold mb-3 text-foreground">{t('footer.quickLinks')}</h4>
+            <h4 className="text-sm font-bold mb-3 text-foreground">{t('footer.quickLinks')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.browseItems')}</Link>
@@ -53,7 +53,7 @@ const Footer = () => {
 
           {/* Column 3 — Support */}
           <div>
-            <h4 className="text-sm font-semibold mb-3 text-foreground">{t('footer.support')}</h4>
+            <h4 className="text-sm font-bold mb-3 text-foreground">{t('footer.support')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <Link to="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.helpCenter')}</Link>
@@ -75,7 +75,7 @@ const Footer = () => {
 
           {/* Column 4 — Legal */}
           <div>
-            <h4 className="text-sm font-semibold mb-3 text-foreground">{t('footer.legal')}</h4>
+            <h4 className="text-sm font-bold mb-3 text-foreground">{t('footer.legal')}</h4>
             <ul className="space-y-2.5">
               <li>
                 <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.termsOfService')}</Link>

@@ -138,7 +138,7 @@ export default function EmailAnalytics() {
       case 'opened':
         return <Badge className="bg-success"><Eye className="h-3 w-3 mr-1" />Opened</Badge>;
       case 'clicked':
-        return <Badge className="bg-secondary"><MousePointerClick className="h-3 w-3 mr-1" />Clicked</Badge>;
+        return <Badge className="bg-action"><MousePointerClick className="h-3 w-3 mr-1" />Clicked</Badge>;
       case 'bounced':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Bounced</Badge>;
       case 'failed':

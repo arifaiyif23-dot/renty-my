@@ -65,7 +65,7 @@ const ListingCard = memo(({
         className
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative aspect-golden overflow-hidden bg-muted">
         {!imgLoaded && !imgError && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
