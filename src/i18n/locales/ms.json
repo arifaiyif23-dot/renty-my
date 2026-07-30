@@ -683,6 +683,7 @@
     "processReturn": "Proses Pemulangan",
     "startHandover": "Mulakan Serahan",
     "leaveReview": "Tinggalkan Ulasan",
+    "notFound": "Tempahan tidak ditemui",
     "cancelBooking": "Batal Tempahan",
     "cancelTitle": "Batal Tempahan",
     "cancelDesc": "Adakah anda pasti mahu membatalkan tempahan ini? Tindakan ini tidak boleh dibatalkan.",
@@ -720,10 +721,14 @@
     "startHandover": "Mulakan Serahan",
     "processReturn": "Proses Pemulangan",
     "returnPhotos": "foto pemulangan",
+    "returnPhotosLabel": "Foto Pemulangan",
+    "handoverPhotos": "Foto Serahan",
     "eventHistory": "Sejarah Acara",
     "viewBooking": "Lihat Tempahan",
     "review": "Ulasan",
-    "startedAt": "Bermula"
+    "startedAt": "Bermula",
+    "renter": "Penyewa",
+    "owner": "Pemilik"
   },
   "reviewPage": {
     "notFound": "Sewaan tidak ditemui",
@@ -760,5 +765,26 @@
     "raising": "Membangkitkan...",
     "rentalCompleted": "Sewaan berjaya diselesaikan! Pembayaran akan diproses.",
     "disputeRaised": "Pertikaian dibangkitkan. Pembayaran dibekukan menunggu semakan pentadbir."
+  },
+  "timeline": {
+    "requested": "Tempahan Dihantar",
+    "paymentInitiated": "Pembayaran Dimulakan",
+    "paymentConfirmed": "Pembayaran Disahkan",
+    "bookingConfirmed": "Tempahan Disahkan",
+    "overdue": "Terlewat",
+    "returnDisputed": "Pemulangan Dipertikaikan",
+    "rentalStarted": "Sewaan Bermula",
+    "underReview": "Dalam Semakan",
+    "rentalCompleted": "Sewaan Selesai",
+    "bookingDeclined": "Tempahan Ditolak",
+    "bookingCancelled": "Tempahan Dibatalkan",
+    "overdueReturn": "Sewaan Terlewat — Pemulangan Tertunggak",
+    "disputeRaised": "Pertikaian Dibangkitkan — Menunggu Semakan Pentadbir",
+    "rentalExtended": "Sewaan Dipanjangkan",
+    "earlyReturn": "Pemulangan Awal",
+    "extendedTo": "Dipanjangkan ke",
+    "returningEarly": "Pemulangan awal pada",
+    "pending": "Menunggu",
+    "actionRequired": "Tindakan diperlukan"
   }
 }

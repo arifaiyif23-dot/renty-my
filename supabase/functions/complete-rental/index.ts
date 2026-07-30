@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
@@ -146,9 +145,9 @@ serve(async (req) => {
       JSON.stringify({ success: true, status: 'disputed' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('complete-rental error:', error);
-    const message = error?.message || 'An unexpected error occurred';
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Rental') || message.startsWith('Your account');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),

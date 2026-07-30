@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -185,9 +184,9 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Modification processing error:', error);
-    const message = error.message || 'An error occurred while processing the modification';
+    const message = error instanceof Error ? error.message : 'An error occurred while processing the modification';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Modification') || message.startsWith('Cannot') || message.startsWith('The item') || message.startsWith('Your account') || message.startsWith('Failed');
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),

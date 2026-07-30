@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -9,6 +10,7 @@ import { Loader2, ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "l
 import { format } from "date-fns";
 
 export default function PaymentDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,7 +35,7 @@ export default function PaymentDetail() {
   }, [id]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-  if (error || !payment) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Payment not found</p></div>;
+  if (error || !payment) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('paymentDetail.notFound')}</p></div>;
 
   const statusIcon: Record<string, JSX.Element> = {
     paid: <CheckCircle className="h-5 w-5 text-success" />,
@@ -44,23 +46,23 @@ export default function PaymentDetail() {
   };
 
   const statusLabel: Record<string, string> = {
-    paid: "Paid",
-    pending: "Pending",
-    draft: "Processing",
-    failed: "Failed",
-    expired: "Expired",
+    paid: t('paymentDetail.paid'),
+    pending: t('paymentDetail.pending'),
+    draft: t('paymentDetail.processing'),
+    failed: t('paymentDetail.failed'),
+    expired: t('paymentDetail.expired'),
   };
 
   return (
     <PageLayout variant="narrow">
         <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back
+          <ArrowLeft className="h-4 w-4 mr-2" /> {t('common.back')}
         </Button>
 
         <GlassCard className="p-5 space-y-5">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-lg font-semibold">Payment Details</h1>
+              <h1 className="text-lg font-semibold">{t('paymentDetail.title')}</h1>
               <p className="text-sm text-muted-foreground">ID: {payment.id.slice(0, 8)}...</p>
             </div>
             <div className="flex items-center gap-2">
@@ -83,25 +85,25 @@ export default function PaymentDetail() {
             </div>
 
             <div className="border-t pt-3 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Rental Amount</span><span>RM {Number(payment.rental_amount).toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Platform Fee</span><span>RM {Number(payment.platform_fee).toFixed(2)}</span></div>
-              <div className="flex justify-between font-semibold text-base border-t pt-2"><span>Total</span><span>RM {Number(payment.total_amount).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t('paymentDetail.rentalAmount')}</span><span>RM {Number(payment.rental_amount).toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">{t('paymentDetail.platformFee')}</span><span>RM {Number(payment.platform_fee).toFixed(2)}</span></div>
+              <div className="flex justify-between font-semibold text-base border-t pt-2"><span>{t('paymentDetail.total')}</span><span>RM {Number(payment.total_amount).toFixed(2)}</span></div>
             </div>
 
             {payment.paid_at && (
-              <p className="text-xs text-muted-foreground">Paid at: {format(new Date(payment.paid_at), "MMM d, yyyy HH:mm")}</p>
+              <p className="text-xs text-muted-foreground">{t('paymentDetail.paidAt')}: {format(new Date(payment.paid_at), "MMM d, yyyy HH:mm")}</p>
             )}
           </div>
 
           {payment.status === "pending" && payment.toyyibpay_bill_url && (
             <Button className="w-full" onClick={() => window.open(payment.toyyibpay_bill_url, "_blank")}>
-              <ExternalLink className="h-4 w-4 mr-2" /> Complete Payment
+              <ExternalLink className="h-4 w-4 mr-2" /> {t('paymentDetail.completePayment')}
             </Button>
           )}
 
           {payment.status === "paid" && (
             <Button variant="outline" className="w-full" onClick={() => navigate(`/booking/${payment.rental?.id}`)}>
-              View Booking
+              {t('paymentDetail.viewBooking')}
             </Button>
           )}
         </GlassCard>

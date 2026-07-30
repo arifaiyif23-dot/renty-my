@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Rental } from "@/types";
@@ -23,24 +24,22 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const statusBadge = (status: Rental["status"]) => {
-  const map: Record<string, { label: string; variant: "warning" | "default" | "success" | "secondary" | "destructive" }> = {
-    draft: { label: "Draft", variant: "secondary" },
-    requested: { label: "Requested", variant: "warning" },
-    payment_pending: { label: "Payment Pending", variant: "warning" },
-    reserved: { label: "Reserved", variant: "default" },
-    confirmed: { label: "Confirmed", variant: "default" },
-    active: { label: "Active", variant: "success" },
-    completed: { label: "Completed", variant: "success" },
-    cancelled: { label: "Cancelled", variant: "destructive" },
-    rejected: { label: "Rejected", variant: "destructive" },
-    disputed: { label: "Disputed", variant: "destructive" },
-    overdue: { label: "Overdue", variant: "destructive" },
-  };
-  return map[status] || { label: status, variant: "secondary" as const };
+const STATUS_VARIANTS: Record<string, "warning" | "default" | "success" | "secondary" | "destructive"> = {
+  draft: "secondary",
+  requested: "warning",
+  payment_pending: "warning",
+  reserved: "default",
+  confirmed: "default",
+  active: "success",
+  completed: "success",
+  cancelled: "destructive",
+  rejected: "destructive",
+  disputed: "destructive",
+  overdue: "destructive",
 };
 
 export default function BookingDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -67,11 +66,29 @@ export default function BookingDetail() {
     })();
   }, [id]);
 
+  // Poll for status changes when waiting for payment or owner confirmation
+  useEffect(() => {
+    if (!id || !rental?.status) return;
+    const s = rental.status;
+    if (!['requested', 'payment_pending'].includes(s)) return;
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("rentals")
+        .select("status")
+        .eq("id", id)
+        .single();
+      if (data && data.status !== s) {
+        window.location.reload();
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [id, rental?.status]);
+
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-  if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Booking not found</p></div>;
+  if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('bookingDetail.notFound')}</p></div>;
 
   const isOwner = user?.id === rental.owner_id;
-  const badge = statusBadge(rental.status);
+  const badgeVariant = STATUS_VARIANTS[rental.status] || "secondary";
 
   const handleApprove = async () => {
     setConfirming(true);
@@ -105,7 +122,7 @@ export default function BookingDetail() {
   return (
     <PageLayout variant="narrow">
         <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back
+          <ArrowLeft className="h-4 w-4 mr-2" /> {t('bookingDetail.back')}
         </Button>
 
         <GlassCard className="p-5 space-y-5">
@@ -115,8 +132,8 @@ export default function BookingDetail() {
                 <img src={rental.item.images[0].image_url} alt="" className="w-16 h-16 rounded-lg object-cover" />
               )}
               <div>
-                <h1 className="text-lg font-semibold">{rental.item?.title || "Unknown Item"}</h1>
-                <Badge variant={badge.variant}>{badge.label}</Badge>
+                <h1 className="text-lg font-semibold">{rental.item?.title || t('bookingDetail.unknownItem')}</h1>
+                <Badge variant={badgeVariant}>{t(`rental.statusLabels.${rental.status}`, rental.status)}</Badge>
               </div>
             </div>
           </div>
@@ -142,54 +159,54 @@ export default function BookingDetail() {
           {/* payment_pending: waiting for payment confirmation */}
           {rental.status === "payment_pending" && !isOwner && (
             <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg space-y-3">
-              <p className="text-sm text-warning flex items-center gap-2"><Clock className="h-4 w-4" /> Waiting for payment confirmation...</p>
-              <p className="text-xs text-muted-foreground">Your payment is being processed. This page will update automatically once confirmed.</p>
+              <p className="text-sm text-warning flex items-center gap-2"><Clock className="h-4 w-4" /> {t('bookingDetail.waitingPayment')}</p>
+              <p className="text-xs text-muted-foreground">{t('bookingDetail.waitingPaymentDesc')}</p>
             </div>
           )}
 
           {/* Renter: waiting for owner approval */}
           {rental.status === "reserved" && !isOwner && (
             <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
-              <p className="text-sm text-primary flex items-center gap-2"><Clock className="h-4 w-4" /> Waiting for owner to confirm your booking</p>
+              <p className="text-sm text-primary flex items-center gap-2"><Clock className="h-4 w-4" /> {t('bookingDetail.waitingApproval')}</p>
             </div>
           )}
 
           {/* Owner: approve/decline */}
           {rental.status === "reserved" && isOwner && (
             <div className="flex gap-3">
-              <Button className="flex-1" onClick={handleApprove} disabled={confirming}><CheckCircle className="h-4 w-4 mr-2" />Confirm Booking</Button>
-              <Button variant="outline" className="flex-1" onClick={handleReject} disabled={confirming}><XCircle className="h-4 w-4 mr-2" />Decline</Button>
+              <Button className="flex-1" onClick={handleApprove} disabled={confirming}><CheckCircle className="h-4 w-4 mr-2" />{t('bookingDetail.confirmBooking')}</Button>
+              <Button variant="outline" className="flex-1" onClick={handleReject} disabled={confirming}><XCircle className="h-4 w-4 mr-2" />{t('bookingDetail.decline')}</Button>
             </div>
           )}
 
           {/* Owner: start handover */}
           {rental.status === "confirmed" && isOwner && (
-            <Button className="w-full" onClick={() => navigate(`/rental/${rental.id}`)}><Camera className="h-4 w-4 mr-2" />Start Handover</Button>
+            <Button className="w-full" onClick={() => navigate(`/rental/${rental.id}`)}><Camera className="h-4 w-4 mr-2" />{t('bookingDetail.startHandover')}</Button>
           )}
 
           {/* Renter: no-show report */}
           {canNoShow && (
             <Button variant="outline" className="w-full text-destructive border-destructive/30" onClick={handleReportNoShow} disabled={confirming}>
-              <AlertTriangle className="h-4 w-4 mr-2" /> Vendor not showing?
+              <AlertTriangle className="h-4 w-4 mr-2" /> {t('bookingDetail.vendorNoShow')}
             </Button>
           )}
 
           {/* Owner: process return */}
           {(rental.status === "active" || rental.status === "overdue") && isOwner && (
             <Button className="w-full" variant={rental.status === "overdue" ? "destructive" : "default"} onClick={() => navigate(`/rental/${rental.id}`)}>
-              <CheckCircle className="h-4 w-4 mr-2" />Process Return
+              <CheckCircle className="h-4 w-4 mr-2" />{t('bookingDetail.processReturn')}
             </Button>
           )}
 
           {/* Review */}
           {(rental.status === "completed" || rental.status === "disputed") && (
-            <Button variant="outline" className="w-full" onClick={() => navigate(`/review/${rental.id}`)}>Leave a Review</Button>
+            <Button variant="outline" className="w-full" onClick={() => navigate(`/review/${rental.id}`)}>{t('bookingDetail.leaveReview')}</Button>
           )}
 
           {/* Renter: cancel booking */}
           {canCancel && (
             <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setCancelDialog(true)}>
-              <Ban className="h-4 w-4 mr-2" />Cancel Booking
+              <Ban className="h-4 w-4 mr-2" />{t('bookingDetail.cancelBooking')}
             </Button>
           )}
         </GlassCard>
@@ -197,13 +214,13 @@ export default function BookingDetail() {
       <AlertDialog open={cancelDialog} onOpenChange={setCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure you want to cancel this booking? This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>{t('bookingDetail.cancelTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('bookingDetail.cancelDesc')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+            <AlertDialogCancel>{t('bookingDetail.keepBooking')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleCancel} disabled={cancelling}>
-              {cancelling ? "Cancelling..." : "Yes, Cancel"}
+              {cancelling ? t('bookingDetail.cancelling') : t('bookingDetail.yesCancel')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

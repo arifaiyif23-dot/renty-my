@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Circle, Clock, Package, Truck, XCircle, AlertTriangle, CreditCard, CheckCircle, Ban, CalendarPlus, CalendarX } from 'lucide-react';
 import { Rental } from '@/types';
 import { format } from 'date-fns';
@@ -31,7 +32,7 @@ interface TimelineStep {
   detail?: string;
 }
 
-function stepFor(rental: Rental, status: typeof SOP_SEQUENCE[number], idx: number, currentIdx: number): TimelineStep {
+function stepFor(rental: Rental, status: typeof SOP_SEQUENCE[number], idx: number, currentIdx: number, t: (key: string, fallback?: string) => string): TimelineStep {
   const isOverdue = rental.status === 'overdue' && status === 'active';
   const isDisputed = rental.status === 'disputed' && status === 'active';
   const dates: Record<string, string | null> = {
@@ -53,12 +54,12 @@ function stepFor(rental: Rental, status: typeof SOP_SEQUENCE[number], idx: numbe
   }
 
   const labels: Record<string, string> = {
-    requested: 'Booking Requested',
-    payment_pending: 'Payment Initiated',
-    reserved: 'Payment Confirmed',
-    confirmed: 'Booking Confirmed',
-    active: isOverdue ? 'Overdue' : isDisputed ? 'Return Disputed' : 'Rental Started',
-    completed: rental.status === 'disputed' ? 'Under Review' : 'Rental Completed',
+    requested: t('timeline.requested', 'Booking Requested'),
+    payment_pending: t('timeline.paymentInitiated', 'Payment Initiated'),
+    reserved: t('timeline.paymentConfirmed', 'Payment Confirmed'),
+    confirmed: t('timeline.bookingConfirmed', 'Booking Confirmed'),
+    active: isOverdue ? t('timeline.overdue', 'Overdue') : isDisputed ? t('timeline.returnDisputed', 'Return Disputed') : t('timeline.rentalStarted', 'Rental Started'),
+    completed: rental.status === 'disputed' ? t('timeline.underReview', 'Under Review') : t('timeline.rentalCompleted', 'Rental Completed'),
   };
 
   const icons: Record<string, typeof Package> = {
@@ -79,6 +80,7 @@ function stepFor(rental: Rental, status: typeof SOP_SEQUENCE[number], idx: numbe
 }
 
 export function RentalTimeline({ rental, modifications = [] }: RentalTimelineProps) {
+  const { t } = useTranslation();
   const currentIdx = SOP_SEQUENCE.indexOf(rental.status as typeof SOP_SEQUENCE[number]);
   const isTerminal = ['rejected', 'cancelled'].includes(rental.status);
   const isOverdue = rental.status === 'overdue';
@@ -88,11 +90,11 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
     if (isTerminal && i > currentIdx) return null;
     if (isOverdue && i > SOP_SEQUENCE.indexOf('active')) return null;
     if (isDisputed && i > SOP_SEQUENCE.indexOf('active')) return null;
-    return stepFor(rental, s, i, currentIdx);
+    return stepFor(rental, s, i, currentIdx, t);
   }).filter(Boolean) as TimelineStep[];
 
   if (isTerminal) {
-    const reasonLabel = rental.status === 'rejected' ? 'Booking Declined' : 'Booking Cancelled';
+    const reasonLabel = rental.status === 'rejected' ? t('timeline.bookingDeclined', 'Booking Declined') : t('timeline.bookingCancelled', 'Booking Cancelled');
     steps.push({
       label: reasonLabel,
       date: rental.updated_at,
@@ -103,7 +105,7 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
 
   if (isOverdue) {
     steps.push({
-      label: 'Rental Overdue — Return Pending',
+      label: t('timeline.overdueReturn', 'Rental Overdue — Return Pending'),
       date: null,
       status: 'warning',
       icon: AlertTriangle,
@@ -112,7 +114,7 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
 
   if (isDisputed) {
     steps.push({
-      label: 'Dispute Raised — Awaiting Admin Review',
+      label: t('timeline.disputeRaised', 'Dispute Raised — Awaiting Admin Review'),
       date: null,
       status: 'failed',
       icon: AlertTriangle,
@@ -123,16 +125,16 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
   const modSteps: TimelineStep[] = modifications
     .filter(m => m.status === 'approved')
     .map(m => ({
-      label: m.type === 'extension' ? 'Rental Extended' : 'Early Return',
+      label: m.type === 'extension' ? t('timeline.rentalExtended', 'Rental Extended') : t('timeline.earlyReturn', 'Early Return'),
       date: m.new_end_date,
       status: 'completed' as const,
       icon: m.type === 'extension' ? CalendarPlus : CalendarX,
       detail: m.type === 'extension'
-        ? `Extended to ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`
-        : `Returning early on ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`,
+        ? `${t('timeline.extendedTo', 'Extended to')} ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`
+        : `${t('timeline.returningEarly', 'Returning early on')} ${format(new Date(m.new_end_date), 'MMM d, yyyy')}`,
     }));
 
-  const activeIdx = steps.findIndex(s => s.label.includes('Rental Started') || s.label === 'Overdue' || s.label === 'Return Disputed');
+  const activeIdx = Math.min(SOP_SEQUENCE.indexOf('active'), steps.length - 1);
   const combined = activeIdx >= 0
     ? [...steps.slice(0, activeIdx + 1), ...modSteps, ...steps.slice(activeIdx + 1)]
     : steps;
@@ -175,9 +177,9 @@ export function RentalTimeline({ rental, modifications = [] }: RentalTimelinePro
                   {format(new Date(step.date), 'MMM d, yyyy')}
                 </div>
               ) : step.status === 'pending' ? (
-                <div className="text-sm text-muted-foreground">Pending</div>
+                <div className="text-sm text-muted-foreground">{t('timeline.pending', 'Pending')}</div>
               ) : step.status === 'warning' ? (
-                <div className="text-sm text-warning">Action required</div>
+                <div className="text-sm text-warning">{t('timeline.actionRequired', 'Action required')}</div>
               ) : null}
             </div>
           </div>
