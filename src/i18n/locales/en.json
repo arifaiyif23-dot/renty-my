@@ -300,6 +300,7 @@
     "startHandover": "Start Handover",
     "processReturn": "Process Return",
     "waitingApproval": "Waiting for payment to be completed",
+    "paymentProcessing": "Payment is being verified...",
     "waitingConfirm": "Waiting for owner to confirm booking",
     "requestDeclined": "Request declined by owner",
     "disputeRaised": "Dispute Raised",

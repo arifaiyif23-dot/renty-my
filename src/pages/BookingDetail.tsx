@@ -104,7 +104,7 @@ export default function BookingDetail() {
   };
   const handleCancel = async () => {
     setCancelling(true);
-    const { error } = await supabase.functions.invoke("process-rental-approval", { body: { rentalId: rental.id, action: "reject" } });
+    const { error } = await supabase.functions.invoke("cancel-booking", { body: { rentalId: rental.id } });
     if (error) { toast.error(error.message); } else { window.location.reload(); }
     setCancelling(false);
     setCancelDialog(false);

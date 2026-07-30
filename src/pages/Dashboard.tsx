@@ -61,12 +61,6 @@ export default function Dashboard() {
     if (user) { fetchRentals(); fetchStats(); }
   }, [user, fetchRentals, fetchStats]);
 
-  const updateRentalStatus = async (rentalId: string, newStatus: Rental['status']) => {
-    const { error } = await supabase.from('rentals').update({ status: newStatus }).eq('id', rentalId);
-    if (error) throw error;
-    fetchRentals();
-  };
-
   const filterRentals = (statuses: string[]) => rentals.filter(r => statuses.includes(r.status));
 
   if (loading) {
@@ -124,7 +118,7 @@ export default function Dashboard() {
               <EmptyStateV2 icon={PackageSearch} title="No active rentals" variant="compact" />
             ) : (
               filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
               ))
             )}
           </TabsContent>
@@ -139,7 +133,7 @@ export default function Dashboard() {
               <EmptyStateV2 icon={PackageSearch} title="No pending rentals" variant="compact" />
             ) : (
               filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
               ))
             )}
           </TabsContent>
@@ -149,7 +143,7 @@ export default function Dashboard() {
               <EmptyStateV2 icon={PackageSearch} title="No past rentals" variant="compact" />
             ) : (
               filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (
-                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onStatusUpdate={updateRentalStatus} onReviewSuccess={fetchRentals} />
+                <RentalCard key={rental.id} rental={rental} isOwner={rental.owner_id === user?.id} onReviewSuccess={fetchRentals} />
               ))
             )}
           </TabsContent>

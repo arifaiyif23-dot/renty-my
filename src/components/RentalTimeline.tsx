@@ -81,7 +81,8 @@ function stepFor(rental: Rental, status: typeof SOP_SEQUENCE[number], idx: numbe
 
 export function RentalTimeline({ rental, modifications = [] }: RentalTimelineProps) {
   const { t } = useTranslation();
-  const currentIdx = SOP_SEQUENCE.indexOf(rental.status as typeof SOP_SEQUENCE[number]);
+  const sequenceIdx = SOP_SEQUENCE.indexOf(rental.status as typeof SOP_SEQUENCE[number]);
+  const currentIdx = sequenceIdx >= 0 ? sequenceIdx : SOP_SEQUENCE.indexOf('active');
   const isTerminal = ['rejected', 'cancelled'].includes(rental.status);
   const isOverdue = rental.status === 'overdue';
   const isDisputed = rental.status === 'disputed';

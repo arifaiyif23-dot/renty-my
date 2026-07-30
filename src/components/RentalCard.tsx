@@ -32,17 +32,16 @@ import { supabase } from "@/integrations/supabase/client";
 interface RentalCardProps {
   rental: Rental;
   isOwner: boolean;
-  onStatusUpdate: (rentalId: string, status: Rental['status']) => Promise<void>;
   onReviewSuccess: () => void;
   hasPendingModification?: boolean;
   onShowTimeline?: (rental: Rental) => void;
 }
 
-const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, hasPendingModification, onShowTimeline }: RentalCardProps) => {
+const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModification, onShowTimeline }: RentalCardProps) => {
   const { t } = useTranslation();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
-    action: 'approve' | 'reject' | 'active' | 'complete' | null;
+    action: 'approve' | 'reject' | null;
   }>({ open: false, action: null });
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -154,18 +153,10 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
     haptics.medium();
     setIsUpdating(true);
     try {
-      if (confirmDialog.action === 'approve' || confirmDialog.action === 'reject') {
-        const { error } = await supabase.functions.invoke('process-rental-approval', {
-          body: { rentalId: rental.id, action: confirmDialog.action === 'approve' ? 'approve' : 'reject' }
-        });
-        if (error) throw new Error(error.message);
-      } else {
-        const statusMap: Record<string, Rental['status']> = {
-          active: 'active',
-          complete: 'completed',
-        };
-        await onStatusUpdate(rental.id, statusMap[confirmDialog.action]);
-      }
+      const { error } = await supabase.functions.invoke('process-rental-approval', {
+        body: { rentalId: rental.id, action: confirmDialog.action === 'approve' ? 'approve' : 'reject' }
+      });
+      if (error) throw new Error(error.message);
       haptics.success();
       onReviewSuccess();
     } catch (err) {
@@ -190,18 +181,6 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
           title: t('rental.rejectTitle'),
           description: t('rental.rejectDescription', { title: rental.item?.title }),
           confirmText: t('rental.decline'),
-        };
-      case 'active':
-        return {
-          title: t('rental.activeTitle'),
-          description: t('rental.activeDescription', { title: rental.item?.title }),
-          confirmText: t('rental.markActive'),
-        };
-      case 'complete':
-        return {
-          title: t('rental.completeTitle'),
-          description: t('rental.completeDescription'),
-          confirmText: t('rental.confirmCompletion'),
         };
       default:
         return { title: '', description: '', confirmText: '' };
@@ -366,6 +345,14 @@ const RentalCard = memo(({ rental, isOwner, onStatusUpdate, onReviewSuccess, has
                   <p className="text-sm text-warning flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     {t('rental.waitingApproval')}
+                  </p>
+                </div>
+              )}
+              {!isOwner && rental.status === 'payment_pending' && (
+                <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                  <p className="text-sm text-warning flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {t('rental.paymentProcessing')}
                   </p>
                 </div>
               )}

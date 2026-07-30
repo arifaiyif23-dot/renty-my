@@ -296,6 +296,7 @@
     "startHandover": "Mula Penyerahan",
     "processReturn": "Proses Pemulangan",
     "waitingApproval": "Menunggu pembayaran diselesaikan",
+    "paymentProcessing": "Pembayaran sedang disahkan...",
     "waitingConfirm": "Menunggu pengesahan pemilik",
     "requestDeclined": "Permintaan ditolak oleh pemilik",
     "disputeRaised": "Pertikaian Dibangkitkan",

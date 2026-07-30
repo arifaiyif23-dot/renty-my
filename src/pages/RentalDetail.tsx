@@ -56,6 +56,11 @@ export default function RentalDetail() {
     overdue: "bg-destructive/20 text-destructive",
     disputed: "bg-warning/20 text-warning",
     cancelled: "bg-destructive/20 text-destructive",
+    rejected: "bg-destructive/20 text-destructive",
+    requested: "bg-warning/20 text-warning",
+    payment_pending: "bg-warning/20 text-warning",
+    reserved: "bg-primary/20 text-primary",
+    confirmed: "bg-primary/20 text-primary",
   };
 
   return (
