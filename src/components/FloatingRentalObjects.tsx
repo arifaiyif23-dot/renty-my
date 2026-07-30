@@ -1,7 +1,9 @@
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, MeshTransmissionMaterial, Environment, ContactShadows } from "@react-three/drei";
+import { Float, MeshTransmissionMaterial, ContactShadows } from "@react-three/drei";
 import { type Group } from "three";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function CameraLens({ mouse }: { mouse: { x: number; y: number } }) {
   const ref = useRef<Group>(null);
@@ -135,46 +137,68 @@ function GamingConsole({ mouse }: { mouse: { x: number; y: number } }) {
   );
 }
 
+function Scene() {
+  const mouse = useRef({ x: 0, y: 0 });
+
+  return (
+    <group
+      onPointerMove={(e) => {
+        mouse.current = {
+          x: e.point.x * 0.5,
+          y: e.point.y * 0.5,
+        };
+      }}
+    >
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 5, 5]} intensity={1.5} color="#ffffff" />
+      <directionalLight position={[-3, 2, -3]} intensity={0.6} color="#5856D6" />
+      <hemisphereLight args={["#007AFF", "#5856D6", 0.4]} />
+      <CameraLens mouse={mouse.current} />
+      <Smartphone mouse={mouse.current} />
+      <CarKey mouse={mouse.current} />
+      <GamingConsole mouse={mouse.current} />
+      <ContactShadows
+        position={[0, -1.2, 0]}
+        opacity={0.25}
+        scale={6}
+        blur={2.5}
+        far={2}
+      />
+    </group>
+  );
+}
+
+function SceneFallback() {
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="grid grid-cols-2 gap-3 w-3/4 max-w-xs">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="aspect-square rounded-2xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface FloatingRentalObjectsProps {
   className?: string;
 }
 
 const FloatingRentalObjects = ({ className }: FloatingRentalObjectsProps) => {
-  const mouse = useRef({ x: 0, y: 0 });
-
   return (
-    <div
-      className={className}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        mouse.current = {
-          x: (e.clientX - rect.left) / rect.width - 0.5,
-          y: (e.clientY - rect.top) / rect.height - 0.5,
-        };
-      }}
-    >
-      <Canvas
-        camera={{ position: [0, 0, 4], fov: 40 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-      >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[5, 5, 5]} intensity={1} />
-        <pointLight position={[-5, -5, -5]} intensity={0.5} color="#5856D6" />
-        <CameraLens mouse={mouse.current} />
-        <Smartphone mouse={mouse.current} />
-        <CarKey mouse={mouse.current} />
-        <GamingConsole mouse={mouse.current} />
-        <ContactShadows
-          position={[0, -1.2, 0]}
-          opacity={0.3}
-          scale={6}
-          blur={2.5}
-          far={2}
-        />
-        <Environment preset="city" />
-      </Canvas>
+    <div className={className}>
+      <ErrorBoundary fallback={<SceneFallback />}>
+        <Suspense fallback={<SceneFallback />}>
+          <Canvas
+            camera={{ position: [0, 0, 4], fov: 40 }}
+            dpr={[1, 2]}
+            gl={{ antialias: true, alpha: true }}
+            style={{ background: "transparent" }}
+          >
+            <Scene />
+          </Canvas>
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 };
