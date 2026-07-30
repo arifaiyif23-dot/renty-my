@@ -39,12 +39,19 @@ const navigationStrategy = new NetworkFirst({
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      navigationStrategy.handle({ event, request: event.request }).catch(async () => {
-        const cache = await caches.open('navigation-cache');
-        const cachedResponse = await cache.match('/');
-        return cachedResponse || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
-      })
+      (async () => {
+        try {
+          return await navigationStrategy.handle({ event, request: event.request });
+        } catch {
+          const cache = await caches.open('navigation-cache');
+          const cachedResponse = await cache.match('/');
+          return cachedResponse || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
+        }
+      })()
     );
+    if (event.preloadResponse) {
+      event.waitUntil(event.preloadResponse.then(() => {}, () => {}));
+    }
   }
 });
 
