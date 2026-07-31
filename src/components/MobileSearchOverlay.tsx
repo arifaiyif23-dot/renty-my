@@ -98,7 +98,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
             <button
               type="button"
               onClick={() => handleSubmit(query)}
-              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors press"
             >
               <Search className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
@@ -128,7 +128,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
                       key={search}
                       type="button"
                       onClick={() => { setQuery(search); handleSubmit(search); }}
-                      className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted transition-colors text-sm"
+                      className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted transition-colors text-sm press"
                     >
                       <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="truncate">{search}</span>
@@ -148,7 +148,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
                     key={cat}
                     type="button"
                     onClick={() => handleSubmit(cat)}
-                    className="p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-left capitalize"
+                    className="p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-left capitalize press"
                   >
                     {cat}
                   </button>
