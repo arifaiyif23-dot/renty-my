@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { DollarSign, Loader2, TrendingUp, Clock, CheckCircle, XCircle, CreditCard, PlusCircle, Download, Shield } from 'lucide-react';
 import { PageLayout } from "@/components/PageLayout";
 import { SkeletonV2 } from '@/components/SkeletonV2';
@@ -45,7 +46,8 @@ interface BankAccount {
 }
 
 export default function Earnings() {
-  const { user } = useAuth();
+const { user } = useAuth();
+const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
@@ -138,7 +140,7 @@ export default function Earnings() {
 
     } catch (error) {
       console.error('Error fetching earnings:', error);
-      toast.error('Failed to load earnings data');
+      toast.error(t('earnings.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -146,12 +148,12 @@ export default function Earnings() {
 
   const handleSaveBankAccount = async () => {
     if (!bankForm.bank_name || !bankForm.account_number || !bankForm.account_holder_name) {
-      toast.error('Please fill in all bank details');
+      toast.error(t('earnings.fillBankDetails'));
       return;
     }
     const isMaskedNumber = bankForm.account_number.includes('****');
     if (!isMaskedNumber && !/^\d{6,20}$/.test(bankForm.account_number.replace(/\s/g, ''))) {
-      toast.error('Account number must be 6-20 digits');
+      toast.error(t('earnings.invalidAccountNumber'));
       return;
     }
 
@@ -182,33 +184,33 @@ export default function Earnings() {
         if (error) throw error;
       }
 
-      toast.success('Bank account details saved successfully');
+      toast.success(t('earnings.savedBank'));
       setShowBankDialog(false);
       fetchData();
     } catch (error: unknown) {
       console.error('Error saving bank account:', error);
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : t('earnings.error'));
     } finally {
       setSaving(false);
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ComponentType<{ className?: string }> }> = {
-      held: { label: 'Held Until Complete', variant: 'secondary', icon: Clock },
-      awaiting_bank_details: { label: 'Add Bank Account', variant: 'secondary', icon: XCircle },
-      pending: { label: 'Processing', variant: 'default', icon: Clock },
-      completed: { label: 'Paid', variant: 'default', icon: CheckCircle },
-      failed: { label: 'Failed', variant: 'destructive', icon: XCircle },
+    const statusConfig: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ComponentType<{ className?: string }> }> = {
+      held: { variant: 'secondary', icon: Clock },
+      awaiting_bank_details: { variant: 'secondary', icon: XCircle },
+      pending: { variant: 'default', icon: Clock },
+      completed: { variant: 'default', icon: CheckCircle },
+      failed: { variant: 'destructive', icon: XCircle },
     };
 
-    const config = statusConfig[status] || { label: status, variant: 'default' as const, icon: Clock };
+    const config = statusConfig[status] || { variant: 'default' as const, icon: Clock };
     const Icon = config.icon;
 
     return (
       <Badge variant={config.variant} className="gap-1 rounded-full">
         <Icon className="h-3 w-3" />
-        {config.label}
+        {t(`earnings.status.${status}`, status)}
       </Badge>
     );
   };
@@ -239,57 +241,57 @@ export default function Earnings() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <TrendingUp className="h-8 w-8" />
-              My Earnings
+              {t('earnings.title')}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Track your rental earnings and manage payouts
+              {t('earnings.subtitle')}
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" className="rounded-lg" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
               <Download className="mr-2 h-4 w-4" />
-              Export CSV
+              {t('earnings.exportCsv')}
             </Button>
           <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
             <DialogTrigger asChild>
               <Button variant={bankAccount ? "outline" : "default"} className="rounded-lg">
                 {bankAccount ? <CreditCard className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
-                {bankAccount ? 'Update Bank Account' : 'Add Bank Account'}
+                {bankAccount ? t('earnings.updateBank') : t('earnings.addBank')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Bank Account Details</DialogTitle>
+                <DialogTitle>{t('earnings.bankTitle')}</DialogTitle>
                 <DialogDescription>
-                  Add your bank account to receive payouts automatically
+                  {t('earnings.bankDesc')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="bank_name">Bank Name</Label>
+                  <Label htmlFor="bank_name">{t('earnings.bankName')}</Label>
                   <Input
                     id="bank_name"
-                    placeholder="e.g., Maybank, CIMB, Public Bank"
+                    placeholder={t('earnings.bankNamePlaceholder')}
                     value={bankForm.bank_name}
                     onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })}
                     className="rounded-lg"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="account_number">Account Number</Label>
+                  <Label htmlFor="account_number">{t('earnings.accountNumber')}</Label>
                   <Input
                     id="account_number"
-                    placeholder="1234567890"
+                    placeholder={t('earnings.accountNumberPlaceholder')}
                     value={bankForm.account_number}
                     onChange={(e) => setBankForm({ ...bankForm, account_number: e.target.value })}
                     className="rounded-lg"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="account_holder">Account Holder Name</Label>
+                  <Label htmlFor="account_holder">{t('earnings.accountHolder')}</Label>
                   <Input
                     id="account_holder"
-                    placeholder="As per bank account"
+                    placeholder={t('earnings.accountHolderPlaceholder')}
                     value={bankForm.account_holder_name}
                     onChange={(e) => setBankForm({ ...bankForm, account_holder_name: e.target.value })}
                     className="rounded-lg"
@@ -297,10 +299,10 @@ export default function Earnings() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" className="rounded-lg" onClick={() => setShowBankDialog(false)}>Cancel</Button>
+                <Button variant="outline" className="rounded-lg" onClick={() => setShowBankDialog(false)}>{t('common.cancel')}</Button>
                 <Button className="rounded-lg" onClick={handleSaveBankAccount} disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Bank Account
+                  {t('earnings.saveBank')}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -313,16 +315,16 @@ export default function Earnings() {
             <div className="flex items-start gap-3">
               <CreditCard className="h-5 w-5 text-warning mt-0.5" />
               <div>
-                <h3 className="font-semibold mb-1">Bank Account Required</h3>
+                <h3 className="font-semibold mb-1">{t('earnings.bankRequired')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  You have pending payouts! Add your bank account details now to receive payments.
+                  {t('earnings.bankRequiredDesc')}
                 </p>
                 <Button
                   size="sm"
                   className="mt-3 rounded-lg"
                   onClick={() => setShowBankDialog(true)}
                 >
-                  Add Bank Account Now
+                  {t('earnings.addBankNow')}
                 </Button>
               </div>
             </div>
@@ -333,10 +335,10 @@ export default function Earnings() {
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> Total Earnings
+                <TrendingUp className="h-3 w-3" /> {t('earnings.totalEarnings')}
               </p>
               <p className="text-2xl font-bold tabular-nums">RM {stats.totalEarnings.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">All time</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('earnings.allTime')}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-success" />
@@ -346,10 +348,10 @@ export default function Earnings() {
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                <Shield className="h-3 w-3" /> Held in Escrow
+                <Shield className="h-3 w-3" /> {t('earnings.heldInEscrow')}
               </p>
               <p className="text-2xl font-bold tabular-nums">RM {stats.heldAmount.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Released ~3 days after rental ends</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('earnings.heldDesc')}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="h-5 w-5 text-primary" />
@@ -359,10 +361,10 @@ export default function Earnings() {
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                <Clock className="h-3 w-3" /> Pending Payout
+                <Clock className="h-3 w-3" /> {t('earnings.pendingPayout')}
               </p>
               <p className="text-2xl font-bold tabular-nums">RM {stats.pendingAmount.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{stats.pendingPayouts} in queue</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('earnings.inQueue', { count: stats.pendingPayouts })}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
               <Clock className="h-5 w-5 text-warning" />
@@ -372,10 +374,10 @@ export default function Earnings() {
           <GlassCard variant="subtle" padding="md" className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5 flex items-center gap-1">
-                <CheckCircle className="h-3 w-3" /> Paid Out
+                <CheckCircle className="h-3 w-3" /> {t('earnings.paidOut')}
               </p>
               <p className="text-2xl font-bold tabular-nums">RM {stats.paidAmount.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{stats.completedPayouts} completed</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('earnings.completedCount', { count: stats.completedPayouts })}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
               <CheckCircle className="h-5 w-5 text-sky-500" />
@@ -387,19 +389,19 @@ export default function Earnings() {
           <GlassCard padding="lg" className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <CreditCard className="h-5 w-5 text-primary" />
-              <h2 className="font-semibold text-lg">Bank Account Details</h2>
+              <h2 className="font-semibold text-lg">{t('earnings.bankTitle')}</h2>
             </div>
             <div className="grid gap-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Bank Name:</span>
+                <span className="text-muted-foreground">{t('earnings.bankNameLabel')}</span>
                 <span className="font-semibold">{bankAccount.bank_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Account Number:</span>
+                <span className="text-muted-foreground">{t('earnings.accountNumberLabel')}</span>
                 <span className="font-mono">{bankAccount.account_number}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Account Holder:</span>
+                <span className="text-muted-foreground">{t('earnings.accountHolderLabel')}</span>
                 <span className="font-semibold">{bankAccount.account_holder_name}</span>
               </div>
             </div>
@@ -409,17 +411,17 @@ export default function Earnings() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-xl font-semibold">Payout History</h2>
-              <p className="text-sm text-muted-foreground">All payouts from completed rentals</p>
+              <h2 className="text-xl font-semibold">{t('earnings.payoutHistory')}</h2>
+              <p className="text-sm text-muted-foreground">{t('earnings.payoutHistoryDesc')}</p>
             </div>
-            <Badge variant="outline" className="rounded-full">{payouts.length} total</Badge>
+            <Badge variant="outline" className="rounded-full">{t('earnings.total', { count: payouts.length })}</Badge>
           </div>
           {payouts.length === 0 ? (
             <GlassCard padding="lg">
               <EmptyStateV2
                 icon={DollarSign}
-                title="No payouts yet"
-                description="Payouts are created automatically when rentals complete"
+                title={t('earnings.noPayouts')}
+                description={t('earnings.noPayoutsDesc')}
               />
             </GlassCard>
           ) : (
@@ -433,18 +435,18 @@ export default function Earnings() {
                         {getStatusBadge(payout.status)}
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Rental: RM {parseFloat(payout.rental_amount.toString()).toFixed(2)} — Fee: RM {parseFloat(payout.platform_fee.toString()).toFixed(2)}
+                        {t('earnings.rentalFee', { rental: parseFloat(payout.rental_amount.toString()).toFixed(2), fee: parseFloat(payout.platform_fee.toString()).toFixed(2) })}
                       </p>
                       <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                        <p>Created: {format(new Date(payout.created_at), 'PPp')}</p>
+                        <p>{t('earnings.created')} {format(new Date(payout.created_at), 'PPp')}</p>
                         {payout.processed_at && (
-                          <p>Processed: {format(new Date(payout.processed_at), 'PPp')}</p>
+                          <p>{t('earnings.processed')} {format(new Date(payout.processed_at), 'PPp')}</p>
                         )}
                         {payout.bank_name && (
-                          <p>Bank: {payout.bank_name} — {payout.account_number ? '****' + payout.account_number.slice(-4) : 'N/A'}</p>
+                          <p>{t('earnings.bank')} {payout.bank_name} — {payout.account_number ? '****' + payout.account_number.slice(-4) : t('earnings.na')}</p>
                         )}
                         {payout.failure_reason && (
-                          <p className="text-destructive">Reason: {payout.failure_reason}</p>
+                          <p className="text-destructive">{t('earnings.reason')} {payout.failure_reason}</p>
                         )}
                       </div>
                     </div>
