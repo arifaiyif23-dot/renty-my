@@ -123,10 +123,10 @@ export default {
         'golden': '1.618',
       },
       boxShadow: {
-        '1': '0 1px 3px hsl(var(--foreground) / 0.05), 0 1px 2px hsl(var(--foreground) / 0.04)',
-        '2': '0 4px 8px hsl(var(--foreground) / 0.06), 0 2px 4px hsl(var(--foreground) / 0.04)',
-        '3': '0 10px 24px hsl(var(--foreground) / 0.08), 0 4px 8px hsl(var(--foreground) / 0.04)',
-        '4': '0 20px 48px hsl(var(--foreground) / 0.1), 0 8px 16px hsl(var(--foreground) / 0.06)',
+        '1': '0 1px 3px var(--tw-shadow-color, hsl(var(--foreground) / 0.05)), 0 1px 2px var(--tw-shadow-color, hsl(var(--foreground) / 0.04))',
+        '2': '0 4px 8px var(--tw-shadow-color, hsl(var(--foreground) / 0.06)), 0 2px 4px var(--tw-shadow-color, hsl(var(--foreground) / 0.04))',
+        '3': '0 10px 24px var(--tw-shadow-color, hsl(var(--foreground) / 0.08)), 0 4px 8px var(--tw-shadow-color, hsl(var(--foreground) / 0.04))',
+        '4': '0 20px 48px var(--tw-shadow-color, hsl(var(--foreground) / 0.1)), 0 8px 16px var(--tw-shadow-color, hsl(var(--foreground) / 0.06))',
       },
     }
   },
