@@ -123,11 +123,11 @@ export default function AdminErrors() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button className="rounded-xl" variant="outline" onClick={load} disabled={loading}>
+            <Button className="rounded-lg" variant="outline" onClick={load} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-            <Button className="rounded-xl" variant="destructive" onClick={() => setConfirmClearAll(true)} disabled={errors.length === 0}>
+            <Button className="rounded-lg" variant="destructive" onClick={() => setConfirmClearAll(true)} disabled={errors.length === 0}>
               <Trash2 className="h-4 w-4 mr-2" />
               Clear all
             </Button>
@@ -139,12 +139,12 @@ export default function AdminErrors() {
             placeholder="Search by message or URL..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-xs rounded-xl"
+            className="max-w-xs rounded-lg"
           />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="rounded-xl border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border bg-background px-3 py-2 text-sm"
           >
             <option value="">All types</option>
             {types.map((t) => (
@@ -237,8 +237,8 @@ export default function AdminErrors() {
             This will permanently delete all error records. This action cannot be undone.
           </p>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setConfirmClearAll(false)}>Cancel</Button>
-            <Button variant="destructive" className="rounded-xl" onClick={() => { setConfirmClearAll(false); clearAll(); }}>Delete All</Button>
+            <Button variant="outline" className="rounded-lg" onClick={() => setConfirmClearAll(false)}>Cancel</Button>
+            <Button variant="destructive" className="rounded-lg" onClick={() => { setConfirmClearAll(false); clearAll(); }}>Delete All</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

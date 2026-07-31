@@ -305,7 +305,7 @@ export default function MyListings() {
         {pullDistance > 0 && (
           <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
             <div
-              className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg"
+              className="bg-primary text-primary-foreground rounded-full p-2 shadow-3"
               style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
             >
               <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -343,7 +343,7 @@ export default function MyListings() {
                   <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalListings')}</p>
                   <p className="text-lg font-bold tabular-nums">{stats.totalListings}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Grid3x3 className="h-5 w-5 text-primary" />
                 </div>
               </GlassCard>
@@ -352,7 +352,7 @@ export default function MyListings() {
                   <p className="text-xs text-muted-foreground mb-0.5">{t('listings.activeRentals')}</p>
                   <p className="text-lg font-bold tabular-nums">{stats.activeRentals}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
                   <Calendar className="h-5 w-5 text-success" />
                 </div>
               </GlassCard>
@@ -361,7 +361,7 @@ export default function MyListings() {
                   <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalRevenue')}</p>
                   <p className="text-lg font-bold tabular-nums">RM{stats.totalRevenue.toFixed(2)}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
                   <DollarSign className="h-5 w-5 text-warning" />
                 </div>
               </GlassCard>
@@ -370,7 +370,7 @@ export default function MyListings() {
                   <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalViews')}</p>
                   <p className="text-lg font-bold tabular-nums">{stats.totalViews}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
                   <Eye className="h-5 w-5 text-sky-500" />
                 </div>
               </GlassCard>
@@ -388,11 +388,11 @@ export default function MyListings() {
                 placeholder={t('common.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 rounded-xl"
+                className="pl-10 rounded-lg"
               />
             </div>
             <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="w-full md:w-auto overflow-x-auto">
-              <TabsList className="w-max min-w-full md:min-w-0 bg-muted/30 p-1 rounded-xl gap-1">
+              <TabsList className="w-max min-w-full md:min-w-0 bg-muted/30 p-1 rounded-lg gap-1">
                 <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.all')}</TabsTrigger>
                 <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.active')}</TabsTrigger>
                 <TabsTrigger value="paused" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.paused')}</TabsTrigger>
@@ -400,7 +400,7 @@ export default function MyListings() {
               </TabsList>
             </Tabs>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
-              <SelectTrigger className="w-full md:w-[180px] rounded-xl">
+              <SelectTrigger className="w-full md:w-[180px] rounded-lg">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -414,7 +414,7 @@ export default function MyListings() {
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('grid')}
-                className="rounded-xl"
+                className="rounded-lg"
               >
                 <Grid3x3 className="h-4 w-4" />
               </Button>
@@ -422,7 +422,7 @@ export default function MyListings() {
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('list')}
-                className="rounded-xl"
+                className="rounded-lg"
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -430,20 +430,20 @@ export default function MyListings() {
           </div>
 
           {selectedItems.length > 0 && (
-            <div className="mt-4 p-3 bg-muted/50 backdrop-blur rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="mt-4 p-3 bg-muted/50 backdrop-blur rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
               <span className="text-sm font-medium">
                 {selectedItems.length} {t('listings.itemsSelected')}
               </span>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleBulkAction('activate')}>
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={() => handleBulkAction('activate')}>
                   <Play className="h-4 w-4 mr-2" />
                   {t('listings.activateAll')}
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleBulkAction('pause')}>
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={() => handleBulkAction('pause')}>
                   <Pause className="h-4 w-4 mr-2" />
                   {t('listings.pauseAll')}
                 </Button>
-                <Button variant="destructive" size="sm" className="rounded-xl" onClick={() => handleBulkAction('delete')}>
+                <Button variant="destructive" size="sm" className="rounded-lg" onClick={() => handleBulkAction('delete')}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   {t('listings.deleteSelected')}
                 </Button>
@@ -469,7 +469,7 @@ export default function MyListings() {
             <div className="text-center py-12">
               <p className="text-destructive font-medium mb-2">Failed to load listings</p>
               <p className="text-sm text-muted-foreground mb-4">{error?.message || "An unexpected error occurred"}</p>
-              <Button variant="outline" onClick={() => refetch()} className="rounded-xl">Try Again</Button>
+              <Button variant="outline" onClick={() => refetch()} className="rounded-lg">Try Again</Button>
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (
             <EmptyStateV2
@@ -496,7 +496,7 @@ export default function MyListings() {
                 <Card
                   key={item.id}
                   className={cn(
-                    "overflow-hidden transition-all border-border/70 shadow-sm hover:shadow-md rounded-2xl",
+                    "overflow-hidden transition-all border-border/70 shadow-1 hover:shadow-2 rounded-2xl",
                     isSelected && "ring-2 ring-primary"
                   )}
                 >
@@ -536,7 +536,7 @@ export default function MyListings() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0 rounded-xl">
+                          <Button variant="ghost" size="icon" className="h-10 w-10 flex-shrink-0 rounded-lg">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

@@ -192,7 +192,7 @@
   }
 
   .press {
-    @apply transition-transform duration-150 active:scale-[0.98];
+    @apply transition-all duration-150 active:scale-[0.98];
   }
 
   .hover-lift {

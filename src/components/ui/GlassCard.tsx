@@ -25,7 +25,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-xl",
+          "rounded-lg",
           variantStyles[variant],
           paddingStyles[padding],
           className

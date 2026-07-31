@@ -117,7 +117,7 @@ export default function AdminHealth() {
             <h1 className="text-2xl font-bold">System Health</h1>
             <p className="text-sm text-muted-foreground">Production readiness monitoring</p>
           </div>
-          <Button className="rounded-xl" variant="outline" onClick={load} disabled={loading}>
+          <Button className="rounded-lg" variant="outline" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
         </div>
@@ -139,7 +139,7 @@ export default function AdminHealth() {
             <AlertTitle>{stats.expired_pending} expired pending payments</AlertTitle>
             <AlertDescription className="flex items-center justify-between gap-3">
               <span>Run cleanup to cancel stale rentals.</span>
-              <Button className="rounded-xl" size="sm" onClick={runCleanup} disabled={cleanupRunning}>
+              <Button className="rounded-lg" size="sm" onClick={runCleanup} disabled={cleanupRunning}>
                 {cleanupRunning ? "Running..." : "Run cleanup"}
               </Button>
             </AlertDescription>
@@ -181,9 +181,9 @@ export default function AdminHealth() {
               placeholder="recipient@example.com"
               value={testEmail}
               onChange={(e) => setTestEmail(e.target.value)}
-              className="rounded-xl flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+              className="rounded-lg flex-1 rounded-lg border bg-background px-3 py-2 text-sm"
             />
-            <Button className="rounded-xl" onClick={sendTestEmail} disabled={testEmailSending}>
+            <Button className="rounded-lg" onClick={sendTestEmail} disabled={testEmailSending}>
               {testEmailSending ? "Sending..." : "Send test"}
             </Button>
           </div>

@@ -42,7 +42,7 @@ export function AdminVerificationActionDialog({
             <div>
               <label className="text-sm font-medium mb-2 block">Rejection Reason *</label>
               <Select value={rejectionReason} onValueChange={onRejectionReasonChange}>
-                <SelectTrigger className="rounded-xl">
+                <SelectTrigger className="rounded-lg">
                   <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
@@ -67,7 +67,7 @@ export function AdminVerificationActionDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button className="rounded-xl" variant="outline" onClick={() => onOpenChange(false)} disabled={processing}>
+          <Button className="rounded-lg" variant="outline" onClick={() => onOpenChange(false)} disabled={processing}>
             Cancel
           </Button>
           <Button

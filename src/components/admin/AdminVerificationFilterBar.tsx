@@ -44,12 +44,12 @@ export function AdminVerificationFilterBar({
               placeholder="Search by name or IC number..."
               value={searchQuery}
               onChange={(e) => onSearchQueryChange(e.target.value)}
-              className="rounded-xl pl-10"
+              className="rounded-lg pl-10"
             />
           </div>
         </div>
         <Select value={filterStatus} onValueChange={onFilterStatusChange}>
-          <SelectTrigger className="rounded-xl">
+          <SelectTrigger className="rounded-lg">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -62,7 +62,7 @@ export function AdminVerificationFilterBar({
           </SelectContent>
         </Select>
         <Select value={filterDocType} onValueChange={onFilterDocTypeChange}>
-          <SelectTrigger className="rounded-xl">
+          <SelectTrigger className="rounded-lg">
             <SelectValue placeholder="Document Type" />
           </SelectTrigger>
           <SelectContent>
@@ -75,7 +75,7 @@ export function AdminVerificationFilterBar({
       </div>
       <div className="flex items-center justify-between flex-wrap gap-2">
         <Select value={filterRiskLevel} onValueChange={onFilterRiskLevelChange}>
-          <SelectTrigger className="w-full sm:w-[200px] rounded-xl">
+          <SelectTrigger className="w-full sm:w-[200px] rounded-lg">
             <ShieldAlert className="h-4 w-4 mr-2 shrink-0" />
             <SelectValue placeholder="Risk Level" />
           </SelectTrigger>
@@ -106,7 +106,7 @@ export function AdminVerificationFilterBar({
                 size="sm"
                 variant="outline"
                 onClick={onClearSelection}
-                className="rounded-xl"
+                className="rounded-lg"
               >
                 Clear Selection
               </Button>

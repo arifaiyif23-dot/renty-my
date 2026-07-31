@@ -103,7 +103,7 @@ export function AdminStatCards({ stats, onTabChange, onRefresh, onNavigate }: Ad
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="space-y-2">
             <Button
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start rounded-lg"
               variant="outline"
               onClick={() => onTabChange("verifications")}
             >
@@ -111,7 +111,7 @@ export function AdminStatCards({ stats, onTabChange, onRefresh, onNavigate }: Ad
               Review Pending Verifications ({stats.pendingVerifications})
             </Button>
             <Button
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start rounded-lg"
               variant="outline"
               onClick={() => onTabChange("fraud-alerts")}
             >
@@ -119,7 +119,7 @@ export function AdminStatCards({ stats, onTabChange, onRefresh, onNavigate }: Ad
               Check Fraud Alerts ({stats.pendingFraudAlerts})
             </Button>
             <Button
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start rounded-lg"
               variant="outline"
               onClick={() => onNavigate("/admin/listings")}
             >
@@ -127,7 +127,7 @@ export function AdminStatCards({ stats, onTabChange, onRefresh, onNavigate }: Ad
               Manage Listings ({stats.activeListings})
             </Button>
             <Button
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start rounded-lg"
               variant="outline"
               onClick={() => onNavigate("/admin/rentals")}
             >
@@ -135,7 +135,7 @@ export function AdminStatCards({ stats, onTabChange, onRefresh, onNavigate }: Ad
               View Rentals
             </Button>
             <Button
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start rounded-lg"
               variant="outline"
               onClick={() => onNavigate("/admin/payments")}
             >
@@ -143,7 +143,7 @@ export function AdminStatCards({ stats, onTabChange, onRefresh, onNavigate }: Ad
               Payment Monitoring
             </Button>
             <Button
-              className="w-full justify-start rounded-xl"
+              className="w-full justify-start rounded-lg"
               variant="outline"
               onClick={onRefresh}
             >

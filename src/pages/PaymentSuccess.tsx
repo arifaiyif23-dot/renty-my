@@ -90,7 +90,7 @@ export default function PaymentSuccess() {
               </p>
             )}
             <p className="text-xs text-muted-foreground mb-6">Check your dashboard for rental details.</p>
-            <Button onClick={() => navigate('/dashboard')} className="w-full rounded-xl">
+            <Button onClick={() => navigate('/dashboard')} className="w-full rounded-lg">
               View My Rentals
             </Button>
           </>
@@ -99,7 +99,7 @@ export default function PaymentSuccess() {
             <XCircle className="h-12 w-12 text-destructive mx-auto mb-3" />
             <h1 className="text-xl font-bold mb-1">Payment not confirmed</h1>
             <p className="text-sm text-muted-foreground mb-6">Please try again or contact support.</p>
-            <Button onClick={() => navigate('/dashboard')} className="w-full rounded-xl">
+            <Button onClick={() => navigate('/dashboard')} className="w-full rounded-lg">
               Go to Dashboard
             </Button>
           </>

@@ -84,7 +84,7 @@ export function ReturnConditionComparison({ rentalId }: ReturnConditionCompariso
             <p className="text-xs text-muted-foreground mb-2">Pre-rental photos ({allPhotos.length})</p>
             <div className="grid grid-cols-4 gap-2">
               {allPhotos.map((url, idx) => (
-                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-md overflow-hidden border hover:opacity-80">
+                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-lg overflow-hidden border hover:opacity-80">
                   <img src={url} alt={`Pre-rental ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
                 </a>
               ))}

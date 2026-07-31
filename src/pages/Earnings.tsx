@@ -246,13 +246,13 @@ export default function Earnings() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
+            <Button variant="outline" size="sm" className="rounded-lg" onClick={() => exportCsv(payouts)} disabled={payouts.length === 0}>
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
           <Dialog open={showBankDialog} onOpenChange={setShowBankDialog}>
             <DialogTrigger asChild>
-              <Button variant={bankAccount ? "outline" : "default"} className="rounded-xl">
+              <Button variant={bankAccount ? "outline" : "default"} className="rounded-lg">
                 {bankAccount ? <CreditCard className="mr-2 h-4 w-4" /> : <PlusCircle className="mr-2 h-4 w-4" />}
                 {bankAccount ? 'Update Bank Account' : 'Add Bank Account'}
               </Button>
@@ -272,7 +272,7 @@ export default function Earnings() {
                     placeholder="e.g., Maybank, CIMB, Public Bank"
                     value={bankForm.bank_name}
                     onChange={(e) => setBankForm({ ...bankForm, bank_name: e.target.value })}
-                    className="rounded-xl"
+                    className="rounded-lg"
                   />
                 </div>
                 <div>
@@ -282,7 +282,7 @@ export default function Earnings() {
                     placeholder="1234567890"
                     value={bankForm.account_number}
                     onChange={(e) => setBankForm({ ...bankForm, account_number: e.target.value })}
-                    className="rounded-xl"
+                    className="rounded-lg"
                   />
                 </div>
                 <div>
@@ -292,13 +292,13 @@ export default function Earnings() {
                     placeholder="As per bank account"
                     value={bankForm.account_holder_name}
                     onChange={(e) => setBankForm({ ...bankForm, account_holder_name: e.target.value })}
-                    className="rounded-xl"
+                    className="rounded-lg"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" className="rounded-xl" onClick={() => setShowBankDialog(false)}>Cancel</Button>
-                <Button className="rounded-xl" onClick={handleSaveBankAccount} disabled={saving}>
+                <Button variant="outline" className="rounded-lg" onClick={() => setShowBankDialog(false)}>Cancel</Button>
+                <Button className="rounded-lg" onClick={handleSaveBankAccount} disabled={saving}>
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Bank Account
                 </Button>
@@ -319,7 +319,7 @@ export default function Earnings() {
                 </p>
                 <Button
                   size="sm"
-                  className="mt-3 rounded-xl"
+                  className="mt-3 rounded-lg"
                   onClick={() => setShowBankDialog(true)}
                 >
                   Add Bank Account Now
@@ -338,7 +338,7 @@ export default function Earnings() {
               <p className="text-2xl font-bold tabular-nums">RM {stats.totalEarnings.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">All time</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-success" />
             </div>
           </GlassCard>
@@ -351,7 +351,7 @@ export default function Earnings() {
               <p className="text-2xl font-bold tabular-nums">RM {stats.heldAmount.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Released ~3 days after rental ends</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Shield className="h-5 w-5 text-primary" />
             </div>
           </GlassCard>
@@ -364,7 +364,7 @@ export default function Earnings() {
               <p className="text-2xl font-bold tabular-nums">RM {stats.pendingAmount.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{stats.pendingPayouts} in queue</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
               <Clock className="h-5 w-5 text-warning" />
             </div>
           </GlassCard>
@@ -377,7 +377,7 @@ export default function Earnings() {
               <p className="text-2xl font-bold tabular-nums">RM {stats.paidAmount.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{stats.completedPayouts} completed</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
               <CheckCircle className="h-5 w-5 text-sky-500" />
             </div>
           </GlassCard>

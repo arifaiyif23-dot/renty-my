@@ -146,7 +146,7 @@ export function AdminVerificationListItem({
         <Button
           variant="outline"
           size="sm"
-          className="rounded-xl"
+          className="rounded-lg"
           onClick={() => onViewDocuments(verification, pendingIndex)}
         >
           <Eye className="h-4 w-4 mr-2" />
@@ -166,7 +166,7 @@ export function AdminVerificationListItem({
               size="sm"
               variant="destructive"
               onClick={() => onReject(verification)}
-              className="rounded-xl"
+              className="rounded-lg"
             >
               <XCircle className="h-4 w-4 mr-2" />
               Reject

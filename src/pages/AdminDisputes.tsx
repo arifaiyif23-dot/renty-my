@@ -139,7 +139,7 @@ export default function AdminDisputes() {
           </div>
           <div className="flex gap-1">
             {(["open", "investigating", "resolved", "all"] as const).map((s) => (
-              <Button className="rounded-xl capitalize" key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)}>
+              <Button className="rounded-lg capitalize" key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)}>
                 {s}
               </Button>
             ))}
@@ -183,7 +183,7 @@ export default function AdminDisputes() {
                   ) : (
                     <Dialog open={selected?.id === d.id} onOpenChange={(o) => setSelected(o ? d : null)}>
                       <DialogTrigger asChild>
-                        <Button className="rounded-xl" size="sm">Resolve</Button>
+                        <Button className="rounded-lg" size="sm">Resolve</Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
@@ -192,7 +192,7 @@ export default function AdminDisputes() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-3 gap-2">
                             {(["refund_renter", "split", "release_owner"] as ResolveAction[]).map((a) => (
-                              <Button className="rounded-xl capitalize" key={a} variant={action === a ? "default" : "outline"} size="sm" onClick={() => setAction(a)}>
+                              <Button className="rounded-lg capitalize" key={a} variant={action === a ? "default" : "outline"} size="sm" onClick={() => setAction(a)}>
                                 {a.replace(/_/g, " ")}
                               </Button>
                             ))}
@@ -200,7 +200,7 @@ export default function AdminDisputes() {
                           {action !== "release_owner" && (
                             <div>
                               <Label>Refund amount (RM)</Label>
-                              <Input className="rounded-xl"
+                              <Input className="rounded-lg"
                                 type="number"
                                 step="0.01"
                                 value={refundAmount}
@@ -220,8 +220,8 @@ export default function AdminDisputes() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button className="rounded-xl" variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
-                          <Button className="rounded-xl" onClick={resolve} disabled={saving}>
+                          <Button className="rounded-lg" variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
+                          <Button className="rounded-lg" onClick={resolve} disabled={saving}>
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Submit Resolution
                           </Button>

@@ -6,12 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Rental } from "@/types";
 import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RentalTimeline } from "@/components/RentalTimeline";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
-import { Loader2, ArrowLeft, Calendar, DollarSign, User, Camera, CheckCircle } from "lucide-react";
+import { RentalStatusBadge } from "@/components/RentalStatusBadge";
+import { ArrowLeft, Calendar, DollarSign, User, Camera, CheckCircle } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { format } from "date-fns";
 
 export default function RentalDetail() {
@@ -45,23 +46,10 @@ export default function RentalDetail() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  if (loading) return <LoadingSpinner />;
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('rentalDetail.notFound')}</p></div>;
 
   const isOwner = user?.id === rental.owner_id;
-
-  const statusColor: Record<string, string> = {
-    completed: "bg-success/20 text-success",
-    active: "bg-success/20 text-success",
-    overdue: "bg-destructive/20 text-destructive",
-    disputed: "bg-warning/20 text-warning",
-    cancelled: "bg-destructive/20 text-destructive",
-    rejected: "bg-destructive/20 text-destructive",
-    requested: "bg-warning/20 text-warning",
-    payment_pending: "bg-warning/20 text-warning",
-    reserved: "bg-primary/20 text-primary",
-    confirmed: "bg-primary/20 text-primary",
-  };
 
   return (
     <PageLayout variant="narrow">
@@ -71,11 +59,11 @@ export default function RentalDetail() {
 
         <div className="flex items-center gap-3 mb-5">
           {rental.item?.images?.[0]?.image_url && (
-            <img src={rental.item.images[0].image_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+            <img src={rental.item.images[0].image_url} alt="" className="w-16 h-16 rounded-lg object-cover" />
           )}
           <div>
             <h1 className="text-xl font-bold">{rental.item?.title || t('rentalDetail.title')}</h1>
-            <Badge className={statusColor[rental.status] || ""} variant="outline">{t(`rental.statusLabels.${rental.status}`, rental.status)}</Badge>
+            <RentalStatusBadge status={rental.status} />
           </div>
         </div>
 

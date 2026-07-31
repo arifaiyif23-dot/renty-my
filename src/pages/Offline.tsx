@@ -55,7 +55,7 @@ export default function Offline() {
 
         <Button
           onClick={handleRetry}
-          className="w-full rounded-xl"
+          className="w-full rounded-lg"
           disabled={!isOnline}
         >
           <RefreshCw className="w-4 h-4 mr-2" />

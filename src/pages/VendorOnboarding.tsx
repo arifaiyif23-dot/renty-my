@@ -90,7 +90,7 @@ export default function VendorOnboarding() {
             return (
               <GlassCard key={s.title} variant={done ? "subtle" : "default"} padding="md" className={done ? "border-primary/40" : ""}>
                 <div className="flex items-start gap-4">
-                  <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
+                  <div className={`h-11 w-11 rounded-lg flex items-center justify-center shrink-0 ${
                     done ? "bg-primary text-primary-foreground" : "bg-muted"
                   }`}>
                     {done ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
@@ -102,7 +102,7 @@ export default function VendorOnboarding() {
                     <p className="text-xs text-muted-foreground mb-3">{s.desc}</p>
                     <Button
                       size="sm"
-                      className="rounded-xl"
+                      className="rounded-lg"
                       variant={done ? "outline" : "default"}
                       onClick={() => navigate(s.to)}
                     >
@@ -116,10 +116,10 @@ export default function VendorOnboarding() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2">
-          <Button onClick={finish} disabled={loading} className="w-full h-12 rounded-xl">
+          <Button onClick={finish} disabled={loading} className="w-full h-12 rounded-lg">
             {t('onboarding.finishCta')}
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/")} className="w-full rounded-xl">
+          <Button variant="ghost" onClick={() => navigate("/")} className="w-full rounded-lg">
             {t('onboarding.later')}
           </Button>
         </div>

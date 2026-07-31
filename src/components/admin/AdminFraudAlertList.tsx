@@ -58,7 +58,7 @@ export function AdminFraudAlertList({ alerts, onRefresh }: AdminFraudAlertListPr
             <Button
               size="sm"
               variant="outline"
-              className="rounded-xl"
+              className="rounded-lg"
               onClick={async () => {
                 try {
                   await invokeAdminOperation({ action: 'fraud_alert_action', alertId: alert.id, status: 'reviewed' });
@@ -74,7 +74,7 @@ export function AdminFraudAlertList({ alerts, onRefresh }: AdminFraudAlertListPr
             <Button
               size="sm"
               variant="destructive"
-              className="rounded-xl"
+              className="rounded-lg"
               onClick={async () => {
                 try {
                   await invokeAdminOperation({ action: 'fraud_alert_action', alertId: alert.id, status: 'escalated' });

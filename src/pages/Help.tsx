@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Search, Mail, ExternalLink, HelpCircle, MessageCircle } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -22,15 +23,12 @@ export default function Help() {
 
   return (
     <PageLayout variant="narrow">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <HelpCircle className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{t("help.title")}</h1>
-            <p className="text-sm text-muted-foreground">{t("help.subtitle")}</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={<HelpCircle className="h-5 w-5 text-primary" />}
+          title={t("help.title")}
+          subtitle={t("help.subtitle")}
+          className="mb-6"
+        />
 
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -38,7 +36,7 @@ export default function Help() {
             placeholder={t("help.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 rounded-xl"
+            className="pl-10 rounded-lg"
           />
         </div>
 
@@ -74,7 +72,7 @@ export default function Help() {
           <h2 className="font-semibold text-lg mb-4">{t("help.stillNeedHelp")}</h2>
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center">
                 <MessageCircle className="h-4 w-4 text-success" />
               </div>
               <div>
@@ -85,7 +83,7 @@ export default function Help() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Mail className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -96,7 +94,7 @@ export default function Help() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <ExternalLink className="h-4 w-4 text-primary" />
               </div>
               <div className="text-sm">

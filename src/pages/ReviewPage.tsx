@@ -8,7 +8,8 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewsList } from "@/components/ReviewsList";
-import { Loader2, ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { format } from "date-fns";
 
 export default function ReviewPage() {
@@ -36,7 +37,7 @@ export default function ReviewPage() {
     })();
   }, [rentalId]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  if (loading) return <LoadingSpinner />;
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Rental not found</p></div>;
 
   const canReview = ["completed", "disputed"].includes(rental.status);

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Search, Bell, BellOff, Trash2, Loader2, ArrowLeft, Save, Plus, Clock } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
 import { useNavigate, Link } from "react-router-dom";
 import { format } from "date-fns";
 import type { SavedSearch } from "@/types";
@@ -129,23 +130,23 @@ export default function SavedSearches() {
   return (
     <PageLayout variant="narrow">
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="rounded-lg" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Search className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold">Saved Searches</h1>
-            <p className="text-xs text-muted-foreground">Save search criteria to quickly find items later</p>
-          </div>
+          <PageHeader
+            icon={<Search className="h-5 w-5 text-primary" />}
+            title="Saved Searches"
+            subtitle="Save search criteria to quickly find items later"
+            titleClassName="text-xl"
+            subtitleClassName="text-xs"
+          />
         </div>
 
         {searches.length === 0 ? (
           <GlassCard padding="lg" className="text-center py-8">
             <Search className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground mb-4">No saved searches yet</p>
-            <Button variant="outline" className="rounded-xl" asChild>
+            <Button variant="outline" className="rounded-lg" asChild>
               <Link to="/search">
                 <Plus className="h-4 w-4 mr-2" />
                 Browse Items
@@ -190,7 +191,7 @@ export default function SavedSearches() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-xl h-9 w-9"
+                      className="rounded-lg h-9 w-9"
                       onClick={() => {
                         setEditSearch(search);
                         setLabelInput(search.label || "");
@@ -201,7 +202,7 @@ export default function SavedSearches() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-xl h-9 w-9"
+                      className="rounded-lg h-9 w-9"
                       onClick={() => toggleNotify(search)}
                     >
                       {search.notify_on_new ? (
@@ -213,7 +214,7 @@ export default function SavedSearches() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-xl h-9 w-9"
+                      className="rounded-lg h-9 w-9"
                       onClick={() => setDeleteId(search.id)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
@@ -234,8 +235,8 @@ export default function SavedSearches() {
             This action cannot be undone.
           </p>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setDeleteId(null)}>Cancel</Button>
-            <Button variant="destructive" className="rounded-xl" onClick={deleteSearch}>Delete</Button>
+            <Button variant="outline" className="rounded-lg" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button variant="destructive" className="rounded-lg" onClick={deleteSearch}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -249,11 +250,11 @@ export default function SavedSearches() {
             value={labelInput}
             onChange={(e) => setLabelInput(e.target.value)}
             placeholder="Enter a name for this search"
-            className="rounded-xl"
+            className="rounded-lg"
           />
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setEditSearch(null)}>Cancel</Button>
-            <Button className="rounded-xl" onClick={updateLabel}>Save</Button>
+            <Button variant="outline" className="rounded-lg" onClick={() => setEditSearch(null)}>Cancel</Button>
+            <Button className="rounded-lg" onClick={updateLabel}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

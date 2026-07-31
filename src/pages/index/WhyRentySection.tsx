@@ -32,7 +32,7 @@ export function WhyRentySection() {
               <GlassCard key={i} variant="elevated" padding="md" className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-60 pointer-events-none`} />
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="font-semibold mb-1.5">{t(`home.whyRenty.${["verifiedIdentity","securePayment","disputeProtection","localPickup","flexibleDuration","communityDriven"][i]}.title`)}</h3>

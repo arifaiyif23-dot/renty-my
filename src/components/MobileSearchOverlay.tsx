@@ -76,7 +76,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
               if (e.key === "Escape") onClose();
             }}
             placeholder="Search items..."
-            className="w-full h-11 bg-muted rounded-xl px-4 pl-10 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full h-11 bg-muted rounded-lg px-4 pl-10 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             aria-label="Search items"
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -98,7 +98,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
             <button
               type="button"
               onClick={() => handleSubmit(query)}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors"
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors"
             >
               <Search className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
@@ -128,7 +128,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
                       key={search}
                       type="button"
                       onClick={() => { setQuery(search); handleSubmit(search); }}
-                      className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors text-sm"
+                      className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted transition-colors text-sm"
                     >
                       <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="truncate">{search}</span>
@@ -148,7 +148,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
                     key={cat}
                     type="button"
                     onClick={() => handleSubmit(cat)}
-                    className="p-3 rounded-xl bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-left capitalize"
+                    className="p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-left capitalize"
                   >
                     {cat}
                   </button>

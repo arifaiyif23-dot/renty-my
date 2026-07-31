@@ -73,7 +73,7 @@ export const PWAInstallPrompt = () => {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom duration-300">
-      <Card className="p-4 shadow-lg border-2 border-primary/20 bg-card">
+      <Card className="p-4 shadow-3 border-2 border-primary/20 bg-card">
         <button
           onClick={handleDismiss}
           className="absolute top-2 right-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-accent rounded-full transition-colors"

@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Bell, Loader2, ArrowLeft, Save } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
 import { useNavigate } from "react-router-dom";
 import type { NotificationPreference } from "@/types";
 
@@ -127,16 +128,16 @@ export default function NotificationSettings() {
   return (
     <PageLayout variant="narrow">
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="rounded-lg" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Bell className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold">Notification Preferences</h1>
-            <p className="text-xs text-muted-foreground">Choose which notifications you receive</p>
-          </div>
+          <PageHeader
+            icon={<Bell className="h-5 w-5 text-primary" />}
+            title="Notification Preferences"
+            subtitle="Choose which notifications you receive"
+            titleClassName="text-xl"
+            subtitleClassName="text-xs"
+          />
         </div>
 
         <GlassCard padding="lg" className="space-y-6">
@@ -176,7 +177,7 @@ export default function NotificationSettings() {
             </div>
           </div>
 
-          <Button onClick={handleSave} disabled={saving} className="w-full rounded-xl">
+          <Button onClick={handleSave} disabled={saving} className="w-full rounded-lg">
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
             Save Preferences
           </Button>

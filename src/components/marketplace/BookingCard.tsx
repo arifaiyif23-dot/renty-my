@@ -107,7 +107,7 @@ const BookingCard = ({
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {itemImage && (
-            <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0">
+            <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
               <img
                 src={itemImage}
                 alt={itemTitle}

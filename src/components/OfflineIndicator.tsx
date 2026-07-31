@@ -43,7 +43,7 @@ export const OfflineIndicator = () => {
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top">
       {!isOnline ? (
-        <Alert variant="destructive" className="shadow-lg">
+        <Alert variant="destructive" className="shadow-3">
           <WifiOff className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between gap-2">
             <span>You're offline. Some features may be unavailable.</span>
@@ -58,7 +58,7 @@ export const OfflineIndicator = () => {
           </AlertDescription>
         </Alert>
       ) : (
-        <Alert className="border-success bg-success/10 shadow-lg">
+        <Alert className="border-success bg-success/10 shadow-3">
           <Wifi className="h-4 w-4 text-success" />
           <AlertDescription className="text-success">
             Back online! Your connection has been restored.

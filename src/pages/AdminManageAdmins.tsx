@@ -154,7 +154,7 @@ export default function AdminManageAdmins() {
                 {ALL_PERMISSIONS.map((perm) => (
                   <label
                     key={perm.key}
-                    className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-md hover:bg-muted/50"
+                    className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded-lg hover:bg-muted/50"
                   >
                     <input
                       type="checkbox"
@@ -240,7 +240,7 @@ export default function AdminManageAdmins() {
                           {ALL_PERMISSIONS.map((perm) => (
                             <label
                               key={perm.key}
-                              className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-md hover:bg-muted/50"
+                              className="flex items-center gap-2 text-sm cursor-pointer p-1.5 rounded-lg hover:bg-muted/50"
                             >
                               <Switch
                                 checked={admin.permissions.includes(perm.key)}
@@ -271,8 +271,8 @@ export default function AdminManageAdmins() {
             Remove {confirmRemove?.fullName || confirmRemove?.email || 'this user'} as admin?
           </p>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setConfirmRemove(null)}>Cancel</Button>
-            <Button variant="destructive" className="rounded-xl" onClick={() => { if (confirmRemove) handleRemoveAdmin(confirmRemove); setConfirmRemove(null); }}>Remove</Button>
+            <Button variant="outline" className="rounded-lg" onClick={() => setConfirmRemove(null)}>Cancel</Button>
+            <Button variant="destructive" className="rounded-lg" onClick={() => { if (confirmRemove) handleRemoveAdmin(confirmRemove); setConfirmRemove(null); }}>Remove</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

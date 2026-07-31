@@ -156,7 +156,7 @@ export default function AdminUserDetail() {
   return (
     <AdminLayout>
       <div className="max-w-6xl">
-        <Button className="rounded-xl mb-4" variant="ghost" size="sm" onClick={() => navigate("/admin/users")}>
+        <Button className="rounded-lg mb-4" variant="ghost" size="sm" onClick={() => navigate("/admin/users")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Users
         </Button>
@@ -208,7 +208,7 @@ export default function AdminUserDetail() {
                 </Button>
               )}
               {profile.is_suspended ? (
-                <Button className="rounded-xl"
+                <Button className="rounded-lg"
                   size="sm"
                   variant="outline"
                   onClick={handleUnsuspend}
@@ -218,7 +218,7 @@ export default function AdminUserDetail() {
                   Unsuspend
                 </Button>
               ) : (
-                <Button className="rounded-xl"
+                <Button className="rounded-lg"
                   size="sm"
                   variant="destructive"
                   onClick={handleSuspend}
@@ -234,15 +234,15 @@ export default function AdminUserDetail() {
 
         {/* Tabs: Items / Rentals / Reviews */}
         <div className="flex gap-2 mb-4">
-          <Button className="rounded-xl" variant={tab === "items" ? "default" : "outline"} size="sm" onClick={() => setTab("items")}>
+          <Button className="rounded-lg" variant={tab === "items" ? "default" : "outline"} size="sm" onClick={() => setTab("items")}>
             <Package className="h-4 w-4 mr-2" />
             Items ({items.length})
           </Button>
-          <Button className="rounded-xl" variant={tab === "rentals" ? "default" : "outline"} size="sm" onClick={() => setTab("rentals")}>
+          <Button className="rounded-lg" variant={tab === "rentals" ? "default" : "outline"} size="sm" onClick={() => setTab("rentals")}>
             <CalendarCheck className="h-4 w-4 mr-2" />
             Rentals ({rentals.length})
           </Button>
-          <Button className="rounded-xl" variant={tab === "reviews" ? "default" : "outline"} size="sm" onClick={() => setTab("reviews")}>
+          <Button className="rounded-lg" variant={tab === "reviews" ? "default" : "outline"} size="sm" onClick={() => setTab("reviews")}>
             <MessageCircle className="h-4 w-4 mr-2" />
             Reviews ({reviews.length})
           </Button>
@@ -272,7 +272,7 @@ export default function AdminUserDetail() {
                       RM{item.price_per_day}/day · Listed {format(new Date(item.created_at), "MMM d, yyyy")}
                     </div>
                   </div>
-                  <Button className="rounded-xl" size="sm" variant="outline" onClick={() => navigate(`/items/${item.id}`)}>
+                  <Button className="rounded-lg" size="sm" variant="outline" onClick={() => navigate(`/items/${item.id}`)}>
                     View
                   </Button>
                 </div>

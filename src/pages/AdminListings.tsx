@@ -127,12 +127,12 @@ export default function AdminListings() {
                   placeholder="Search by title, owner, or location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-xl pl-10"
+                  className="rounded-lg pl-10"
                 />
               </div>
             </div>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="rounded-xl">
+              <SelectTrigger className="rounded-lg">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
@@ -148,7 +148,7 @@ export default function AdminListings() {
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="rounded-xl">
+              <SelectTrigger className="rounded-lg">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -218,7 +218,7 @@ export default function AdminListings() {
                   <div className="flex items-center gap-2 shrink-0">
                     {(item.status === 'under_review') && (
                       <>
-                        <Button className="rounded-xl"
+                        <Button className="rounded-lg"
                           size="sm"
                           variant="default"
                           onClick={async () => {
@@ -239,7 +239,7 @@ export default function AdminListings() {
                           {processing === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1" />}
                           Approve
                         </Button>
-                        <Button className="rounded-xl"
+                        <Button className="rounded-lg"
                           size="sm"
                           variant="destructive"
                           onClick={async () => {
@@ -262,7 +262,7 @@ export default function AdminListings() {
                         </Button>
                       </>
                     )}
-                    <Button className="rounded-xl"
+                    <Button className="rounded-lg"
                       size="sm"
                       variant="outline"
                       onClick={() => navigate(`/items/${item.id}`)}
@@ -271,7 +271,7 @@ export default function AdminListings() {
                       View
                     </Button>
                     {item.status !== 'under_review' && (
-                      <Button className="rounded-xl"
+                      <Button className="rounded-lg"
                         size="sm"
                         variant={item.is_available ? "secondary" : "default"}
                         onClick={() => toggleVisibility(item.id, item.is_available)}

@@ -71,7 +71,7 @@ export default function AuthMagicLink() {
             <XCircle className="h-12 w-12 mx-auto text-red-500" />
             <p className="font-semibold text-lg">Link expired</p>
             <p className="text-sm text-muted-foreground">{errorMsg}. Please request a new link.</p>
-            <Button onClick={() => navigate('/auth')} className="rounded-xl">
+            <Button onClick={() => navigate('/auth')} className="rounded-lg">
               Back to login
             </Button>
           </div>

@@ -55,12 +55,12 @@ export function AdminFraudAlertsPanel({
                 placeholder="Search fraud alerts..."
                 value={searchQuery}
                 onChange={(e) => onSearchQueryChange(e.target.value)}
-                className="rounded-xl pl-10"
+                className="rounded-lg pl-10"
               />
             </div>
           </div>
           <Select value={filterStatus} onValueChange={onFilterStatusChange}>
-            <SelectTrigger className="w-full md:w-[200px] rounded-xl">
+            <SelectTrigger className="w-full md:w-[200px] rounded-lg">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -101,11 +101,11 @@ export function AdminFraudAlertsPanel({
                 </div>
                 {alert.status === 'pending' ? (
                   <div className="flex gap-2">
-                    <Button className="rounded-xl" size="sm" onClick={() => onAction(alert.id, 'reviewed')}>
+                    <Button className="rounded-lg" size="sm" onClick={() => onAction(alert.id, 'reviewed')}>
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Mark as Reviewed
                     </Button>
-                    <Button className="rounded-xl" size="sm" variant="outline" onClick={() => onAction(alert.id, 'dismissed')}>
+                    <Button className="rounded-lg" size="sm" variant="outline" onClick={() => onAction(alert.id, 'dismissed')}>
                       <XCircle className="h-4 w-4 mr-2" />
                       Dismiss
                     </Button>

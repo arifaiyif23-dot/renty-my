@@ -23,7 +23,7 @@ const CategoryCard = ({
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl",
+        "w-full text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg",
         active && "ring-2 ring-primary ring-offset-2"
       )}
     >

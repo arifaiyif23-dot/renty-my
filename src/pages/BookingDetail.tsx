@@ -6,11 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Rental } from "@/types";
 import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RentalTimeline } from "@/components/RentalTimeline";
 import { PayNowButton } from "@/components/PayNowButton";
-import { Loader2, ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban } from "lucide-react";
+import { RentalStatusBadge } from "@/components/RentalStatusBadge";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -23,20 +24,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-const STATUS_VARIANTS: Record<string, "warning" | "default" | "success" | "secondary" | "destructive"> = {
-  draft: "secondary",
-  requested: "warning",
-  payment_pending: "warning",
-  reserved: "default",
-  confirmed: "default",
-  active: "success",
-  completed: "success",
-  cancelled: "destructive",
-  rejected: "destructive",
-  disputed: "destructive",
-  overdue: "destructive",
-};
 
 export default function BookingDetail() {
   const { t } = useTranslation();
@@ -84,11 +71,10 @@ export default function BookingDetail() {
     return () => clearInterval(interval);
   }, [id, rental?.status]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  if (loading) return <LoadingSpinner />;
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('bookingDetail.notFound')}</p></div>;
 
   const isOwner = user?.id === rental.owner_id;
-  const badgeVariant = STATUS_VARIANTS[rental.status] || "secondary";
 
   const handleApprove = async () => {
     setConfirming(true);
@@ -133,7 +119,7 @@ export default function BookingDetail() {
               )}
               <div>
                 <h1 className="text-lg font-semibold">{rental.item?.title || t('bookingDetail.unknownItem')}</h1>
-                <Badge variant={badgeVariant}>{t(`rental.statusLabels.${rental.status}`, rental.status)}</Badge>
+                <RentalStatusBadge status={rental.status} />
               </div>
             </div>
           </div>

@@ -108,7 +108,7 @@ export default function UserProfile() {
     return (
       <PageLayout variant="default" className="max-w-4xl text-center py-20">
           <p className="text-muted-foreground">User not found</p>
-          <Button variant="outline" className="mt-4 rounded-xl" asChild>
+          <Button variant="outline" className="mt-4 rounded-lg" asChild>
             <Link to="/">Back to Home</Link>
           </Button>
       </PageLayout>
@@ -182,26 +182,26 @@ export default function UserProfile() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-xl px-3 py-1.5">
+                <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
                   <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
                   <span className="font-medium">
                     {avgRating > 0 ? `${avgRating.toFixed(1)} avg` : "No ratings"}
                   </span>
                   <span className="text-muted-foreground">({profile.total_reviews_received || 0})</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-xl px-3 py-1.5">
+                <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
                   <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>{profile.total_rentals_completed || 0} rentals completed</span>
                 </div>
                 {profile.response_rate != null && (
-                  <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-xl px-3 py-1.5">
+                  <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
                     <MessageCircle className="h-4 w-4 text-primary" />
                     <span>{Math.round(profile.response_rate)}% response rate</span>
                   </div>
                 )}
               </div>
 
-              <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setShowReport(true)}>
+              <Button variant="outline" size="sm" className="rounded-lg" onClick={() => setShowReport(true)}>
                 Report User
               </Button>
             </div>

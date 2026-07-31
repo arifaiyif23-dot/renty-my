@@ -163,7 +163,7 @@ export default function AdminPayments() {
           <TabsContent value="transactions">
             <GlassCard className="mb-6" padding="sm">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full md:w-[250px] rounded-xl">
+                <SelectTrigger className="w-full md:w-[250px] rounded-lg">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -217,7 +217,7 @@ export default function AdminPayments() {
           <TabsContent value="payouts">
             <GlassCard className="mb-6" padding="sm">
               <Select value={payoutFilter} onValueChange={setPayoutFilter}>
-                <SelectTrigger className="w-full md:w-[250px] rounded-xl">
+                <SelectTrigger className="w-full md:w-[250px] rounded-lg">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>

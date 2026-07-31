@@ -32,7 +32,7 @@ export function RentalCalendarView({ rentals }: RentalCalendarViewProps) {
             mode="single"
             selected={selectedDate}
             onSelect={setSelectedDate}
-            className="rounded-md border"
+            className="rounded-lg border"
             modifiers={{
               hasRentals: (date) => getRentalsForDate(date).length > 0,
               activeRental: (date) => getRentalsForDate(date).some(r => r.status === 'active' || r.status === 'confirmed'),

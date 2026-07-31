@@ -11,9 +11,9 @@ interface SkeletonV2Props {
 const variantStyles: Record<string, string> = {
   text: "h-4 w-full rounded-lg",
   circular: "rounded-full",
-  rectangular: "rounded-xl",
-  card: "h-64 w-full rounded-xl",
-  "card-lg": "h-80 w-full rounded-xl",
+  rectangular: "rounded-lg",
+  card: "h-64 w-full rounded-lg",
+  "card-lg": "h-80 w-full rounded-lg",
 };
 
 const SkeletonV2 = ({

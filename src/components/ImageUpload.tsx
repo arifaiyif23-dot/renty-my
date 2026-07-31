@@ -347,7 +347,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
                 variant="destructive"
                 size="icon"
                 aria-label={`Remove image ${index + 1}`}
-                className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm z-10"
+                className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-1 z-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeImage(index);
@@ -356,7 +356,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
                 <X className="h-5 w-5 md:h-4 md:w-4" />
               </Button>
               {index === primaryIndex && (
-                <Badge className="absolute bottom-2 left-2 gap-1 bg-primary shadow-sm">
+                <Badge className="absolute bottom-2 left-2 gap-1 bg-primary shadow-1">
                   <Star className="h-3 w-3 fill-current" />
                   Cover
                 </Badge>

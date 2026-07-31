@@ -34,7 +34,7 @@ const ConversationItem = memo(({ conv, onSelect, isSelected }: { conv: Conversat
   <div
     key={conv.userId}
     onClick={() => onSelect(conv.userId)}
-    className={`p-4 cursor-pointer hover:bg-muted/50 border-b transition-colors active:scale-[0.98] min-h-[72px] rounded-xl ${isSelected ? 'bg-muted/50' : ''}`}
+    className={`p-4 cursor-pointer hover:bg-muted/50 border-b press min-h-[72px] rounded-lg ${isSelected ? 'bg-muted/50' : ''}`}
   >
     <div className="flex items-center gap-3">
       <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-primary/10">
@@ -382,7 +382,7 @@ export default function Messages() {
       {pullDistance > 0 && (
         <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
           <div
-            className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg"
+            className="bg-primary text-primary-foreground rounded-full p-2 shadow-3"
             style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
           >
             <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -430,7 +430,7 @@ export default function Messages() {
                 </GlassCard>
               </div>
             ) : (
-              <div className="h-[calc(100dvh-152px)] flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
+              <div className="h-[calc(100dvh-152px)] flex flex-col overflow-hidden rounded-lg border bg-card shadow-1">
                 {/* Thread Header with Back Button */}
                 <div className="z-10 bg-card border-b p-3 flex items-center gap-3 min-h-[60px]">
                   <Button variant="ghost" size="icon" onClick={handleBackToList} className="flex-shrink-0">
@@ -456,7 +456,7 @@ export default function Messages() {
                         className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'} animate-fade-in`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-xl px-4 py-2.5 shadow-sm ${
+                          className={`max-w-[85%] rounded-lg px-4 py-2.5 shadow-1 ${
                             msg.sender_id === user.id
                               ? 'bg-primary text-primary-foreground rounded-br-sm'
                               : 'bg-muted rounded-bl-sm'
@@ -505,7 +505,7 @@ export default function Messages() {
                     {/* Typing Indicator */}
                     {typingUsers.length > 0 && (
                       <div className="flex justify-start animate-fade-in">
-                        <div className="bg-muted rounded-xl px-4 py-3 rounded-bl-sm">
+                        <div className="bg-muted rounded-lg px-4 py-3 rounded-bl-sm">
                           <div className="flex gap-1">
                             <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                             <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -537,14 +537,14 @@ export default function Messages() {
                         }}
                         placeholder="Type a message..."
                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && sendMessage()}
-                        className="h-12 text-base flex-1 rounded-xl"
+                        className="h-12 text-base flex-1 rounded-lg"
                       />
                       <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
                       <Button 
                         onClick={sendMessage} 
                         size="icon"
                         disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
-                        className="h-12 w-12 flex-shrink-0 rounded-xl"
+                        className="h-12 w-12 flex-shrink-0 rounded-lg"
                       >
                         {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                       </Button>
@@ -615,7 +615,7 @@ export default function Messages() {
                             className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`max-w-[70%] rounded-lg p-3 shadow-sm ${
+                              className={`max-w-[70%] rounded-lg p-3 shadow-1 ${
                                 msg.sender_id === user.id
                                   ? 'bg-primary text-primary-foreground'
                                   : 'bg-muted'
@@ -674,14 +674,14 @@ export default function Messages() {
                           }}
                           placeholder="Type a message..."
                           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && sendMessage()}
-                          className="min-h-[44px] rounded-xl"
+                          className="min-h-[44px] rounded-lg"
                         />
                         <EmojiPicker onSelect={(emoji) => setNewMessage(prev => prev + emoji)} />
                         <Button 
                           onClick={sendMessage} 
                           size="icon"
                           disabled={isSending || (!newMessage.trim() && !attachmentUrl)}
-                          className="min-h-[44px] min-w-[44px] rounded-xl"
+                          className="min-h-[44px] min-w-[44px] rounded-lg"
                         >
                           {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </Button>

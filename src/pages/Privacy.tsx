@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,17 +32,13 @@ export default function Privacy() {
   return (
     <PageLayout variant="narrow" className="py-10 space-y-8">
       <SEO title={t('privacy.title') + " — Renty"} description={t('privacy.subtitle')} />
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Shield className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{t('privacy.title')}</h1>
-            <p className="text-sm text-muted-foreground font-mono">
-              {t('privacy.subtitle')}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          icon={<Shield className="h-5 w-5 text-primary" />}
+          title={t('privacy.title')}
+          subtitle={t('privacy.subtitle')}
+          subtitleClassName="font-mono"
+          className="mb-2"
+        />
 
         <Section title={t('privacy.section1Title')}>
           <ul className="list-disc pl-6 space-y-1 text-sm">
@@ -104,7 +101,7 @@ export default function Privacy() {
           </p>
 
           {!user && (
-            <Alert className="mb-4 rounded-xl">
+            <Alert className="mb-4 rounded-lg">
               <AlertDescription className="text-sm">
                 {t('privacy.signInPrompt')}
               </AlertDescription>
@@ -114,7 +111,7 @@ export default function Privacy() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               variant="outline"
-              className="rounded-xl"
+              className="rounded-lg"
               onClick={() => submitRequest("export")}
               disabled={!user || submitting !== null}
             >
@@ -123,7 +120,7 @@ export default function Privacy() {
             </Button>
             <Button
               variant="outline"
-              className="rounded-xl text-destructive hover:text-destructive"
+              className="rounded-lg text-destructive hover:text-destructive"
               onClick={() => submitRequest("deletion")}
               disabled={!user || submitting !== null}
             >

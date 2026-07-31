@@ -40,7 +40,7 @@ const MobileBottomNav = () => {
               {item.highlight ? (
                 <div className={cn(
                   "absolute inset-0 mx-auto w-12 h-12 rounded-full flex items-center justify-center -mt-5",
-                  "bg-primary shadow-lg",
+                  "bg-primary shadow-3",
                   isActive && "bg-primary/90"
                 )}>
                   <item.icon className="h-5 w-5" aria-hidden="true" />

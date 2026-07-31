@@ -98,7 +98,7 @@ export function UnifiedCalendar({
                 modifiersClassNames={{
                   booked: 'bg-destructive/20 text-destructive line-through',
                 }}
-                className="rounded-md border"
+                className="rounded-lg border"
               />
               <div className="flex gap-4 mt-4 text-sm">
                 <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export function UnifiedCalendar({
               modifiersClassNames={{
                 booked: "line-through opacity-50 bg-destructive/20"
               }}
-              className="rounded-md pointer-events-auto"
+              className="rounded-lg pointer-events-auto"
             />
             <div className="flex gap-4 p-3 text-sm border-t">
               <div className="flex items-center gap-2">

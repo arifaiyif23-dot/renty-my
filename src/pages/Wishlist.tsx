@@ -77,13 +77,13 @@ export default function Wishlist() {
       <div>
         {pullDistance > 0 && (
           <div className="flex justify-center py-3">
-            <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg" style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}>
+            <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-3" style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}>
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </div>
           </div>
         )}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
             <Heart className="h-5 w-5 text-destructive" />
           </div>
           <div>

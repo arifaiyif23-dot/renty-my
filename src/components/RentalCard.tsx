@@ -191,7 +191,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      <Card className="overflow-hidden hover:shadow-2 transition-shadow-2">
         {/* Mobile: Vertical Layout */}
         <div className="md:hidden">
           {rental.item?.images?.[0]?.image_url && (

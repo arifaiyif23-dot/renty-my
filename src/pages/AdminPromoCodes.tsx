@@ -108,17 +108,17 @@ export default function AdminPromoCodes() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input className="rounded-xl pl-10" placeholder="Search codes..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input className="rounded-lg pl-10" placeholder="Search codes..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <Select value={filterActive} onValueChange={setFilterActive}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="rounded-lg"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="rounded-xl" onClick={() => setShowCreate(true)}>
+            <Button className="rounded-lg" onClick={() => setShowCreate(true)}>
               <Plus className="h-4 w-4 mr-2" /> Create Code
             </Button>
           </div>
@@ -165,12 +165,12 @@ export default function AdminPromoCodes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Code</label>
-                <Input className="rounded-xl" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. SUMMER50" />
+                <Input className="rounded-lg" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. SUMMER50" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Type</label>
                 <Select value={form.discount_type} onValueChange={(v: "percentage" | "fixed") => setForm({ ...form, discount_type: v })}>
-                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="rounded-lg"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">Percentage (%)</SelectItem>
                     <SelectItem value="fixed">Fixed (RM)</SelectItem>
@@ -181,27 +181,27 @@ export default function AdminPromoCodes() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Discount Amount</label>
-                <Input className="rounded-xl" type="number" value={form.discount_amount} onChange={(e) => setForm({ ...form, discount_amount: e.target.value })} placeholder={form.discount_type === 'percentage' ? "e.g. 50" : "e.g. 10.00"} />
+                <Input className="rounded-lg" type="number" value={form.discount_amount} onChange={(e) => setForm({ ...form, discount_amount: e.target.value })} placeholder={form.discount_type === 'percentage' ? "e.g. 50" : "e.g. 10.00"} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Max Uses (optional)</label>
-                <Input className="rounded-xl" type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} placeholder="Unlimited" />
+                <Input className="rounded-lg" type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} placeholder="Unlimited" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valid From (optional)</label>
-                <Input className="rounded-xl" type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
+                <Input className="rounded-lg" type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valid Until (optional)</label>
-                <Input className="rounded-xl" type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} />
+                <Input className="rounded-lg" type="date" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button className="rounded-xl" variant="outline" onClick={() => setShowCreate(false)} disabled={saving}>Cancel</Button>
-            <Button className="rounded-xl" onClick={handleCreate} disabled={saving}>
+            <Button className="rounded-lg" variant="outline" onClick={() => setShowCreate(false)} disabled={saving}>Cancel</Button>
+            <Button className="rounded-lg" onClick={handleCreate} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Create
             </Button>

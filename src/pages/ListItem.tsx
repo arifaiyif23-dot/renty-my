@@ -274,7 +274,7 @@ export default function ListItem() {
       <PageLayout variant="narrow">
           <GlassCard padding="lg" className="mt-6">
             <p className="text-center mb-4">Please sign in to list an item</p>
-            <Button onClick={() => navigate('/auth')} className="w-full rounded-xl">
+            <Button onClick={() => navigate('/auth')} className="w-full rounded-lg">
               Sign In
             </Button>
           </GlassCard>
@@ -312,7 +312,7 @@ export default function ListItem() {
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="h-12 text-base rounded-xl"
+                className="h-12 text-base rounded-lg"
                 placeholder={t('listItem.titlePlaceholder')}
                 required
               />
@@ -324,7 +324,7 @@ export default function ListItem() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="min-h-[120px] text-base resize-none rounded-xl"
+                className="min-h-[120px] text-base resize-none rounded-lg"
                 placeholder={t('listItem.descriptionPlaceholder')}
                 maxLength={1000}
                 required
@@ -342,7 +342,7 @@ export default function ListItem() {
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value as ItemCategory })}
               >
-                <SelectTrigger id="category" className="h-12 text-base rounded-xl">
+                <SelectTrigger id="category" className="h-12 text-base rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -369,7 +369,7 @@ export default function ListItem() {
                     const v = e.target.value.replace(/[^0-9.]/g, '');
                     setFormData({ ...formData, price_per_day: v });
                   }}
-                  className="h-12 text-base rounded-xl"
+                  className="h-12 text-base rounded-lg"
                   placeholder={t('listItem.pricePlaceholder')}
                   required
                 />
@@ -385,7 +385,7 @@ export default function ListItem() {
                     const v = e.target.value.replace(/[^0-9.]/g, '');
                     setFormData({ ...formData, price_per_hour: v });
                   }}
-                  className="h-12 text-base rounded-xl"
+                  className="h-12 text-base rounded-lg"
                   placeholder={t('listItem.priceHourPlaceholder')}
                 />
               </div>
@@ -402,7 +402,7 @@ export default function ListItem() {
                   const v = e.target.value.replace(/[^0-9.]/g, '');
                   setFormData({ ...formData, deposit_amount: v });
                 }}
-                className="h-12 text-base rounded-xl"
+                className="h-12 text-base rounded-lg"
                 placeholder={t('listItem.depositPlaceholder')}
               />
               <p className="text-xs text-muted-foreground">
@@ -416,7 +416,7 @@ export default function ListItem() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, payment_mode: 'escrow' })}
-                  className={`h-16 rounded-xl border-2 text-left px-3 transition ${
+                  className={`h-16 rounded-lg border-2 text-left px-3 transition ${
                     formData.payment_mode === 'escrow'
                       ? 'border-primary bg-primary/5'
                       : 'border-border'
@@ -428,7 +428,7 @@ export default function ListItem() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, payment_mode: 'manual' })}
-                  className={`h-16 rounded-xl border-2 text-left px-3 transition ${
+                  className={`h-16 rounded-lg border-2 text-left px-3 transition ${
                     formData.payment_mode === 'manual'
                       ? 'border-primary bg-primary/5'
                       : 'border-border'
@@ -447,7 +447,7 @@ export default function ListItem() {
                   value={formData.item_condition}
                   onValueChange={(value) => setFormData({ ...formData, item_condition: value })}
                 >
-                  <SelectTrigger className="h-12 text-base rounded-xl">
+                  <SelectTrigger className="h-12 text-base rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -464,7 +464,7 @@ export default function ListItem() {
                   value={formData.cancellation_policy}
                   onValueChange={(value) => setFormData({ ...formData, cancellation_policy: value })}
                 >
-                  <SelectTrigger className="h-12 text-base rounded-xl">
+                  <SelectTrigger className="h-12 text-base rounded-lg">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -482,13 +482,13 @@ export default function ListItem() {
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="h-12 text-base rounded-xl"
+                className="h-12 text-base rounded-lg"
                 placeholder={t('listItem.locationPlaceholder')}
                 required
               />
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border p-4">
+            <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
                 <Label className="text-sm font-medium">{t('listItem.instantBooking')}</Label>
                 <p className="text-xs text-muted-foreground">{t('listItem.instantBookingDesc')}</p>
@@ -500,7 +500,7 @@ export default function ListItem() {
             </div>
 
             {formData.instant_book_enabled && (
-              <div className="flex items-center justify-between rounded-xl border p-4">
+              <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label className="text-sm font-medium">{t('listItem.autoApprove')}</Label>
                   <p className="text-xs text-muted-foreground">{t('listItem.autoApproveDesc')}</p>
@@ -523,7 +523,7 @@ export default function ListItem() {
                       ...formData,
                       specifications: { ...formData.specifications, [field.key]: e.target.value }
                     })}
-                    className="h-9 text-sm rounded-xl"
+                    className="h-9 text-sm rounded-lg"
                     placeholder={field.label}
                   />
                 </div>
@@ -535,7 +535,7 @@ export default function ListItem() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 h-12 text-base rounded-xl"
+                  className="flex-1 h-12 text-base rounded-lg"
                   disabled={isLoading}
                   onClick={() => handleSubmit('draft')}
                 >
@@ -543,7 +543,7 @@ export default function ListItem() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 h-12 text-base font-medium rounded-xl"
+                  className="flex-1 h-12 text-base font-medium rounded-lg"
                   disabled={isLoading || moderationResult?.isBlocked}
                 >
                   {isLoading ? t('common.loading') : moderationResult?.isBlocked ? t('listItem.contentBlocked') : t('listItem.publish')}

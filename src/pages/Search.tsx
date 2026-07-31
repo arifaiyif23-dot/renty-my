@@ -431,7 +431,7 @@ export default function Search() {
 
         {error ? (
           <div className="card-base p-8 text-center">
-            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-3">
               <SearchSlash className="h-6 w-6 text-destructive" />
             </div>
             <h3 className="font-semibold mb-1">Something went wrong</h3>
@@ -443,7 +443,7 @@ export default function Search() {
         ) : initialLoading ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-border">
+              <div key={i} className="rounded-lg overflow-hidden border border-border">
                 <SkeletonV2 variant="rectangular" className="aspect-golden" />
                 <div className="p-3 space-y-2">
                   <SkeletonV2 variant="text" className="h-4 w-3/4" />

@@ -139,12 +139,12 @@ export default function AdminUsers() {
                   placeholder="Search by name or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-xl pl-10"
+                  className="rounded-lg pl-10"
                 />
               </div>
             </div>
             <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="rounded-xl">
+              <SelectTrigger className="rounded-lg">
                 <SelectValue placeholder="Role" />
               </SelectTrigger>
               <SelectContent>
@@ -155,7 +155,7 @@ export default function AdminUsers() {
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="rounded-xl">
+              <SelectTrigger className="rounded-lg">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -215,13 +215,13 @@ export default function AdminUsers() {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <a
                           href={`/admin/users/${u.id}`}
-                          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-muted transition-colors"
+                          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg hover:bg-muted transition-colors"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                           <span className="hidden sm:inline">View</span>
                         </a>
                         {u.is_suspended ? (
-                          <Button className="rounded-xl"
+                          <Button className="rounded-lg"
                             size="sm"
                             variant="outline"
                             onClick={() => handleUnsuspend(u)}
@@ -231,7 +231,7 @@ export default function AdminUsers() {
                             Unsuspend
                           </Button>
                         ) : !u.is_deleted ? (
-                          <Button className="rounded-xl"
+                          <Button className="rounded-lg"
                             size="sm"
                             variant="destructive"
                             onClick={() => { setSuspendUser(u); setSuspendReason(""); }}
@@ -280,8 +280,8 @@ export default function AdminUsers() {
             </div>
           </div>
           <DialogFooter>
-            <Button className="rounded-xl" variant="outline" onClick={() => setSuspendUser(null)}>Cancel</Button>
-            <Button className="rounded-xl" variant="destructive" onClick={handleSuspend} disabled={processing === suspendUser?.id}>
+            <Button className="rounded-lg" variant="outline" onClick={() => setSuspendUser(null)}>Cancel</Button>
+            <Button className="rounded-lg" variant="destructive" onClick={handleSuspend} disabled={processing === suspendUser?.id}>
               {processing === suspendUser?.id ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Confirm Suspension
             </Button>

@@ -97,12 +97,12 @@ export function AdminVerificationsPanel({
                   placeholder="Search by name or IC number..."
                   value={searchQuery}
                   onChange={(e) => onSearchQueryChange(e.target.value)}
-                  className="rounded-xl pl-10"
+                  className="rounded-lg pl-10"
                 />
               </div>
             </div>
             <Select value={filterStatus} onValueChange={onFilterStatusChange}>
-              <SelectTrigger className="w-full md:w-[200px] rounded-xl">
+              <SelectTrigger className="w-full md:w-[200px] rounded-lg">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
@@ -124,18 +124,18 @@ export function AdminVerificationsPanel({
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Bulk Approve
               </Button>
-              <Button size="sm" variant="destructive" onClick={onBulkReject} className="rounded-xl">
+              <Button size="sm" variant="destructive" onClick={onBulkReject} className="rounded-lg">
                 <XCircle className="h-4 w-4 mr-2" />
                 Bulk Reject
               </Button>
-              <Button size="sm" variant="outline" onClick={onClearSelection} className="rounded-xl">
+              <Button size="sm" variant="outline" onClick={onClearSelection} className="rounded-lg">
                 Clear
               </Button>
             </div>
           )}
 
           {filterStatus === 'pending' && verifications.some(v => v.status === 'pending') && (
-            <Button variant="outline" size="sm" onClick={onSelectAll} className="rounded-xl w-fit">
+            <Button variant="outline" size="sm" onClick={onSelectAll} className="rounded-lg w-fit">
               Select All Pending
             </Button>
           )}
@@ -212,7 +212,7 @@ export function AdminVerificationsPanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-xl"
+                  className="rounded-lg"
                   onClick={async () => {
                     try {
                       const urls: string[] = [];

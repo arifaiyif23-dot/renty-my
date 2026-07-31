@@ -109,11 +109,11 @@ export default function AdminReports() {
             <div className="md:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input className="rounded-xl pl-10" placeholder="Search reports..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                <Input className="rounded-lg pl-10" placeholder="Search reports..." value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
             </div>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="rounded-lg"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -123,7 +123,7 @@ export default function AdminReports() {
               </SelectContent>
             </Select>
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectTrigger className="rounded-lg"><SelectValue placeholder="Type" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="item">Item</SelectItem>
@@ -207,7 +207,7 @@ export default function AdminReports() {
               {selectedReport.description && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Description</p>
-                  <p className="text-sm bg-muted p-3 rounded-md">{selectedReport.description}</p>
+                  <p className="text-sm bg-muted p-3 rounded-lg">{selectedReport.description}</p>
                 </div>
               )}
 
@@ -223,7 +223,7 @@ export default function AdminReports() {
 
               {selectedReport.status === 'pending' || selectedReport.status === 'investigating' ? (
                 <div className="flex gap-2">
-                  <Button className="rounded-xl"
+                  <Button className="rounded-lg"
                     variant="outline"
                     size="sm"
                     onClick={() => handleAction(selectedReport.id, 'investigating')}
@@ -241,7 +241,7 @@ export default function AdminReports() {
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Resolve
                   </Button>
-                  <Button className="rounded-xl"
+                  <Button className="rounded-lg"
                     variant="destructive"
                     size="sm"
                     onClick={() => handleAction(selectedReport.id, 'dismissed')}

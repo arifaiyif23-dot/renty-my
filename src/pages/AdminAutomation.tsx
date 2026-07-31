@@ -124,7 +124,7 @@ export default function AdminAutomation() {
               Some data could not be loaded. Try refreshing.
             </AlertDescription>
           </Alert>
-          <Button className="mt-4 rounded-xl" onClick={() => { refetchCronLogs(); refetchPaymentLogs(); }} disabled={refreshing}>
+          <Button className="mt-4 rounded-lg" onClick={() => { refetchCronLogs(); refetchPaymentLogs(); }} disabled={refreshing}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
           </Button>
@@ -169,7 +169,7 @@ export default function AdminAutomation() {
               Monitor cron jobs, payment flows, and system health
             </p>
           </div>
-          <Button className="rounded-xl" onClick={handleRefresh} disabled={refreshing}>
+          <Button className="rounded-lg" onClick={handleRefresh} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>

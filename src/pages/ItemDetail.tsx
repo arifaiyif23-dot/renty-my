@@ -242,7 +242,7 @@ export default function ItemDetail() {
         <SEO title={t('itemDetail.pageTitle')} />
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <SkeletonV2 variant="rectangular" className="aspect-video rounded-xl" />
+            <SkeletonV2 variant="rectangular" className="aspect-video rounded-lg" />
             <div className="space-y-3">
               <SkeletonV2 variant="text" className="h-8 w-3/4" />
               <SkeletonV2 variant="text" className="h-4 w-full" />
@@ -250,7 +250,7 @@ export default function ItemDetail() {
           </div>
           <div className="card-base p-6 space-y-4">
             <SkeletonV2 variant="text" className="h-6 w-1/2" />
-            <SkeletonV2 variant="rectangular" className="h-64 rounded-xl" />
+            <SkeletonV2 variant="rectangular" className="h-64 rounded-lg" />
           </div>
         </div>
       </PageLayout>
@@ -419,7 +419,7 @@ export default function ItemDetail() {
               )}
 
               {user && !profile?.is_verified && (
-                <div className="p-3 bg-warning/10 border border-warning/30 rounded-xl text-sm">
+                <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
                   <p className="text-warning font-medium mb-1">Verification required to book</p>
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/verification', { state: { redirectTo: `/items/${item?.id}` } })}>
                     Verify now
@@ -449,7 +449,7 @@ export default function ItemDetail() {
             <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
               {loadingSimilar ? (
                 [...Array(4)].map((_, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden border border-border">
+                  <div key={i} className="rounded-lg overflow-hidden border border-border">
                     <SkeletonV2 variant="rectangular" className="aspect-golden" />
                     <div className="p-3 space-y-2"><SkeletonV2 variant="text" /><SkeletonV2 variant="text" className="w-1/2" /></div>
                   </div>
@@ -487,7 +487,7 @@ export default function ItemDetail() {
               <div className="space-y-2">
                 <p>{item.instant_book_enabled ? 'Review before confirming' : 'Review before sending your request to the owner.'}</p>
                 {dateRange?.from && dateRange?.to && item && (
-                  <div className="bg-muted rounded-xl p-3 space-y-1 text-sm">
+                  <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Duration</span>
                       <span className="font-medium">{differenceInDays(dateRange.to, dateRange.from) + 1} days</span>

@@ -22,7 +22,7 @@ const NotFound = () => {
         <h1 className="mb-2 text-6xl font-bold text-foreground">{t('notFound.title')}</h1>
         <p className="mb-6 text-muted-foreground">{t('notFound.message')}</p>
         <Link to="/">
-          <Button size="lg" className="rounded-xl">
+          <Button size="lg" className="rounded-lg">
             <Home className="mr-2 h-4 w-4" />
             {t('notFound.button')}
           </Button>

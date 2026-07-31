@@ -91,13 +91,13 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
           className={cn(
             "relative flex items-center gap-2 rounded-2xl transition-all duration-300",
             isHero
-              ? "glass h-14 md:h-16 px-4 md:px-5 shadow-lg shadow-primary/5"
+              ? "glass h-14 md:h-16 px-4 md:px-5 shadow-3 shadow-primary/5"
               : "bg-card border border-border h-12 px-3 shadow-1",
             focused && isHero
               ? "ring-2 ring-primary/20"
               : "",
             focused && !isHero
-              ? "border-primary shadow-lg shadow-primary/5 ring-2 ring-primary/10"
+              ? "border-primary shadow-3 shadow-primary/5 ring-2 ring-primary/10"
               : ""
           )}
         >
@@ -134,7 +134,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
                   onChange={(e) => setCategory(e.target.value)}
                   aria-label="Category"
                   className={cn(
-                    "appearance-none cursor-pointer pl-3 pr-7 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 outline-none",
+                    "appearance-none cursor-pointer pl-3 pr-7 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 outline-none",
                     category !== "all"
                       ? "bg-primary/10 text-primary"
                       : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -154,7 +154,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
                 type="button"
                 onClick={() => setShowLocation(!showLocation)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200",
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
                   location
                     ? "bg-primary/10 text-primary"
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -216,7 +216,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             {isHero && (
               <Button
                 type="submit"
-                className="hidden sm:inline-flex h-11 px-5 rounded-xl gap-2 shrink-0"
+                className="hidden sm:inline-flex h-11 px-5 rounded-lg gap-2 shrink-0"
               >
                 <Search className="h-4 w-4" />
                 {t('common.search')}

@@ -126,7 +126,7 @@ export default function AdminRentals() {
         <GlassCard className="mb-6" padding="md">
           <div className="flex items-center gap-4">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full md:w-[250px] rounded-xl">
+              <SelectTrigger className="w-full md:w-[250px] rounded-lg">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>

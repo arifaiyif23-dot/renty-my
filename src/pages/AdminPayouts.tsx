@@ -207,7 +207,7 @@ export default function AdminPayouts() {
               <Filter className="h-5 w-5 text-muted-foreground" />
               <div className="flex gap-2">
                 {['all', 'held', 'awaiting_bank_details', 'pending', 'completed', 'failed'].map((status) => (
-                  <Button className="rounded-xl"
+                  <Button className="rounded-lg"
                     key={status}
                     variant={filter === status ? 'default' : 'outline'}
                     size="sm"
@@ -287,7 +287,7 @@ export default function AdminPayouts() {
 
                       {payout.status === 'pending' && (
                         <div className="flex gap-2 pt-3 border-t">
-                          <Button className="rounded-xl"
+                          <Button className="rounded-lg"
                             size="sm"
                             onClick={() => {
                               setSelectedPayout(payout);
@@ -297,7 +297,7 @@ export default function AdminPayouts() {
                             <CheckCircle className="mr-2 h-4 w-4" />
                             Mark as Paid
                           </Button>
-                          <Button className="rounded-xl"
+                          <Button className="rounded-lg"
                             size="sm"
                             variant="destructive"
                             onClick={() => {
@@ -329,7 +329,7 @@ export default function AdminPayouts() {
             <div className="space-y-4 py-4">
               <div>
                 <Label htmlFor="transaction_ref">Transaction Reference Number</Label>
-                <Input className="rounded-xl"
+                <Input className="rounded-lg"
                   id="transaction_ref"
                   placeholder="e.g., TXN123456789"
                   value={transactionRef}

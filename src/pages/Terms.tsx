@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
 import { StatusStamp } from "@/components/StatusStamp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, FileText } from "lucide-react";
@@ -11,17 +12,15 @@ export default function Terms() {
   return (
     <PageLayout variant="narrow" className="py-10">
       <SEO title={t('terms.title') + " — Renty"} description={t('terms.subtitle')} />
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <FileText className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{t('terms.title')}</h1>
-            <StatusStamp variant="draft" label="Draft" />
-          </div>
-        </div>
+        <PageHeader
+          icon={<FileText className="h-5 w-5 text-primary" />}
+          title={t('terms.title')}
+          className="mb-6"
+        >
+          <StatusStamp variant="draft" label="Draft" />
+        </PageHeader>
 
-        <Alert className="mb-8 border-warning bg-warning/10 rounded-xl">
+        <Alert className="mb-8 border-warning bg-warning/10 rounded-lg">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-sm">
             <strong>{t('terms.draftWarning')}</strong> Dokumen ini adalah rangka
@@ -102,7 +101,7 @@ export default function Terms() {
           </Section>
 
           <Section n="9" title={t('terms.section9Title')}>
-            <Alert className="border-warning bg-warning/5 rounded-xl">
+            <Alert className="border-warning bg-warning/5 rounded-lg">
               <AlertTriangle className="h-4 w-4 text-warning" />
               <AlertDescription className="text-sm">
                 Section ini paling memerlukan semakan peguam.

@@ -6,7 +6,8 @@ import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
+import { ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { format } from "date-fns";
 
 export default function PaymentDetail() {
@@ -34,7 +35,7 @@ export default function PaymentDetail() {
     })();
   }, [id]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  if (loading) return <LoadingSpinner />;
   if (error || !payment) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('paymentDetail.notFound')}</p></div>;
 
   const statusIcon: Record<string, JSX.Element> = {

@@ -156,7 +156,7 @@ export default function AdminSettings() {
                 Configure platform fees, limits, and operational parameters
               </p>
             </div>
-            <Button className="rounded-xl"
+            <Button className="rounded-lg"
               onClick={() => setShowConfirm(true)}
               disabled={!hasChanges || saving}
               size="lg"
@@ -229,7 +229,7 @@ export default function AdminSettings() {
                     step="0.01"
                     value={getCurrentValue('min_withdrawal_amount')}
                     onChange={(e) => handleChange('min_withdrawal_amount', e.target.value)}
-                    className="rounded-xl mt-1"
+                    className="rounded-lg mt-1"
                   />
                 </div>
                 <div>
@@ -240,7 +240,7 @@ export default function AdminSettings() {
                     step="0.01"
                     value={getCurrentValue('max_withdrawal_amount')}
                     onChange={(e) => handleChange('max_withdrawal_amount', e.target.value)}
-                    className="rounded-xl mt-1"
+                    className="rounded-lg mt-1"
                   />
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function AdminSettings() {
                   step="0.01"
                   value={getCurrentValue('withdrawal_processing_fee')}
                   onChange={(e) => handleChange('withdrawal_processing_fee', e.target.value)}
-                  className="rounded-xl mt-1"
+                  className="rounded-lg mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
                   Fixed fee charged per withdrawal
@@ -278,7 +278,7 @@ export default function AdminSettings() {
                     step="0.01"
                     value={getCurrentValue('auto_approve_threshold')}
                     onChange={(e) => handleChange('auto_approve_threshold', e.target.value)}
-                    className="rounded-xl mt-1"
+                    className="rounded-lg mt-1"
                   />
                   <p className="text-sm text-muted-foreground mt-1">
                     Low-risk payouts below this amount are auto-approved
@@ -291,7 +291,7 @@ export default function AdminSettings() {
                     type="number"
                     value={getCurrentValue('min_account_age_days')}
                     onChange={(e) => handleChange('min_account_age_days', e.target.value)}
-                    className="rounded-xl mt-1"
+                    className="rounded-lg mt-1"
                   />
                   <p className="text-sm text-muted-foreground mt-1">
                     Required account age for auto-approval

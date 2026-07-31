@@ -98,7 +98,7 @@ const Install = () => {
             <p className="text-muted-foreground mb-6">
               RENTY is already installed on your device
             </p>
-            <Button onClick={() => navigate('/')} className="rounded-xl">
+            <Button onClick={() => navigate('/')} className="rounded-lg">
               Go to Home
             </Button>
           </GlassCard>
@@ -113,7 +113,7 @@ const Install = () => {
                 <p className="text-muted-foreground mb-6">
                   Install RENTY for quick access from your home screen
                 </p>
-                <Button size="lg" className="rounded-xl" onClick={handleInstallClick}>
+                <Button size="lg" className="rounded-lg" onClick={handleInstallClick}>
                   <Download className="w-5 h-5 mr-2" />
                   Install Now
                 </Button>

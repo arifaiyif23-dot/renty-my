@@ -35,7 +35,7 @@ export function AppDownloadSection({ onNavigate }: AppDownloadSectionProps) {
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-border rounded-full" />
                 <div className="absolute inset-3 rounded-2xl bg-background overflow-hidden flex flex-col items-center justify-center">
                   <span className="text-primary text-lg tracking-tight" style={{ fontFamily: 'Chunk, serif' }}>renty</span>
-                  <div className="mt-3 w-8 h-8 rounded-xl glass flex items-center justify-center ring-1 ring-border/50">
+                  <div className="mt-3 w-8 h-8 rounded-lg glass flex items-center justify-center ring-1 ring-border/50">
                     <Search className="h-4 w-4 text-primary" />
                   </div>
                   <div className="mt-4 space-y-2 w-3/4">

@@ -1,4 +1,5 @@
 import { PageLayout } from "@/components/PageLayout";
+import { PageHeader } from "@/components/PageHeader";
 import { PWAFeatures } from "@/components/PWAFeatures";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Smartphone, Zap, Bell, Wifi } from "lucide-react";
@@ -9,21 +10,18 @@ export default function PWASettings() {
 
   return (
     <PageLayout className="py-8">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Smartphone className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{t("pwa.appSettings")}</h1>
-            <p className="text-sm text-muted-foreground">{t("pwa.subtitle")}</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={<Smartphone className="h-5 w-5 text-primary" />}
+          title={t("pwa.appSettings")}
+          subtitle={t("pwa.subtitle")}
+          className="mb-8"
+        />
 
         <GlassCard padding="lg" className="mb-6">
           <h2 className="text-lg font-semibold mb-4">{t("pwa.whyInstall")}</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="flex gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl h-fit">
+              <div className="p-2 bg-primary/10 rounded-lg h-fit">
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -33,7 +31,7 @@ export default function PWASettings() {
             </div>
 
             <div className="flex gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl h-fit">
+              <div className="p-2 bg-primary/10 rounded-lg h-fit">
                 <Smartphone className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -43,7 +41,7 @@ export default function PWASettings() {
             </div>
 
             <div className="flex gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl h-fit">
+              <div className="p-2 bg-primary/10 rounded-lg h-fit">
                 <Wifi className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -53,7 +51,7 @@ export default function PWASettings() {
             </div>
 
             <div className="flex gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl h-fit">
+              <div className="p-2 bg-primary/10 rounded-lg h-fit">
                 <Bell className="w-5 h-5 text-primary" />
               </div>
               <div>

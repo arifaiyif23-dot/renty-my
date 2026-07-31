@@ -176,13 +176,13 @@ export default function Auth() {
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-1.5 text-left">
               <Label htmlFor="new-password">New Password</Label>
-              <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-12 rounded-xl" autoComplete="new-password" required />
+              <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-12 rounded-lg" autoComplete="new-password" required />
             </div>
             <div className="space-y-1.5 text-left">
               <Label htmlFor="confirm-new-password">Confirm Password</Label>
-              <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="h-12 rounded-xl" autoComplete="new-password" required />
+              <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="h-12 rounded-lg" autoComplete="new-password" required />
             </div>
-            <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+            <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
               {isLoading ? 'Updating...' : 'Update Password'}
             </Button>
           </form>
@@ -199,7 +199,7 @@ export default function Auth() {
             <img src="/logo.png" alt="Renty" className="h-7 w-auto" />
           </Link>
           <Link to="/">
-            <Button variant="ghost" size="icon" className="rounded-xl">
+            <Button variant="ghost" size="icon" className="rounded-lg">
               <Home className="h-5 w-5" />
             </Button>
           </Link>
@@ -218,8 +218,8 @@ export default function Auth() {
               </div>
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2 bg-muted p-0.5 rounded-lg gap-0.5">
-                  <TabsTrigger value="login" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
+                  <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="animate-fade-in">
@@ -238,9 +238,9 @@ export default function Auth() {
                     <div className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="login-email-ml">Email</Label>
-                        <Input id="login-email-ml" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-xl" required />
+                        <Input id="login-email-ml" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
-                      <Button className="w-full h-12 rounded-xl gap-2" disabled={isLoading} onClick={handleMagicLink}>
+                      <Button className="w-full h-12 rounded-lg gap-2" disabled={isLoading} onClick={handleMagicLink}>
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                         {isLoading ? 'Sending...' : 'Send Magic Link'}
                       </Button>
@@ -252,7 +252,7 @@ export default function Auth() {
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="login-email">Email</Label>
-                        <Input id="login-email" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-xl" required />
+                        <Input id="login-email" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
@@ -260,13 +260,13 @@ export default function Auth() {
                           <ForgotPasswordDialog />
                         </div>
                         <div className="relative">
-                          <Input id="login-password" type={showLoginPassword ? 'text' : 'password'} value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })} className="h-12 rounded-xl pr-12" required />
+                          <Input id="login-password" type={showLoginPassword ? 'text' : 'password'} value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })} className="h-12 rounded-lg pr-12" required />
                           <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-12 w-12" onClick={() => setShowLoginPassword(!showLoginPassword)} aria-label={showLoginPassword ? 'Hide password' : 'Show password'}>
                             {showLoginPassword ? <EyeOff className="h-5 w-5 text-muted-foreground" /> : <Eye className="h-5 w-5 text-muted-foreground" />}
                           </Button>
                         </div>
                       </div>
-                      <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+                      <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
                         {isLoading ? 'Signing in...' : 'Sign In'}
                       </Button>
                       <div className="text-center">
@@ -287,16 +287,16 @@ export default function Auth() {
                     <form onSubmit={handleSignup} className="space-y-4">
                       <div className="space-y-1.5">
                         <Label htmlFor="signup-name">Full Name</Label>
-                        <Input id="signup-name" type="text" placeholder="John Doe" value={signupData.fullName} onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })} className="h-12 rounded-xl" required />
+                        <Input id="signup-name" type="text" placeholder="John Doe" value={signupData.fullName} onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="signup-email">Email</Label>
-                        <Input id="signup-email" type="email" placeholder="your@email.com" value={signupData.email} onChange={(e) => setSignupData({ ...signupData, email: e.target.value })} className="h-12 rounded-xl" required />
+                        <Input id="signup-email" type="email" placeholder="your@email.com" value={signupData.email} onChange={(e) => setSignupData({ ...signupData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor="signup-password">Password</Label>
                         <div className="relative">
-                          <Input id="signup-password" type={showSignupPassword ? 'text' : 'password'} value={signupData.password} onChange={(e) => setSignupData({ ...signupData, password: e.target.value })} className="h-12 rounded-xl pr-12" required />
+                          <Input id="signup-password" type={showSignupPassword ? 'text' : 'password'} value={signupData.password} onChange={(e) => setSignupData({ ...signupData, password: e.target.value })} className="h-12 rounded-lg pr-12" required />
                           <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-12 w-12" onClick={() => setShowSignupPassword(!showSignupPassword)} aria-label={showSignupPassword ? 'Hide password' : 'Show password'}>
                             {showSignupPassword ? <EyeOff className="h-5 w-5 text-muted-foreground" /> : <Eye className="h-5 w-5 text-muted-foreground" />}
                           </Button>
@@ -305,7 +305,7 @@ export default function Auth() {
                       <div className="space-y-1.5">
                         <Label htmlFor="signup-confirm">Confirm Password</Label>
                         <div className="relative">
-                          <Input id="signup-confirm" type={showConfirmPassword ? 'text' : 'password'} value={signupData.confirmPassword} onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })} className="h-12 rounded-xl pr-12" required />
+                          <Input id="signup-confirm" type={showConfirmPassword ? 'text' : 'password'} value={signupData.confirmPassword} onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })} className="h-12 rounded-lg pr-12" required />
                           <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-12 w-12" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
                             {showConfirmPassword ? <EyeOff className="h-5 w-5 text-muted-foreground" /> : <Eye className="h-5 w-5 text-muted-foreground" />}
                           </Button>
@@ -319,7 +319,7 @@ export default function Auth() {
                           <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2">Privacy Policy</Link>
                         </Label>
                       </div>
-                      <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading || !acceptedTerms}>
+                      <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading || !acceptedTerms}>
                         {isLoading ? 'Creating account...' : 'Create Account'}
                       </Button>
                     </form>
