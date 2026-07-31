@@ -3,12 +3,10 @@ import { AuroraBackground } from "@/components/AuroraBackground"
 import { ShieldCheck, Lock, Users } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
-import { Link } from "react-router-dom"
 import { useTranslation } from 'react-i18next'
 
 interface HeroSectionProps {
   totalItemCount: number
-  onSearch: () => void
   onListOrAuth: () => void
 }
 
@@ -18,7 +16,7 @@ const trustItems = [
   { icon: Users, label: "trust3" },
 ]
 
-export function HeroSection({ totalItemCount }: HeroSectionProps) {
+export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) {
   const { t } = useTranslation()
   const trustLabels = t('home.hero.trustItems', { returnObjects: true }) as string[]
 
@@ -46,11 +44,9 @@ export function HeroSection({ totalItemCount }: HeroSectionProps) {
             <SearchBarV2 variant="hero" />
           </div>
 
-          <Link to="/list-item">
-            <Button variant="brand" size="lg" className="gap-2 shadow-2 rounded-2xl h-12 px-8">
-              List Your Item
-            </Button>
-          </Link>
+          <Button variant="brand" size="lg" className="gap-2 shadow-2 rounded-2xl h-12 px-8" onClick={onListOrAuth}>
+            {t('listItem.title')}
+          </Button>
         </motion.div>
       </div>
 

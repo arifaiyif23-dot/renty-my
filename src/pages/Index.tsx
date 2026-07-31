@@ -53,7 +53,6 @@ const Index = () => {
 
       <HeroSection
         totalItemCount={totalItemCount}
-        onSearch={() => navigate('/search')}
         onListOrAuth={() => navigate(user ? '/list-item' : '/auth')}
       />
 

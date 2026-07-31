@@ -20,10 +20,10 @@ export function TrustStatsSection({ stats }: TrustStatsSectionProps) {
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
-            {t('home.stats.trustTitle') || "Built on Trust"}
+            {t('home.stats.trustTitle')}
           </h2>
           <p className="text-muted-foreground max-w-md mx-auto">
-            {t('home.stats.trustSubtitle') || "Every rental is backed by verification, security, and community"}
+            {t('home.stats.trustSubtitle')}
           </p>
         </div>
 
