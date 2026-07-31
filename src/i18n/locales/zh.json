@@ -840,5 +840,26 @@
     "termsOfService": "服务条款",
     "privacyPolicy": "隐私政策",
     "acceptedPayments": "接受的付款方式"
+  },
+  "messages": {
+    "title": "消息",
+    "conversations": "会话",
+    "loadingConversations": "正在加载会话",
+    "loadingMessages": "正在加载消息",
+    "failedToLoadConversations": "无法加载会话",
+    "failedToLoadMessages": "无法加载消息",
+    "failedToSendMessage": "消息发送失败",
+    "retry": "重试",
+    "noConversations": "暂无会话",
+    "noConversationsDesc": "开始聊天后，消息将显示在这里",
+    "typeMessage": "输入消息...",
+    "viewDocument": "查看文档",
+    "attachment": "附件",
+    "sending": "发送中",
+    "selectConversation": "选择会话",
+    "selectConversationDesc": "从列表中选择一个会话开始聊天",
+    "pleaseLogin": "请登录以查看消息",
+    "unknownUser": "未知用户",
+    "sendAction": "发送消息"
   }
 }

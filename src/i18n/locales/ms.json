@@ -891,5 +891,26 @@
     "returningEarly": "Pemulangan awal pada",
     "pending": "Menunggu",
     "actionRequired": "Tindakan diperlukan"
+  },
+  "messages": {
+    "title": "Mesej",
+    "conversations": "Perbualan",
+    "loadingConversations": "Memuatkan perbualan",
+    "loadingMessages": "Memuatkan mesej",
+    "failedToLoadConversations": "Gagal memuatkan perbualan",
+    "failedToLoadMessages": "Gagal memuatkan mesej",
+    "failedToSendMessage": "Gagal menghantar mesej",
+    "retry": "Cuba lagi",
+    "noConversations": "Tiada perbualan lagi",
+    "noConversationsDesc": "Mesej akan muncul di sini apabila anda mula berbual",
+    "typeMessage": "Taip mesej...",
+    "viewDocument": "Lihat Dokumen",
+    "attachment": "Lampiran",
+    "sending": "menghantar",
+    "selectConversation": "Pilih perbualan",
+    "selectConversationDesc": "Pilih perbualan daripada senarai untuk mula berbual",
+    "pleaseLogin": "Sila log masuk untuk melihat mesej",
+    "unknownUser": "Pengguna Tidak Dikenali",
+    "sendAction": "menghantar mesej"
   }
 }

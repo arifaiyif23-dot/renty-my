@@ -12,6 +12,7 @@ import { Send, ArrowLeft, File as FileIcon, Loader2, RefreshCw } from "lucide-re
 import { FileAttachment } from "@/components/FileAttachment";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import type { Message } from "@/types";
 import { PageLayout } from "@/components/PageLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -65,6 +66,7 @@ const ConversationItem = memo(({ conv, onSelect, isSelected }: { conv: Conversat
 ));
 
 export default function Messages() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const location = useLocation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -211,7 +213,7 @@ export default function Messages() {
         setIsLoadingConversations(false);
         setConversationsError(error.message);
       }
-      toast.error("Failed to load conversations");
+      toast.error(t("messages.failedToLoadConversations"));
       return;
     }
 
@@ -226,7 +228,7 @@ export default function Messages() {
       if (!conversationMap.has(otherUserId)) {
         conversationMap.set(otherUserId, {
           userId: otherUserId,
-          userName: otherUser?.full_name || 'Unknown User',
+          userName: otherUser?.full_name || t('messages.unknownUser'),
           userAvatar: otherUser?.avatar_url,
           lastMessage: msg.content,
           lastMessageTime: msg.created_at,
@@ -262,7 +264,7 @@ export default function Messages() {
     if (error) {
       console.error('Error fetching messages:', error);
       setIsLoadingMessages(false);
-      toast.error("Failed to load messages");
+      toast.error(t("messages.failedToLoadMessages"));
       return;
     }
 
@@ -285,7 +287,7 @@ export default function Messages() {
 
   const sendMessage = async () => {
     if (!user || !selectedUserId || isSending || (!newMessage.trim() && !attachmentUrl)) return;
-    if (!checkNotSuspended('send a message')) return;
+    if (!checkNotSuspended(t('messages.sendAction'))) return;
 
     stopTyping();
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -293,7 +295,7 @@ export default function Messages() {
     // Sanitize message content to prevent XSS
     const sanitizedContent = newMessage.trim() 
       ? sanitizeMessage(newMessage.trim()) 
-      : 'Attachment';
+      : t('messages.attachment');
 
     const optimisticId = `pending-${Date.now()}`;
     const optimisticMessage = {
@@ -335,7 +337,7 @@ export default function Messages() {
       setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
       setNewMessage(sanitizedContent);
       console.error('Send message error:', error.message);
-      toast.error(error.message ? `Failed to send message: ${error.message}` : 'Failed to send message');
+      toast.error(error.message ? `${t('messages.failedToSendMessage')}: ${error.message}` : t('messages.failedToSendMessage'));
       return;
     }
 
@@ -358,7 +360,7 @@ export default function Messages() {
   if (!user) {
     return (
       <div className="container mx-auto p-4 text-center">
-        Please log in to view messages
+        {t('messages.pleaseLogin')}
       </div>
     );
   }
@@ -395,13 +397,13 @@ export default function Messages() {
           <>
             {!showThread ? (
               <div className="space-y-4">
-                <h1 className="text-2xl font-bold">Messages</h1>
+                <h1 className="text-2xl font-bold">{t('messages.title')}</h1>
                 <GlassCard variant="subtle" padding="md">
-                  <h2 className="text-lg font-semibold pb-3">Conversations</h2>
+                  <h2 className="text-lg font-semibold pb-3">{t('messages.conversations')}</h2>
                   <ScrollArea className="h-[calc(100vh-250px)]">
                     {isLoadingConversations ? (
                       <div className="flex items-center justify-center p-8 text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('messages.loadingConversations')}
                       </div>
                     ) : conversations.map((conv) => (
                       <ConversationItem
@@ -412,18 +414,18 @@ export default function Messages() {
                     ))}
                     {!isLoadingConversations && conversationsError && (
                       <div className="p-8 text-center text-muted-foreground">
-                        <p className="text-base">Failed to load conversations</p>
+                        <p className="text-base">{t('messages.failedToLoadConversations')}</p>
                         <p className="text-sm mt-2">{conversationsError}</p>
                         <Button variant="outline" size="sm" className="mt-3" onClick={() => fetchConversations()}>
                           <Loader2 className={`h-4 w-4 mr-1 ${isLoadingConversations ? 'animate-spin' : ''}`} />
-                          Retry
+                          {t('messages.retry')}
                         </Button>
                       </div>
                     )}
                     {!isLoadingConversations && !conversationsError && conversations.length === 0 && (
                       <div className="p-8 text-center text-muted-foreground">
-                        <p className="text-base">No conversations yet</p>
-                        <p className="text-sm mt-2">Messages will appear here when you start chatting</p>
+                        <p className="text-base">{t('messages.noConversations')}</p>
+                        <p className="text-sm mt-2">{t('messages.noConversationsDesc')}</p>
                       </div>
                     )}
                   </ScrollArea>
@@ -448,7 +450,7 @@ export default function Messages() {
                   <div className="space-y-3">
                     {isLoadingMessages ? (
                       <div className="flex items-center justify-center py-10 text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading messages
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('messages.loadingMessages')}
                       </div>
                     ) : messages.map((msg) => (
                       <div
@@ -467,7 +469,7 @@ export default function Messages() {
                               {msg.attachment_type === 'image' ? (
                                 <img 
                                   src={msg.attachment_url} 
-                                  alt="Attachment" 
+                                  alt={t('messages.attachment')} 
                                   className="rounded-lg max-w-full h-auto"
                                   loading="lazy"
                                 />
@@ -479,7 +481,7 @@ export default function Messages() {
                                   className="flex items-center gap-2 text-sm underline"
                                 >
                                   <FileIcon className="h-4 w-4" />
-                                  View Document
+                                  {t('messages.viewDocument')}
                                 </a>
                               )}
                             </div>
@@ -494,7 +496,7 @@ export default function Messages() {
                             </span>
                             {msg.sender_id === user.id && (
                               <span className="ml-1">
-                                {msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}
+                                {msg.pending ? t('messages.sending') : msg.read_at ? '✓✓' : '✓'}
                               </span>
                             )}
                           </div>
@@ -535,7 +537,7 @@ export default function Messages() {
                           setNewMessage(e.target.value);
                           handleTyping();
                         }}
-                        placeholder="Type a message..."
+                        placeholder={t('messages.typeMessage')}
                         onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && sendMessage()}
                         className="h-12 text-base flex-1 rounded-lg"
                       />
@@ -557,15 +559,15 @@ export default function Messages() {
         ) : (
           <>
             {/* Desktop: Show both list and thread side by side */}
-            <h1 className="text-3xl font-bold mb-6">Messages</h1>
+            <h1 className="text-3xl font-bold mb-6">{t('messages.title')}</h1>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Conversations List */}
               <GlassCard variant="subtle" padding="md" className="lg:col-span-1">
-                <h2 className="text-lg font-semibold pb-3">Conversations</h2>
+                <h2 className="text-lg font-semibold pb-3">{t('messages.conversations')}</h2>
                 <ScrollArea className="h-[600px]">
                   {isLoadingConversations ? (
                     <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading conversations
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('messages.loadingConversations')}
                     </div>
                   ) : conversations.map((conv) => (
                     <ConversationItem
@@ -577,18 +579,18 @@ export default function Messages() {
                   ))}
                   {!isLoadingConversations && conversationsError && (
                     <div className="p-8 text-center text-muted-foreground">
-                      <p>Failed to load conversations</p>
+                      <p>{t('messages.failedToLoadConversations')}</p>
                       <p className="text-xs mt-2">{conversationsError}</p>
                       <Button variant="outline" size="sm" className="mt-3" onClick={() => fetchConversations()}>
                         <Loader2 className={`h-4 w-4 mr-1 ${isLoadingConversations ? 'animate-spin' : ''}`} />
-                        Retry
+                        {t('messages.retry')}
                       </Button>
                     </div>
                   )}
                   {!isLoadingConversations && !conversationsError && conversations.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                      <p>No conversations yet</p>
-                      <p className="text-xs mt-2">Messages will appear here when you start chatting</p>
+                      <p>{t('messages.noConversations')}</p>
+                      <p className="text-xs mt-2">{t('messages.noConversationsDesc')}</p>
                     </div>
                   )}
                 </ScrollArea>
@@ -599,7 +601,7 @@ export default function Messages() {
                 <h2 className="text-lg font-semibold pb-3">
                   {selectedUserId
                     ? conversations.find(c => c.userId === selectedUserId)?.userName
-                    : 'Select a conversation'}
+                    : t('messages.selectConversation')}
                 </h2>
                 {selectedUserId ? (
                   <>
@@ -607,7 +609,7 @@ export default function Messages() {
                       <div className="space-y-4">
                         {isLoadingMessages ? (
                           <div className="flex items-center justify-center py-10 text-muted-foreground">
-                            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading messages
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('messages.loadingMessages')}
                           </div>
                         ) : messages.map((msg) => (
                           <div
@@ -626,7 +628,7 @@ export default function Messages() {
                                   {msg.attachment_type === 'image' ? (
                                     <img 
                                       src={msg.attachment_url} 
-                                      alt="Attachment" 
+                                      alt={t('messages.attachment')} 
                                       className="rounded-lg max-w-full h-auto"
                                       loading="lazy"
                                     />
@@ -638,7 +640,7 @@ export default function Messages() {
                                       className="flex items-center gap-2 text-sm underline"
                                     >
                                       <FileIcon className="h-4 w-4" />
-                                      View Document
+                                      {t('messages.viewDocument')}
                                     </a>
                                   )}
                                 </div>
@@ -647,7 +649,7 @@ export default function Messages() {
                               <div className="text-xs opacity-70 mt-1">
                                 {safeFormatDate(msg.created_at, (d) => d.toLocaleTimeString())}
                                 {msg.sender_id === user.id && (
-                                  <span className="ml-2">{msg.pending ? 'sending' : msg.read_at ? '✓✓' : '✓'}</span>
+                                  <span className="ml-2">{msg.pending ? t('messages.sending') : msg.read_at ? '✓✓' : '✓'}</span>
                                 )}
                               </div>
                             </div>
@@ -672,7 +674,7 @@ export default function Messages() {
                             setNewMessage(e.target.value);
                             handleTyping();
                           }}
-                          placeholder="Type a message..."
+                          placeholder={t('messages.typeMessage')}
                           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && sendMessage()}
                           className="min-h-[44px] rounded-lg"
                         />
@@ -690,8 +692,8 @@ export default function Messages() {
                   </>
                 ) : (
                   <div className="h-[540px] flex flex-col items-center justify-center text-muted-foreground text-center p-4">
-                    <p className="text-lg mb-2">Select a conversation</p>
-                    <p className="text-sm">Choose a conversation from the list to start messaging</p>
+                    <p className="text-lg mb-2">{t('messages.selectConversation')}</p>
+                    <p className="text-sm">{t('messages.selectConversationDesc')}</p>
                   </div>
                 )}
               </GlassCard>

@@ -912,5 +912,26 @@
     "returningEarly": "Returning early on",
     "pending": "Pending",
     "actionRequired": "Action required"
+  },
+  "messages": {
+    "title": "Messages",
+    "conversations": "Conversations",
+    "loadingConversations": "Loading conversations",
+    "loadingMessages": "Loading messages",
+    "failedToLoadConversations": "Failed to load conversations",
+    "failedToLoadMessages": "Failed to load messages",
+    "failedToSendMessage": "Failed to send message",
+    "retry": "Retry",
+    "noConversations": "No conversations yet",
+    "noConversationsDesc": "Messages will appear here when you start chatting",
+    "typeMessage": "Type a message...",
+    "viewDocument": "View Document",
+    "attachment": "Attachment",
+    "sending": "sending",
+    "selectConversation": "Select a conversation",
+    "selectConversationDesc": "Choose a conversation from the list to start messaging",
+    "pleaseLogin": "Please log in to view messages",
+    "unknownUser": "Unknown User",
+    "sendAction": "send a message"
   }
 }

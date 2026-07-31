@@ -840,5 +840,26 @@
     "termsOfService": "சேவை விதிமுறைகள்",
     "privacyPolicy": "தனியுரிமைக் கொள்கை",
     "acceptedPayments": "ஏற்றுக்கொள்ளப்பட்ட கட்டண முறைகள்"
+  },
+  "messages": {
+    "title": "செய்திகள்",
+    "conversations": "உரையாடல்கள்",
+    "loadingConversations": "உரையாடல்கள் ஏற்றப்படுகின்றன",
+    "loadingMessages": "செய்திகள் ஏற்றப்படுகின்றன",
+    "failedToLoadConversations": "உரையாடல்களை ஏற்ற முடியவில்லை",
+    "failedToLoadMessages": "செய்திகளை ஏற்ற முடியவில்லை",
+    "failedToSendMessage": "செய்தியை அனுப்ப முடியவில்லை",
+    "retry": "மீண்டும் முயற்சிக்கவும்",
+    "noConversations": "இன்னும் உரையாடல்கள் இல்லை",
+    "noConversationsDesc": "நீங்கள் அரட்டையடிக்கத் தொடங்கும்போது செய்திகள் இங்கே தோன்றும்",
+    "typeMessage": "செய்தியை தட்டச்சு செய்க...",
+    "viewDocument": "ஆவணத்தைப் பார்க்கவும்",
+    "attachment": "இணைப்பு",
+    "sending": "அனுப்புகிறது",
+    "selectConversation": "உரையாடலைத் தேர்ந்தெடுக்கவும்",
+    "selectConversationDesc": "அரட்டையைத் தொடங்க பட்டியலில் இருந்து ஒரு உரையாடலைத் தேர்ந்தெடுக்கவும்",
+    "pleaseLogin": "செய்திகளைப் பார்க்க உள்நுழைக",
+    "unknownUser": "அறியப்படாத பயனர்",
+    "sendAction": "செய்தி அனுப்ப"
   }
 }
