@@ -54,7 +54,7 @@ export function TestimonialsSection() {
                   &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl glass flex items-center justify-center text-xs font-bold text-primary shrink-0 ring-1 ring-border/50">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                     {testimonial.name.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div>

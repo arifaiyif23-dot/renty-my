@@ -18,9 +18,9 @@ export function HowItWorksSection() {
 
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {[
-            { icon: Search, gradient: "from-blue-400/20 via-blue-500/5 to-transparent", color: "text-blue-500" },
-            { icon: Calendar, gradient: "from-emerald-400/20 via-emerald-500/5 to-transparent", color: "text-emerald-500" },
-            { icon: Handshake, gradient: "from-violet-400/20 via-violet-500/5 to-transparent", color: "text-violet-500" },
+            { icon: Search, gradient: "from-primary/10 via-primary/5 to-transparent", color: "text-primary" },
+            { icon: Calendar, gradient: "from-success/10 via-success/5 to-transparent", color: "text-success" },
+            { icon: Handshake, gradient: "from-action/10 via-action/5 to-transparent", color: "text-action" },
           ].map((step, i) => {
             const Icon = step.icon
             return (

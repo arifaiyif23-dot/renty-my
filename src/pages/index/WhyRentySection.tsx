@@ -3,12 +3,12 @@ import { GlassCard } from "@/components/ui/GlassCard"
 import { ShieldCheck, BadgeCheck, Scale, MapPin, Calendar, Users } from "lucide-react"
 
 const FEATURES_CONFIG = [
-  { icon: ShieldCheck, gradient: "from-blue-400/20 via-blue-500/5 to-transparent" },
-  { icon: BadgeCheck, gradient: "from-emerald-400/20 via-emerald-500/5 to-transparent" },
-  { icon: Scale, gradient: "from-violet-400/20 via-violet-500/5 to-transparent" },
-  { icon: MapPin, gradient: "from-amber-400/20 via-amber-500/5 to-transparent" },
-  { icon: Calendar, gradient: "from-rose-400/20 via-rose-500/5 to-transparent" },
-  { icon: Users, gradient: "from-cyan-400/20 via-cyan-500/5 to-transparent" },
+  { icon: ShieldCheck, gradient: "from-primary/10 via-primary/5 to-transparent" },
+  { icon: BadgeCheck, gradient: "from-success/10 via-success/5 to-transparent" },
+  { icon: Scale, gradient: "from-action/10 via-action/5 to-transparent" },
+  { icon: MapPin, gradient: "from-warning/10 via-warning/5 to-transparent" },
+  { icon: Calendar, gradient: "from-action/10 via-action/5 to-transparent" },
+  { icon: Users, gradient: "from-primary/10 via-primary/5 to-transparent" },
 ]
 
 export function WhyRentySection() {
@@ -32,7 +32,7 @@ export function WhyRentySection() {
               <GlassCard key={i} variant="elevated" padding="md" className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-60 pointer-events-none`} />
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl glass flex items-center justify-center mb-3 ring-1 ring-border/50">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="font-semibold mb-1.5">{t(`home.whyRenty.${["verifiedIdentity","securePayment","disputeProtection","localPickup","flexibleDuration","communityDriven"][i]}.title`)}</h3>

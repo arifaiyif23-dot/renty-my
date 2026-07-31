@@ -9,15 +9,15 @@
 
 @layer base {
   :root {
-    --bg-gradient: radial-gradient(ellipse 80% 60% at 0% 10%, hsl(var(--primary) / 0.04) 0%, transparent 60%),
-                   radial-gradient(ellipse 60% 50% at 100% 90%, hsl(var(--secondary) / 0.04) 0%, transparent 60%);
+    --bg-gradient: radial-gradient(ellipse 80% 60% at 0% 10%, hsl(var(--primary) / 0.06) 0%, transparent 60%),
+                   radial-gradient(ellipse 60% 50% at 100% 90%, hsl(var(--secondary) / 0.06) 0%, transparent 60%);
     --background: 220 20% 97%;
     --foreground: 224 30% 12%;
 
-    --card: 0 0% 100%;
+    --card: 220 25% 98%;
     --card-foreground: 224 30% 12%;
 
-    --popover: 0 0% 100%;
+    --popover: 220 25% 98%;
     --popover-foreground: 224 30% 12%;
 
     --primary: 224 65% 18%;

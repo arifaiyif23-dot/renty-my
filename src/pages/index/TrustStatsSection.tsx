@@ -8,9 +8,9 @@ interface TrustStatsSectionProps {
 }
 
 const trustPillars = [
-  { icon: ShieldCheck, key: "verified", gradient: "from-blue-400/20 via-blue-500/5 to-transparent" },
-  { icon: Lock, key: "secure", gradient: "from-emerald-400/20 via-emerald-500/5 to-transparent" },
-  { icon: Users, key: "community", gradient: "from-violet-400/20 via-violet-500/5 to-transparent" },
+  { icon: ShieldCheck, key: "verified", gradient: "from-primary/10 via-primary/5 to-transparent" },
+  { icon: Lock, key: "secure", gradient: "from-success/10 via-success/5 to-transparent" },
+  { icon: Users, key: "community", gradient: "from-action/10 via-action/5 to-transparent" },
 ]
 
 export function TrustStatsSection({ stats }: TrustStatsSectionProps) {
@@ -34,7 +34,7 @@ export function TrustStatsSection({ stats }: TrustStatsSectionProps) {
               <GlassCard key={i} variant="elevated" padding="lg" className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${pillar.gradient} opacity-60 pointer-events-none`} />
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center mb-4 ring-1 ring-border/50">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-action/10 flex items-center justify-center mb-4">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="font-semibold text-lg mb-1">

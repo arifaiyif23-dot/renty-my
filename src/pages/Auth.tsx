@@ -170,7 +170,7 @@ export default function Auth() {
   if (isRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <div className="card-base p-6 w-full max-w-md text-center">
+        <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8 w-full max-w-md text-center">
           <h1 className="text-xl font-bold mb-1">Set new password</h1>
           <p className="text-sm text-muted-foreground mb-6">Enter and confirm your new password.</p>
           <form onSubmit={handleResetPassword} className="space-y-4">
@@ -207,12 +207,14 @@ export default function Auth() {
       </div>
 
       <div className="flex-1 lg:grid lg:grid-cols-2">
-        <div className="flex items-center justify-center p-4 pb-mobile-nav">
-          <div className="w-full max-w-sm space-y-6">
-            <div className="card-base p-6">
-              <div className="text-center mb-5">
-                <h1 className="text-xl font-bold">Welcome</h1>
-                <p className="text-sm text-muted-foreground mt-1">Sign in or create an account</p>
+        <div className="relative flex items-center justify-center p-4 pb-mobile-nav overflow-hidden">
+          <div aria-hidden className="absolute -top-28 -left-28 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          <div aria-hidden className="absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-action/10 blur-3xl pointer-events-none" />
+          <div className="relative w-full max-w-sm space-y-6">
+            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8">
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold tracking-tight">Welcome</h1>
+                <p className="text-sm text-muted-foreground mt-1.5">Sign in or create an account</p>
               </div>
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2 bg-muted p-0.5 rounded-lg gap-0.5">
@@ -220,7 +222,7 @@ export default function Auth() {
                   <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="login">
+                <TabsContent value="login" className="animate-fade-in">
                   {magicLinkSent ? (
                     <div className="text-center py-6 space-y-3">
                       <p className="text-sm">Check your email for a magic link.</p>
@@ -274,7 +276,7 @@ export default function Auth() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="signup">
+                <TabsContent value="signup" className="animate-fade-in">
                   {showConfirmEmail ? (
                     <div className="text-center py-6 space-y-3">
                       <p className="text-sm">Check your email to confirm your account.</p>
@@ -333,9 +335,11 @@ export default function Auth() {
           </div>
         </div>
 
-        <div className="hidden lg:flex relative bg-gradient-to-br from-[#0A1628] via-[#0F2A5F] to-[#0A1628] items-center justify-center overflow-hidden">
+        <div className="hidden lg:flex relative bg-gradient-to-br from-[hsl(224_70%_10%)] via-brand to-[hsl(224_70%_10%)] items-center justify-center overflow-hidden">
+          <div aria-hidden className="absolute -top-32 -right-24 w-96 h-96 rounded-full bg-action/25 blur-3xl pointer-events-none" />
+          <div aria-hidden className="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
           <div className="relative z-10 text-center px-12 max-w-md">
-            <h1 className="text-3xl font-semibold text-white leading-[1.1] mb-3">
+            <h1 className="text-3xl font-semibold text-white leading-[1.1] mb-3 tracking-tight">
               Sewa Barang. Jimat Duit.
             </h1>
             <p className="text-sm text-white/60 leading-relaxed max-w-sm mx-auto">

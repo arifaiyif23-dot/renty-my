@@ -15,21 +15,21 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>
 }
 
 const CATEGORY_GLASS_COLORS: Record<string, string> = {
-  electronics: "before:bg-blue-500/10",
-  vehicles: "before:bg-amber-500/10",
-  tools: "before:bg-emerald-500/10",
-  sports: "before:bg-rose-500/10",
-  party: "before:bg-violet-500/10",
-  fashion: "before:bg-cyan-500/10",
+  electronics: "before:bg-primary/10",
+  vehicles: "before:bg-warning/10",
+  tools: "before:bg-success/10",
+  sports: "before:bg-destructive/10",
+  party: "before:bg-action/10",
+  fashion: "before:bg-secondary/10",
 }
 
 const CATEGORY_LIGHTING: Record<string, string> = {
-  electronics: "from-blue-400/20 via-transparent to-transparent",
-  vehicles: "from-amber-400/20 via-transparent to-transparent",
-  tools: "from-emerald-400/20 via-transparent to-transparent",
-  sports: "from-rose-400/20 via-transparent to-transparent",
-  party: "from-violet-400/20 via-transparent to-transparent",
-  fashion: "from-cyan-400/20 via-transparent to-transparent",
+  electronics: "from-primary/20 via-transparent to-transparent",
+  vehicles: "from-warning/20 via-transparent to-transparent",
+  tools: "from-success/20 via-transparent to-transparent",
+  sports: "from-destructive/20 via-transparent to-transparent",
+  party: "from-action/20 via-transparent to-transparent",
+  fashion: "from-secondary/20 via-transparent to-transparent",
 }
 
 interface CategoriesSectionProps {
