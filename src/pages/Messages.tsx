@@ -334,7 +334,8 @@ export default function Messages() {
     if (error) {
       setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
       setNewMessage(sanitizedContent);
-      toast.error('Failed to send message');
+      console.error('Send message error:', error.message);
+      toast.error(error.message ? `Failed to send message: ${error.message}` : 'Failed to send message');
       return;
     }
 

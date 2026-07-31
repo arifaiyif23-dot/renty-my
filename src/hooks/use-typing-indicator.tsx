@@ -8,7 +8,16 @@ export function useTypingIndicator(conversationId: string, userId: string) {
   useEffect(() => {
     if (!conversationId || !userId) return;
 
-    const typingChannel = supabase.channel(`typing:${conversationId}`);
+    const shortHash = (name: string) => {
+      let h = 2166136261;
+      for (let i = 0; i < name.length; i++) {
+        h ^= name.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0).toString(16);
+    };
+
+    const typingChannel = supabase.channel(`typing:${shortHash(conversationId)}`);
 
     typingChannel
       .on('presence', { event: 'sync' }, () => {
