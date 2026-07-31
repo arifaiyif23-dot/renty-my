@@ -103,6 +103,15 @@ Single responsive codebase (no route/layout fork). Breakpoint `md` = 768px; CSS-
 - **SEO**: `SEO` component accepts optional `jsonLd` prop; homepage injects WebSite + SearchAction structured data.
 - **Invariants**: `MobileBottomNav` stays global in App.tsx (`md:hidden`); `.pb-mobile-nav`/`.bottom-mobile-nav` zero out at md in index.css; Capacitor native always renders mobile chrome (viewport < md) — untouched.
 
+## UI Revamp (July 2026)
+- **Design language**: premium / minimal / calm. Deep-blue brand + glassmorphism. Radius = **two-tier** `rounded-lg` (12px, `--radius: 0.75rem`, controls) and `rounded-2xl` (16px, large cards) + `rounded-full` pills. `rounded-xl`/`rounded-md`/`rounded-sm` were merged into `rounded-lg` (they resolved to the same 12px via `--radius`). Shadow = **token scale only** `shadow-1..4` in `tailwind.config.ts` (theme-adaptive, uses `hsl(var(--foreground)/α)`); Tailwind defaults `shadow`/`-sm`/`-md`/`-lg` are banned (black-based, wrong in dark mode).
+- **Homepage** (search-first, no 3D): Hero (`HeroSection.tsx`) is centered max-w-5xl with headline *"Don't buy everything. Rent what you need."* (all 4 locales), enlarged `SearchBarV2` (hero variant `h-14 md:h-16`) with a category `<select>` (7 options, default `all`, presets from `searchParams`), "List Your Item" CTA, items-available count + trust strip. `FloatingRentalObjects.tsx` + `public/models/*.glb` deleted. All section gradients/glows use brand tokens (`primary`/`success`/`action`/`warning`/`destructive`/`secondary`), never hardcoded Tailwind colors.
+- **Light mode**: `--background: 220 20% 97%`, `--card`/`--popover: 220 25% 98%` (soft blue-white), bg-gradient bumps to 0.06 alpha. Dark `--secondary: 224 20% 16%`.
+- **Auth**: glass card `bg-card/70 backdrop-blur-xl`, gradient blob decorations, brand-gradient right panel, `animate-fade-in` tab transitions.
+- **Messaging fix** (Phase A, committed `2140d10`): encryption functions fall back to `platform_settings.encryption_key` (migrations `20260731000001/2`); `typing:` channel names are FNV-1a hashed (PostgreSQL LISTEN 63-byte limit).
+- **Shared components** (reuse, don't re-implement): `PageHeader` (accent icon tile + title/subtitle), `RentalStatusBadge` (rental status → tinted pill, i18n labels), `LoadingSpinner` (full-screen). `.press` utility (index.css) = `transition-all active:scale-[0.98]` for tactile press feedback on non-button elements.
+- `npm run verify` (typecheck + lint + build) must pass before deploy; deploy via `vercel --prod --yes`.
+
 ## Monitoring (recommended)
 - **Vercel Analytics** — enable from Vercel dashboard (free, zero code)
 - **Vercel Speed Insights** — enable from Vercel dashboard (free, zero code)
