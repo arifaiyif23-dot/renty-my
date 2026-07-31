@@ -35,7 +35,7 @@ export default function StickyBookingBar({
             {totalPrice != null && hasDates && (
               <>
                 <span className="text-muted-foreground mx-1">·</span>
-                <span className="text-sm font-semibold tabular-nums text-secondary">RM{totalPrice} total</span>
+                <span className="text-sm font-semibold tabular-nums text-muted-foreground">RM{totalPrice} total</span>
               </>
             )}
           </div>

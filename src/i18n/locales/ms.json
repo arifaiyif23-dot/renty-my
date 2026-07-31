@@ -68,8 +68,8 @@
   "home": {
     "hero": {
       "tagline": "Platform Sewaan No.1 Malaysia",
-      "heading1": "Kurang milik.",
-      "heading2": "Lebih alami.",
+        "heading1": "Tak perlu beli semua.",
+        "heading2": "Sewa apa yang anda perlukan.",
       "description": "Sewa apa sahaja yang anda perlukan daripada orang di sekeliling anda. Dari kamera ke kereta — temui cara hidup yang lebih baik.",
       "itemsAvailable": "{{count}}+ barang tersedia.",
       "trustItems": [
@@ -196,6 +196,7 @@
     "noItemsDesc": "Cuba laraskan tapisan atau istilah carian anda untuk mencari apa yang anda cari.",
     "clearFilters": "Kosongkan Tapisan",
     "selectState": "Pilih negeri",
+    "allCategories": "Semua kategori",
     "resetAll": "Set Semula",
     "location": "Lokasi",
     "enterLocation": "Masukkan lokasi",

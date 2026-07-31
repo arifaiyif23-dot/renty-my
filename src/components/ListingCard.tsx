@@ -88,7 +88,7 @@ const ListingCard = memo(({
 
         {verificationLevel && verificationLevel !== 'unverified' && (
           <div className="absolute top-3 left-3">
-            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/80 backdrop-blur-sm text-[11px] font-medium text-emerald-700 shadow-sm">
+            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-emerald-700 dark:text-emerald-400 shadow-sm">
               <BadgeCheck className="h-3 w-3" />
               Verified
             </div>
@@ -121,7 +121,7 @@ const ListingCard = memo(({
             } catch { /* silent fail */ }
             setSaving(false);
           }}
-          className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all duration-200 active:scale-90 shadow-sm"
+          className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-all duration-200 active:scale-90 shadow-sm"
           aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart
@@ -135,7 +135,7 @@ const ListingCard = memo(({
         </button>
 
         {pricePerDay > 0 && (
-          <div className="absolute bottom-3 right-3 bg-white/80 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-sm">
+          <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm rounded-xl px-3 py-1.5 shadow-sm">
             <span className="font-bold text-sm tabular-nums">RM{pricePerDay}</span>
             <span className="text-xs text-muted-foreground">/day</span>
           </div>

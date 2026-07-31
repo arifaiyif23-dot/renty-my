@@ -104,7 +104,7 @@ export default function Dashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-muted p-0.5 rounded-lg w-full justify-start gap-0.5 mb-4">
             {(['active', 'pending', 'past'] as const).map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="flex-1 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-1 text-sm">
+              <TabsTrigger key={tab} value={tab} className="flex-1 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">
                 {t(`dashboard.${tab}`)}
                 <Badge variant="outline" className="ml-1.5 rounded-full text-[10px] px-1.5 py-0 h-4 min-w-[18px] tabular-nums">
                   {tab === 'active' ? activeCount : tab === 'pending' ? pendingCount : pastCount}

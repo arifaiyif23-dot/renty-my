@@ -72,8 +72,8 @@
   "home": {
     "hero": {
       "tagline": "Malaysia's Trusted Rental Marketplace",
-      "heading1": "Own less.",
-      "heading2": "Experience more.",
+        "heading1": "Don't buy everything.",
+        "heading2": "Rent what you need.",
       "description": "Rent anything you need from people around you. From cameras to cars — discover a better way to live.",
       "itemsAvailable": "{{count}}+ items available.",
       "trustItems": [
@@ -200,6 +200,7 @@
     "noItemsDesc": "Try adjusting your filters or search terms to find what you're looking for.",
     "clearFilters": "Clear Filters",
     "selectState": "Select state",
+    "allCategories": "All categories",
     "resetAll": "Reset All",
     "location": "Location",
     "enterLocation": "Enter location",

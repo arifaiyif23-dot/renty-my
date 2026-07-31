@@ -55,6 +55,8 @@
   }
 
   .dark {
+    color-scheme: dark;
+
     --bg-gradient: radial-gradient(ellipse 80% 60% at 0% 10%, hsl(var(--primary) / 0.07) 0%, transparent 60%),
                    radial-gradient(ellipse 60% 50% at 100% 90%, hsl(var(--secondary) / 0.07) 0%, transparent 60%);
     --background: 224 35% 8%;
@@ -72,8 +74,8 @@
     --brand: 224 65% 18%;
     --brand-foreground: 0 0% 100%;
 
-    --secondary: 224 45% 77%;
-    --secondary-foreground: 224 30% 12%;
+    --secondary: 224 20% 16%;
+    --secondary-foreground: 220 15% 92%;
 
     --action: 280 60% 60%;
     --action-foreground: 0 0% 100%;
@@ -104,7 +106,7 @@
 
   html {
     -webkit-text-size-adjust: 100%;
-    color-scheme: light dark;
+    color-scheme: light;
   }
 
   body {

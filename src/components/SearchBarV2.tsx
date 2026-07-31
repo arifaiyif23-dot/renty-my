@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Search, MapPin, X } from "lucide-react";
+import { Search, MapPin, X, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileSearchOverlay } from "@/components/MobileSearchOverlay";
+import { Button } from "@/components/ui/button";
 
 interface SearchBarV2Props {
   className?: string;
@@ -18,12 +19,15 @@ const MALAYSIA_STATES = [
   "Perlis", "Putrajaya", "Sabah", "Sarawak", "Selangor", "Terengganu",
 ];
 
+const CATEGORY_OPTIONS = ["electronics", "vehicles", "tools", "sports", "party", "fashion", "other"];
+
 const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [location, setLocation] = useState(searchParams.get("location") || "");
+  const [category, setCategory] = useState(searchParams.get("category") || "all");
   const [showLocation, setShowLocation] = useState(false);
   const [focused, setFocused] = useState(false);
   const [overlayOpen, setOverlayOpen] = useState(false);
@@ -52,6 +56,8 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
     else params.delete("q");
     if (location) params.set("location", location);
     else params.delete("location");
+    if (category && category !== "all") params.set("category", category);
+    else params.delete("category");
     navigate(`/search?${params.toString()}`);
     onSearch?.(query);
   };
@@ -63,6 +69,8 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
     else params.delete("q");
     if (location) params.set("location", location);
     else params.delete("location");
+    if (category && category !== "all") params.set("category", category);
+    else params.delete("category");
     navigate(`/search?${params.toString()}`);
     onSearch?.(q);
   };
@@ -83,7 +91,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
           className={cn(
             "relative flex items-center gap-2 rounded-2xl transition-all duration-300",
             isHero
-              ? "glass h-14 px-4"
+              ? "glass h-14 md:h-16 px-4 md:px-5 shadow-lg shadow-primary/5"
               : "bg-card border border-border h-12 px-3 shadow-1",
             focused && isHero
               ? "ring-2 ring-primary/20"
@@ -97,7 +105,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             className={cn(
               "shrink-0 transition-colors duration-200",
               focused ? "text-primary" : "text-muted-foreground",
-              isHero ? "h-5 w-5" : "h-4 w-4"
+              isHero ? "h-5 w-5 md:h-6 md:w-6" : "h-4 w-4"
             )}
           />
           <input
@@ -113,12 +121,34 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
             placeholder={t('search.placeholder')}
             className={cn(
               "flex-1 bg-transparent border-none outline-none placeholder:text-muted-foreground/60 font-medium",
-              isHero ? "text-base" : "text-sm"
+              isHero ? "text-base md:text-lg" : "text-sm"
             )}
             aria-label="Search items"
           />
 
           <div className="flex items-center gap-2">
+            {isHero && (
+              <div className="relative hidden sm:block shrink-0">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  aria-label="Category"
+                  className={cn(
+                    "appearance-none cursor-pointer pl-3 pr-7 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 outline-none",
+                    category !== "all"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  <option value="all">{t('search.allCategories')}</option>
+                  {CATEGORY_OPTIONS.map((c) => (
+                    <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            )}
+
             <div className="relative" ref={locationRef}>
               <button
                 type="button"
@@ -137,7 +167,7 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
               </button>
 
               {showLocation && (
-                <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
+                <div className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-popover border border-border rounded-2xl shadow-3 p-2 z-50 animate-scale-in">
                   <p className="text-xs font-medium text-muted-foreground px-2 py-1.5">
                     {t('search.selectState')}
                   </p>
@@ -181,6 +211,16 @@ const SearchBarV2 = ({ className, variant = "hero", onSearch }: SearchBarV2Props
               >
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
+            )}
+
+            {isHero && (
+              <Button
+                type="submit"
+                className="hidden sm:inline-flex h-11 px-5 rounded-xl gap-2 shrink-0"
+              >
+                <Search className="h-4 w-4" />
+                {t('common.search')}
+              </Button>
             )}
           </div>
         </div>

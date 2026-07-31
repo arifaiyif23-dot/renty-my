@@ -393,10 +393,10 @@ export default function MyListings() {
             </div>
             <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} className="w-full md:w-auto overflow-x-auto">
               <TabsList className="w-max min-w-full md:min-w-0 bg-muted/30 p-1 rounded-xl gap-1">
-                <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.all')}</TabsTrigger>
-                <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.active')}</TabsTrigger>
-                <TabsTrigger value="paused" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.paused')}</TabsTrigger>
-                <TabsTrigger value="draft" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-1">{t('common.draft')}</TabsTrigger>
+                <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.all')}</TabsTrigger>
+                <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.active')}</TabsTrigger>
+                <TabsTrigger value="paused" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.paused')}</TabsTrigger>
+                <TabsTrigger value="draft" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1">{t('common.draft')}</TabsTrigger>
               </TabsList>
             </Tabs>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>

@@ -65,8 +65,8 @@
   "home": {
     "hero": {
       "tagline": "马来西亚最值得信赖的租赁平台",
-      "heading1": "租你所需，",
-      "heading2": "从附近的人那里。",
+      "heading1": "不必都买下，",
+      "heading2": "租你所需要的东西。",
       "description": "寻找相机、工具、车辆等——来自您附近经过验证的业主。",
       "itemsAvailable": "全马来西亚有 {{count}}+ 件物品可供选择。",
       "browseButton": "浏览物品",
@@ -193,6 +193,7 @@
     "noItemsDesc": "请调整筛选条件或搜索词以找到您需要的内容。",
     "clearFilters": "清除筛选",
     "selectState": "选择州属",
+    "allCategories": "所有类别",
     "resetAll": "重置所有",
     "location": "位置",
     "enterLocation": "输入位置",

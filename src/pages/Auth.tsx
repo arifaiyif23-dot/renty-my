@@ -216,8 +216,8 @@ export default function Auth() {
               </div>
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2 bg-muted p-0.5 rounded-lg gap-0.5">
-                  <TabsTrigger value="login" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-1 text-sm">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
+                  <TabsTrigger value="login" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login">
