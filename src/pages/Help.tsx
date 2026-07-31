@@ -49,7 +49,7 @@ export default function Help() {
                 key={i}
                 variant="subtle"
                 padding="md"
-                className="cursor-pointer hover:border-primary/50 transition-colors select-none"
+                className="cursor-pointer hover:border-primary/50 transition-colors select-none press"
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
               >
                 <div className="flex items-start justify-between gap-4">

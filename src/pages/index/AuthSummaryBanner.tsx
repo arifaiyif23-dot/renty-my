@@ -29,7 +29,7 @@ export function AuthSummaryBanner({ authSummary, fullName, onNavigate }: AuthSum
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <GlassCard variant="interactive" padding="sm" className="cursor-pointer" onClick={() => onNavigate('/dashboard')}>
+          <GlassCard variant="interactive" padding="sm" className="cursor-pointer press" onClick={() => onNavigate('/dashboard')}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <Clock className="h-5 w-5 text-primary" />
@@ -41,7 +41,7 @@ export function AuthSummaryBanner({ authSummary, fullName, onNavigate }: AuthSum
             </div>
           </GlassCard>
 
-          <GlassCard variant="interactive" padding="sm" className="cursor-pointer" onClick={() => onNavigate('/dashboard')}>
+          <GlassCard variant="interactive" padding="sm" className="cursor-pointer press" onClick={() => onNavigate('/dashboard')}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <MessageCircle className="h-5 w-5 text-primary" />
@@ -53,7 +53,7 @@ export function AuthSummaryBanner({ authSummary, fullName, onNavigate }: AuthSum
             </div>
           </GlassCard>
 
-          <GlassCard variant="interactive" padding="sm" className="cursor-pointer" onClick={() => onNavigate('/messages')}>
+          <GlassCard variant="interactive" padding="sm" className="cursor-pointer press" onClick={() => onNavigate('/messages')}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
                 <TrendingUp className="h-5 w-5 text-success" />
@@ -65,7 +65,7 @@ export function AuthSummaryBanner({ authSummary, fullName, onNavigate }: AuthSum
             </div>
           </GlassCard>
 
-          <GlassCard variant="interactive" padding="sm" className="cursor-pointer" onClick={() => onNavigate('/my-listings')}>
+          <GlassCard variant="interactive" padding="sm" className="cursor-pointer press" onClick={() => onNavigate('/my-listings')}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <Package className="h-5 w-5 text-primary" />

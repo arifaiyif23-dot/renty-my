@@ -126,7 +126,7 @@ export const NotificationBell = () => {
             <DropdownMenuItem
               key={notification.id}
               onClick={() => handleNotificationClick(notification)}
-              className={`flex flex-col items-start p-4 cursor-pointer ${
+              className={`flex flex-col items-start p-4 cursor-pointer press ${
                 !notification.is_read ? 'bg-accent' : ''
               }`}
             >
