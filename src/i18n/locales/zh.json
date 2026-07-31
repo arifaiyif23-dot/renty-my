@@ -927,5 +927,35 @@
       "resolved_refund": "已解决（退款）",
       "resolved_payout": "已解决（付款）"
     }
+  },
+  "incomingRequests": {
+    "title": "收到的请求",
+    "noPending": "暂无待处理的预订请求",
+    "idVerified": "身份已验证",
+    "notVerified": "未验证",
+    "noLocation": "未指定地点",
+    "item": "物品",
+    "duration": "时长",
+    "days_one": "{{count}} 天",
+    "days_other": "{{count}} 天",
+    "dates": "日期",
+    "amount": "金额",
+    "requested": "请求于",
+    "approve": "批准",
+    "decline": "拒绝",
+    "approving": "正在批准...",
+    "declining": "正在拒绝...",
+    "approveTitle": "批准预订请求？",
+    "declineTitle": "拒绝预订请求？",
+    "approveDesc": "已收到付款。确认即表示您接受预订，系统将为租客生成取货码。租客交接时需要此取货码。",
+    "declineDesc": "租客已付款。拒绝将触发退款流程。此操作无法撤销。",
+    "itemLabel": "物品：",
+    "amountLabel": "金额：",
+    "confirmed": "预订已成功确认",
+    "declined": "预订已成功拒绝",
+    "confirmNotifyDesc": "已通知租客。已为交接生成取货码。",
+    "declineNotifyDesc": "已通知租客。将处理退款。",
+    "failedToApprove": "批准预订失败",
+    "failedToDecline": "拒绝预订失败"
   }
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Calendar, DollarSign, CheckCircle, XCircle, ShieldCheck, Clock } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import {
@@ -25,6 +26,7 @@ interface IncomingRequestsProps {
 }
 
 export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
+  const { t } = useTranslation();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ 
     open: boolean; 
@@ -42,15 +44,13 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
 
       if (error) throw error;
 
-      toast.success(`Booking ${action === 'approve' ? 'confirmed' : 'declined'} successfully`, {
-        description: action === 'approve' 
-          ? 'The renter has been notified. A pickup code has been generated for handover.'
-          : 'The renter has been notified. A refund will be processed.'
+      toast.success(t(`incomingRequests.${action === 'approve' ? 'confirmed' : 'declined'}`), {
+        description: t(action === 'approve' ? 'incomingRequests.confirmNotifyDesc' : 'incomingRequests.declineNotifyDesc')
       });
       
       onUpdate();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : `Failed to ${action} booking`);
+      toast.error(error instanceof Error ? error.message : t(`incomingRequests.${action === 'approve' ? 'failedToApprove' : 'failedToDecline'}`));
       console.error(error);
     } finally {
       setProcessingId(null);
@@ -66,12 +66,12 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Incoming Requests
+            {t('incomingRequests.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">
-            No pending booking requests
+            {t('incomingRequests.noPending')}
           </p>
         </CardContent>
       </Card>
@@ -84,7 +84,7 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Incoming Requests
+            {t('incomingRequests.title')}
             <Badge variant="secondary">{pendingRequests.length}</Badge>
           </CardTitle>
         </CardHeader>
@@ -106,17 +106,17 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                       {rental.renter?.is_verified && (
                         <Badge variant="secondary" className="gap-1">
                           <ShieldCheck className="h-3 w-3 text-success" />
-                          ID Verified
+                          {t('incomingRequests.idVerified')}
                         </Badge>
                       )}
                     </div>
                     {!rental.renter?.is_verified && (
                       <Badge variant="destructive" className="mt-1">
-                        Not Verified
+                        {t('incomingRequests.notVerified')}
                       </Badge>
                     )}
                     <p className="text-sm text-muted-foreground mt-1">
-                      {rental.renter?.location || 'Location not specified'}
+                      {rental.renter?.location || t('incomingRequests.noLocation')}
                     </p>
                   </div>
                 </div>
@@ -124,17 +124,17 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                 {/* Item & Booking Details */}
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t">
                   <div>
-                    <p className="text-sm text-muted-foreground">Item</p>
+                    <p className="text-sm text-muted-foreground">{t('incomingRequests.item')}</p>
                     <p className="font-medium">{rental.item?.title}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Duration</p>
-                    <p className="font-medium">{days} day{days !== 1 ? 's' : ''}</p>
+                    <p className="text-sm text-muted-foreground">{t('incomingRequests.duration')}</p>
+                    <p className="font-medium">{t('incomingRequests.days', { count: days })}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      Dates
+                      {t('incomingRequests.dates')}
                     </p>
                     <p className="font-medium text-sm">
                       {format(new Date(rental.start_date), 'MMM dd')} - {format(new Date(rental.end_date), 'MMM dd')}
@@ -143,14 +143,14 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                   <div>
                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                       <DollarSign className="h-3 w-3" />
-                      Amount
+                      {t('incomingRequests.amount')}
                     </p>
                     <p className="font-semibold text-lg">RM {rental.total_price}</p>
                   </div>
                 </div>
 
                 <p className="text-xs text-muted-foreground pt-2 border-t">
-                  Requested {format(new Date(rental.created_at), 'MMM dd, yyyy')}
+                  {t('incomingRequests.requested')} {format(new Date(rental.created_at), 'MMM dd, yyyy')}
                 </p>
 
                 {/* Action Buttons */}
@@ -168,12 +168,12 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                     {processingId === rental.id && confirmDialog.action === 'approve' ? (
                       <>
                         <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        Approving...
+                        {t('incomingRequests.approving')}
                       </>
                     ) : (
                       <>
                         <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve
+                        {t('incomingRequests.approve')}
                       </>
                     )}
                   </Button>
@@ -191,12 +191,12 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                     {processingId === rental.id && confirmDialog.action === 'reject' ? (
                       <>
                         <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        Declining...
+                        {t('incomingRequests.declining')}
                       </>
                     ) : (
                       <>
                         <XCircle className="h-4 w-4 mr-2" />
-                        Decline
+                        {t('incomingRequests.decline')}
                       </>
                     )}
                   </Button>
@@ -212,31 +212,29 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmDialog.action === 'approve' ? 'Approve Booking Request?' : 'Decline Booking Request?'}
+              {confirmDialog.action === 'approve' ? t('incomingRequests.approveTitle') : t('incomingRequests.declineTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDialog.action === 'approve' ? (
                 <>
-                  Payment has been received. By confirming, you are accepting the booking and a pickup code
-                  will be generated for the renter. The renter will need this code at handover.
+                  {t('incomingRequests.approveDesc')}
                   <br /><br />
-                  <strong>Item:</strong> {confirmDialog.rental?.item?.title}<br />
-                  <strong>Amount:</strong> RM {confirmDialog.rental?.total_price}
+                  <strong>{t('incomingRequests.itemLabel')}</strong> {confirmDialog.rental?.item?.title}<br />
+                  <strong>{t('incomingRequests.amountLabel')}</strong> RM {confirmDialog.rental?.total_price}
                 </>
               ) : (
                 <>
-                  The renter has already paid. Declining will trigger a refund process.
-                  This action cannot be undone.
+                  {t('incomingRequests.declineDesc')}
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmDialog.rentalId && handleApproval(confirmDialog.rentalId, confirmDialog.action)}
             >
-              {confirmDialog.action === 'approve' ? 'Approve' : 'Decline'}
+              {confirmDialog.action === 'approve' ? t('incomingRequests.approve') : t('incomingRequests.decline')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

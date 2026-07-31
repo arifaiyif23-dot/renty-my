@@ -999,5 +999,35 @@
       "resolved_refund": "Resolved (Refund)",
       "resolved_payout": "Resolved (Payout)"
     }
+  },
+  "incomingRequests": {
+    "title": "Incoming Requests",
+    "noPending": "No pending booking requests",
+    "idVerified": "ID Verified",
+    "notVerified": "Not Verified",
+    "noLocation": "Location not specified",
+    "item": "Item",
+    "duration": "Duration",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "dates": "Dates",
+    "amount": "Amount",
+    "requested": "Requested",
+    "approve": "Approve",
+    "decline": "Decline",
+    "approving": "Approving...",
+    "declining": "Declining...",
+    "approveTitle": "Approve Booking Request?",
+    "declineTitle": "Decline Booking Request?",
+    "approveDesc": "Payment has been received. By confirming, you are accepting the booking and a pickup code will be generated for the renter. The renter will need this code at handover.",
+    "declineDesc": "The renter has already paid. Declining will trigger a refund process. This action cannot be undone.",
+    "itemLabel": "Item:",
+    "amountLabel": "Amount:",
+    "confirmed": "Booking confirmed successfully",
+    "declined": "Booking declined successfully",
+    "confirmNotifyDesc": "The renter has been notified. A pickup code has been generated for handover.",
+    "declineNotifyDesc": "The renter has been notified. A refund will be processed.",
+    "failedToApprove": "Failed to approve booking",
+    "failedToDecline": "Failed to decline booking"
   }
 }

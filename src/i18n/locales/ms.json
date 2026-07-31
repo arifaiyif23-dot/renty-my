@@ -978,5 +978,35 @@
       "resolved_refund": "Selesai (Bayaran Balik)",
       "resolved_payout": "Selesai (Pembayaran)"
     }
+  },
+  "incomingRequests": {
+    "title": "Permintaan Masuk",
+    "noPending": "Tiada permintaan tempahan yang belum selesai",
+    "idVerified": "ID Disahkan",
+    "notVerified": "Tidak Disahkan",
+    "noLocation": "Lokasi tidak dinyatakan",
+    "item": "Item",
+    "duration": "Tempoh",
+    "days_one": "{{count}} hari",
+    "days_other": "{{count}} hari",
+    "dates": "Tarikh",
+    "amount": "Jumlah",
+    "requested": "Diminta",
+    "approve": "Lulus",
+    "decline": "Tolak",
+    "approving": "Meluluskan...",
+    "declining": "Menolak...",
+    "approveTitle": "Lulus Permintaan Tempahan?",
+    "declineTitle": "Tolak Permintaan Tempahan?",
+    "approveDesc": "Pembayaran telah diterima. Dengan mengesahkan, anda menerima tempahan dan kod ambilan akan dijana untuk penyewa. Penyewa akan memerlukan kod ini semasa serahan.",
+    "declineDesc": "Penyewa telah membayar. Menolak akan mencetuskan proses bayaran balik. Tindakan ini tidak boleh dibatalkan.",
+    "itemLabel": "Item:",
+    "amountLabel": "Jumlah:",
+    "confirmed": "Tempahan diluluskan dengan jayanya",
+    "declined": "Tempahan ditolak dengan jayanya",
+    "confirmNotifyDesc": "Penyewa telah dimaklumkan. Kod ambilan telah dijana untuk serahan.",
+    "declineNotifyDesc": "Penyewa telah dimaklumkan. Bayaran balik akan diproses.",
+    "failedToApprove": "Gagal meluluskan tempahan",
+    "failedToDecline": "Gagal menolak tempahan"
   }
 }
