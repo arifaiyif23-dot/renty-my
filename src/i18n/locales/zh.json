@@ -1,5 +1,7 @@
 {
   "common": {
+        "processing": "处理中...",
+    "tryAgain": "重试",
     "loading": "加载中...",
     "clear": "清除",
     "save": "保存",
@@ -60,7 +62,9 @@
     "signOutConfirmDesc": "您需要重新登录才能访问您的账户。",
     "myRentals": "我的租赁",
     "myEarnings": "我的收益",
-    "saved": "已保存"
+    "saved": "已保存",
+    "menu": "菜单",
+    "verification": "身份验证"
   },
   "home": {
     "hero": {
@@ -75,7 +79,8 @@
       "verifiedOwners": "验证业主",
       "securePayments": "安全支付",
       "localPickup": "本地取货",
-      "dijaminTrust": "受信赖保障"
+      "dijaminTrust": "受信赖保障",
+      "trustItems": ["已验证用户", "安全支付", "社区驱动"]
     },
     "categories": {
       "title": "浏览类别",
@@ -103,6 +108,20 @@
       "button": "开始赚钱"
     },
     "stats": {
+      "trustTitle": "建立在信任之上",
+      "trustSubtitle": "每次租赁都有身份验证、安全支付和社区保障",
+      "verified": {
+        "title": "已验证用户",
+        "desc": "每位会员都经过身份验证。清楚知道你与谁进行租赁交易。"
+      },
+      "secure": {
+        "title": "安全支付",
+        "desc": "资金在租赁完成前安全托管。让双方都安心无忧。"
+      },
+      "community": {
+        "title": "社区驱动",
+        "desc": "真实的人、真实的评价、真实的责任。信任随每次租赁而增长。"
+      },
       "itemsAvailable": "可用物品",
       "verifiedMembers": "认证会员",
       "successfulRentals": "成功租赁",
@@ -260,11 +279,93 @@
     "uploadImage": "请至少上传一张图片",
     "required": "*"
   },
+  "bookingDetail": {
+    "back": "返回",
+    "unknownItem": "未知物品",
+    "processReturn": "处理归还",
+    "startHandover": "开始交接",
+    "leaveReview": "发表评价",
+    "notFound": "找不到预订",
+    "cancelBooking": "取消预订",
+    "cancelTitle": "取消预订",
+    "cancelDesc": "确定要取消此预订吗？此操作无法撤销。",
+    "keepBooking": "保留预订",
+    "yesCancel": "是，取消",
+    "cancelling": "正在取消...",
+    "confirmBooking": "确认预订",
+    "decline": "拒绝",
+    "waitingPayment": "正在等待付款确认...",
+    "waitingPaymentDesc": "您的付款正在处理中。确认后此页面将自动更新。",
+    "waitingApproval": "正在等待房主确认您的预订",
+    "vendorNoShow": "房东未出现？",
+    "paymentPending": "待付款",
+    "bookedBy": "租客",
+    "owner": "房东"
+  },
+  "paymentDetail": {
+    "title": "付款详情",
+    "notFound": "找不到付款记录",
+    "rentalAmount": "租金金额",
+    "platformFee": "平台费用",
+    "total": "总计",
+    "paidAt": "支付时间",
+    "completePayment": "完成付款",
+    "viewBooking": "查看预订",
+    "paid": "已支付",
+    "pending": "待处理",
+    "processing": "处理中",
+    "failed": "失败",
+    "expired": "已过期"
+  },
+  "rentalDetail": {
+    "title": "租赁详情",
+    "notFound": "找不到租赁记录",
+    "startHandover": "开始交接",
+    "processReturn": "处理归还",
+    "returnPhotos": "归还照片",
+    "returnPhotosLabel": "归还照片",
+    "handoverPhotos": "交接照片",
+    "eventHistory": "事件记录",
+    "viewBooking": "查看预订",
+    "review": "评价",
+    "startedAt": "开始时间",
+    "renter": "租客",
+    "owner": "房东"
+  },
+  "timeline": {
+    "requested": "已提交预订",
+    "paymentInitiated": "已发起付款",
+    "paymentConfirmed": "付款已确认",
+    "bookingConfirmed": "预订已确认",
+    "overdue": "已逾期",
+    "returnDisputed": "归还存在争议",
+    "rentalStarted": "租赁已开始",
+    "underReview": "审核中",
+    "rentalCompleted": "租赁已完成",
+    "bookingDeclined": "预订已拒绝",
+    "bookingCancelled": "预订已取消",
+    "overdueReturn": "租赁已逾期——待归还",
+    "disputeRaised": "已提出争议——等待管理员审核",
+    "rentalExtended": "租赁已延长",
+    "earlyReturn": "提前归还",
+    "extendedTo": "延长至",
+    "returningEarly": "提前归还于",
+    "pending": "待处理",
+    "actionRequired": "需要操作"
+  },
   "wishlist": {
     "title": "我的心愿单",
     "noItems": "暂无收藏物品",
     "noItemsDesc": "开始将物品添加到心愿单",
-    "browseItems": "浏览物品"
+    "browseItems": "浏览物品",
+    "savedItems": "已保存物品",
+    "refreshed": "收藏已刷新",
+    "removed": "已从收藏中移除",
+    "undo": "撤销",
+    "removeFailed": "移除物品失败",
+    "failedToLoad": "无法加载收藏",
+    "exploreCategories": "浏览分类",
+    "seoDesc": "查看您保存的物品和收藏"
   },
   "listings": {
     "myListings": "我的列表",
@@ -372,6 +473,12 @@
     "decline": "拒绝",
     "declineRequest": "拒绝请求",
     "startHandover": "开始交接",
+    "paymentProcessing": "正在验证付款...",
+    "waitingConfirm": "等待房主确认预订",
+    "confirmBooking": "确认预订",
+    "bookingCancelled": "预订已取消",
+    "viewConditionReport": "查看物品状况报告",
+    "rateExperience": "评价你的体验",
     "processReturn": "处理归还",
     "waitingApproval": "等待业主批准",
     "requestDeclined": "业主已拒绝请求",

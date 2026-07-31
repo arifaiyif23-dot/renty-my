@@ -1,5 +1,6 @@
 {
   "common": {
+        "processing": "Memproses...",
     "loading": "Memuatkan...",
     "clear": "Kosongkan",
     "save": "Simpan",
@@ -80,6 +81,18 @@
     },
     "categories": {
       "title": "Layari kategori",
+      "viewAll": "Lihat semua"
+    },
+    "welcome": {
+      "welcomeBack": "Selamat kembali",
+      "dashboard": "Papan Pemuka",
+      "active": "Sewaan aktif",
+      "pending": "Permintaan belum selesai",
+      "messages": "Mesej belum dibaca",
+      "listings": "Senarai saya"
+    },
+    "recentlyViewed": {
+      "title": "Baru dilihat",
       "viewAll": "Lihat semua"
     },
     "newestListings": {
@@ -387,6 +400,8 @@
     "waitingApproval": "Menunggu pembayaran diselesaikan",
     "paymentProcessing": "Pembayaran sedang disahkan...",
     "waitingConfirm": "Menunggu pengesahan pemilik",
+    "confirmBooking": "Sahkan tempahan",
+    "bookingCancelled": "Tempahan dibatalkan",
     "requestDeclined": "Permintaan ditolak oleh pemilik",
     "disputeRaised": "Pertikaian Dibangkitkan",
     "disputeRaisedByOwner": "Pertikaian Dibangkitkan oleh Pemilik",

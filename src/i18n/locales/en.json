@@ -1,5 +1,6 @@
 {
   "common": {
+        "processing": "Processing...",
     "loading": "Loading...",
     "clear": "Clear",
     "save": "Save",
@@ -84,6 +85,18 @@
     },
     "categories": {
       "title": "Browse categories",
+      "viewAll": "View all"
+    },
+    "welcome": {
+      "welcomeBack": "Welcome back",
+      "dashboard": "Dashboard",
+      "active": "Active rentals",
+      "pending": "Pending requests",
+      "messages": "Unread messages",
+      "listings": "My listings"
+    },
+    "recentlyViewed": {
+      "title": "Recently viewed",
       "viewAll": "View all"
     },
     "newestListings": {
@@ -391,6 +404,8 @@
     "waitingApproval": "Waiting for payment to be completed",
     "paymentProcessing": "Payment is being verified...",
     "waitingConfirm": "Waiting for owner to confirm booking",
+    "confirmBooking": "Confirm booking",
+    "bookingCancelled": "Booking cancelled",
     "requestDeclined": "Request declined by owner",
     "disputeRaised": "Dispute Raised",
     "disputeRaisedByOwner": "Dispute Raised by Owner",
@@ -766,6 +781,10 @@
     "contactUs": "Contact us",
     "reportIssue": "Report an issue",
     "disputeResolution": "Dispute resolution",
+    "legal": "Legal",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "acceptedPayments": "We accept the following payment methods",
     "title": "Complete Inspection",
     "description": "What is the condition of \"{{title}}\" after the rental?",
     "passed": "Passed — Ready to rent again",
