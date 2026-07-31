@@ -95,11 +95,11 @@ export default function AdminErrors() {
 
   const typeBadge = (type: string) => {
     const colors: Record<string, string> = {
-      runtime: "bg-red-100 text-red-800",
-      promise: "bg-yellow-100 text-yellow-800",
-      boundary: "bg-orange-100 text-orange-800",
+      runtime: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
+      promise: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
+      boundary: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
     };
-    return colors[type] || "bg-gray-100 text-gray-800";
+    return colors[type] || "bg-gray-100 text-gray-800 dark:bg-secondary dark:text-muted-foreground";
   };
 
   const types = useMemo(() => [...new Set(errors.map((e) => e.error_type))], [errors]);
