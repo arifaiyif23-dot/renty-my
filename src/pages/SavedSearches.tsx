@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Search, Bell, BellOff, Trash2, Loader2, ArrowLeft, Save, Plus, Clock } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -15,6 +16,7 @@ import { format } from "date-fns";
 import type { SavedSearch } from "@/types";
 
 export default function SavedSearches() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searches, setSearches] = useState<SavedSearch[]>([]);
@@ -42,7 +44,7 @@ export default function SavedSearches() {
       setSearches(data || []);
       fetchNewCounts(data || []);
     } catch {
-      toast.error("Failed to load saved searches");
+      toast.error(t("savedSearches.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -80,9 +82,9 @@ export default function SavedSearches() {
         fetchNewCounts(updated);
         return updated;
       });
-      toast.success(search.notify_on_new ? "Notifications disabled" : "Notifications enabled");
+      toast.success(search.notify_on_new ? t("savedSearches.notificationsDisabled") : t("savedSearches.notificationsEnabled"));
     } catch {
-      toast.error("Failed to update");
+      toast.error(t("savedSearches.failedToUpdate"));
     }
   };
 
@@ -92,9 +94,9 @@ export default function SavedSearches() {
       const { error } = await supabase.from("saved_searches").delete().eq("id", deleteId);
       if (error) throw error;
       setSearches((prev) => prev.filter((s) => s.id !== deleteId));
-      toast.success("Search deleted");
+      toast.success(t("savedSearches.searchDeleted"));
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("savedSearches.failedToDelete"));
     } finally {
       setDeleteId(null);
     }
@@ -112,10 +114,10 @@ export default function SavedSearches() {
       setSearches((prev) =>
         prev.map((s) => (s.id === editSearch.id ? { ...s, label: labelInput.trim() } : s))
       );
-      toast.success("Label updated");
+      toast.success(t("savedSearches.labelUpdated"));
       setEditSearch(null);
     } catch {
-      toast.error("Failed to update label");
+      toast.error(t("savedSearches.failedToUpdateLabel"));
     }
   };
 
@@ -135,8 +137,8 @@ export default function SavedSearches() {
           </Button>
           <PageHeader
             icon={<Search className="h-5 w-5 text-primary" />}
-            title="Saved Searches"
-            subtitle="Save search criteria to quickly find items later"
+            title={t("savedSearches.title")}
+            subtitle={t("savedSearches.subtitle")}
             titleClassName="text-xl"
             subtitleClassName="text-xs"
           />
@@ -145,11 +147,11 @@ export default function SavedSearches() {
         {searches.length === 0 ? (
           <GlassCard padding="lg" className="text-center py-8">
             <Search className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground mb-4">No saved searches yet</p>
+            <p className="text-muted-foreground mb-4">{t("savedSearches.noSearches")}</p>
             <Button variant="outline" className="rounded-lg" asChild>
               <Link to="/search">
                 <Plus className="h-4 w-4 mr-2" />
-                Browse Items
+                {t("savedSearches.browseItems")}
               </Link>
             </Button>
           </GlassCard>
@@ -161,11 +163,11 @@ export default function SavedSearches() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium truncate">
-                        {search.label || search.query_text || "Unnamed Search"}
+                        {search.label || search.query_text || t("savedSearches.unnamedSearch")}
                       </p>
                       {newCounts[search.id] && (
                         <Badge variant="default" className="shrink-0 text-[10px] h-5 px-1.5">
-                          {newCounts[search.id]} new
+                          {newCounts[search.id]} {t("savedSearches.new")}
                         </Badge>
                       )}
                     </div>
@@ -184,7 +186,7 @@ export default function SavedSearches() {
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       <Clock className="h-3 w-3 inline mr-1" />
-                      Saved {format(new Date(search.created_at), "MMM d, yyyy")}
+                      {t("savedSearches.saved")} {format(new Date(search.created_at), "MMM d, yyyy")}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
@@ -229,14 +231,14 @@ export default function SavedSearches() {
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Saved Search?</DialogTitle>
+            <DialogTitle>{t("savedSearches.deleteTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            This action cannot be undone.
+            {t("savedSearches.cannotUndo")}
           </p>
           <DialogFooter>
-            <Button variant="outline" className="rounded-lg" onClick={() => setDeleteId(null)}>Cancel</Button>
-            <Button variant="destructive" className="rounded-lg" onClick={deleteSearch}>Delete</Button>
+            <Button variant="outline" className="rounded-lg" onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
+            <Button variant="destructive" className="rounded-lg" onClick={deleteSearch}>{t("common.delete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -244,17 +246,17 @@ export default function SavedSearches() {
       <Dialog open={!!editSearch} onOpenChange={() => setEditSearch(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Search Label</DialogTitle>
+            <DialogTitle>{t("savedSearches.editLabelTitle")}</DialogTitle>
           </DialogHeader>
           <Input
             value={labelInput}
             onChange={(e) => setLabelInput(e.target.value)}
-            placeholder="Enter a name for this search"
+            placeholder={t("savedSearches.labelPlaceholder")}
             className="rounded-lg"
           />
           <DialogFooter>
-            <Button variant="outline" className="rounded-lg" onClick={() => setEditSearch(null)}>Cancel</Button>
-            <Button className="rounded-lg" onClick={updateLabel}>Save</Button>
+            <Button variant="outline" className="rounded-lg" onClick={() => setEditSearch(null)}>{t("common.cancel")}</Button>
+            <Button className="rounded-lg" onClick={updateLabel}>{t("common.save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

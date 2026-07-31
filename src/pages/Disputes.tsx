@@ -8,6 +8,8 @@ import { AlertTriangle, Loader2, ShieldAlert } from "lucide-react";
 import { EmptyStateV2 } from "@/components/EmptyStateV2";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 interface DisputeDisplay {
   id: string;
@@ -24,15 +26,13 @@ const statusVariant = (s: string): "default" | "secondary" | "destructive" | "ou
   return "secondary";
 };
 
-const statusLabel = (s: string): string => {
-  if (s === "open") return "Open";
-  if (s === "resolved_refund") return "Resolved (Refund)";
-  if (s === "resolved_payout") return "Resolved (Payout)";
-  return s;
+const statusLabel = (t: TFunction, s: string): string => {
+  return t(`disputes.status.${s}`, s);
 };
 
 export default function Disputes() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [disputes, setDisputes] = useState<DisputeDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -70,23 +70,23 @@ export default function Disputes() {
 
       setDisputes(rentalsData.map(r => ({
         id: r.id,
-        item_title: (r.item as { title?: string } | null)?.title || "Unknown Item",
-        dispute_reason: r.dispute_reason || "No details provided",
+        item_title: (r.item as { title?: string } | null)?.title || t("disputes.unknownItem"),
+        dispute_reason: r.dispute_reason || t("disputes.noDetails"),
         dispute_status: r.dispute_status || "open",
         created_at: r.created_at,
         other_party_name: profileMap.get(
           r.renter_id === user.id ? r.owner_id : r.renter_id
-        ) || "Unknown",
+        ) || t("disputes.unknown"),
         role: r.renter_id === user.id ? "renter" : "owner",
       })));
     } catch (err) {
       console.error("Failed to load disputes:", err);
       setError(true);
-      toast.error("Failed to load disputes");
+      toast.error(t("disputes.failedToLoad"));
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     loadDisputes();
@@ -99,8 +99,8 @@ export default function Disputes() {
             <ShieldAlert className="h-5 w-5 text-warning" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">My Disputes</h1>
-            <p className="text-sm text-muted-foreground">All disputes you're involved in</p>
+            <h1 className="text-2xl font-bold">{t("disputes.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("disputes.subtitle")}</p>
           </div>
         </div>
 
@@ -110,8 +110,8 @@ export default function Disputes() {
           <GlassCard padding="lg">
             <EmptyStateV2
               icon={ShieldAlert}
-              title="Failed to load disputes"
-              description="Something went wrong while loading your disputes. Please try again."
+              title={t("disputes.failedToLoad")}
+              description={t("disputes.errorDesc")}
               showRetry
               onRetry={loadDisputes}
             />
@@ -120,8 +120,8 @@ export default function Disputes() {
           <GlassCard padding="lg">
             <EmptyStateV2
               icon={ShieldAlert}
-              title="No disputes"
-              description="You haven't been involved in any disputes. Disputes can be opened from a completed rental if there's an issue."
+              title={t("disputes.noDisputes")}
+              description={t("disputes.noDisputesDesc")}
             />
           </GlassCard>
         ) : (
@@ -136,11 +136,11 @@ export default function Disputes() {
                     </h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {format(new Date(d.created_at), "PPp")}
-                      {" · "}with {d.other_party_name}
+                      {" · "}{t("disputes.with")} {d.other_party_name}
                     </p>
                   </div>
                   <Badge variant={statusVariant(d.dispute_status)} className="capitalize rounded-full">
-                    {statusLabel(d.dispute_status)}
+                    {statusLabel(t, d.dispute_status)}
                   </Badge>
                 </div>
                 <p className="text-sm">{d.dispute_reason}</p>

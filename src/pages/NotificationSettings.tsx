@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Bell, Loader2, ArrowLeft, Save } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { PageHeader } from "@/components/PageHeader";
@@ -28,6 +29,7 @@ const DEFAULT_PREFS: NotificationPreference = {
 };
 
 export default function NotificationSettings() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [prefs, setPrefs] = useState<NotificationPreference>(DEFAULT_PREFS);
@@ -62,7 +64,7 @@ export default function NotificationSettings() {
         if (newPrefs) setPrefs(newPrefs);
       }
     } catch {
-      toast.error("Failed to load notification preferences");
+      toast.error(t("notificationSettings.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -94,9 +96,9 @@ export default function NotificationSettings() {
         .eq("user_id", user!.id);
 
       if (error) throw error;
-      toast.success("Notification preferences saved");
+      toast.success(t("notificationSettings.saved"));
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to save preferences");
+      toast.error(error instanceof Error ? error.message : t("notificationSettings.failedToSave"));
     } finally {
       setSaving(false);
     }
@@ -110,19 +112,19 @@ export default function NotificationSettings() {
     );
   }
 
-  const notificationToggles: { key: keyof NotificationPreference; label: string; desc: string }[] = [
-    { key: "rental_requests", label: "Rental Requests", desc: "When someone requests to rent your item" },
-    { key: "rental_updates", label: "Rental Updates", desc: "Status changes on your bookings" },
-    { key: "messages", label: "Messages", desc: "New messages from other users" },
-    { key: "reviews", label: "Reviews", desc: "When you receive a new review" },
-    { key: "payment_updates", label: "Payment Updates", desc: "Payment confirmations and payout notifications" },
-    { key: "verification_updates", label: "Verification Updates", desc: "Identity verification status changes" },
-    { key: "marketing", label: "Marketing", desc: "Promotions, tips, and platform updates" },
+  const notificationToggles: { key: keyof NotificationPreference }[] = [
+    { key: "rental_requests" },
+    { key: "rental_updates" },
+    { key: "messages" },
+    { key: "reviews" },
+    { key: "payment_updates" },
+    { key: "verification_updates" },
+    { key: "marketing" },
   ];
 
-  const deliveryToggles: { key: "push_enabled" | "email_enabled"; label: string; desc: string }[] = [
-    { key: "push_enabled", label: "Push Notifications", desc: "Receive notifications in-app and on your device" },
-    { key: "email_enabled", label: "Email Notifications", desc: "Receive notifications via email" },
+  const deliveryToggles: { key: "push_enabled" | "email_enabled" }[] = [
+    { key: "push_enabled" },
+    { key: "email_enabled" },
   ];
 
   return (
@@ -133,8 +135,8 @@ export default function NotificationSettings() {
           </Button>
           <PageHeader
             icon={<Bell className="h-5 w-5 text-primary" />}
-            title="Notification Preferences"
-            subtitle="Choose which notifications you receive"
+            title={t("notificationSettings.title")}
+            subtitle={t("notificationSettings.subtitle")}
             titleClassName="text-xl"
             subtitleClassName="text-xs"
           />
@@ -142,13 +144,13 @@ export default function NotificationSettings() {
 
         <GlassCard padding="lg" className="space-y-6">
           <div>
-            <h3 className="text-sm font-semibold mb-3">Notification Types</h3>
+            <h3 className="text-sm font-semibold mb-3">{t("notificationSettings.types")}</h3>
             <div className="space-y-3">
-              {notificationToggles.map(({ key, label, desc }) => (
+              {notificationToggles.map(({ key }) => (
                 <div key={key} className="flex items-center justify-between py-1">
                   <div>
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
+                    <p className="text-sm font-medium">{t(`notificationSettings.${key}`)}</p>
+                    <p className="text-xs text-muted-foreground">{t(`notificationSettings.${key}Desc`)}</p>
                   </div>
                   <Switch
                     checked={prefs[key] as boolean}
@@ -160,13 +162,13 @@ export default function NotificationSettings() {
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="text-sm font-semibold mb-3">Delivery Methods</h3>
+            <h3 className="text-sm font-semibold mb-3">{t("notificationSettings.delivery")}</h3>
             <div className="space-y-3">
-              {deliveryToggles.map(({ key, label, desc }) => (
+              {deliveryToggles.map(({ key }) => (
                 <div key={key} className="flex items-center justify-between py-1">
                   <div>
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
+                    <p className="text-sm font-medium">{t(`notificationSettings.${key}`)}</p>
+                    <p className="text-xs text-muted-foreground">{t(`notificationSettings.${key}Desc`)}</p>
                   </div>
                   <Switch
                     checked={prefs[key]}
@@ -179,7 +181,7 @@ export default function NotificationSettings() {
 
           <Button onClick={handleSave} disabled={saving} className="w-full rounded-lg">
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-            Save Preferences
+            {t("notificationSettings.save")}
           </Button>
         </GlassCard>
     </PageLayout>
