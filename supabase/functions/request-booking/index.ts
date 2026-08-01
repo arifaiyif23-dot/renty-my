@@ -19,6 +19,7 @@ const bookingSchema = z.object({
   originalTotalPrice: z.number().positive().optional(),
   discountAmount: z.number().min(0).optional(),
   promoCodeId: z.string().uuid().nullable().optional(),
+  agreeToTerms: z.boolean().optional(),
 }).refine(
   (data) => new Date(data.endDate) >= new Date(data.startDate),
   { message: 'endDate must be on or after startDate' }
@@ -52,7 +53,12 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { itemId, startDate, endDate, renterId, ownerId, totalPrice, originalTotalPrice, discountAmount, promoCodeId } = validationResult.data;
+    const { itemId, startDate, endDate, renterId, ownerId, totalPrice, originalTotalPrice, discountAmount, promoCodeId, agreeToTerms } = validationResult.data;
+
+    // LEGAL: renter must explicitly accept the Rental Agreement before booking.
+    if (!agreeToTerms) {
+      throw new Error('You must accept the Rental Agreement to continue');
+    }
     
     console.log('Creating rental request:', { itemId, renterId, ownerId, startDate, endDate, totalPrice, originalTotalPrice, discountAmount, promoCodeId });
     
@@ -90,7 +96,7 @@ serve(async (req) => {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('is_verified')
+      .select('is_verified, full_name, verification_level')
       .eq('id', renterId)
       .single();
 
@@ -103,7 +109,7 @@ serve(async (req) => {
     // authoritative server-side price recomputation (never trust the client's price).
     const { data: itemData, error: itemError } = await supabase
       .from('items')
-      .select('price_per_day, owner_id, minimum_rental_days, maximum_rental_days')
+      .select('price_per_day, owner_id, minimum_rental_days, maximum_rental_days, title, deposit_amount, category')
       .eq('id', itemId)
       .single();
 
@@ -113,6 +119,16 @@ serve(async (req) => {
 
     if (itemData.owner_id !== ownerId) {
       throw new Error('Owner mismatch');
+    }
+
+    const { data: ownerProfile, error: ownerProfileError } = await supabase
+      .from('profiles')
+      .select('full_name, verification_level')
+      .eq('id', ownerId)
+      .single();
+
+    if (ownerProfileError || !ownerProfile) {
+      throw new Error('Owner not found');
     }
 
     // Validate rental length constraints.
@@ -236,6 +252,42 @@ serve(async (req) => {
 
     // Pickup code is generated on owner confirmation (after payment), not here.
 
+    // LEGAL: record renter acceptance of the Rental Agreement (server-side snapshot,
+    // name comes from the DB profile so the client cannot spoof who accepted).
+    const { error: agreementError } = await supabase.from('rental_agreements').insert({
+      rental_id: rpcResult.rental_id,
+      terms_version: '1',
+      content: {
+        itemTitle: itemData.title,
+        category: itemData.category,
+        deposit: itemData.deposit_amount ?? 0,
+        pricePerDay: Number(itemData.price_per_day),
+        ownerId,
+        ownerName: ownerProfile.full_name,
+        ownerVerificationLevel: ownerProfile.verification_level,
+        renterId,
+        renterName: profile.full_name,
+        renterVerificationLevel: profile.verification_level,
+        startDate,
+        endDate,
+        days,
+        totalPrice: expectedTotal,
+        originalTotalPrice: originalTotalPrice ?? null,
+        discountAmount: discountAmount ?? 0,
+      },
+      renter_accepted_at: new Date().toISOString(),
+      renter_full_name: profile.full_name,
+    });
+
+    if (agreementError) {
+      console.error('Rental agreement insert error:', agreementError);
+      await supabase.from('rentals').delete().eq('id', rpcResult.rental_id);
+      if (promoCodeId) {
+        await supabase.rpc('restore_promo_usage', { p_promo_id: promoCodeId });
+      }
+      throw new Error('Failed to record agreement. Please try again.');
+    }
+
     // Atomically increment promo code usage (compare-and-swap — TOCTOU prevention)
     if (promoCodeId) {
       const { data: updatedPromo } = await supabase
@@ -298,7 +350,7 @@ serve(async (req) => {
     else if (message.startsWith('Forbidden') || message.startsWith('Your account') || message.startsWith('Renter must')) status = 403;
     else if (message.startsWith('Item is not') || message.startsWith('Failed to check') || message.startsWith('Price mismatch')) status = 409;
     else if (message.startsWith('Owner mismatch') || message.startsWith('Item not found')) status = 404;
-    else if (message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already')) status = 400;
+    else if (message.startsWith('Minimum rental') || message.startsWith('Maximum rental') || message.startsWith('Invalid promo') || message.startsWith('Promo code') || message.startsWith('You have already') || message.startsWith('You must accept')) status = 400;
 
     return new Response(
       JSON.stringify({ error: status === 500 ? 'An unexpected error occurred. Please try again.' : message }),

@@ -55,7 +55,7 @@ serve(async (req) => {
     // Get rental details
     const { data: rental, error: rentalError } = await supabase
       .from('rentals')
-      .select('*, item:items(title), renter:profiles!rentals_renter_id_fkey(full_name), payments:payments(id, total_amount, rental_amount, platform_fee, status)')
+      .select('*, item:items(title), renter:profiles!rentals_renter_id_fkey(full_name), owner:profiles!rentals_owner_id_fkey(full_name), payments:payments(id, total_amount, rental_amount, platform_fee, status)')
       .eq('id', rentalId)
       .single();
 
@@ -102,6 +102,23 @@ serve(async (req) => {
 
     const newStatus = action === 'approve' ? 'confirmed' : 'cancelled';
 
+    // LEGAL: the owner can only approve a rental whose agreement exists (renter already
+    // accepted at booking). Approving is the owner's acceptance of the agreement.
+    if (action === 'approve') {
+      const { data: agreement, error: agreementError } = await supabase
+        .from('rental_agreements')
+        .select('id')
+        .eq('rental_id', rentalId)
+        .maybeSingle();
+
+      if (agreementError) {
+        throw new Error('Failed to verify agreement');
+      }
+      if (!agreement) {
+        throw new Error('Rental agreement not found. Cannot approve without a signed agreement.');
+      }
+    }
+
     // Generate 4-digit pickup code if confirming
     let pickupCode = null;
     if (action === 'approve') {
@@ -132,6 +149,21 @@ serve(async (req) => {
     }
 
     console.log(`Rental ${action}ed:`, rentalId);
+
+    // LEGAL: record the owner's acceptance on the agreement (approval = acceptance).
+    if (action === 'approve') {
+      const { error: agreementUpdateError } = await supabase
+        .from('rental_agreements')
+        .update({
+          owner_accepted_at: new Date().toISOString(),
+          owner_full_name: rental.owner?.full_name || null,
+        })
+        .eq('rental_id', rentalId);
+
+      if (agreementUpdateError) {
+        console.error('Agreement owner acceptance error:', agreementUpdateError);
+      }
+    }
 
     // Log the approval/rejection
     await supabase.from('payment_flow_logs').insert({

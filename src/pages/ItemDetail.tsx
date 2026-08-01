@@ -49,6 +49,8 @@ export default function ItemDetail() {
   const [loadingSimilar, setLoadingSimilar] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [showAgreementDialog, setShowAgreementDialog] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [, setLoadingRental] = useState(false);
   const mountedRef = useRef(true);
@@ -183,11 +185,7 @@ export default function ItemDetail() {
       toast.error(t('itemDetail.cantBookOwnItem'));
       return;
     }
-    if (item?.instant_book_enabled) {
-      handleConfirmBooking();
-    } else {
-      setShowConfirmDialog(true);
-    }
+    setShowConfirmDialog(true);
   };
 
   const handleConfirmBooking = async () => {
@@ -206,7 +204,7 @@ export default function ItemDetail() {
           itemId: item.id, startDate: dateRange.from.toISOString().split('T')[0],
           endDate: dateRange.to.toISOString().split('T')[0], renterId: user.id,
           ownerId: item.owner_id, totalPrice: total, originalTotalPrice: total,
-          discountAmount: 0, promoCodeId: null, instantBook,
+          discountAmount: 0, promoCodeId: null, instantBook, agreeToTerms,
         }
       });
       if (bookingResult.error) throw new Error(bookingResult.error.message);
@@ -504,16 +502,75 @@ export default function ItemDetail() {
                     ? 'Your booking will be confirmed immediately.'
                     : 'The owner will review and confirm your request.'}
                 </p>
+                <label className="flex items-start gap-2 pt-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreeToTerms}
+                    onChange={(e) => setAgreeToTerms(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-input"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {t('rentalAgreement.agreeToTermsLabel')}{" "}
+                    <button
+                      type="button"
+                      className="text-primary underline underline-offset-2"
+                      onClick={() => setShowAgreementDialog(true)}
+                    >
+                      {t('rentalAgreement.viewAgreement')}
+                    </button>
+                  </span>
+                </label>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmBooking(); }} disabled={confirming}>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmBooking(); }} disabled={confirming || !agreeToTerms}>
               {confirming ? (
                 <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Sending...</span>
               ) : item.instant_book_enabled ? 'Confirm' : 'Send Request'}
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showAgreementDialog} onOpenChange={setShowAgreementDialog}>
+        <AlertDialogContent className="max-h-[80vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('rentalAgreement.dialogTitle')}</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 text-left">
+                <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t('rentalAgreement.vendor')}</span>
+                    <span className="font-medium">{item?.owner?.full_name || ''}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t('rentalAgreement.renter')}</span>
+                    <span className="font-medium">{profile?.full_name || ''}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t('rentalAgreement.itemTitle')}</span>
+                    <span className="font-medium">{item?.title || ''}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t('rentalAgreement.totalPrice')}</span>
+                    <span className="font-medium">RM {getRentalDays() * Number(item?.price_per_day) || 0}</span>
+                  </div>
+                </div>
+                <ol className="space-y-3 text-xs text-foreground/90">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                    <li key={n} className="flex gap-2">
+                      <span className="shrink-0 font-mono text-primary">{String(n).padStart(2, "0")}</span>
+                      <span>{t(`rentalAgreement.clause${n}`)}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

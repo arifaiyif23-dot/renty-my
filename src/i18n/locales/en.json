@@ -1,6 +1,6 @@
 {
   "common": {
-        "processing": "Processing...",
+    "processing": "Processing...",
     "loading": "Loading...",
     "clear": "Clear",
     "save": "Save",
@@ -73,8 +73,8 @@
   "home": {
     "hero": {
       "tagline": "Malaysia's Trusted Rental Marketplace",
-        "heading1": "Don't buy everything.",
-        "heading2": "Rent what you need.",
+      "heading1": "Don't buy everything.",
+      "heading2": "Rent what you need.",
       "description": "Rent anything you need from people around you. From cameras to cars — discover a better way to live.",
       "itemsAvailable": "{{count}}+ items available.",
       "trustItems": [
@@ -1105,5 +1105,54 @@
     "hr": "{{count}} hr",
     "underMin": "< 1 min",
     "defaultTime": "24 hr"
+  },
+  "rentalAgreement": {
+    "pageTitle": "Rental Agreement",
+    "subtitle": "Binding agreement between the item owner (Vendor) and the renter (Renter) for this rental.",
+    "agreementId": "Agreement ID",
+    "termsVersion": "Terms version",
+    "sectionParties": "Parties",
+    "vendor": "Vendor (Item Owner)",
+    "renter": "Renter",
+    "verification": "Verification: {{level}}",
+    "sectionItem": "Rented Item",
+    "category": "Category",
+    "deposit": "Deposit",
+    "pricePerDay": "Price per day",
+    "sectionPeriod": "Rental Period",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "days": "{{count}} days",
+    "totalPrice": "Total price",
+    "sectionTerms": "Agreement Terms",
+    "clause1": "Renty is a facilitator platform only and is not a party to this rental contract. The contract is between the Vendor and the Renter.",
+    "clause2": "The Renter must use the item with reasonable care and in accordance with the item description and any usage guidelines.",
+    "clause3": "The item must be returned on the end date in the same condition as received, normal wear and tear excepted.",
+    "clause4": "The Renter is responsible for damage or loss beyond normal wear and tear and may be charged from the security deposit or through the dispute process.",
+    "clause5": "Late return may incur additional daily charges at the agreed rental rate and may affect the Renter's RentyScore.",
+    "clause6": "The security deposit is refunded after the return inspection, less any deductions for damage or unpaid charges.",
+    "clause7": "If the Vendor rejects a booking, the Renter receives a full refund. Cancellations follow the platform refund policy.",
+    "clause8": "Unresolved issues are handled through the platform's dispute process. Personal data is processed in accordance with the Privacy Policy.",
+    "sectionAcceptance": "Acceptance",
+    "acceptanceNote": "By booking, the Renter agreed to these terms. The Vendor agreed by approving the booking.",
+    "renterAccepted": "Renter acceptance",
+    "ownerAccepted": "Vendor acceptance",
+    "acceptedOn": "Accepted by {{name}} on {{date}}",
+    "pendingAcceptance": "Not yet accepted",
+    "download": "Download / Print",
+    "back": "Back to Booking",
+    "loading": "Loading agreement...",
+    "notFound": "Agreement not found",
+    "denied": "You do not have access to this agreement",
+    "level": {
+      "kyc": "KYC Verified",
+      "document": "Document Verified",
+      "unverified": "Unverified",
+      "none": "Unverified"
+    },
+    "itemTitle": "Item",
+    "agreeToTermsLabel": "I have read and accept the Rental Agreement",
+    "viewAgreement": "View Rental Agreement",
+    "dialogTitle": "Rental Agreement Terms"
   }
 }

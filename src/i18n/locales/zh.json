@@ -1,6 +1,6 @@
 {
   "common": {
-        "processing": "处理中...",
+    "processing": "处理中...",
     "tryAgain": "重试",
     "loading": "加载中...",
     "clear": "清除",
@@ -80,7 +80,11 @@
       "securePayments": "安全支付",
       "localPickup": "本地取货",
       "dijaminTrust": "受信赖保障",
-      "trustItems": ["已验证用户", "安全支付", "社区驱动"]
+      "trustItems": [
+        "已验证用户",
+        "安全支付",
+        "社区驱动"
+      ]
     },
     "categories": {
       "title": "浏览类别",
@@ -1033,5 +1037,54 @@
     "hr": "{{count}} 小时",
     "underMin": "< 1 分钟",
     "defaultTime": "24 小时"
+  },
+  "rentalAgreement": {
+    "pageTitle": "租赁协议",
+    "subtitle": "物品所有者（出租方）与租用者（承租方）之间就本次租赁达成的具有约束力的协议。",
+    "agreementId": "协议编号",
+    "termsVersion": "条款版本",
+    "sectionParties": "协议双方",
+    "vendor": "出租方（物品所有者）",
+    "renter": "承租方",
+    "verification": "认证：{{level}}",
+    "sectionItem": "租赁物品",
+    "category": "类别",
+    "deposit": "押金",
+    "pricePerDay": "每日价格",
+    "sectionPeriod": "租赁期限",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "days": "{{count}} 天",
+    "totalPrice": "总价",
+    "sectionTerms": "协议条款",
+    "clause1": "Renty 仅为中介平台，不构成本租赁合同的一方。合同由出租方与承租方之间订立。",
+    "clause2": "承租方必须按照物品描述及使用指引合理使用物品。",
+    "clause3": "物品须在结束日期按收取时的相同状态归还，正常磨损除外。",
+    "clause4": "承租方对超出正常磨损的损坏或丢失负责，并可能从押金中扣除或通过争议流程处理。",
+    "clause5": "逾期归还可能按约定租金标准收取额外日费，并可能影响承租方的 RentyScore。",
+    "clause6": "押金在归还检查后退还，扣除任何损坏或未付费用后。",
+    "clause7": "若出租方拒绝预订，承租方可获得全额退款。取消遵循平台退款政策。",
+    "clause8": "未解决的问题通过平台争议流程处理。个人资料按照隐私政策处理。",
+    "sectionAcceptance": "接受确认",
+    "acceptanceNote": "预订即表示承租方同意以上条款。出租方批准预订即表示同意。",
+    "renterAccepted": "承租方确认",
+    "ownerAccepted": "出租方确认",
+    "acceptedOn": "{{name}} 于 {{date}} 接受",
+    "pendingAcceptance": "尚未接受",
+    "download": "下载 / 打印",
+    "back": "返回预订",
+    "loading": "正在加载协议...",
+    "notFound": "未找到协议",
+    "denied": "您无权访问此协议",
+    "level": {
+      "kyc": "KYC 认证",
+      "document": "证件认证",
+      "unverified": "未认证",
+      "none": "未认证"
+    },
+    "itemTitle": "物品",
+    "agreeToTermsLabel": "我已阅读并接受租赁协议",
+    "viewAgreement": "查看租赁协议",
+    "dialogTitle": "租赁协议条款"
   }
 }

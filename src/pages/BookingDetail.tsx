@@ -11,7 +11,7 @@ import { RentalTimeline } from "@/components/RentalTimeline";
 import { PayNowButton } from "@/components/PayNowButton";
 import { RentalStatusBadge } from "@/components/RentalStatusBadge";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -138,6 +138,11 @@ export default function BookingDetail() {
               )}
             </div>
           </div>
+
+          {/* Rental Agreement */}
+          <Button variant="outline" className="w-full" onClick={() => navigate(`/booking/${rental.id}/agreement`)}>
+            <FileText className="h-4 w-4 mr-2" /> {t('rentalAgreement.viewAgreement')}
+          </Button>
 
           {/* Renter: Pay Now */}
           {rental.status === "requested" && !isOwner && <PayNowButton rental={rental} onPaymentCreated={() => window.location.reload()} />}

@@ -1,6 +1,6 @@
 {
   "common": {
-        "processing": "Memproses...",
+    "processing": "Memproses...",
     "loading": "Memuatkan...",
     "clear": "Kosongkan",
     "save": "Simpan",
@@ -69,8 +69,8 @@
   "home": {
     "hero": {
       "tagline": "Platform Sewaan No.1 Malaysia",
-        "heading1": "Tak perlu beli semua.",
-        "heading2": "Sewa apa yang anda perlukan.",
+      "heading1": "Tak perlu beli semua.",
+      "heading2": "Sewa apa yang anda perlukan.",
       "description": "Sewa apa sahaja yang anda perlukan daripada orang di sekeliling anda. Dari kamera ke kereta — temui cara hidup yang lebih baik.",
       "itemsAvailable": "{{count}}+ barang tersedia.",
       "trustItems": [
@@ -1084,5 +1084,54 @@
     "hr": "{{count}} jam",
     "underMin": "< 1 min",
     "defaultTime": "24 jam"
+  },
+  "rentalAgreement": {
+    "pageTitle": "Perjanjian Sewa",
+    "subtitle": "Perjanjian mengikat antara pemilik barang (Vendor) dan penyewa (Renter) untuk sewaan ini.",
+    "agreementId": "ID Perjanjian",
+    "termsVersion": "Versi terma",
+    "sectionParties": "Pihak",
+    "vendor": "Vendor (Pemilik Barang)",
+    "renter": "Penyewa",
+    "verification": "Pengesahan: {{level}}",
+    "sectionItem": "Barang Disewa",
+    "category": "Kategori",
+    "deposit": "Deposit",
+    "pricePerDay": "Harga sehari",
+    "sectionPeriod": "Tempoh Sewaan",
+    "startDate": "Tarikh mula",
+    "endDate": "Tarikh tamat",
+    "days": "{{count}} hari",
+    "totalPrice": "Jumlah harga",
+    "sectionTerms": "Terma Perjanjian",
+    "clause1": "Renty hanyalah platform perantara dan bukan pihak dalam kontrak sewa ini. Kontrak adalah antara Vendor dan Renter.",
+    "clause2": "Renter mesti menggunakan barang dengan cermat dan mengikut penerangan barang serta panduan penggunaan.",
+    "clause3": "Barang mesti dipulangkan pada tarikh tamat dalam keadaan yang sama seperti diterima, kecuali haus biasa.",
+    "clause4": "Renter bertanggungjawab terhadap kerosakan atau kehilangan melebihi haus biasa dan mungkin dicaj daripada deposit atau melalui proses pertikaian.",
+    "clause5": "Pulangan lewat mungkin dikenakan caj harian tambahan pada kadar sewa yang dipersetujui dan boleh menjejaskan RentyScore Renter.",
+    "clause6": "Deposit keselamatan dikembalikan selepas pemeriksaan pemulangan, selepas ditolak sebarang potongan kerana kerosakan atau caj belum dibayar.",
+    "clause7": "Jika Vendor menolak tempahan, Renter menerima bayaran balik penuh. Pembatalan mengikut dasar bayaran balik platform.",
+    "clause8": "Isu yang tidak diselesaikan dikendalikan melalui proses pertikaian platform. Data peribadi diproses mengikut Dasar Privasi.",
+    "sectionAcceptance": "Penerimaan",
+    "acceptanceNote": "Dengan membuat tempahan, Renter bersetuju dengan terma ini. Vendor bersetuju dengan meluluskan tempahan.",
+    "renterAccepted": "Penerimaan Renter",
+    "ownerAccepted": "Penerimaan Vendor",
+    "acceptedOn": "Diterima oleh {{name}} pada {{date}}",
+    "pendingAcceptance": "Belum diterima",
+    "download": "Muat Turun / Cetak",
+    "back": "Kembali ke Tempahan",
+    "loading": "Memuatkan perjanjian...",
+    "notFound": "Perjanjian tidak ditemui",
+    "denied": "Anda tiada akses kepada perjanjian ini",
+    "level": {
+      "kyc": "Pengesahan KYC",
+      "document": "Pengesahan Dokumen",
+      "unverified": "Tidak disahkan",
+      "none": "Tidak disahkan"
+    },
+    "itemTitle": "Barang",
+    "agreeToTermsLabel": "Saya telah membaca dan menerima Perjanjian Sewa",
+    "viewAgreement": "Lihat Perjanjian Sewa",
+    "dialogTitle": "Terma Perjanjian Sewa"
   }
 }

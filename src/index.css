@@ -289,3 +289,23 @@
     min-height: 44px;
   }
 }
+
+@media print {
+  header, footer, nav, .bottom-mobile-nav, .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .glass, .glass-elevated, .card-base {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border-color: #e5e5e5 !important;
+  }
+  main, .max-w-7xl, .max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-xl, .max-w-lg, .max-w-md {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

@@ -62,6 +62,7 @@ const AdminUserDetail = lazy(() => import("./pages/AdminUserDetail"));
 const AdminManageAdmins = lazy(() => import("./pages/AdminManageAdmins"));
 const AdminErrors = lazy(() => import("./pages/AdminErrors"));
 const BookingDetail = lazy(() => import("./pages/BookingDetail"));
+const RentalAgreement = lazy(() => import("./pages/RentalAgreement"));
 const PaymentDetail = lazy(() => import("./pages/PaymentDetail"));
 const RentalDetail = lazy(() => import("./pages/RentalDetail"));
 const ReviewPage = lazy(() => import("./pages/ReviewPage"));
@@ -144,6 +145,7 @@ function AppRoutes() {
             <Route path="/terms" element={<ErrorBoundary><Terms /></ErrorBoundary>} />
             <Route path="/privacy" element={<ErrorBoundary><Privacy /></ErrorBoundary>} />
             <Route path="/booking/:id" element={<ErrorBoundary><ProtectedRoute><BookingDetail /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/booking/:id/agreement" element={<ErrorBoundary><ProtectedRoute><RentalAgreement /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/payment/:id" element={<ErrorBoundary><ProtectedRoute><PaymentDetail /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/rental/:id" element={<ErrorBoundary><ProtectedRoute><RentalDetail /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/review/:rentalId" element={<ErrorBoundary><ProtectedRoute><ReviewPage /></ProtectedRoute></ErrorBoundary>} />
