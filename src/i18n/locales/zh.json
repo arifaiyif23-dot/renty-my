@@ -1010,5 +1010,28 @@
     "bank": "银行：",
     "reason": "原因：",
     "na": "N/A"
+  },
+  "userProfile": {
+    "notFound": "未找到用户",
+    "backHome": "返回首页",
+    "backSearch": "返回搜索",
+    "suspended": "已停用",
+    "joined": "加入于",
+    "activeNow": "在线",
+    "activeAgo": "{{time}}前活跃",
+    "respondsUsually": "通常回复",
+    "respondsWithin": "回复",
+    "avgRating": "{{rating}} 平均",
+    "noRatings": "暂无评分",
+    "rentalsCompleted": "{{count}} 次租赁完成",
+    "responseRate": "{{count}}% 回复率",
+    "reportUser": "举报用户",
+    "listingsBy": "{{name}} 的列表",
+    "noActiveListings": "暂无活跃列表",
+    "reviews": "评价",
+    "min": "{{count}} 分钟",
+    "hr": "{{count}} 小时",
+    "underMin": "< 1 分钟",
+    "defaultTime": "24 小时"
   }
 }

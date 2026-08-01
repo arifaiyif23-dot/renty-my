@@ -1082,5 +1082,28 @@
     "bank": "Bank:",
     "reason": "Reason:",
     "na": "N/A"
+  },
+  "userProfile": {
+    "notFound": "User not found",
+    "backHome": "Back to Home",
+    "backSearch": "Back to Search",
+    "suspended": "Suspended",
+    "joined": "Joined",
+    "activeNow": "Active now",
+    "activeAgo": "Active {{time}} ago",
+    "respondsUsually": "Responds usually within",
+    "respondsWithin": "Responds within",
+    "avgRating": "{{rating}} avg",
+    "noRatings": "No ratings",
+    "rentalsCompleted": "{{count}} rentals completed",
+    "responseRate": "{{count}}% response rate",
+    "reportUser": "Report User",
+    "listingsBy": "Listings by {{name}}",
+    "noActiveListings": "No active listings",
+    "reviews": "Reviews",
+    "min": "{{count}} min",
+    "hr": "{{count}} hr",
+    "underMin": "< 1 min",
+    "defaultTime": "24 hr"
   }
 }

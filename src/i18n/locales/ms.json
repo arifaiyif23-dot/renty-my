@@ -1061,5 +1061,28 @@
     "bank": "Bank:",
     "reason": "Sebab:",
     "na": "N/A"
+  },
+  "userProfile": {
+    "notFound": "Pengguna tidak ditemui",
+    "backHome": "Kembali ke Laman Utama",
+    "backSearch": "Kembali ke Carian",
+    "suspended": "Digantung",
+    "joined": "Menyertai",
+    "activeNow": "Aktif sekarang",
+    "activeAgo": "Aktif {{time}} lalu",
+    "respondsUsually": "Biasanya membalas dalam",
+    "respondsWithin": "Membalas dalam",
+    "avgRating": "{{rating}} purata",
+    "noRatings": "Tiada penilaian",
+    "rentalsCompleted": "{{count}} sewaan selesai",
+    "responseRate": "{{count}}% kadar respons",
+    "reportUser": "Lapor Pengguna",
+    "listingsBy": "Senarai oleh {{name}}",
+    "noActiveListings": "Tiada senarai aktif",
+    "reviews": "Ulasan",
+    "min": "{{count}} min",
+    "hr": "{{count}} jam",
+    "underMin": "< 1 min",
+    "defaultTime": "24 jam"
   }
 }

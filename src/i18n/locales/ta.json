@@ -1010,5 +1010,28 @@
     "bank": "வங்கி:",
     "reason": "காரணம்:",
     "na": "N/A"
+  },
+  "userProfile": {
+    "notFound": "பயனர் காணப்படவில்லை",
+    "backHome": "முகப்புக்குத் திரும்பு",
+    "backSearch": "தேடலுக்குத் திரும்பு",
+    "suspended": "இடைநிறுத்தப்பட்டது",
+    "joined": "இணைந்தார்",
+    "activeNow": "இப்போது செயலில்",
+    "activeAgo": "{{time}} முன்பு செயலில்",
+    "respondsUsually": "வழக்கமாக பதிலளிக்கிறார்",
+    "respondsWithin": "பதிலளிக்கிறார்",
+    "avgRating": "{{rating}} சராசரி",
+    "noRatings": "மதிப்பீடுகள் இல்லை",
+    "rentalsCompleted": "{{count}} வாடகைகள் முடிந்தன",
+    "responseRate": "{{count}}% பதிலளிப்பு விகிதம்",
+    "reportUser": "பயனரைப் புகாரளி",
+    "listingsBy": "{{name}} இன் பட்டியல்கள்",
+    "noActiveListings": "செயலில் உள்ள பட்டியல்கள் இல்லை",
+    "reviews": "மதிப்புரைகள்",
+    "min": "{{count}} நிமி",
+    "hr": "{{count}} மணி",
+    "underMin": "< 1 நிமி",
+    "defaultTime": "24 மணி"
   }
 }

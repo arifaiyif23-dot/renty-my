@@ -12,6 +12,7 @@ import { ReviewsList } from "@/components/ReviewsList";
 import { UserTrustBadge } from "@/components/trust/UserTrustBadge";
 import { ReportDialog } from "@/components/trust/ReportDialog";
 import { format, formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
 import type { Profile, Item } from "@/types";
 import { getSrcSet } from "@/utils/imageOptimization";
 
@@ -22,6 +23,7 @@ interface ItemWithRating extends Item {
 
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [items, setItems] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,9 +109,9 @@ export default function UserProfile() {
   if (!profile || profile.is_deleted) {
     return (
       <PageLayout variant="default" className="max-w-4xl text-center py-20">
-          <p className="text-muted-foreground">User not found</p>
+          <p className="text-muted-foreground">{t('userProfile.notFound')}</p>
           <Button variant="outline" className="mt-4 rounded-lg" asChild>
-            <Link to="/">Back to Home</Link>
+            <Link to="/">{t('userProfile.backHome')}</Link>
           </Button>
       </PageLayout>
     );
@@ -126,7 +128,7 @@ export default function UserProfile() {
         <div className="mb-4">
           <Link to="/search" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
-            Back to Search
+            {t('userProfile.backSearch')}
           </Link>
         </div>
 
@@ -142,7 +144,7 @@ export default function UserProfile() {
                 <h1 className="text-2xl font-bold">{profile.full_name}</h1>
                 <UserTrustBadge level={profile.verification_level} trustScore={profile.trust_score} />
                 {profile.is_suspended && (
-                  <Badge variant="destructive" className="rounded-full">Suspended</Badge>
+                  <Badge variant="destructive" className="rounded-full">{t('userProfile.suspended')}</Badge>
                 )}
               </div>
 
@@ -156,27 +158,27 @@ export default function UserProfile() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  Joined {format(new Date(profile.created_at), "MMMM yyyy")}
+                  {t('userProfile.joined')} {format(new Date(profile.created_at), "MMMM yyyy")}
                 </span>
                 {profile.last_active_at && (
                   <span className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     {Date.now() - new Date(profile.last_active_at).getTime() < 2 * 60 * 1000
-                      ? "Active now"
-                      : `Active ${formatDistanceToNow(new Date(profile.last_active_at), { addSuffix: false })} ago`}
+                      ? t('userProfile.activeNow')
+                      : t('userProfile.activeAgo', { time: formatDistanceToNow(new Date(profile.last_active_at), { addSuffix: false }) })}
                   </span>
                 )}
                 {profile.response_rate != null && (
                   <span className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
-                    Responds {profile.response_rate >= 90 ? "usually within" : "within"}{" "}
+                    {profile.response_rate >= 90 ? t('userProfile.respondsUsually') : t('userProfile.respondsWithin')}{" "}
                     {profile.avg_response_time_minutes != null
                       ? profile.avg_response_time_minutes < 1
-                        ? "< 1 min"
+                        ? t('userProfile.underMin')
                         : profile.avg_response_time_minutes < 60
-                          ? `${Math.round(profile.avg_response_time_minutes)} min`
-                          : `${Math.round(profile.avg_response_time_minutes / 60)} hr`
-                      : "24 hr"}
+                          ? t('userProfile.min', { count: Math.round(profile.avg_response_time_minutes) })
+                          : t('userProfile.hr', { count: Math.round(profile.avg_response_time_minutes / 60) })
+                      : t('userProfile.defaultTime')}
                   </span>
                 )}
               </div>
@@ -185,24 +187,24 @@ export default function UserProfile() {
                 <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
                   <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
                   <span className="font-medium">
-                    {avgRating > 0 ? `${avgRating.toFixed(1)} avg` : "No ratings"}
+                    {avgRating > 0 ? t('userProfile.avgRating', { rating: avgRating.toFixed(1) }) : t('userProfile.noRatings')}
                   </span>
                   <span className="text-muted-foreground">({profile.total_reviews_received || 0})</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
                   <CheckCircle2 className="h-4 w-4 text-success" />
-                  <span>{profile.total_rentals_completed || 0} rentals completed</span>
+                  <span>{t('userProfile.rentalsCompleted', { count: profile.total_rentals_completed || 0 })}</span>
                 </div>
                 {profile.response_rate != null && (
                   <div className="flex items-center gap-1.5 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
                     <MessageCircle className="h-4 w-4 text-primary" />
-                    <span>{Math.round(profile.response_rate)}% response rate</span>
+                    <span>{t('userProfile.responseRate', { count: Math.round(profile.response_rate) })}</span>
                   </div>
                 )}
               </div>
 
               <Button variant="outline" size="sm" className="rounded-lg" onClick={() => setShowReport(true)}>
-                Report User
+                {t('userProfile.reportUser')}
               </Button>
             </div>
           </div>
@@ -210,11 +212,11 @@ export default function UserProfile() {
 
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Package className="h-5 w-5" />
-          Listings by {profile.full_name.split(" ")[0]}
+          {t('userProfile.listingsBy', { name: profile.full_name.split(" ")[0] })}
         </h2>
 
         {items.length === 0 ? (
-          <GlassCard padding="md" className="text-center text-muted-foreground py-8">No active listings</GlassCard>
+          <GlassCard padding="md" className="text-center text-muted-foreground py-8">{t('userProfile.noActiveListings')}</GlassCard>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {items.map((item) => (
@@ -235,7 +237,7 @@ export default function UserProfile() {
         )}
 
         <GlassCard padding="lg" className="mt-6">
-          <h2 className="font-semibold text-lg mb-4">Reviews</h2>
+          <h2 className="font-semibold text-lg mb-4">{t('userProfile.reviews')}</h2>
           <ReviewsList userId={id} />
         </GlassCard>
 
