@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { toast } from 'sonner';
 import { ItemCategory } from '@/types';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -272,12 +271,12 @@ export default function ListItem() {
   if (!user) {
     return (
       <PageLayout variant="narrow">
-          <GlassCard padding="lg" className="mt-6">
+          <div className="card-base rounded-lg p-6 mt-6">
             <p className="text-center mb-4">Please sign in to list an item</p>
             <Button onClick={() => navigate('/auth')} className="w-full rounded-lg">
               Sign In
             </Button>
-          </GlassCard>
+          </div>
       </PageLayout>
     );
   }
@@ -291,7 +290,7 @@ export default function ListItem() {
 
         <VerificationRequiredBanner isVerified={profile?.is_verified ?? false} />
 
-        <GlassCard padding="lg" className="md:mt-6">
+        <div className="card-base rounded-lg p-6 md:mt-6">
           <div className="hidden md:block mb-6">
             <h1 className="text-2xl font-bold">{t('listItem.title')}</h1>
             <p className="text-muted-foreground text-sm mt-1">{t('listItem.subtitle')}</p>
@@ -551,7 +550,7 @@ export default function ListItem() {
               </div>
             </div>
           </form>
-        </GlassCard>
+        </div>
     </PageLayout>
   );
 }
