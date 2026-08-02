@@ -57,7 +57,7 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, optimizedFile);
+        .upload(filePath, optimizedFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
