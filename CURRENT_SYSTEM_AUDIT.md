@@ -85,3 +85,22 @@
 - `confirm-handover`: owner-only, status `confirmed` guard, **pickup-code verification** (4-digit), handover photos, atomic `status: 'active'`
 - `submit-inspection`: owner-only, `inspection_pending` guard, result allowlist `[available, maintenance, damaged, disputed]`, RPC transition (respects item status machine)
 - `complete-rental` edge fn: server-side state machine (owner confirms/disputes return) — no client-direct `rentals.update` bypass
+
+## 8. Phase 8-10 Audit Results (2026-08-02)
+
+### Phase 8 — Vendor Dashboard: ✅ NO GAPS
+- `IncomingRequests`: reserved-only filter, approve/reject via `process-rental-approval` edge fn (not client-direct), confirm dialog, toasts
+- `RentalCard`: status labels + colors + icons (confirmed/active/overdue/completed...), review entry when completed
+- `MyListings`: stats (total/active/revenue/views), archive/pause via DB trigger (respects status machine), grid/list views, selection mode + bulk actions
+- `Earnings`: stat cards, payout list, bank account required banner, pending payouts
+
+### Phase 9 — Admin Dashboard: ✅ NO GAPS
+- 14 routes: dashboard, verifications, users, listings, rentals, payments, payouts, disputes, reports, promo-codes, settings, automation, health, manage-admins — all wrapped in `AdminRoute` (edge-fn verified)
+- `AdminVerification`: pending queue, approve/reject dialogs with rejection reason, batch actions — all via `admin-operations` edge fn
+- All admin mutations server-side (admin-operations edge fn + auth.admin.listUsers for auth.users)
+
+### Phase 10 — UX Polish: ✅ NO GAPS
+- Loading states: all 48 pages with async data have LoadingSpinner/Skeleton/Loader2 (12 without are static pages — Terms/Privacy/Help/About/Install/NotFound/Offline — no data fetch, correct)
+- Empty states: EmptyStateV2/AuroraEmptyState with CTAs (no raw "No data")
+- Navigation: Header (desktop: Home/Browse/About + auth-gated Messages/Dashboard) + MobileBottomNav (Home/Browse/List/Messages/Profile) — all paths resolve, auth-gated
+- Previous UI passes (DESIGN_SYSTEM V2 compliance, touch targets, glass rules) already committed
