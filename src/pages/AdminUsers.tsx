@@ -181,7 +181,7 @@ export default function AdminUsers() {
               filtered.map((u) => {
                 const roleConfig = ROLE_OPTIONS.find((r) => r.value === u.role) || ROLE_OPTIONS[2];
                 return (
-                  <div className="card-base rounded-lg p-5" key={u.id} className={u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""}>
+                  <div className={`card-base rounded-lg p-5 ${u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""}`} key={u.id}>
                     <div className="flex items-start gap-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={u.avatar_url} />

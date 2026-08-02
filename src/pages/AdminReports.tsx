@@ -141,7 +141,7 @@ export default function AdminReports() {
       ) : (
         <div className="grid gap-3">
           {filtered.map((report) => (
-            <div className="card-base rounded-lg" key={report.id} className={`cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-warning/50' : ''}`} onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
+            <div className={`card-base rounded-lg cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-warning/50' : ''}`} key={report.id} onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
                 <div className="flex items-start gap-3">
                   <Flag className="h-5 w-5 mt-0.5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">

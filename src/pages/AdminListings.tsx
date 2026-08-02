@@ -173,7 +173,7 @@ export default function AdminListings() {
         ) : (
           <div className="space-y-3">
             {filtered.map((item) => (
-              <div className="card-base rounded-lg p-5" key={item.id} className={!item.is_available ? "opacity-70" : ""}>
+              <div className={`card-base rounded-lg p-5 ${!item.is_available ? "opacity-70" : ""}`} key={item.id}>
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
                     {item.item_images?.[0]?.image_url && (
