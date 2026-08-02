@@ -76,8 +76,8 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
                     <div className={`absolute inset-0 bg-gradient-to-br ${lighting} opacity-60 pointer-events-none`} />
                     <div className={`absolute -inset-2 rounded-full opacity-20 blur-2xl ${glassColor} pointer-events-none`} />
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center mb-3 ring-1 ring-border/50">
-                        <Icon className="h-6 w-6 text-primary" />
+                      <div className="w-10 h-10 rounded-2xl glass flex items-center justify-center mb-3 ring-1 ring-border/50">
+                        <Icon className="h-5 w-5 text-primary" />
                       </div>
                       <h3 className="font-medium text-sm text-foreground">{displayName}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">{cat.count} items</p>
@@ -108,8 +108,8 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
                     <div className={`absolute inset-0 bg-gradient-to-br ${lighting} opacity-60 pointer-events-none`} />
                     <div className={`absolute -inset-2 rounded-full opacity-20 blur-2xl ${glassColor} pointer-events-none`} />
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center mb-3 ring-1 ring-border/50">
-                        <Icon className="h-6 w-6 text-primary" />
+                      <div className="w-10 h-10 rounded-2xl glass flex items-center justify-center mb-3 ring-1 ring-border/50">
+                        <Icon className="h-5 w-5 text-primary" />
                       </div>
                       <h3 className="font-medium text-sm text-foreground">{displayName}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">{cat.count} items</p>

@@ -344,7 +344,7 @@ export default function ItemDetail() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <SaveItemButton itemId={item.id} />
-                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Share" onClick={async () => {
+                  <Button variant="ghost" size="icon" className="h-10 w-10" aria-label="Share" onClick={async () => {
                     if (isNative()) {
                       try {
                         const { Share } = await import('@capacitor/share');
@@ -541,7 +541,7 @@ export default function ItemDetail() {
         {similarItems.length > 0 && (
           <div className="space-y-4 mt-8 md:mt-12">
             <h3 className="font-semibold md:text-lg">Similar Items</h3>
-            <div className="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4">
               {loadingSimilar ? (
                 [...Array(4)].map((_, i) => (
                   <div key={i} className="rounded-lg overflow-hidden border border-border">

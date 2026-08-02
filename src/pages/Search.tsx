@@ -12,7 +12,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, ArrowUpDown, SearchSlash, MapPin, BookmarkPlus } from 'lucide-react';
+import { X, ArrowUpDown, SearchSlash, MapPin, BookmarkPlus, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -276,7 +276,7 @@ export default function Search() {
               <button
                 key={search}
                 onClick={() => { setSearchQuery(search); saveSearch(search); }}
-                className="px-2.5 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                className="px-2.5 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors min-h-[36px]"
               >
                 {search}
               </button>
@@ -286,7 +286,7 @@ export default function Search() {
 
         <div className="flex items-center gap-2 mb-4">
           <Select value={category} onValueChange={(v) => setCategory(v as ItemCategory | 'all')}>
-            <SelectTrigger className="h-9 text-xs min-w-[100px] rounded-lg">
+            <SelectTrigger className="h-10 text-xs min-w-[100px] rounded-lg">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -297,7 +297,7 @@ export default function Search() {
           </Select>
 
           <Select value={userLocation} onValueChange={setUserLocation}>
-            <SelectTrigger data-testid="search-location" className="h-9 text-xs min-w-[100px] rounded-lg">
+            <SelectTrigger data-testid="search-location" className="h-10 text-xs min-w-[100px] rounded-lg">
               <MapPin className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Location" />
             </SelectTrigger>
@@ -310,7 +310,7 @@ export default function Search() {
           </Select>
 
           <Select value={sortBy} onValueChange={(v: 'newest' | 'price_low' | 'price_high') => setSortBy(v)}>
-            <SelectTrigger className="h-9 text-xs min-w-[90px] rounded-lg">
+            <SelectTrigger className="h-10 text-xs min-w-[90px] rounded-lg">
               <ArrowUpDown className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
@@ -341,7 +341,7 @@ export default function Search() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-lg"
+              className="h-10 w-10 rounded-lg"
               onClick={async () => {
                 try {
                   const { error } = await supabase.from('saved_searches').insert({
@@ -370,50 +370,50 @@ export default function Search() {
         {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {searchQuery && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
                 {searchQuery}
-                <button type="button" onClick={() => setSearchQuery('')} className="-m-1 p-1" aria-label={`Remove search: ${searchQuery}`}>
-                  <X className="h-2.5 w-2.5" />
+                <button type="button" onClick={() => setSearchQuery('')} className="-m-1 p-1.5" aria-label={`Remove search: ${searchQuery}`}>
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {category !== 'all' && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
                 {category}
-                <button type="button" onClick={() => setCategory('all')} className="-m-1 p-1" aria-label={`Remove category: ${category}`}>
-                  <X className="h-2.5 w-2.5" />
+                <button type="button" onClick={() => setCategory('all')} className="-m-1 p-1.5" aria-label={`Remove category: ${category}`}>
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {minPrice && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
                 Min RM{minPrice}
-                <button type="button" onClick={() => setMinPrice('')} className="-m-1 p-1" aria-label={`Remove minimum price: RM${minPrice}`}>
-                  <X className="h-2.5 w-2.5" />
+                <button type="button" onClick={() => setMinPrice('')} className="-m-1 p-1.5" aria-label={`Remove minimum price: RM${minPrice}`}>
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {maxPrice && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
                 Max RM{maxPrice}
-                <button type="button" onClick={() => setMaxPrice('')} className="-m-1 p-1" aria-label={`Remove maximum price: RM${maxPrice}`}>
-                  <X className="h-2.5 w-2.5" />
+                <button type="button" onClick={() => setMaxPrice('')} className="-m-1 p-1.5" aria-label={`Remove maximum price: RM${maxPrice}`}>
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {userLocation && userLocation !== 'all' && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
                 {userLocation}
-                <button type="button" onClick={() => setUserLocation('')} className="-m-1 p-1" aria-label={`Remove location: ${userLocation}`}>
-                  <X className="h-2.5 w-2.5" />
+                <button type="button" onClick={() => setUserLocation('')} className="-m-1 p-1.5" aria-label={`Remove location: ${userLocation}`}>
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {dateRange?.from && dateRange?.to && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
                 {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
-                <button type="button" onClick={() => setDateRange(undefined)} className="-m-1 p-1" aria-label="Remove date range">
-                  <X className="h-2.5 w-2.5" />
+                <button type="button" onClick={() => setDateRange(undefined)} className="-m-1 p-1.5" aria-label="Remove date range">
+                  <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
@@ -481,7 +481,7 @@ export default function Search() {
 
         {loading && hasMore && (
           <div className="flex justify-center py-6">
-            <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
       </div>
