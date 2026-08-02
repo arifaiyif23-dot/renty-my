@@ -422,6 +422,8 @@ const { t } = useTranslation();
                 icon={DollarSign}
                 title={t('earnings.noPayouts')}
                 description={t('earnings.noPayoutsDesc')}
+                actionLabel={t('earnings.browseItems')}
+                onAction={() => navigate('/search')}
               />
             </GlassCard>
           ) : (

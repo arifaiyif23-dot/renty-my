@@ -122,6 +122,8 @@ export default function Disputes() {
               icon={ShieldAlert}
               title={t("disputes.noDisputes")}
               description={t("disputes.noDisputesDesc")}
+              actionLabel={t("common.backToDashboard")}
+              onAction={() => navigate("/dashboard")}
             />
           </GlassCard>
         ) : (
