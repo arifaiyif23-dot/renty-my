@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -180,29 +179,29 @@ export default function AdminPayouts() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <GlassCard padding="md">
+            <div className="card-base rounded-lg p-5">
               <p className="text-sm text-muted-foreground mb-1">Pending Payouts</p>
               <div className="text-2xl font-bold">{stats.totalPending}</div>
-            </GlassCard>
+            </div>
 
-            <GlassCard padding="md">
+            <div className="card-base rounded-lg p-5">
               <p className="text-sm text-muted-foreground mb-1">Completed</p>
               <div className="text-2xl font-bold">{stats.totalCompleted}</div>
-            </GlassCard>
+            </div>
 
-            <GlassCard padding="md">
+            <div className="card-base rounded-lg p-5">
               <p className="text-sm text-muted-foreground mb-1">Total Payouts</p>
               <div className="text-2xl font-bold">RM {stats.totalAmount.toFixed(2)}</div>
-            </GlassCard>
+            </div>
 
-            <GlassCard padding="md">
+            <div className="card-base rounded-lg p-5">
               <p className="text-sm text-muted-foreground mb-1">Platform Revenue</p>
               <div className="text-2xl font-bold text-success">RM {stats.platformRevenue.toFixed(2)}</div>
-            </GlassCard>
+            </div>
           </div>
 
           {/* Filters */}
-          <GlassCard className="mb-6" padding="md">
+          <div className="card-base rounded-lg p-5 mb-6">
             <div className="flex items-center gap-4">
               <Filter className="h-5 w-5 text-muted-foreground" />
               <div className="flex gap-2">
@@ -218,10 +217,10 @@ export default function AdminPayouts() {
                 ))}
               </div>
             </div>
-          </GlassCard>
+          </div>
 
           {/* Payouts List */}
-          <GlassCard padding="md">
+          <div className="card-base rounded-lg p-5">
             <h3 className="font-semibold mb-1">Payouts</h3>
             <p className="text-sm text-muted-foreground mb-4">{filteredPayouts.length} payout(s)</p>
 
@@ -314,7 +313,7 @@ export default function AdminPayouts() {
                   ))}
                 </div>
               )}
-          </GlassCard>
+          </div>
         </div>
 
         {/* Complete Payout Dialog */}

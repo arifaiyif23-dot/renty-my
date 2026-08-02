@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -105,25 +104,25 @@ export default function AdminRentals() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <GlassCard padding="md">
+          <div className="card-base rounded-lg p-5">
             <p className="text-sm text-muted-foreground mb-1">Total Rentals</p>
             <div className="text-2xl font-bold">{stats.total}</div>
-          </GlassCard>
-          <GlassCard padding="md">
+          </div>
+          <div className="card-base rounded-lg p-5">
             <p className="text-sm text-muted-foreground mb-1">Active</p>
             <div className="text-2xl font-bold text-success">{stats.active}</div>
-          </GlassCard>
-          <GlassCard padding="md">
+          </div>
+          <div className="card-base rounded-lg p-5">
             <p className="text-sm text-muted-foreground mb-1">Completed</p>
             <div className="text-2xl font-bold">{stats.completed}</div>
-          </GlassCard>
-          <GlassCard padding="md">
+          </div>
+          <div className="card-base rounded-lg p-5">
             <p className="text-sm text-muted-foreground mb-1">Disputed</p>
             <div className="text-2xl font-bold text-warning">{stats.disputed}</div>
-          </GlassCard>
+          </div>
         </div>
 
-        <GlassCard className="mb-6" padding="md">
+        <div className="card-base rounded-lg p-5 mb-6">
           <div className="flex items-center gap-4">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full md:w-[250px] rounded-lg">
@@ -137,22 +136,22 @@ export default function AdminRentals() {
               </SelectContent>
             </Select>
           </div>
-        </GlassCard>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : rentals.length === 0 ? (
-          <GlassCard padding="lg">
+          <div className="card-base rounded-lg p-6">
             <p className="text-center text-muted-foreground">No rentals found</p>
-          </GlassCard>
+          </div>
         ) : (
           <div className="space-y-3">
             {rentals.map((rental) => {
               const sb = STATUS_BADGE[rental.status] || { class: "", label: rental.status };
               return (
-                <GlassCard key={rental.id} padding="md">
+                <div className="card-base rounded-lg p-5" key={rental.id}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -176,7 +175,7 @@ export default function AdminRentals() {
                       <div className="text-[10px]">ID: {rental.id.slice(0, 8)}</div>
                     </div>
                   </div>
-                </GlassCard>
+                </div>
               );
             })}
           </div>

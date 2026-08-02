@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -146,9 +145,9 @@ export default function AdminUserDetail() {
   if (!profile) {
     return (
       <AdminLayout>
-        <GlassCard padding="lg">
+        <div className="card-base rounded-lg p-6">
           <p className="text-center text-muted-foreground">User not found</p>
-        </GlassCard>
+        </div>
       </AdminLayout>
     );
   }
@@ -162,7 +161,7 @@ export default function AdminUserDetail() {
         </Button>
 
         {/* Profile Header */}
-        <GlassCard className="mb-6" padding="lg">
+        <div className="card-base rounded-lg p-6 mb-6">
           <div className="flex items-start gap-4">
             <Avatar className="h-16 w-16">
               <AvatarImage src={profile.avatar_url || undefined} />
@@ -230,7 +229,7 @@ export default function AdminUserDetail() {
               )}
             </div>
           </div>
-        </GlassCard>
+        </div>
 
         {/* Tabs: Items / Rentals / Reviews */}
         <div className="flex gap-2 mb-4">
@@ -252,11 +251,11 @@ export default function AdminUserDetail() {
         {tab === "items" && (
           <div className="space-y-3">
             {items.length === 0 ? (
-              <GlassCard padding="lg">
+              <div className="card-base rounded-lg p-6">
                 <p className="text-center text-muted-foreground">No listings from this user</p>
-              </GlassCard>
+              </div>
             ) : items.map((item) => (
-              <GlassCard key={item.id} padding="md">
+              <div className="card-base rounded-lg p-5" key={item.id}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -276,7 +275,7 @@ export default function AdminUserDetail() {
                     View
                   </Button>
                 </div>
-              </GlassCard>
+              </div>
             ))}
           </div>
         )}
@@ -285,11 +284,11 @@ export default function AdminUserDetail() {
         {tab === "rentals" && (
           <div className="space-y-3">
             {rentals.length === 0 ? (
-              <GlassCard padding="lg">
+              <div className="card-base rounded-lg p-6">
                 <p className="text-center text-muted-foreground">No rental history</p>
-              </GlassCard>
+              </div>
             ) : rentals.map((rental) => (
-              <GlassCard key={rental.id} padding="md">
+              <div className="card-base rounded-lg p-5" key={rental.id}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -306,7 +305,7 @@ export default function AdminUserDetail() {
                     {format(new Date(rental.created_at), "MMM d, yyyy")}
                   </div>
                 </div>
-              </GlassCard>
+              </div>
             ))}
           </div>
         )}
@@ -315,11 +314,11 @@ export default function AdminUserDetail() {
         {tab === "reviews" && (
           <div className="space-y-3">
             {reviews.length === 0 ? (
-              <GlassCard padding="lg">
+              <div className="card-base rounded-lg p-6">
                 <p className="text-center text-muted-foreground">No reviews received</p>
-              </GlassCard>
+              </div>
             ) : reviews.map((review) => (
-              <GlassCard key={review.id} padding="md">
+              <div className="card-base rounded-lg p-5" key={review.id}>
                 <div className="flex items-start gap-3">
                   <div className="text-lg font-bold text-warning shrink-0">{review.rating}/5</div>
                   <div className="flex-1 min-w-0">
@@ -331,7 +330,7 @@ export default function AdminUserDetail() {
                     <p className="text-xs text-muted-foreground mt-1">{format(new Date(review.created_at), "MMM d, yyyy")}</p>
                   </div>
                 </div>
-              </GlassCard>
+              </div>
             ))}
           </div>
         )}

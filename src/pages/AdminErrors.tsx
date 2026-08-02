@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -154,16 +153,16 @@ export default function AdminErrors() {
         </div>
 
         {filtered.length === 0 ? (
-          <GlassCard>
+          <div className="card-base rounded-lg">
             <div className="flex flex-col items-center py-12 text-muted-foreground">
               <Bug className="h-12 w-12 mb-3" />
               <p>No errors found</p>
             </div>
-          </GlassCard>
+          </div>
         ) : (
           <div className="space-y-2">
             {filtered.map((err) => (
-              <GlassCard key={err.id}>
+              <div className="card-base rounded-lg" key={err.id}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -223,7 +222,7 @@ export default function AdminErrors() {
                     </div>
                   </div>
                 )}
-              </GlassCard>
+              </div>
             ))}
           </div>
         )}

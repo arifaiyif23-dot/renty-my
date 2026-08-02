@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -130,7 +129,7 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        <GlassCard className="mb-6" padding="md">
+        <div className="card-base rounded-lg p-5 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <div className="relative">
@@ -166,7 +165,7 @@ export default function AdminUsers() {
               </SelectContent>
             </Select>
           </div>
-        </GlassCard>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -175,14 +174,14 @@ export default function AdminUsers() {
         ) : (
           <div className="grid gap-4">
             {filtered.length === 0 ? (
-              <GlassCard padding="lg">
+              <div className="card-base rounded-lg p-6">
                 <p className="text-center text-muted-foreground">No users found</p>
-              </GlassCard>
+              </div>
             ) : (
               filtered.map((u) => {
                 const roleConfig = ROLE_OPTIONS.find((r) => r.value === u.role) || ROLE_OPTIONS[2];
                 return (
-                  <GlassCard key={u.id} className={u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""} padding="md">
+                  <div className="card-base rounded-lg p-5" key={u.id} className={u.is_suspended ? "border-warning/50" : u.is_deleted ? "border-muted opacity-60" : ""}>
                     <div className="flex items-start gap-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={u.avatar_url} />
@@ -242,7 +241,7 @@ export default function AdminUsers() {
                         ) : null}
                       </div>
                     </div>
-                  </GlassCard>
+                  </div>
                 );
               })
             )}

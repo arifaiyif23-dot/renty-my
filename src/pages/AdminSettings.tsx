@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -171,7 +170,7 @@ export default function AdminSettings() {
           </div>
 
           <div className="space-y-6">
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <DollarSign className="h-5 w-5" />
                 <h2 className="text-lg font-semibold">Platform Fee Settings</h2>
@@ -209,10 +208,10 @@ export default function AdminSettings() {
                   ⚠️ Changes apply to new rentals only. Existing payments use the fee percentage at time of booking.
                 </p>
               </div>
-            </GlassCard>
+            </div>
 
             {/* Withdrawal Settings */}
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <ArrowDownToLine className="h-5 w-5" />
                 <h2 className="text-lg font-semibold">Withdrawal Configuration</h2>
@@ -258,10 +257,10 @@ export default function AdminSettings() {
                   Fixed fee charged per withdrawal
                 </p>
               </div>
-            </GlassCard>
+            </div>
 
             {/* Auto-Approval Settings */}
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="h-5 w-5" />
                 <h2 className="text-lg font-semibold">Automated Processing</h2>
@@ -298,7 +297,7 @@ export default function AdminSettings() {
                   </p>
                 </div>
               </div>
-            </GlassCard>
+            </div>
           </div>
         </div>
 

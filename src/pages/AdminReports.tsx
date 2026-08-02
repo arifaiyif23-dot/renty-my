@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
 import { invokeAdminOperation } from "@/lib/adminOperations";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -103,7 +102,7 @@ export default function AdminReports() {
         </div>
       </div>
 
-      <GlassCard className="mb-6">
+      <div className="card-base rounded-lg mb-6">
         
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
@@ -133,16 +132,16 @@ export default function AdminReports() {
             </Select>
           </div>
         
-      </GlassCard>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : filtered.length === 0 ? (
-        <GlassCard>No reports found</GlassCard>
+        <div className="card-base rounded-lg">No reports found</div>
       ) : (
         <div className="grid gap-3">
           {filtered.map((report) => (
-            <GlassCard key={report.id} className={`cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-warning/50' : ''}`} onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
+            <div className="card-base rounded-lg" key={report.id} className={`cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-warning/50' : ''}`} onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
                 <div className="flex items-start gap-3">
                   <Flag className="h-5 w-5 mt-0.5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -161,7 +160,7 @@ export default function AdminReports() {
                   </div>
                 </div>
               
-            </GlassCard>
+            </div>
           ))}
         </div>
       )}

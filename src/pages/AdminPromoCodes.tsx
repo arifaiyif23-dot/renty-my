@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/AdminLayout";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { invokeAdminOperation } from "@/lib/adminOperations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,12 +97,12 @@ export default function AdminPromoCodes() {
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <GlassCard>Total Codes<p className="text-3xl font-bold">{stats.total}</p></GlassCard>
-        <GlassCard>Active<p className="text-3xl font-bold text-success">{stats.active}</p></GlassCard>
-        <GlassCard>Total Uses<p className="text-3xl font-bold">{stats.totalUses}</p></GlassCard>
+        <div className="card-base rounded-lg">Total Codes<p className="text-3xl font-bold">{stats.total}</p></div>
+        <div className="card-base rounded-lg">Active<p className="text-3xl font-bold text-success">{stats.active}</p></div>
+        <div className="card-base rounded-lg">Total Uses<p className="text-3xl font-bold">{stats.totalUses}</p></div>
       </div>
 
-      <GlassCard className="mb-6">
+      <div className="card-base rounded-lg mb-6">
         
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 relative">
@@ -123,16 +122,16 @@ export default function AdminPromoCodes() {
             </Button>
           </div>
         
-      </GlassCard>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : filtered.length === 0 ? (
-        <GlassCard>No promo codes found</GlassCard>
+        <div className="card-base rounded-lg">No promo codes found</div>
       ) : (
         <div className="grid gap-3">
           {filtered.map((code) => (
-            <GlassCard key={code.id}>
+            <div className="card-base rounded-lg" key={code.id}>
               
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -152,7 +151,7 @@ export default function AdminPromoCodes() {
                   <Switch checked={code.is_active} onCheckedChange={() => toggleActive(code)} />
                 </div>
               
-            </GlassCard>
+            </div>
           ))}
         </div>
       )}

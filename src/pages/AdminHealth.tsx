@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -158,7 +157,7 @@ export default function AdminHealth() {
           />
         </div>
 
-        <GlassCard padding="lg">
+        <div className="card-base rounded-lg p-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" /> Readiness checklist
           </h3>
@@ -169,9 +168,9 @@ export default function AdminHealth() {
             <CheckRow ok={(stats?.emails_delivered_today ?? 0) > 0} label="Resend delivering emails today" />
             <CheckRow ok={(stats?.payouts_awaiting_bank ?? 0) === 0} label="No payouts blocked on missing bank details" />
           </div>
-        </GlassCard>
+        </div>
 
-        <GlassCard padding="lg">
+        <div className="card-base rounded-lg p-6">
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <Mail className="h-4 w-4" /> Send test email
           </h3>
@@ -188,9 +187,9 @@ export default function AdminHealth() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-2">Verifies Resend domain + edge function delivery end-to-end.</p>
-        </GlassCard>
+        </div>
 
-        <GlassCard padding="lg">
+        <div className="card-base rounded-lg p-6">
           <h3 className="font-semibold mb-4">Recent payment flow logs</h3>
           {logs.length === 0 ? (
             <p className="text-sm text-muted-foreground">No payment flow events yet.</p>
@@ -209,7 +208,7 @@ export default function AdminHealth() {
               ))}
             </div>
           )}
-        </GlassCard>
+        </div>
       </div>
     </AdminLayout>
   );
@@ -217,11 +216,11 @@ export default function AdminHealth() {
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string | number; sub?: string }) {
   return (
-    <GlassCard padding="md">
+    <div className="card-base rounded-lg p-5">
       <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">{icon}{label}</div>
       <div className="text-2xl font-bold">{value}</div>
       {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
-    </GlassCard>
+    </div>
   );
 }
 

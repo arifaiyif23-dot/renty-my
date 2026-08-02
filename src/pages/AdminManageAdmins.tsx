@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/AdminLayout';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -133,7 +132,7 @@ export default function AdminManageAdmins() {
           </div>
         </div>
 
-        <GlassCard>
+        <div className="card-base rounded-lg">
           <div className="flex items-center gap-2 mb-4">
             <UserPlus className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Add New Admin</h2>
@@ -178,9 +177,9 @@ export default function AdminManageAdmins() {
               Add Admin
             </Button>
           </div>
-        </GlassCard>
+        </div>
 
-        <GlassCard>
+        <div className="card-base rounded-lg">
           <div className="flex items-center gap-2 mb-4">
             <Users className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Current Admins</h2>
@@ -260,7 +259,7 @@ export default function AdminManageAdmins() {
               })}
             </div>
           )}
-        </GlassCard>
+        </div>
       </div>
       <Dialog open={!!confirmRemove} onOpenChange={() => setConfirmRemove(null)}>
         <DialogContent>

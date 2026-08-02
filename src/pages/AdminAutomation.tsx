@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -177,32 +176,32 @@ export default function AdminAutomation() {
 
         {/* Health Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <GlassCard padding="md">
+          <div className="card-base rounded-lg p-5">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
               <DollarSign className="h-4 w-4" />
               Total Payments
             </div>
             <div className="text-2xl font-bold">{healthMetrics?.totalPayments || 0}</div>
-          </GlassCard>
+          </div>
           
-          <GlassCard padding="md">
+          <div className="card-base rounded-lg p-5">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
               <ShoppingCart className="h-4 w-4" />
               Total Rentals
             </div>
             <div className="text-2xl font-bold">{healthMetrics?.totalRentals || 0}</div>
-          </GlassCard>
+          </div>
 
-          <GlassCard padding="md">
+          <div className="card-base rounded-lg p-5">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
               <Activity className="h-4 w-4" />
               Cron Jobs
             </div>
             <div className="text-2xl font-bold text-success">Active</div>
             <p className="text-xs text-muted-foreground mt-1">2 jobs running</p>
-          </GlassCard>
+          </div>
 
-          <GlassCard padding="md">
+          <div className="card-base rounded-lg p-5">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
               <AlertCircle className="h-4 w-4" />
               Errors (24h)
@@ -210,7 +209,7 @@ export default function AdminAutomation() {
             <div className="text-2xl font-bold text-destructive">
               {healthMetrics?.recentErrors || 0}
             </div>
-          </GlassCard>
+          </div>
         </div>
 
         <Tabs defaultValue="payment-flow" className="space-y-4">
@@ -222,7 +221,7 @@ export default function AdminAutomation() {
 
           {/* Payment Flow Logs */}
           <TabsContent value="payment-flow" className="space-y-4">
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <h3 className="font-semibold mb-1">Payment Flow Tracking</h3>
               <p className="text-sm text-muted-foreground mb-4">Track the complete payment lifecycle from rental creation to verification</p>
               {!paymentLogs || paymentLogs.length === 0 ? (
@@ -263,12 +262,12 @@ export default function AdminAutomation() {
                   ))}
                 </div>
               )}
-            </GlassCard>
+            </div>
           </TabsContent>
 
           {/* Cron Jobs */}
           <TabsContent value="cron-jobs" className="space-y-4">
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <h3 className="font-semibold mb-1">Cron Job Execution History</h3>
               <p className="text-sm text-muted-foreground mb-4">Monitor automated cleanup and transition jobs</p>
               {!cronLogs || cronLogs.length === 0 ? (
@@ -312,9 +311,9 @@ export default function AdminAutomation() {
                   ))}
                 </div>
               )}
-            </GlassCard>
+            </div>
 
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <h3 className="font-semibold mb-1">Scheduled Jobs</h3>
               <p className="text-sm text-muted-foreground mb-4">Active cron jobs configuration</p>
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -335,12 +334,12 @@ export default function AdminAutomation() {
                 </div>
                 <Badge className="rounded-full" variant="default">Active</Badge>
               </div>
-            </GlassCard>
+            </div>
           </TabsContent>
 
           {/* Recent Payments */}
           <TabsContent value="recent-payments" className="space-y-4">
-            <GlassCard padding="lg">
+            <div className="card-base rounded-lg p-6">
               <h3 className="font-semibold mb-1">Recent Payments</h3>
               <p className="text-sm text-muted-foreground mb-4">Latest payment transactions</p>
               {!recentPayments || recentPayments.length === 0 ? (
@@ -376,7 +375,7 @@ export default function AdminAutomation() {
                   ))}
                 </div>
               )}
-            </GlassCard>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

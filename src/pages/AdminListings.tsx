@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -118,7 +117,7 @@ export default function AdminListings() {
           </div>
         </div>
 
-        <GlassCard className="mb-6" padding="md">
+        <div className="card-base rounded-lg p-5 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <div className="relative">
@@ -161,20 +160,20 @@ export default function AdminListings() {
               </SelectContent>
             </Select>
           </div>
-        </GlassCard>
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
-          <GlassCard padding="lg">
+          <div className="card-base rounded-lg p-6">
             <p className="text-center text-muted-foreground">No listings found</p>
-          </GlassCard>
+          </div>
         ) : (
           <div className="space-y-3">
             {filtered.map((item) => (
-              <GlassCard key={item.id} className={!item.is_available ? "opacity-70" : ""} padding="md">
+              <div className="card-base rounded-lg p-5" key={item.id} className={!item.is_available ? "opacity-70" : ""}>
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
                     {item.item_images?.[0]?.image_url && (
@@ -289,7 +288,7 @@ export default function AdminListings() {
                     )}
                   </div>
                 </div>
-              </GlassCard>
+              </div>
             ))}
           </div>
         )}

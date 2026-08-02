@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -136,22 +135,22 @@ export default function AdminPayments() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <GlassCard>
+          <div className="card-base rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">Total Revenue</p>
             <div className="text-2xl font-bold">RM{stats.totalRevenue.toFixed(2)}</div>
-          </GlassCard>
-          <GlassCard>
+          </div>
+          <div className="card-base rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">Platform Fees</p>
             <div className="text-2xl font-bold">RM{stats.totalFees.toFixed(2)}</div>
-          </GlassCard>
-          <GlassCard>
+          </div>
+          <div className="card-base rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">Completed</p>
             <div className="text-2xl font-bold text-success">{stats.completedCount}</div>
-          </GlassCard>
-          <GlassCard>
+          </div>
+          <div className="card-base rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">Refunded</p>
             <div className="text-2xl font-bold text-warning">{stats.refundedCount}</div>
-          </GlassCard>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -161,7 +160,7 @@ export default function AdminPayments() {
           </TabsList>
 
           <TabsContent value="transactions">
-            <GlassCard className="mb-6" padding="sm">
+            <div className="card-base rounded-lg p-4 mb-6">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-full md:w-[250px] rounded-lg">
                   <Filter className="h-4 w-4 mr-2" />
@@ -175,20 +174,20 @@ export default function AdminPayments() {
                   <SelectItem value="refunded">Refunded</SelectItem>
                 </SelectContent>
               </Select>
-            </GlassCard>
+            </div>
 
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : payments.length === 0 ? (
-              <GlassCard padding="lg">
+              <div className="card-base rounded-lg p-6">
                 <p className="text-center text-muted-foreground">No transactions found</p>
-              </GlassCard>
+              </div>
             ) : (
               <div className="space-y-3">
                 {payments.map((payment) => (
-                  <GlassCard key={payment.id} padding="md">
+                  <div className="card-base rounded-lg p-5" key={payment.id}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -208,14 +207,14 @@ export default function AdminPayments() {
                         <div>{format(new Date(payment.created_at), "MMM d, yyyy")}</div>
                       </div>
                     </div>
-                  </GlassCard>
+                  </div>
                 ))}
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="payouts">
-            <GlassCard className="mb-6" padding="sm">
+            <div className="card-base rounded-lg p-4 mb-6">
               <Select value={payoutFilter} onValueChange={setPayoutFilter}>
                 <SelectTrigger className="w-full md:w-[250px] rounded-lg">
                   <Filter className="h-4 w-4 mr-2" />
@@ -229,20 +228,20 @@ export default function AdminPayments() {
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
-            </GlassCard>
+            </div>
 
             {loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : payouts.length === 0 ? (
-              <GlassCard padding="lg">
+              <div className="card-base rounded-lg p-6">
                 <p className="text-center text-muted-foreground">No payouts found</p>
-              </GlassCard>
+              </div>
             ) : (
               <div className="space-y-3">
                 {payouts.map((payout) => (
-                  <GlassCard key={payout.id} padding="md">
+                  <div className="card-base rounded-lg p-5" key={payout.id}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -262,7 +261,7 @@ export default function AdminPayments() {
                         <div>{format(new Date(payout.created_at), "MMM d, yyyy")}</div>
                       </div>
                     </div>
-                  </GlassCard>
+                  </div>
                 ))}
               </div>
             )}

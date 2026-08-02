@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -153,7 +152,7 @@ export default function AdminDisputes() {
         ) : (
           <div className="space-y-3">
             {disputes.map((d) => (
-              <GlassCard key={d.id}>
+              <div className="card-base rounded-lg" key={d.id}>
                 
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div>
@@ -230,7 +229,7 @@ export default function AdminDisputes() {
                     </Dialog>
                   )}
                 
-              </GlassCard>
+              </div>
             ))}
           </div>
         )}
