@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => ({
         name: 'RENTY - Malaysia P2P Rental Marketplace',
         short_name: 'RENTY',
         description: 'Rent anything, earn from anything. From cameras to cars.',
-        theme_color: '#556B2F',
+        theme_color: '#0f1729',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',

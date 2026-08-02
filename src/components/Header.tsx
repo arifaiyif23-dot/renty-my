@@ -131,7 +131,8 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center" aria-label="Renty homepage">
-                <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" />
+                <img src="/logo-light.png" alt="Renty" className="h-7 md:h-8 w-auto dark:hidden" />
+                <img src="/logo-dark.png" alt="Renty" className="h-7 md:h-8 w-auto hidden dark:block" />
               </Link>
             </div>
 

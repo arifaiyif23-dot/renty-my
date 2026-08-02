@@ -178,8 +178,8 @@ export const usePushNotifications = () => {
       try {
         new Notification("RENTY", {
           body: "Notifications are working! You'll receive updates here.",
-          icon: "/icon-192.png",
-          badge: "/icon-192.png",
+          icon: "/logo-light.png",
+          badge: "/logo-light.png",
           tag: "test",
           requireInteraction: false,
         });

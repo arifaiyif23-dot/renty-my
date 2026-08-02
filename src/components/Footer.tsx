@@ -11,7 +11,8 @@ const Footer = () => {
           {/* Column 1 — Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="inline-block mb-3">
-              <img src="/logo.png" alt="Renty" className="h-7 md:h-8 w-auto" loading="lazy" />
+              <img src="/logo-light.png" alt="Renty" className="h-7 md:h-8 w-auto dark:hidden" loading="lazy" />
+              <img src="/logo-dark.png" alt="Renty" className="h-7 md:h-8 w-auto hidden dark:block" loading="lazy" />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               {t('footer.tagline')}

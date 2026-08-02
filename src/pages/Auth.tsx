@@ -196,7 +196,8 @@ export default function Auth() {
       <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
         <div className="mx-auto px-4 max-w-5xl h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src="/logo.png" alt="Renty" className="h-7 w-auto" />
+            <img src="/logo-light.png" alt="Renty" className="h-7 w-auto dark:hidden" />
+            <img src="/logo-dark.png" alt="Renty" className="h-7 w-auto hidden dark:block" />
           </Link>
           <Link to="/">
             <Button variant="ghost" size="icon" className="rounded-lg">
@@ -213,8 +214,8 @@ export default function Auth() {
           <div className="relative w-full max-w-sm space-y-6">
             <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8">
               <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold tracking-tight">Welcome</h1>
-                <p className="text-sm text-muted-foreground mt-1.5">Sign in or create an account</p>
+                <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+                <p className="text-sm text-muted-foreground mt-1.5">Sign in to continue</p>
               </div>
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2 bg-muted p-0.5 rounded-lg gap-0.5">
@@ -340,10 +341,10 @@ export default function Auth() {
           <div aria-hidden className="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
           <div className="relative z-10 text-center px-12 max-w-md">
             <h1 className="text-3xl font-semibold text-white leading-[1.1] mb-3 tracking-tight">
-              Sewa Barang. Jimat Duit.
+              Rent Smart. Earn More.
             </h1>
             <p className="text-sm text-white/60 leading-relaxed max-w-sm mx-auto">
-              Platform sewaan No.1 Malaysia — ribuan barang untuk disewa, dari kamera hingga alat perkakas.
+              Malaysia's peer-to-peer rental marketplace — list your items or discover what others offer.
             </p>
           </div>
         </div>
