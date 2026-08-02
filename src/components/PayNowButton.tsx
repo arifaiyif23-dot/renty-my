@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import { haptics } from '@/utils/haptics';
-import { differenceInDays } from 'date-fns';
+import { formatDuration, formatRentalPeriod, rentalHours } from '@/lib/rentalTime';
 import { isNative } from '@/lib/platform';
 
 interface PayNowButtonProps {
@@ -62,7 +62,6 @@ export function PayNowButton({ rental }: PayNowButtonProps) {
   const remainingMs = pendingExpiresAt ? new Date(pendingExpiresAt).getTime() - now : 0;
   const hasActiveBill = !!pendingExpiresAt && remainingMs > 0;
 
-  const rentalDays = Math.max(1, differenceInDays(new Date(rental.end_date), new Date(rental.start_date)) + 1);
   const hasPromo = !!rental.discount_amount && rental.discount_amount > 0 && !!rental.original_total_price;
   const originalPrice = hasPromo ? (rental.original_total_price ?? rental.total_price) : rental.total_price;
 
@@ -160,7 +159,7 @@ if (payResponse) {
             <AlertDialogDescription className="space-y-3">
               <div className="space-y-1 text-sm text-muted-foreground">
                 <p><span className="font-medium text-foreground">{rental.item?.title}</span></p>
-                <p>{new Date(rental.start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} — {new Date(rental.end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })} · {rentalDays} {rentalDays === 1 ? 'day' : 'days'}</p>
+                <p>{formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)} · {formatDuration(rentalHours(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time))}</p>
               </div>
 
               <div className="bg-muted rounded-lg p-3 space-y-1.5 text-sm">

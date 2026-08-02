@@ -14,6 +14,7 @@ import { RentalStatusBadge } from "@/components/RentalStatusBadge";
 import { ArrowLeft, Calendar, DollarSign, User, Camera, CheckCircle } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { format } from "date-fns";
+import { formatRentalPeriod } from "@/lib/rentalTime";
 
 export default function RentalDetail() {
   const { t } = useTranslation();
@@ -72,7 +73,7 @@ export default function RentalDetail() {
 
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground"><Calendar className="h-4 w-4" /> {format(new Date(rental.start_date), "MMM d, yyyy")} – {format(new Date(rental.end_date), "MMM d, yyyy")}</div>
+              <div className="flex items-center gap-2 text-muted-foreground"><Calendar className="h-4 w-4" /> {formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)}</div>
               <div className="flex items-center gap-2 text-muted-foreground"><DollarSign className="h-4 w-4" /> RM {rental.total_price} ({rental.item?.price_per_day ? `RM${rental.item.price_per_day}/day` : ""})</div>
             </div>
             <div className="space-y-2">

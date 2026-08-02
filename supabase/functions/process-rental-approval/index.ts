@@ -82,20 +82,29 @@ serve(async (req) => {
     if (action === 'approve') {
       const { data: conflicts, error: conflictError } = await supabase
         .from('rentals')
-        .select('id')
+        .select('id, start_date, end_date, pickup_time, return_time')
         .eq('item_id', rental.item_id)
         .neq('id', rentalId)
         .in('status', ['confirmed', 'reserved', 'active'])
         .lte('start_date', rental.end_date)
         .gte('end_date', rental.start_date)
-        .limit(1);
+        .limit(20);
 
       if (conflictError) {
         console.error('Overlap re-check error:', conflictError);
         throw new Error('Failed to verify availability');
       }
 
-      if (conflicts && conflicts.length > 0) {
+      // Time-aware overlap: legacy rentals without times count as all-day.
+      const rentalStartTs = new Date(`${rental.start_date}T${rental.pickup_time || '00:00'}`).getTime();
+      const rentalEndTs = new Date(`${rental.end_date}T${rental.return_time || '23:59'}`).getTime();
+      const overlaps = (conflicts || []).some((c: { start_date: string; end_date: string; pickup_time: string | null; return_time: string | null }) => {
+        const cStart = new Date(`${c.start_date}T${c.pickup_time || '00:00'}`).getTime();
+        const cEnd = new Date(`${c.end_date}T${c.return_time || '23:59'}`).getTime();
+        return cStart < rentalEndTs && cEnd > rentalStartTs;
+      });
+
+      if (overlaps) {
         throw new Error('Another booking already occupies these dates. Please reject this request.');
       }
     }

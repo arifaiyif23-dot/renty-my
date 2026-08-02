@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { format } from "date-fns";
+import { formatRentalPeriod } from "@/lib/rentalTime";
 
 export default function PaymentDetail() {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ export default function PaymentDetail() {
       setError(false);
       const { data, error: fetchError } = await supabase
         .from("payments")
-        .select("*, rental:rentals(id, total_price, status, start_date, end_date, item:items(title, images:item_images(image_url)))")
+        .select("*, rental:rentals(id, total_price, status, start_date, end_date, pickup_time, return_time, item:items(title, images:item_images(image_url)))")
         .eq("id", id)
         .maybeSingle();
       if (fetchError || !data) { setError(true); setLoading(false); return; }
@@ -81,7 +82,7 @@ export default function PaymentDetail() {
               )}
               <div>
                 <p className="font-medium">{payment.rental?.item?.title || "Item"}</p>
-                <p className="text-sm text-muted-foreground">{payment.rental?.start_date && payment.rental?.end_date ? `${format(new Date(payment.rental.start_date), "MMM d")} – ${format(new Date(payment.rental.end_date), "MMM d")}` : ""}</p>
+                <p className="text-sm text-muted-foreground">{payment.rental?.start_date && payment.rental?.end_date ? formatRentalPeriod(payment.rental.start_date, payment.rental.end_date, payment.rental.pickup_time, payment.rental.return_time) : ""}</p>
               </div>
             </div>
 

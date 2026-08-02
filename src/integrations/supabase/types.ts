@@ -1810,9 +1810,11 @@ export type Database = {
           owner_id: string
           payment_mode: Database["public"]["Enums"]["payment_mode"]
           pickup_code: string | null
+          pickup_time: string | null
           promo_code_id: string | null
           renter_id: string
           return_photos: string[] | null
+          return_time: string | null
           start_date: string
           status: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
@@ -1836,9 +1838,11 @@ export type Database = {
           owner_id: string
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           pickup_code?: string | null
+          pickup_time?: string | null
           promo_code_id?: string | null
           renter_id: string
           return_photos?: string[] | null
+          return_time?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price: number
@@ -1862,9 +1866,11 @@ export type Database = {
           owner_id?: string
           payment_mode?: Database["public"]["Enums"]["payment_mode"]
           pickup_code?: string | null
+          pickup_time?: string | null
           promo_code_id?: string | null
           renter_id?: string
           return_photos?: string[] | null
+          return_time?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["rental_status"] | null
           total_price?: number

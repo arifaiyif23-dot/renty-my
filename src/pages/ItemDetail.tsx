@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { differenceInDays } from 'date-fns';
 import { MapPin, Share2, MessageCircle, Loader2, ChevronDown } from 'lucide-react';
 import { isNative } from '@/lib/platform';
 import type { DateRange } from 'react-day-picker';
@@ -23,7 +22,18 @@ import SEO from '@/components/SEO';
 import { UnifiedCalendar } from '@/components/UnifiedCalendar';
 import { SaveItemButton } from '@/components/SaveItemButton';
 import StickyBookingBar from '@/components/StickyBookingBar';
+import { TimePicker } from '@/components/TimePicker';
 import { ReviewsList } from '@/components/ReviewsList';
+import {
+  computeRentalSubtotal,
+  computeRentalTotal,
+  discountPercentForHours,
+  formatDuration,
+  formatRentalPeriod,
+  isSameDayReturnValid,
+  rentalDays,
+  rentalHours,
+} from '@/lib/rentalTime';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +54,8 @@ export default function ItemDetail() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [pickupTime, setPickupTime] = useState("");
+  const [returnTime, setReturnTime] = useState("");
   const [isBooking, setIsBooking] = useState(false);
   const [similarItems, setSimilarItems] = useState<Array<{ id: string; title: string; price_per_day: number; category: string; location: string; images: { image_url: string }[]; rating?: number; reviewCount?: number; owner?: { verification_level?: string } }>>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
@@ -181,6 +193,19 @@ export default function ItemDetail() {
       toast.error(t('itemDetail.selectDatesError'));
       return;
     }
+    if (!pickupTime || !returnTime) {
+      toast.error(t('rentalTime.selectTimesError'));
+      return;
+    }
+    if (!isSameDayReturnValid(
+      dateRange.from.toISOString().split('T')[0],
+      dateRange.to.toISOString().split('T')[0],
+      pickupTime,
+      returnTime
+    )) {
+      toast.error(t('rentalTime.returnAfterPickupError'));
+      return;
+    }
     if (item?.owner_id === user.id) {
       toast.error(t('itemDetail.cantBookOwnItem'));
       return;
@@ -191,20 +216,27 @@ export default function ItemDetail() {
   const handleConfirmBooking = async () => {
     if (!item || !user || !dateRange?.from || !dateRange?.to) return;
     if (confirming) return;
+    if (!pickupTime || !returnTime) return;
     setConfirming(true);
     setIsBooking(true);
     setShowConfirmDialog(false);
     try {
       const instantBook = item.instant_book_enabled === true;
-      const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-      const total = days * Number(item.price_per_day);
+      const from = dateRange.from.toISOString().split('T')[0];
+      const to = dateRange.to.toISOString().split('T')[0];
+      const hours = rentalHours(from, to, pickupTime, returnTime);
+      const dayRate = Number(item.price_per_day);
+      const hourRate = Number(item.price_per_hour) || null;
+      const subtotal = computeRentalSubtotal(dayRate, hourRate, hours);
+      const total = computeRentalTotal(dayRate, hourRate, hours);
+      const durationDiscount = Math.max(0, Math.round((subtotal - total) * 100) / 100);
 
       const bookingResult = await supabase.functions.invoke('request-booking', {
         body: {
-          itemId: item.id, startDate: dateRange.from.toISOString().split('T')[0],
-          endDate: dateRange.to.toISOString().split('T')[0], renterId: user.id,
-          ownerId: item.owner_id, totalPrice: total, originalTotalPrice: total,
-          discountAmount: 0, promoCodeId: null, instantBook, agreeToTerms,
+          itemId: item.id, startDate: from,
+          endDate: to, pickupTime, returnTime, renterId: user.id,
+          ownerId: item.owner_id, totalPrice: total, originalTotalPrice: subtotal,
+          discountAmount: durationDiscount, promoCodeId: null, instantBook, agreeToTerms,
         }
       });
       if (bookingResult.error) throw new Error(bookingResult.error.message);
@@ -221,17 +253,24 @@ export default function ItemDetail() {
     navigate('/messages', { state: { recipientId: item?.owner_id } });
   };
 
-  const getRentalDays = () => {
-    if (!dateRange?.from || !dateRange?.to) return 0;
-    return differenceInDays(dateRange.to, dateRange.from) + 1;
-  };
-
   const getPriceBreakdown = () => {
-    const days = getRentalDays();
-    if (days === 0 || !item) return null;
-    const subtotal = days * item.price_per_day;
+    if (!item || !dateRange?.from || !dateRange?.to) return null;
+    const from = dateRange.from.toISOString().split('T')[0];
+    const to = dateRange.to.toISOString().split('T')[0];
+    const hours = rentalHours(from, to, pickupTime || '09:00', returnTime || '18:00');
+    const dayRate = Number(item.price_per_day);
+    const hourRate = Number(item.price_per_hour) || null;
+    const subtotal = computeRentalSubtotal(dayRate, hourRate, hours);
     const deposit = Number(item.deposit_amount) || 0;
-    return { days, subtotal, deposit, total: subtotal };
+    const total = computeRentalTotal(dayRate, hourRate, hours);
+    return {
+      days: rentalDays(from, to),
+      hours,
+      subtotal,
+      deposit,
+      total,
+      discount: Math.max(0, Math.round((subtotal - total) * 100) / 100),
+    };
   };
 
   if (loading) {
@@ -393,14 +432,58 @@ export default function ItemDetail() {
                 />
               </div>
 
+              {dateRange?.from && dateRange?.to && (
+                <div className="space-y-3">
+                  <Separator />
+                  <TimePicker
+                    label={t('rentalTime.pickupTime')}
+                    value={pickupTime}
+                    onChange={setPickupTime}
+                  />
+                  <TimePicker
+                    label={t('rentalTime.returnTime')}
+                    value={returnTime}
+                    onChange={setReturnTime}
+                  />
+                  {pickupTime && returnTime && isSameDayReturnValid(
+                    dateRange.from.toISOString().split('T')[0],
+                    dateRange.to.toISOString().split('T')[0],
+                    pickupTime,
+                    returnTime
+                  ) ? (
+                    <p className="text-xs text-muted-foreground">
+                      {formatRentalPeriod(
+                        dateRange.from.toISOString().split('T')[0],
+                        dateRange.to.toISOString().split('T')[0],
+                        pickupTime,
+                        returnTime
+                      )}
+                      {priceBreakdown && <> · {formatDuration(priceBreakdown.hours)}</>}
+                    </p>
+                  ) : (
+                    pickupTime && returnTime ? (
+                      <p className="text-xs text-destructive">{t('rentalTime.returnAfterPickupError')}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">{t('rentalTime.selectTimesHint')}</p>
+                    )
+                  )}
+                </div>
+              )}
+
               {priceBreakdown && (
                 <>
                   <Separator />
                   <div className="space-y-1.5 text-sm">
                     <div className="flex justify-between">
-                      <span>RM{Number(item.price_per_day).toFixed(0)} × {priceBreakdown.days} {priceBreakdown.days === 1 ? 'day' : 'days'}</span>
+                      <span>{formatDuration(priceBreakdown.hours)} @ RM{Number(item.price_per_day).toFixed(0)}/day</span>
                       <span>RM{priceBreakdown.subtotal.toFixed(2)}</span>
                     </div>
+                    {priceBreakdown.discount > 0 && (
+                      <div className="flex justify-between text-success">
+                        <span>{t('rentalTime.durationDiscount')} ({discountPercentForHours(priceBreakdown.hours)}%)</span>
+                        <span>-RM{priceBreakdown.discount.toFixed(2)}</span>
+                      </div>
+                    )}
                     {priceBreakdown.deposit > 0 && (
                       <div className="flex justify-between text-muted-foreground">
                         <span>Security deposit</span>
@@ -474,6 +557,7 @@ export default function ItemDetail() {
           disabled={isBooking}
           isLoading={isBooking}
           hasDates={!!dateRange?.from && !!dateRange?.to}
+          hasTimes={!!pickupTime && !!returnTime}
         />
       )}
 
@@ -484,16 +568,21 @@ export default function ItemDetail() {
             <AlertDialogDescription asChild>
               <div className="space-y-2">
                 <p>{item.instant_book_enabled ? 'Review before confirming' : 'Review before sending your request to the owner.'}</p>
-                {dateRange?.from && dateRange?.to && item && (
+                {dateRange?.from && dateRange?.to && item && priceBreakdown && (
                   <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Duration</span>
-                      <span className="font-medium">{differenceInDays(dateRange.to, dateRange.from) + 1} days</span>
+                      <span className="font-medium">{formatRentalPeriod(
+                        dateRange.from.toISOString().split('T')[0],
+                        dateRange.to.toISOString().split('T')[0],
+                        pickupTime,
+                        returnTime
+                      )} · {formatDuration(priceBreakdown.hours)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-semibold text-base">
                       <span>Total</span>
-                      <span>RM {getRentalDays() * Number(item.price_per_day)}</span>
+                      <span>RM {priceBreakdown.total.toFixed(2)}</span>
                     </div>
                   </div>
                 )}
@@ -555,7 +644,7 @@ export default function ItemDetail() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('rentalAgreement.totalPrice')}</span>
-                    <span className="font-medium">RM {getRentalDays() * Number(item?.price_per_day) || 0}</span>
+                    <span className="font-medium">RM {priceBreakdown?.total.toFixed(2) || '0.00'}</span>
                   </div>
                 </div>
                 <ol className="space-y-3 text-xs text-foreground/90">

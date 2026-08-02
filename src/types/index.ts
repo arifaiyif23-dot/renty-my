@@ -111,6 +111,7 @@ export interface Item {
   description: string;
   category: ItemCategory;
   price_per_day: number;
+  price_per_hour?: number | null;
   location: string;
   latitude?: number;
   longitude?: number;
@@ -148,6 +149,8 @@ export interface Rental {
   owner_id: string;
   start_date: string;
   end_date: string;
+  pickup_time?: string;
+  return_time?: string;
   total_price: number;
   original_total_price?: number;
   discount_amount?: number;

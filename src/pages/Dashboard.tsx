@@ -42,7 +42,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from('rentals')
         .select(`
-          id, status, start_date, end_date, total_price, original_total_price, discount_amount, promo_code_id, owner_id, renter_id, pickup_code, dispute_reason, handover_photos, return_photos, created_at,
+          id, status, start_date, end_date, pickup_time, return_time, total_price, original_total_price, discount_amount, promo_code_id, owner_id, renter_id, pickup_code, dispute_reason, handover_photos, return_photos, created_at,
           item:items(id, title, category, images:item_images(image_url)),
           renter:profiles!rentals_renter_id_fkey(full_name, avatar_url),
           owner:profiles!rentals_owner_id_fkey(full_name, avatar_url)

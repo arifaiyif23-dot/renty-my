@@ -10,7 +10,7 @@ import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewsList } from "@/components/ReviewsList";
 import { ArrowLeft, Star } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { format } from "date-fns";
+import { formatRentalPeriod } from "@/lib/rentalTime";
 
 export default function ReviewPage() {
   const { rentalId } = useParams<{ rentalId: string }>();
@@ -28,7 +28,7 @@ export default function ReviewPage() {
       setError(false);
       const { data, error: fetchError } = await supabase
         .from("rentals")
-        .select("id, renter_id, owner_id, status, total_price, start_date, end_date, item:items(id, title, images:item_images(image_url))")
+        .select("id, renter_id, owner_id, status, total_price, start_date, end_date, pickup_time, return_time, item:items(id, title, images:item_images(image_url))")
         .eq("id", rentalId)
         .single();
       if (fetchError || !data) { setError(true); setLoading(false); return; }
@@ -57,7 +57,7 @@ export default function ReviewPage() {
             )}
             <div>
               <h1 className="text-lg font-semibold">{rental.item?.title || "Item"}</h1>
-              <p className="text-sm text-muted-foreground">{format(new Date(rental.start_date), "MMM d")} – {format(new Date(rental.end_date), "MMM d")} · RM {rental.total_price}</p>
+              <p className="text-sm text-muted-foreground">{formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)} · RM {rental.total_price}</p>
             </div>
           </div>
         </GlassCard>

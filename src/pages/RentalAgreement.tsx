@@ -19,12 +19,14 @@ import {
   Stamp,
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatTime, formatDuration } from "@/lib/rentalTime";
 
 interface AgreementContent {
   itemTitle: string;
   category: string;
   deposit: number;
   pricePerDay: number;
+  pricePerHour?: number | null;
   ownerId: string;
   ownerName: string;
   ownerVerificationLevel: string | null;
@@ -33,7 +35,10 @@ interface AgreementContent {
   renterVerificationLevel: string | null;
   startDate: string;
   endDate: string;
+  pickupTime?: string;
+  returnTime?: string;
   days: number;
+  totalHours?: number;
   totalPrice: number;
   originalTotalPrice: number | null;
   discountAmount: number;
@@ -89,6 +94,8 @@ export default function RentalAgreement() {
   const fmtMoney = (v: number) =>
     `RM ${Number(v).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const fmtDate = (s: string) => format(new Date(s), "MMM d, yyyy");
+  const fmtTime = (s?: string) => (s ? formatTime(s) : "");
+  const fmtHours = (h?: number) => (h ? formatDuration(h) : "");
   const levelLabel = (level: string | null | undefined) =>
     level ? t(`rentalAgreement.level.${level}`, { defaultValue: level }) : t("rentalAgreement.level.unverified");
 
@@ -171,6 +178,12 @@ export default function RentalAgreement() {
                 <p className="text-muted-foreground">{t("rentalAgreement.pricePerDay")}</p>
                 <p className="font-medium">{fmtMoney(c.pricePerDay)}</p>
               </div>
+              {c.pricePerHour ? (
+                <div>
+                  <p className="text-muted-foreground">{t("rentalAgreement.pricePerHour")}</p>
+                  <p className="font-medium">{fmtMoney(c.pricePerHour)}</p>
+                </div>
+              ) : null}
               <div className="col-span-2">
                 <p className="text-muted-foreground">{t("rentalAgreement.itemTitle")}</p>
                 <p className="font-medium">{c.itemTitle}</p>
@@ -197,9 +210,21 @@ export default function RentalAgreement() {
                 <p className="text-muted-foreground">{t("rentalAgreement.endDate")}</p>
                 <p className="font-medium">{fmtDate(c.endDate)}</p>
               </div>
+              {(c.pickupTime || c.returnTime) && (
+                <>
+                  <div>
+                    <p className="text-muted-foreground">{t("rentalAgreement.pickupTime")}</p>
+                    <p className="font-medium">{fmtTime(c.pickupTime)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">{t("rentalAgreement.returnTime")}</p>
+                    <p className="font-medium">{fmtTime(c.returnTime)}</p>
+                  </div>
+                </>
+              )}
               <div>
-                <p className="text-muted-foreground">{t("rentalAgreement.days", { count: c.days })}</p>
-                <p className="font-medium">{c.days}</p>
+                <p className="text-muted-foreground">{c.totalHours ? t("rentalAgreement.totalHours") : t("rentalAgreement.days", { count: c.days })}</p>
+                <p className="font-medium">{c.totalHours ? fmtHours(c.totalHours) : c.days}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">{t("rentalAgreement.totalPrice")}</p>

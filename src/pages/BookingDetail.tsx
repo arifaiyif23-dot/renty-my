@@ -12,7 +12,7 @@ import { PayNowButton } from "@/components/PayNowButton";
 import { RentalStatusBadge } from "@/components/RentalStatusBadge";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban, FileText } from "lucide-react";
-import { format } from "date-fns";
+import { formatRentalPeriod } from "@/lib/rentalTime";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -103,7 +103,8 @@ export default function BookingDetail() {
   };
 
   const canCancel = !isOwner && ["requested", "payment_pending", "reserved"].includes(rental.status);
-  const canNoShow = !isOwner && rental.status === "confirmed" && new Date(rental.start_date) < new Date();
+  const canNoShow = !isOwner && rental.status === "confirmed"
+    && new Date(`${rental.start_date}T${rental.pickup_time || '09:00'}`) < new Date();
 
   return (
     <PageLayout variant="narrow">
@@ -128,7 +129,7 @@ export default function BookingDetail() {
 
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-muted-foreground"><Calendar className="h-4 w-4" /> {format(new Date(rental.start_date), "MMM d, yyyy")} – {format(new Date(rental.end_date), "MMM d, yyyy")}</div>
+              <div className="flex items-center gap-2 text-muted-foreground"><Calendar className="h-4 w-4" /> {formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)}</div>
               <div className="flex items-center gap-2 text-muted-foreground"><DollarSign className="h-4 w-4" /> RM {rental.total_price}</div>
             </div>
             <div className="space-y-2">

@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Calendar, DollarSign, CheckCircle, XCircle, ShieldCheck, Clock } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
+import { formatDuration, formatRentalPeriod, rentalHours } from '@/lib/rentalTime';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,8 +91,6 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {pendingRequests.map((rental) => {
-            const days = differenceInDays(new Date(rental.end_date), new Date(rental.start_date)) + 1;
-            
             return (
               <div key={rental.id} className="border rounded-lg p-4 space-y-4">
                 {/* Renter Info with Verification Status */}
@@ -129,7 +128,7 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">{t('incomingRequests.duration')}</p>
-                    <p className="font-medium">{t('incomingRequests.days', { count: days })}</p>
+                    <p className="font-medium">{formatDuration(rentalHours(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time))}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -137,7 +136,7 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                       {t('incomingRequests.dates')}
                     </p>
                     <p className="font-medium text-sm">
-                      {format(new Date(rental.start_date), 'MMM dd')} - {format(new Date(rental.end_date), 'MMM dd')}
+                      {formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)}
                     </p>
                   </div>
                   <div>

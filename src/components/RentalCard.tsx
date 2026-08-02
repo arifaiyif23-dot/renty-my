@@ -22,7 +22,7 @@ async function openPhoto(url: string) {
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { ConditionReportWizard } from "@/components/ConditionReportWizard";
 import { ConditionReportViewer } from "@/components/ConditionReportViewer";
-import { format } from "date-fns";
+import { formatRentalPeriod } from "@/lib/rentalTime";
 import { Clock, CheckCircle, XCircle, Calendar, DollarSign, Clock3, RotateCcw, Key, Camera, AlertTriangle, Loader2 } from "lucide-react";
 import { Rental, ConditionReport } from "@/types";
 import { toast } from "sonner";
@@ -227,7 +227,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
                   {t('rental.dates')}
                 </p>
                 <p className="font-medium text-xs leading-tight">
-                  {format(new Date(rental.start_date), 'MMM d')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}
+                  {formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)}
                 </p>
               </div>
               <div className="space-y-1">
@@ -283,7 +283,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
               )}
 
               {/* Renter: Report vendor no-show if start date passed */}
-              {!isOwner && rental.status === 'confirmed' && new Date(rental.start_date) < new Date() && (
+              {!isOwner && rental.status === 'confirmed' && new Date(`${rental.start_date}T${rental.pickup_time || '09:00'}`) < new Date() && (
                 <Button 
                   variant="outline"
                   className="w-full h-12 text-destructive border-destructive/30"
@@ -492,7 +492,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-sm space-y-1">
-              <p><strong>{t('rental.dates')}:</strong> {format(new Date(rental.start_date), 'MMM d, yyyy')} - {format(new Date(rental.end_date), 'MMM d, yyyy')}</p>
+              <p><strong>{t('rental.dates')}:</strong> {formatRentalPeriod(rental.start_date, rental.end_date, rental.pickup_time, rental.return_time)}</p>
               <p><strong>{t('rental.total')}:</strong> RM {rental.total_price}</p>
               <p><strong>{isOwner ? t('rental.renter') : t('rental.owner')}:</strong> {isOwner ? rental.renter?.full_name : rental.owner?.full_name}</p>
             </div>
@@ -534,7 +534,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
             )}
 
             {/* Renter: Report vendor no-show if start date passed */}
-            {!isOwner && rental.status === 'confirmed' && new Date(rental.start_date) < new Date() && (
+            {!isOwner && rental.status === 'confirmed' && new Date(`${rental.start_date}T${rental.pickup_time || '09:00'}`) < new Date() && (
               <Button 
                 variant="outline"
                 size="sm"

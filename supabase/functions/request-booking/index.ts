@@ -8,11 +8,14 @@ const corsHeaders = {
 };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const bookingSchema = z.object({
   itemId: z.string().uuid(),
   startDate: z.string().regex(DATE_RE, 'startDate must be YYYY-MM-DD'),
   endDate: z.string().regex(DATE_RE, 'endDate must be YYYY-MM-DD'),
+  pickupTime: z.string().regex(TIME_RE, 'pickupTime must be HH:MM'),
+  returnTime: z.string().regex(TIME_RE, 'returnTime must be HH:MM'),
   renterId: z.string().uuid(),
   ownerId: z.string().uuid(),
   totalPrice: z.number().positive(),
@@ -23,20 +26,46 @@ const bookingSchema = z.object({
 }).refine(
   (data) => new Date(data.endDate) >= new Date(data.startDate),
   { message: 'endDate must be on or after startDate' }
+).refine(
+  (data) => {
+    // Same-day rentals are allowed only when the return time is after the pickup time.
+    if (data.endDate !== data.startDate) return true;
+    const [sh, sm] = data.pickupTime.split(':').map(Number);
+    const [eh, em] = data.returnTime.split(':').map(Number);
+    return sh * 60 + sm < eh * 60 + em;
+  },
+  { message: 'returnTime must be later than pickupTime on the same day' }
 );
 
-// Compute days inclusively (matches client: differenceInDays(to, from) + 1).
+// Calendar days spanned (inclusive) — used for min/max rental day checks and display.
 function rentalDays(start: string, end: string): number {
   const ms = new Date(end).getTime() - new Date(start).getTime();
   return Math.round(ms / 86400000) + 1;
 }
 
-// Tiered discount must mirror the client (ItemDetail.getDiscountPercent).
-function discountPercentForDays(days: number): number {
-  if (days >= 30) return 20;
-  if (days >= 7) return 10;
+// Exact hours between scheduled pickup and scheduled return (min 1).
+function rentalHours(start: string, end: string, pickup: string, ret: string): number {
+  const startTs = new Date(`${start}T${pickup}`).getTime();
+  const endTs = new Date(`${end}T${ret}`).getTime();
+  return Math.max(1, Math.round((endTs - startTs) / 3600000));
+}
+
+// Tiered discount must mirror the client (ItemDetail + src/lib/rentalTime.ts).
+function discountPercentForHours(hours: number): number {
+  if (hours >= 720) return 20; // >= 30 days
+  if (hours >= 168) return 10; // >= 7 days
   return 0;
 }
+
+// Hybrid day+hour pricing — must mirror the client exactly.
+function computeSubtotal(itemData: { price_per_day: number; price_per_hour: number | null }, hours: number): number {
+  const fullDays = Math.floor(hours / 24);
+  const remHours = hours % 24;
+  const dayRate = Number(itemData.price_per_day) || 0;
+  const hourRate = Number(itemData.price_per_hour) > 0 ? Number(itemData.price_per_hour) : dayRate / 24;
+  return fullDays * dayRate + remHours * hourRate;
+}
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -53,7 +82,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { itemId, startDate, endDate, renterId, ownerId, totalPrice, originalTotalPrice, discountAmount, promoCodeId, agreeToTerms } = validationResult.data;
+    const { itemId, startDate, endDate, pickupTime, returnTime, renterId, ownerId, totalPrice, originalTotalPrice, discountAmount, promoCodeId, agreeToTerms } = validationResult.data;
 
     // LEGAL: renter must explicitly accept the Rental Agreement before booking.
     if (!agreeToTerms) {
@@ -109,7 +138,7 @@ serve(async (req) => {
     // authoritative server-side price recomputation (never trust the client's price).
     const { data: itemData, error: itemError } = await supabase
       .from('items')
-      .select('price_per_day, owner_id, minimum_rental_days, maximum_rental_days, title, deposit_amount, category')
+      .select('price_per_day, price_per_hour, owner_id, minimum_rental_days, maximum_rental_days, title, deposit_amount, category')
       .eq('id', itemId)
       .single();
 
@@ -131,7 +160,7 @@ serve(async (req) => {
       throw new Error('Owner not found');
     }
 
-    // Validate rental length constraints.
+    // Validate rental length constraints (calendar days).
     const days = rentalDays(startDate, endDate);
     if (itemData.minimum_rental_days != null && days < itemData.minimum_rental_days) {
       throw new Error(`Minimum rental period is ${itemData.minimum_rental_days} day(s)`);
@@ -182,10 +211,12 @@ serve(async (req) => {
       promoRow = { discount_amount: promoCode.discount_amount, discount_type: promoCode.discount_type };
     }
 
-    // AUTHORITATIVE price recomputation (mirrors ItemDetail.getPriceBreakdown +
-    // getTotalAfterPromo). Reject any client price that doesn't match.
-    const subtotal = days * itemData.price_per_day;
-    const discountPct = discountPercentForDays(days);
+    // AUTHORITATIVE price recomputation (mirrors ItemDetail + src/lib/rentalTime.ts).
+    // Hybrid pricing: full days at price_per_day, leftover hours at price_per_hour
+    // (falls back to price_per_day / 24). Reject any client price that doesn't match.
+    const hours = rentalHours(startDate, endDate, pickupTime, returnTime);
+    const subtotal = computeSubtotal(itemData, hours);
+    const discountPct = discountPercentForHours(hours);
     const durationDiscount = (subtotal * discountPct) / 100;
     const baseTotal = subtotal - durationDiscount;
     const promoDiscount = promoRow
@@ -196,7 +227,7 @@ serve(async (req) => {
     const expectedTotal = Math.max(0, Math.round((baseTotal - promoDiscount) * 100) / 100);
 
     if (Math.abs(totalPrice - expectedTotal) > 0.02) {
-      console.error('Price mismatch:', { clientPrice: totalPrice, expectedTotal, days, subtotal, discountPct, promoDiscount });
+      console.error('Price mismatch:', { clientPrice: totalPrice, expectedTotal, hours, subtotal, discountPct, promoDiscount });
       throw new Error('Price mismatch. Please refresh and try again.');
     }
 
@@ -212,6 +243,8 @@ serve(async (req) => {
       p_end_date: endDate,
       p_total_price: expectedTotal,
       p_status: rentalStatus,
+      p_pickup_time: pickupTime,
+      p_return_time: returnTime,
     });
 
     if (rpcError) {
@@ -262,6 +295,7 @@ serve(async (req) => {
         category: itemData.category,
         deposit: itemData.deposit_amount ?? 0,
         pricePerDay: Number(itemData.price_per_day),
+        pricePerHour: Number(itemData.price_per_hour) > 0 ? Number(itemData.price_per_hour) : Number(itemData.price_per_day) / 24,
         ownerId,
         ownerName: ownerProfile.full_name,
         ownerVerificationLevel: ownerProfile.verification_level,
@@ -270,7 +304,10 @@ serve(async (req) => {
         renterVerificationLevel: profile.verification_level,
         startDate,
         endDate,
+        pickupTime,
+        returnTime,
         days,
+        totalHours: hours,
         totalPrice: expectedTotal,
         originalTotalPrice: originalTotalPrice ?? null,
         discountAmount: discountAmount ?? 0,

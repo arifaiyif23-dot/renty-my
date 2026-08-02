@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface StickyBookingBarProps {
   pricePerDay: number;
@@ -9,6 +10,7 @@ interface StickyBookingBarProps {
   className?: string;
   totalPrice?: number;
   hasDates?: boolean;
+  hasTimes?: boolean;
 }
 
 export default function StickyBookingBar({
@@ -19,7 +21,10 @@ export default function StickyBookingBar({
   className,
   totalPrice,
   hasDates = false,
+  hasTimes = false,
 }: StickyBookingBarProps) {
+  const { t } = useTranslation();
+  const ready = hasDates && hasTimes;
   return (
     <div
       className={cn(
@@ -32,7 +37,7 @@ export default function StickyBookingBar({
           <div className="flex items-baseline gap-1">
             <span className="text-lg font-bold tabular-nums">RM{pricePerDay}</span>
             <span className="text-sm text-muted-foreground">/day</span>
-            {totalPrice != null && hasDates && (
+            {totalPrice != null && ready && (
               <>
                 <span className="text-muted-foreground mx-1">·</span>
                 <span className="text-sm font-semibold tabular-nums text-muted-foreground">RM{totalPrice} total</span>
@@ -46,7 +51,13 @@ export default function StickyBookingBar({
           onClick={onBook}
           disabled={disabled || isLoading}
         >
-          {isLoading ? "Booking..." : hasDates ? "Book Now" : "Select Dates"}
+          {isLoading
+            ? t("rentalTime.booking")
+            : !hasDates
+              ? t("rentalTime.selectDates")
+              : !hasTimes
+                ? t("rentalTime.selectTimes")
+                : t("rentalTime.bookNow")}
         </Button>
       </div>
     </div>
