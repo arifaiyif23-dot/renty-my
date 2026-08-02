@@ -63,7 +63,7 @@ function SortableImage({ id, url, isPrimary, onSetPrimary, onRemove }: SortableI
             <GripVertical className="h-4 w-4 text-white" />
           </Button>
           <Button size="icon" variant="ghost" onClick={onSetPrimary}>
-            <Star className={`h-4 w-4 ${isPrimary ? 'fill-amber-400 text-amber-400' : 'text-white'}`} />
+            <Star className={`h-4 w-4 ${isPrimary ? 'fill-warning text-warning' : 'text-white'}`} />
           </Button>
           <Button size="icon" variant="ghost" onClick={onRemove}>
             <X className="h-4 w-4 text-white" />

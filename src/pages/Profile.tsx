@@ -135,9 +135,9 @@ export default function Profile() {
               <TrustScoreRing score={profile.trust_score ?? 0} size={48} />
               {profile.trust_score != null && (
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  {profile.trust_score >= 80 ? 'Trusted'
-                    : profile.trust_score >= 50 ? 'Normal'
-                    : 'New User'}
+                  {profile.trust_score >= 80 ? t('profile.trusted')
+                    : profile.trust_score >= 50 ? t('profile.normal')
+                    : t('profile.newUser')}
                 </p>
               )}
             </div>

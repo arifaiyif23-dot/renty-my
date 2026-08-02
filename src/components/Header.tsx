@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { User, Menu, LogOut, Plus, Home, Search, MessageCircle, LayoutDashboard } from "lucide-react";
+import { User, Menu, LogOut, Plus, Home, Search, MessageCircle, LayoutDashboard, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,6 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 const desktopNavLinks = [
   { key: "home", icon: Home, label: "Home", path: "/" },
   { key: "browse", icon: Search, label: "Browse", path: "/search" },
+  { key: "about", icon: Info, label: "About", path: "/about" },
   { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages", auth: true },
   { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", auth: true },
 ];
@@ -144,7 +145,9 @@ const Header = () => {
             <nav className="hidden md:flex items-center gap-1 shrink-0" role="navigation" aria-label="Main navigation">
               {desktopNavLinks.map((link) => {
                 if (link.auth && !user) return null;
-                const isActive = location.pathname === link.path;
+                const isActive = link.path === '/'
+                  ? location.pathname === '/'
+                  : location.pathname.startsWith(link.path);
                 return (
                   <Link
                     key={link.key}
@@ -197,11 +200,11 @@ const Header = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem asChild>
-                        <Link to="/dashboard" className="cursor-pointer">My Rentals</Link>
+                        <Link to="/dashboard" className="cursor-pointer">{t('nav.myRentals')}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/messages" className="cursor-pointer">
-                          Messages
+                          {t('nav.messages')}
                           {unreadCount > 0 && (
                             <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-[10px]">
                               {unreadCount > 9 ? '9+' : unreadCount}
@@ -210,10 +213,10 @@ const Header = () => {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/wishlist" className="cursor-pointer">Saved</Link>
+                        <Link to="/wishlist" className="cursor-pointer">{t('nav.saved')}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/profile" className="cursor-pointer">Profile</Link>
+                        <Link to="/profile" className="cursor-pointer">{t('nav.profile')}</Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
@@ -227,7 +230,7 @@ const Header = () => {
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
                     <User className="h-4 w-4 mr-1.5" />
-                    Sign in
+                    {t('nav.signIn')}
                   </Button>
                 </Link>
               )}

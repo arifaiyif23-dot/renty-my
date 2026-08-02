@@ -7,8 +7,10 @@ import type { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { MapPin, Share2, MessageCircle, Loader2, ChevronDown } from 'lucide-react';
+import { MapPin, Share2, MessageCircle, Loader2, ChevronDown, PackageX } from 'lucide-react';
 import { isNative } from '@/lib/platform';
 import type { DateRange } from 'react-day-picker';
 import { PageLayout } from '@/components/PageLayout';
@@ -64,7 +66,6 @@ export default function ItemDetail() {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [showAgreementDialog, setShowAgreementDialog] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
-  const [, setLoadingRental] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -296,8 +297,17 @@ export default function ItemDetail() {
 
   if (!item) {
     return (
-      <PageLayout variant="narrow" className="text-center">
-        <p className="text-muted-foreground">{loadError || 'Item not found'}</p>
+      <PageLayout variant="narrow" className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-3">
+            <PackageX className="h-6 w-6 text-destructive" />
+          </div>
+          <h3 className="font-semibold mb-1">{t('itemDetail.itemNotFound')}</h3>
+          <p className="text-sm text-muted-foreground mb-3">{loadError || t('itemDetail.itemNotFoundDesc')}</p>
+          <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+            {t('itemDetail.browseItems')}
+          </Button>
+        </div>
       </PageLayout>
     );
   }
@@ -326,7 +336,7 @@ export default function ItemDetail() {
                     <Badge variant="outline" className="rounded-full text-xs capitalize">{item.category}</Badge>
                     {item.item_condition && (
                       <Badge variant="secondary" className="rounded-full text-xs capitalize">
-                        {item.item_condition === 'like_new' ? 'Like New' : item.item_condition}
+                        {item.item_condition === 'like_new' ? t('itemDetail.likeNew') : item.item_condition}
                       </Badge>
                     )}
                   </div>
@@ -360,7 +370,7 @@ export default function ItemDetail() {
                   <MapPin className="h-3.5 w-3.5" /> {item.location}
                 </span>
                 {item.cancellation_policy && (
-                  <span>{item.cancellation_policy === 'flexible' ? 'Free cancellation' : item.cancellation_policy === 'moderate' ? 'Moderate' : 'Strict'}</span>
+                  <span>{item.cancellation_policy === 'flexible' ? t('itemDetail.freeCancellation') : item.cancellation_policy === 'moderate' ? t('itemDetail.moderateCancellation') : t('itemDetail.strictCancellation')}</span>
                 )}
                 {Number(item.deposit_amount) > 0 && (
                   <span>RM{Number(item.deposit_amount).toFixed(0)} deposit</span>
@@ -374,8 +384,12 @@ export default function ItemDetail() {
                     : item.description?.slice(0, 120) + '...'}
                 </p>
                 {descriptionTruncated && (
-                  <button onClick={() => setShowFullDesc(!showFullDesc)} className="text-primary font-medium text-xs mt-1 inline-flex items-center gap-0.5">
-                    {showFullDesc ? 'Show less' : 'Read more'} <ChevronDown className={`h-3 w-3 transition-transform ${showFullDesc ? 'rotate-180' : ''}`} />
+                  <button
+                    onClick={() => setShowFullDesc(!showFullDesc)}
+                    className="text-primary font-medium text-xs mt-1 inline-flex items-center gap-0.5"
+                    aria-expanded={showFullDesc}
+                  >
+                    {showFullDesc ? t('itemDetail.showLess') : t('itemDetail.readMore')} <ChevronDown className={`h-3 w-3 transition-transform ${showFullDesc ? 'rotate-180' : ''}`} />
                   </button>
                 )}
               </div>
@@ -397,7 +411,7 @@ export default function ItemDetail() {
               {user?.id !== item.owner_id && (
                 <Button variant="outline" size="sm" className="gap-1.5" onClick={handleMessageOwner}>
                   <MessageCircle className="h-4 w-4" />
-                  Message owner
+                  {t('itemDetail.messageOwner')}
                 </Button>
               )}
 
@@ -515,8 +529,8 @@ export default function ItemDetail() {
                   disabled={!dateRange?.from || !dateRange?.to || isBooking || (!!user && !profile?.is_verified)}
                 >
                   {isBooking ? (
-                    <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Booking...</span>
-                  ) : item.instant_book_enabled ? 'Book Now' : 'Request to Book'}
+                    <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t('itemDetail.processing')}</span>
+                  ) : item.instant_book_enabled ? t('itemDetail.confirmInstantBooking') : t('itemDetail.requestBooking')}
                 </Button>
               )}
             </div>
@@ -591,14 +605,14 @@ export default function ItemDetail() {
                     ? 'Your booking will be confirmed immediately.'
                     : 'The owner will review and confirm your request.'}
                 </p>
-                <label className="flex items-start gap-2 pt-1 cursor-pointer">
-                  <input
-                    type="checkbox"
+                <label className="flex items-start gap-2 pt-1 cursor-pointer min-h-[44px] min-w-[44px]">
+                  <Checkbox
+                    id="agree-terms"
                     checked={agreeToTerms}
-                    onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-input"
+                    onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
+                    className="mt-0.5"
                   />
-                  <span className="text-xs text-muted-foreground">
+                  <Label htmlFor="agree-terms" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
                     {t('rentalAgreement.agreeToTermsLabel')}{" "}
                     <button
                       type="button"
@@ -607,7 +621,7 @@ export default function ItemDetail() {
                     >
                       {t('rentalAgreement.viewAgreement')}
                     </button>
-                  </span>
+                  </Label>
                 </label>
               </div>
             </AlertDialogDescription>

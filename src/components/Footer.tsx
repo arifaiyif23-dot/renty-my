@@ -41,10 +41,10 @@ const Footer = () => {
                 <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.browseItems')}</Link>
               </li>
               <li>
-                <a href="/#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.howItWorks')}</a>
+                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.howItWorks')}</Link>
               </li>
               <li>
-                <a href="/#trust-safety" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.trustSafety')}</a>
+                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.trustSafety')}</Link>
               </li>
               <li>
                 <Link to="/search" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.categories')}</Link>
@@ -92,19 +92,19 @@ const Footer = () => {
         <div className="mt-8 pt-6 border-t border-border">
           <p className="text-xs text-muted-foreground text-center mb-3">{t('footer.acceptedPayments')}</p>
           <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground" role="img" aria-label="FPX online banking">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 12h8"/></svg>
               FPX
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground" role="img" aria-label="DuitNow QR">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M6 12h12"/></svg>
               DuitNow
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground" role="img" aria-label="ToyyibPay">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
               ToyyibPay
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 text-xs font-medium text-muted-foreground" role="img" aria-label="Visa and Mastercard">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
               Visa/MC
             </div>

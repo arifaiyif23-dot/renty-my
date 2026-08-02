@@ -1,4 +1,9 @@
 {
+  "about": {
+    "title": "Tentang Renty",
+    "description": "Renty ialah pasaran sewa peer-to-peer yang dipercayai di Malaysia. Pinjam apa yang anda perlukan, senaraikan apa yang anda miliki, dan jimat wang bersama.",
+    "headline": "Sewa apa sahaja. Dari sesiapa. Di Malaysia."
+  },
   "analytics": {
     "allTime": "Sepanjang Masa",
     "avgRentalDuration": "Purata Tempoh Sewaan",
@@ -492,6 +497,7 @@
     "signInToMessage": "Sila log masuk untuk menghantar mesej kepada pemilik",
     "signInToUsePromo": "Sila log masuk untuk menggunakan kod promo",
     "similarItems": "Item Serupa",
+    "showLess": "Tunjukkan kurang",
     "strictCancellation": "Pembatalan ketat",
     "theOwner": "Pemilik",
     "total": "Jumlah",
@@ -801,6 +807,9 @@
     "manageListing": "Urus Penyenaraian Saya",
     "myProfile": "Profil Saya",
     "settings": "Tetapan",
+    "trusted": "Dipercayai",
+    "normal": "Biasa",
+    "newUser": "Pengguna Baru",
     "verification": "Pengesahan",
     "wallet": "Dompet"
   },

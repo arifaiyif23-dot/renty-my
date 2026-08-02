@@ -66,6 +66,7 @@ const RentalAgreement = lazy(() => import("./pages/RentalAgreement"));
 const PaymentDetail = lazy(() => import("./pages/PaymentDetail"));
 const RentalDetail = lazy(() => import("./pages/RentalDetail"));
 const ReviewPage = lazy(() => import("./pages/ReviewPage"));
+const About = lazy(() => import("./pages/About"));
 
 function AppRoutes() {
   useScrollToTop();
@@ -106,6 +107,7 @@ function AppRoutes() {
             <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
             <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
             <Route path="/auth/magic" element={<ErrorBoundary><AuthMagicLink /></ErrorBoundary>} />
+            <Route path="/about" element={<ErrorBoundary><About /></ErrorBoundary>} />
             <Route path="/install" element={<ErrorBoundary><Install /></ErrorBoundary>} />
             <Route path="/dashboard" element={<ErrorBoundary><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/list-item" element={<ErrorBoundary><ProtectedRoute><ListItem /></ProtectedRoute></ErrorBoundary>} />

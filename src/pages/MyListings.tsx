@@ -19,6 +19,7 @@ import {
 import { EmptyStateV2 } from '@/components/EmptyStateV2';
 import SkeletonCard from '@/components/SkeletonCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import {
   Select,
@@ -370,8 +371,8 @@ export default function MyListings() {
                   <p className="text-xs text-muted-foreground mb-0.5">{t('listings.totalViews')}</p>
                   <p className="text-lg font-bold tabular-nums">{stats.totalViews}</p>
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
-                  <Eye className="h-5 w-5 text-sky-500" />
+                <div className="w-10 h-10 rounded-lg bg-action/10 flex items-center justify-center">
+                  <Eye className="h-5 w-5 text-action" />
                 </div>
               </GlassCard>
             </div>
@@ -479,7 +480,7 @@ export default function MyListings() {
               actionLabel={t('listings.createNew')}
               onAction={() => navigate('/list-item')}
               secondaryActionLabel="Learn How It Works"
-              onSecondaryAction={() => navigate('/#how-it-works')}
+              onSecondaryAction={() => navigate('/about')}
             />
           ) : (
             <div className={cn(
@@ -501,18 +502,18 @@ export default function MyListings() {
                   )}
                 >
                   <div className="relative">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedItems([...selectedItems, item.id]);
-                        } else {
-                          setSelectedItems(selectedItems.filter(id => id !== item.id));
-                        }
-                      }}
-                      className="absolute top-2 left-2 z-10 h-6 w-6 rounded border-background"
-                    />
+                    <label className="absolute top-2 left-2 z-10 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedItems([...selectedItems, item.id]);
+                          } else {
+                            setSelectedItems(selectedItems.filter(id => id !== item.id));
+                          }
+                        }}
+                      />
+                    </label>
                     {imageUrl && (
                       <img
                         src={imageUrl}

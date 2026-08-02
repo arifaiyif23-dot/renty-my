@@ -7,12 +7,7 @@ import { HeroSection } from "@/pages/index/HeroSection"
 import { CategoriesSection } from "@/pages/index/CategoriesSection"
 import { NewestListingsSection } from "@/pages/index/NewestListingsSection"
 import { RecentlyViewedSection } from "@/pages/index/RecentlyViewedSection"
-import { HowItWorksSection } from "@/pages/index/HowItWorksSection"
-import { WhyRentySection } from "@/pages/index/WhyRentySection"
-import { TrustStatsSection } from "@/pages/index/TrustStatsSection"
-import { TestimonialsSection } from "@/pages/index/TestimonialsSection"
 import { OwnerCTASection } from "@/pages/index/OwnerCTASection"
-import { AppDownloadSection } from "@/pages/index/AppDownloadSection"
 
 const Index = () => {
   const navigate = useNavigate()
@@ -24,7 +19,6 @@ const Index = () => {
     loading,
     categories,
     totalItemCount,
-    trustStats,
     recentlyViewed,
   } = useIndexData()
 
@@ -66,19 +60,7 @@ const Index = () => {
         <RecentlyViewedSection items={recentlyViewed} onNavigate={navigate} />
       )}
 
-      <HowItWorksSection />
-
-      <WhyRentySection />
-
-      {trustStats && <TrustStatsSection stats={trustStats} />}
-
-      <TestimonialsSection />
-
       <OwnerCTASection onNavigate={navigate} />
-
-      <div className="md:hidden">
-        <AppDownloadSection onNavigate={navigate} />
-      </div>
     </PageLayout>
   )
 }

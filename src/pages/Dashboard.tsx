@@ -27,12 +27,10 @@ export default function Dashboard() {
   const fetchStats = useCallback(async () => {
     if (!user) return;
     try {
-      const [rentalsData] = await Promise.all([
-        supabase.from('rentals').select('total_price, status').or(`owner_id.eq.${user.id},renter_id.eq.${user.id}`),
-      ]);
-      const activeRentals = (rentalsData.data || []).filter(r => ['confirmed', 'active', 'overdue'].includes(r.status)).length;
-      const pendingRequests = (rentalsData.data || []).filter(r => r.status === 'reserved' && r.owner_id === user.id).length;
-      const totalRevenue = (rentalsData.data || []).filter(r => r.status === 'completed' && r.owner_id === user.id).reduce((sum, r) => sum + Number(r.total_price || 0), 0);
+      const { data: rentalsData } = await supabase.from('rentals').select('total_price, status').or(`owner_id.eq.${user.id},renter_id.eq.${user.id}`);
+      const activeRentals = (rentalsData || []).filter(r => ['confirmed', 'active', 'overdue'].includes(r.status)).length;
+      const pendingRequests = (rentalsData || []).filter(r => r.status === 'reserved' && r.owner_id === user.id).length;
+      const totalRevenue = (rentalsData || []).filter(r => r.status === 'completed' && r.owner_id === user.id).reduce((sum, r) => sum + Number(r.total_price || 0), 0);
       setStats({ totalRevenue, activeRentals, pendingRequests });
     } catch { /* silent */ }
   }, [user]);
@@ -66,7 +64,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <PageLayout variant="default">
-        <div className="">
+        <div>
           <SkeletonV2 variant="text" className="h-8 w-48 mb-6" />
           <SkeletonV2 variant="card" className="h-48" />
         </div>

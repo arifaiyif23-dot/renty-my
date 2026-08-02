@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { SkeletonV2 } from "@/components/SkeletonV2"
 import { ChevronRight, Smartphone, Car, Wrench, Dumbbell, Music, Shirt, Package } from "lucide-react"
 import { motion } from "motion/react"
+import { ScrollReveal } from "@/components/ScrollReveal"
 import type { RawCategory } from "@/hooks/use-index-data"
 
 const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -43,13 +44,15 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
   return (
     <section className="px-4 py-10 md:py-16">
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">{t('home.categories.title')}</h2>
-          <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')} className="gap-1">
-            {t('home.categories.viewAll')}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <ScrollReveal>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-tight">{t('home.categories.title')}</h2>
+            <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')} className="gap-1">
+              {t('home.categories.viewAll')}
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </ScrollReveal>
         {categories.length > 0 ? (
           <>
             {/* Mobile: horizontal scroll */}
@@ -68,7 +71,7 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.4, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
                     onClick={() => onNavigate(`/search?category=${cat.name.toLowerCase()}`)}
-                    className="snap-start shrink-0 w-[140px] relative overflow-hidden rounded-2xl glass-elevated hover-lift active:scale-[0.98] transition-all duration-300 p-5 text-left"
+                    className="snap-start shrink-0 w-[140px] relative overflow-hidden rounded-2xl glass-elevated active:scale-[0.98] transition-transform duration-150 p-5 text-left"
                   >
                     <div className={`absolute inset-0 bg-gradient-to-br ${lighting} opacity-60 pointer-events-none`} />
                     <div className={`absolute -inset-2 rounded-full opacity-20 blur-2xl ${glassColor} pointer-events-none`} />
@@ -100,7 +103,7 @@ export function CategoriesSection({ categories, isLoading, onNavigate }: Categor
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.4, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
                     onClick={() => onNavigate(`/search?category=${cat.name.toLowerCase()}`)}
-                    className="relative overflow-hidden rounded-2xl glass-elevated hover-lift active:scale-[0.98] transition-all duration-300 p-5 text-left"
+                    className="relative overflow-hidden rounded-2xl glass-elevated active:scale-[0.98] transition-transform duration-150 p-5 text-left"
                   >
                     <div className={`absolute inset-0 bg-gradient-to-br ${lighting} opacity-60 pointer-events-none`} />
                     <div className={`absolute -inset-2 rounded-full opacity-20 blur-2xl ${glassColor} pointer-events-none`} />

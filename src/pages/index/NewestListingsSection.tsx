@@ -4,6 +4,7 @@ import { SkeletonV2 } from "@/components/SkeletonV2"
 import { EmptyStateV2 } from "@/components/EmptyStateV2"
 import { SearchSlash } from "lucide-react"
 import { motion } from "motion/react"
+import { ScrollReveal } from "@/components/ScrollReveal"
 import type { FeaturedItem } from "@/hooks/use-index-data"
 import { useTranslation } from 'react-i18next'
 
@@ -18,12 +19,14 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
   return (
     <section className="px-4 py-10 md:py-16">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">{t('home.newestListings.title')}</h2>
-          <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')}>
-            {t('home.newestListings.viewAll')}
-          </Button>
-        </div>
+        <ScrollReveal>
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-tight">{t('home.newestListings.title')}</h2>
+            <Button variant="ghost" size="sm" onClick={() => onNavigate('/search')}>
+              {t('home.newestListings.viewAll')}
+            </Button>
+          </div>
+        </ScrollReveal>
 
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4 sm:gap-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
@@ -39,7 +42,7 @@ export function NewestListingsSection({ items, isLoading, onNavigate }: NewestLi
           </div>
         ) : items.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 sm:gap-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
-            {items.map((item, i) => (
+            {items.slice(0, 6).map((item, i) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 16 }}

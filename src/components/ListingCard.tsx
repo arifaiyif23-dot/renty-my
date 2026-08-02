@@ -1,8 +1,9 @@
 import { memo, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Heart, Star, MapPin, Clock, BadgeCheck } from "lucide-react";
+import { Heart, MapPin, Clock, BadgeCheck } from "lucide-react";
 import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge";
+import { StarRating } from "@/components/StarRating";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -88,7 +89,7 @@ const ListingCard = memo(({
 
         {verificationLevel && verificationLevel !== 'unverified' && (
           <div className="absolute top-3 left-3">
-            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-emerald-700 dark:text-emerald-400 shadow-1">
+            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-success shadow-1">
               <BadgeCheck className="h-3 w-3" />
               Verified
             </div>
@@ -128,7 +129,7 @@ const ListingCard = memo(({
             className={cn(
               "h-4 w-4 transition-all duration-200",
               saved
-                ? "fill-red-500 text-red-500"
+                ? "fill-destructive text-destructive"
                 : "text-foreground/60"
             )}
           />
@@ -149,13 +150,7 @@ const ListingCard = memo(({
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
           {rating > 0 && (
-            <span className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              <span className="font-semibold tabular-nums">{rating.toFixed(1)}</span>
-              {reviewCount > 0 && (
-                <span>({reviewCount})</span>
-              )}
-            </span>
+            <StarRating rating={rating} reviewCount={reviewCount} />
           )}
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5 text-success" />

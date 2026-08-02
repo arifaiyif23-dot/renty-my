@@ -379,8 +379,8 @@ const { t } = useTranslation();
               <p className="text-2xl font-bold tabular-nums">RM {stats.paidAmount.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{t('earnings.completedCount', { count: stats.completedPayouts })}</p>
             </div>
-            <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-sky-500" />
+            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-success" />
             </div>
           </GlassCard>
         </div>

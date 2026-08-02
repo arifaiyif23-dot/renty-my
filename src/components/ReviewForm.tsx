@@ -156,7 +156,7 @@ export const ReviewForm = ({ rentalId, revieweeId, onSuccess }: ReviewFormProps)
               <Star
                 className={`h-8 w-8 ${
                   star <= (hoveredRating || rating)
-                    ? 'fill-amber-400 text-amber-400'
+                    ? 'fill-warning text-warning'
                     : 'text-muted'
                 }`}
               />

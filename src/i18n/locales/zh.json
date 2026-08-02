@@ -1,4 +1,9 @@
 {
+  "about": {
+    "title": "关于 Renty",
+    "description": "Renty 是马来西亚值得信赖的 P2P 租赁市场。借你需要的，列出你拥有的，一起省钱。",
+    "headline": "租什么都可以。向任何人租借。在马来西亚。"
+  },
   "analytics": {
     "allTime": "全部时间",
     "avgRentalDuration": "平均租赁时长",
@@ -493,6 +498,7 @@
     "signInToMessage": "请登录以给业主发消息",
     "signInToUsePromo": "请登录以使用促销代码",
     "similarItems": "相似物品",
+    "showLess": "收起",
     "strictCancellation": "严格取消",
     "theOwner": "业主",
     "total": "总计",
@@ -802,6 +808,9 @@
     "manageListing": "管理我的列表",
     "myProfile": "我的资料",
     "settings": "设置",
+    "trusted": "可信",
+    "normal": "普通",
+    "newUser": "新用户",
     "verification": "验证",
     "wallet": "钱包"
   },

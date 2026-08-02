@@ -1,5 +1,10 @@
 {
   "acceptedPayments": "Accepted Payment Methods",
+  "about": {
+    "title": "About Renty",
+    "description": "Renty is Malaysia's trusted peer-to-peer rental marketplace. Borrow what you need, list what you own, and save money together.",
+    "headline": "Rent anything. From anyone. In Malaysia."
+  },
   "analytics": {
     "allTime": "All Time",
     "avgRentalDuration": "Avg. Rental Duration",
@@ -493,7 +498,8 @@
     "promoLabel": "Promo",
     "remove": "Remove",
     "reportItem": "Report Item",
-    "requestBooking": "Request Booking",
+    "readMore": "Read more",
+    "requestBooking": "Request to Book",
     "requestSent": "Request sent to owner!",
     "reviewBeforeConfirm": "Please review your booking details before confirming:",
     "reviewBeforeSend": "Please review your request details before sending:",
@@ -510,6 +516,7 @@
     "signInToMessage": "Please sign in to message the owner",
     "signInToUsePromo": "Please sign in to use a promo code",
     "similarItems": "Similar Items",
+    "showLess": "Show less",
     "strictCancellation": "Strict cancellation",
     "theOwner": "the Owner",
     "total": "Total",
@@ -821,6 +828,9 @@
     "manageListing": "Manage My Listings",
     "myProfile": "My Profile",
     "settings": "Settings",
+    "trusted": "Trusted",
+    "normal": "Normal",
+    "newUser": "New User",
     "verification": "Verification",
     "wallet": "Wallet"
   },

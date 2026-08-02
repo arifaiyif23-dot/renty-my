@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Star, ThumbsUp, MessageSquare } from "lucide-react";
+import { ThumbsUp, MessageSquare, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
+import { StarRating } from "@/components/StarRating";
 
 interface ReviewsListProps {
   itemId?: string;
@@ -165,8 +166,12 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
 
   if (reviews.length === 0) {
     return (
-      <div className="text-center text-muted-foreground py-8">
-        No reviews yet
+      <div className="text-center py-8">
+        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mx-auto mb-3">
+          <MessageCircle className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <h3 className="font-semibold mb-1">No reviews yet</h3>
+        <p className="text-sm text-muted-foreground">Be the first to leave a review</p>
       </div>
     );
   }
@@ -175,10 +180,8 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex items-center">
-            <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
-            <span className="ml-2 text-2xl font-bold">{averageRating.toFixed(1)}</span>
-          </div>
+          <StarRating rating={averageRating} size="lg" showValue={false} />
+          <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
           <span className="text-muted-foreground">({reviews.length} reviews)</span>
         </div>
         <Select value={sortBy} onValueChange={(v: 'recent' | 'highest' | 'lowest') => setSortBy(v)}>
@@ -209,18 +212,7 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-semibold">{review.reviewer?.full_name}</div>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < review.rating
-                                ? 'fill-amber-400 text-amber-400'
-                                : 'text-muted'
-                            }`}
-                          />
-                        ))}
-                      </div>
+                      <StarRating rating={review.rating} showValue={false} />
                     </div>
                     {review.comment && (
                       <p className="text-sm text-muted-foreground mb-2">{review.comment}</p>

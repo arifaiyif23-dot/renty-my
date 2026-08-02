@@ -372,7 +372,7 @@ export default function Search() {
             {searchQuery && (
               <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {searchQuery}
-                <button type="button" onClick={() => setSearchQuery('')} className="-m-1 p-1">
+                <button type="button" onClick={() => setSearchQuery('')} className="-m-1 p-1" aria-label={`Remove search: ${searchQuery}`}>
                   <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
@@ -380,7 +380,7 @@ export default function Search() {
             {category !== 'all' && (
               <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {category}
-                <button type="button" onClick={() => setCategory('all')} className="-m-1 p-1">
+                <button type="button" onClick={() => setCategory('all')} className="-m-1 p-1" aria-label={`Remove category: ${category}`}>
                   <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
@@ -388,7 +388,7 @@ export default function Search() {
             {minPrice && (
               <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 Min RM{minPrice}
-                <button type="button" onClick={() => setMinPrice('')} className="-m-1 p-1">
+                <button type="button" onClick={() => setMinPrice('')} className="-m-1 p-1" aria-label={`Remove minimum price: RM${minPrice}`}>
                   <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
@@ -396,7 +396,7 @@ export default function Search() {
             {maxPrice && (
               <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 Max RM{maxPrice}
-                <button type="button" onClick={() => setMaxPrice('')} className="-m-1 p-1">
+                <button type="button" onClick={() => setMaxPrice('')} className="-m-1 p-1" aria-label={`Remove maximum price: RM${maxPrice}`}>
                   <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
@@ -404,7 +404,7 @@ export default function Search() {
             {userLocation && userLocation !== 'all' && (
               <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {userLocation}
-                <button type="button" onClick={() => setUserLocation('')} className="-m-1 p-1">
+                <button type="button" onClick={() => setUserLocation('')} className="-m-1 p-1" aria-label={`Remove location: ${userLocation}`}>
                   <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>
@@ -412,7 +412,7 @@ export default function Search() {
             {dateRange?.from && dateRange?.to && (
               <Badge variant="outline" className="gap-1 rounded-full text-[11px] py-0 h-6">
                 {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
-                <button type="button" onClick={() => setDateRange(undefined)} className="-m-1 p-1">
+                <button type="button" onClick={() => setDateRange(undefined)} className="-m-1 p-1" aria-label="Remove date range">
                   <X className="h-2.5 w-2.5" />
                 </button>
               </Badge>

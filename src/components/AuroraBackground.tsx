@@ -29,16 +29,18 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
     let animationId: number;
     let time = 0;
     const particles: Particle[] = [];
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 12 : 30;
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+      canvas.width = canvas.offsetWidth * (isMobile ? 1 : window.devicePixelRatio);
+      canvas.height = canvas.offsetHeight * (isMobile ? 1 : window.devicePixelRatio);
+      if (!isMobile) ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
     resize();
     window.addEventListener("resize", resize);
 
-    // Initialize particles
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random(),
         y: Math.random(),
@@ -50,12 +52,11 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
     }
 
     const draw = () => {
-      time += 0.002;
-      const w = canvas.width;
-      const h = canvas.height;
+      time += 0.0015;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
       ctx.clearRect(0, 0, w, h);
 
-      // Aurora blobs — Apple-inspired blue/purple/green
       const blobs = [
         { x: 0.15, y: 0.25, r: 0.45, color: "hsla(217, 80%, 54%, 0.15)" },
         { x: 0.85, y: 0.45, r: 0.4, color: "hsla(280, 60%, 50%, 0.12)" },
@@ -79,7 +80,6 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
         ctx.fill();
       });
 
-      // Subtle particle sparkle
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -113,8 +113,10 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ willChange: "transform" }}
         aria-hidden="true"
       />
+      <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 h-full">{children}</div>
     </div>
   );

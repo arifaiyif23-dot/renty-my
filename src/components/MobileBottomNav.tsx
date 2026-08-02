@@ -23,7 +23,9 @@ const MobileBottomNav = () => {
     >
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = item.path === '/'
+            ? location.pathname === '/'
+            : location.pathname.startsWith(item.path);
           return (
             <Link
               key={item.key}

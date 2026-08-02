@@ -1,5 +1,4 @@
 import { SearchBarV2 } from "@/components/SearchBarV2"
-import { AuroraBackground } from "@/components/AuroraBackground"
 import { ShieldCheck, Lock, Users } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +8,8 @@ interface HeroSectionProps {
   totalItemCount: number
   onListOrAuth: () => void
 }
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 const trustItems = [
   { icon: ShieldCheck, label: "trust1" },
@@ -21,13 +22,12 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
   const trustLabels = t('home.hero.trustItems', { returnObjects: true }) as string[]
 
   return (
-    <AuroraBackground variant="hero" className="min-h-0">
-    <section className="relative overflow-hidden">
-      <div className="mx-auto max-w-5xl px-4 pt-16 md:pt-24 pb-0">
+    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-action/5">
+      <div className="mx-auto max-w-5xl px-4 pt-16 md:pt-24 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.5, ease: EASE }}
           className="flex flex-col items-center text-center"
         >
           <h1 className="mb-5 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.05] max-w-3xl">
@@ -44,18 +44,18 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
             <SearchBarV2 variant="hero" />
           </div>
 
-          <Button variant="brand" size="lg" className="gap-2 shadow-2 rounded-2xl h-12 px-8" onClick={onListOrAuth}>
+          <Button
+            variant="brand"
+            size="lg"
+            className="gap-2 shadow-2 rounded-2xl h-12 px-8"
+            onClick={onListOrAuth}
+          >
             {t('listItem.title')}
           </Button>
         </motion.div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="border-t border-border/50 mt-12 md:mt-16"
-      >
+      <div className="border-t border-border/50">
         <div className="mx-auto max-w-7xl px-4 py-5">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center font-medium text-foreground/70">
@@ -72,8 +72,7 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
             })}
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
-    </AuroraBackground>
   )
 }
