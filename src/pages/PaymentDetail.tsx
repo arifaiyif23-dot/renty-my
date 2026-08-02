@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLayout } from "@/components/PageLayout";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
@@ -61,7 +60,7 @@ export default function PaymentDetail() {
           <ArrowLeft className="h-4 w-4 mr-2" /> {t('common.back')}
         </Button>
 
-        <GlassCard className="p-5 space-y-5">
+        <div className="card-base p-5 space-y-5 rounded-lg">
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-lg font-semibold">{t('paymentDetail.title')}</h1>

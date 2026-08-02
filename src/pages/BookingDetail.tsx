@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Rental } from "@/types";
 import { PageLayout } from "@/components/PageLayout";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { RentalTimeline } from "@/components/RentalTimeline";
 import { PayNowButton } from "@/components/PayNowButton";
@@ -112,7 +111,7 @@ export default function BookingDetail() {
           <ArrowLeft className="h-4 w-4 mr-2" /> {t('bookingDetail.back')}
         </Button>
 
-        <GlassCard className="p-5 space-y-5">
+        <div className="card-base p-5 space-y-5 rounded-lg">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               {rental.item?.images?.[0]?.image_url && (
@@ -201,7 +200,7 @@ export default function BookingDetail() {
               <Ban className="h-4 w-4 mr-2" />{t('bookingDetail.cancelBooking')}
             </Button>
           )}
-        </GlassCard>
+        </div>
 
       <AlertDialog open={cancelDialog} onOpenChange={setCancelDialog}>
         <AlertDialogContent>

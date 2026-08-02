@@ -312,14 +312,14 @@ export default function Auth() {
                           </Button>
                         </div>
                       </div>
-                      <div className="flex items-start gap-2">
+                      <label className="flex items-start gap-2 min-h-[44px] cursor-pointer">
                         <Checkbox id="signup-terms" checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
                         <Label htmlFor="signup-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
                           I accept the{' '}
                           <Link to="/terms" target="_blank" className="text-primary underline underline-offset-2">Terms</Link> and{' '}
                           <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2">Privacy Policy</Link>
                         </Label>
-                      </div>
+                      </label>
                       <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading || !acceptedTerms}>
                         {isLoading ? 'Creating account...' : 'Create Account'}
                       </Button>
