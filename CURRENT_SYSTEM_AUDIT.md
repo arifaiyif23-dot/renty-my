@@ -67,3 +67,21 @@
 - Overlap RPC (latest `20260802000001`): **status list CORRECT** (`payment_pending/reserved/confirmed/active` — matches new ENUM), time-aware (pickup/return times), advisory-lock serialized, `requested` intentionally excluded (SOP design)
 - Client status changes all go through DB triggers (MyListings archive/pause, AdminListings toggle) — cannot bypass machine
 - Booking event logger: `log_booking_event` trigger writes `booking_events` on every status change
+
+## 7. Phase 4-7 Deep Audit Results (2026-08-02)
+
+### Phase 4 — Booking System: ✅ NO CRITICAL GAPS
+- `process-rental-approval`: owner-only + suspension check; **status guard `reserved` with atomic update** (`.eq('status','reserved')` + check returned row — TOCTOU proof); **time-aware overlap re-check before approve** (rejects double-booking); **agreement mandatory** (approve requires `rental_agreements` row); reject → **auto refund payout** (real `payouts` row, pending) + notifications
+- `cancel-booking`: renter-only, status allowlist `[requested, payment_pending, reserved]`, atomic guard, reserved→refund payout
+- `expire_stale_bookings`: requested → 30min, payment_pending → 30min, reserved → 48h (auto-cancel, cron)
+
+### Phase 5 — Payment System: ✅ NO CRITICAL GAPS
+- `payment-callback`: **authoritative ToyyibPay `getBillTransactions` verification** (never trusts URL params); **fail-closed** (verification unavailable → 503, no auto-approve); `.eq('status','pending')` on all updates (no double-process); paid → rental `reserved` only from `payment_pending`; failed → payment `failed` + rental `cancelled`; full `payment_flow_logs` trail
+- `create-payment`: Zod validation; rental must be `requested` + renter-only; **promo validated server-side** (active/expiry/max_uses/per-user); **`acquire_payment_lock` RPC** (anti double-process); **idempotency key** (retry-safe); **price from DB not client** (`rental.total_price`); platform fee from `platform_settings`; 409 on existing open payment; 24h expiry
+
+### Phase 6 — Deposit: ✅ covered by payment/payout flow (deposit in `payments.deposit_amount` tracked; release via `resolve-dispute`/`complete-rental` creating real `payouts` rows)
+
+### Phase 7 — Handover & Return: ✅ NO CRITICAL GAPS
+- `confirm-handover`: owner-only, status `confirmed` guard, **pickup-code verification** (4-digit), handover photos, atomic `status: 'active'`
+- `submit-inspection`: owner-only, `inspection_pending` guard, result allowlist `[available, maintenance, damaged, disputed]`, RPC transition (respects item status machine)
+- `complete-rental` edge fn: server-side state machine (owner confirms/disputes return) — no client-direct `rentals.update` bypass
