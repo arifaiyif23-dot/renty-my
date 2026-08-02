@@ -107,7 +107,7 @@ export default function PaymentDetail() {
               {t('paymentDetail.viewBooking')}
             </Button>
           )}
-        </GlassCard>
+        </div>
     </PageLayout>
   );
 }
