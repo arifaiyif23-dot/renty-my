@@ -279,7 +279,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
                     </Select>
                   </div>
                   {items.length > 1 && (
-                    <Button variant="ghost" size="icon" className="h-9 w-9 mt-5 shrink-0" onClick={() => removeItem(item.id)}>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 mt-5 shrink-0" onClick={() => removeItem(item.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   )}

@@ -193,7 +193,7 @@ export default function SavedSearches() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-lg h-9 w-9"
+                      className="rounded-lg h-10 w-10"
                       onClick={() => {
                         setEditSearch(search);
                         setLabelInput(search.label || "");
@@ -204,7 +204,7 @@ export default function SavedSearches() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-lg h-9 w-9"
+                      className="rounded-lg h-10 w-10"
                       onClick={() => toggleNotify(search)}
                     >
                       {search.notify_on_new ? (
@@ -216,7 +216,7 @@ export default function SavedSearches() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-lg h-9 w-9"
+                      className="rounded-lg h-10 w-10"
                       onClick={() => setDeleteId(search.id)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
