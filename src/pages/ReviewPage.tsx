@@ -63,10 +63,10 @@ export default function ReviewPage() {
         </GlassCard>
 
         {canReview && !submitted && (
-          <GlassCard className="p-5">
+          <div className="card-base rounded-lg p-5">
             <h2 className="text-sm font-semibold mb-4 flex items-center gap-2"><Star className="h-4 w-4" /> Rate your experience</h2>
             <ReviewForm rentalId={rental.id} revieweeId={revieweeId} onSuccess={() => setSubmitted(true)} />
-          </GlassCard>
+          </div>
         )}
 
         {!canReview && (
