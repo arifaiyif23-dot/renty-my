@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageLayout } from "@/components/PageLayout";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonV2 } from "@/components/SkeletonV2";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
@@ -77,7 +77,27 @@ export default function RentalAgreement() {
     })();
   }, [id]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <PageLayout variant="narrow">
+        <div className="space-y-4">
+          <SkeletonV2 variant="text" className="h-8 w-48" />
+          <div className="card-base p-6 space-y-4 rounded-lg">
+            <SkeletonV2 variant="text" className="h-5 w-2/3" />
+            <SkeletonV2 variant="text" className="h-4 w-full" />
+            <SkeletonV2 variant="text" className="h-4 w-full" />
+            <SkeletonV2 variant="text" className="h-4 w-5/6" />
+            <div className="space-y-3 pt-4 border-t">
+              {[...Array(5)].map((_, i) => (
+                <SkeletonV2 key={i} variant="text" className="h-3 w-full" />
+              ))}
+            </div>
+            <SkeletonV2 variant="rectangular" className="h-10 rounded-lg" />
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   if (!agreement) {
     return (

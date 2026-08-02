@@ -6,7 +6,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-react";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonV2 } from "@/components/SkeletonV2";
 import { format } from "date-fns";
 import { formatRentalPeriod } from "@/lib/rentalTime";
 
@@ -35,7 +35,29 @@ export default function PaymentDetail() {
     })();
   }, [id]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <PageLayout variant="narrow">
+        <SkeletonV2 variant="text" className="h-8 w-32 mb-4" />
+        <div className="card-base p-5 space-y-5 rounded-lg">
+          <div className="flex items-start justify-between">
+            <SkeletonV2 variant="text" className="h-6 w-40" />
+            <SkeletonV2 variant="text" className="h-6 w-20" />
+          </div>
+          <div className="flex items-center gap-3">
+            <SkeletonV2 variant="rectangular" className="w-12 h-12 rounded-lg" />
+            <SkeletonV2 variant="text" className="h-4 w-2/3" />
+          </div>
+          <div className="space-y-2 border-t pt-3">
+            <SkeletonV2 variant="text" className="h-4 w-full" />
+            <SkeletonV2 variant="text" className="h-4 w-full" />
+            <SkeletonV2 variant="text" className="h-5 w-1/2" />
+          </div>
+          <SkeletonV2 variant="rectangular" className="h-10 rounded-lg" />
+        </div>
+      </PageLayout>
+    );
+  }
   if (error || !payment) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('paymentDetail.notFound')}</p></div>;
 
   const statusIcon: Record<string, JSX.Element> = {

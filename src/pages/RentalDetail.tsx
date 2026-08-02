@@ -12,7 +12,7 @@ import { HandoverDialog } from "@/components/HandoverDialog";
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { RentalStatusBadge } from "@/components/RentalStatusBadge";
 import { ArrowLeft, Calendar, DollarSign, User, Camera, CheckCircle } from "lucide-react";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonV2 } from "@/components/SkeletonV2";
 import { format } from "date-fns";
 import { formatRentalPeriod } from "@/lib/rentalTime";
 
@@ -47,7 +47,28 @@ export default function RentalDetail() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <PageLayout variant="narrow">
+        <SkeletonV2 variant="text" className="h-8 w-32 mb-4" />
+        <div className="flex items-center gap-3 mb-5">
+          <SkeletonV2 variant="rectangular" className="w-16 h-16 rounded-lg" />
+          <div className="space-y-2 flex-1">
+            <SkeletonV2 variant="text" className="h-5 w-2/3" />
+            <SkeletonV2 variant="text" className="h-4 w-24" />
+          </div>
+        </div>
+        <div className="card-base p-5 space-y-5 rounded-lg mb-4">
+          <SkeletonV2 variant="rectangular" className="h-24 rounded-lg" />
+          <div className="grid grid-cols-2 gap-4">
+            <SkeletonV2 variant="text" className="h-4 w-full" />
+            <SkeletonV2 variant="text" className="h-4 w-full" />
+          </div>
+          <SkeletonV2 variant="rectangular" className="h-10 rounded-lg" />
+        </div>
+      </PageLayout>
+    );
+  }
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('rentalDetail.notFound')}</p></div>;
 
   const isOwner = user?.id === rental.owner_id;

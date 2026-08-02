@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { RentalTimeline } from "@/components/RentalTimeline";
 import { PayNowButton } from "@/components/PayNowButton";
 import { RentalStatusBadge } from "@/components/RentalStatusBadge";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonV2 } from "@/components/SkeletonV2";
 import { ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban, FileText } from "lucide-react";
 import { formatRentalPeriod } from "@/lib/rentalTime";
 import { toast } from "sonner";
@@ -70,7 +70,30 @@ export default function BookingDetail() {
     return () => clearInterval(interval);
   }, [id, rental?.status]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <PageLayout variant="narrow">
+        <div className="space-y-4">
+          <SkeletonV2 variant="text" className="h-8 w-40" />
+          <div className="card-base p-5 space-y-5 rounded-lg">
+            <div className="flex items-center gap-3">
+              <SkeletonV2 variant="rectangular" className="w-16 h-16 rounded-lg" />
+              <div className="space-y-2 flex-1">
+                <SkeletonV2 variant="text" className="h-5 w-2/3" />
+                <SkeletonV2 variant="text" className="h-4 w-1/3" />
+              </div>
+            </div>
+            <SkeletonV2 variant="rectangular" className="h-24 rounded-lg" />
+            <div className="grid grid-cols-2 gap-4">
+              <SkeletonV2 variant="text" className="h-4 w-full" />
+              <SkeletonV2 variant="text" className="h-4 w-full" />
+            </div>
+            <SkeletonV2 variant="rectangular" className="h-10 rounded-lg" />
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('bookingDetail.notFound')}</p></div>;
 
   const isOwner = user?.id === rental.owner_id;

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewsList } from "@/components/ReviewsList";
 import { ArrowLeft, Star } from "lucide-react";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { SkeletonV2 } from "@/components/SkeletonV2";
 import { formatRentalPeriod } from "@/lib/rentalTime";
 
 export default function ReviewPage() {
@@ -37,7 +37,28 @@ export default function ReviewPage() {
     })();
   }, [rentalId]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <PageLayout variant="narrow">
+        <SkeletonV2 variant="text" className="h-8 w-32 mb-4" />
+        <div className="card-base p-5 space-y-4 rounded-lg mb-4">
+          <div className="flex items-center gap-3">
+            <SkeletonV2 variant="rectangular" className="w-14 h-14 rounded-lg" />
+            <div className="space-y-2 flex-1">
+              <SkeletonV2 variant="text" className="h-5 w-2/3" />
+              <SkeletonV2 variant="text" className="h-4 w-1/2" />
+            </div>
+          </div>
+          <SkeletonV2 variant="text" className="h-4 w-full" />
+          <SkeletonV2 variant="text" className="h-4 w-3/4" />
+        </div>
+        <div className="card-base p-5 space-y-3 rounded-lg">
+          <SkeletonV2 variant="text" className="h-5 w-1/3" />
+          <SkeletonV2 variant="rectangular" className="h-24 rounded-lg" />
+        </div>
+      </PageLayout>
+    );
+  }
   if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Rental not found</p></div>;
 
   const canReview = ["completed", "disputed"].includes(rental.status);
