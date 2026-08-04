@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
       
       - name: Pin npm (fix "Exit handler never called" GH Actions bug)
         run: npm install -g npm@10.8.1
