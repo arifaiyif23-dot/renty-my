@@ -89,7 +89,7 @@ const ListingCard = memo(({
 
         {verificationLevel && verificationLevel !== 'unverified' && (
           <div className="absolute top-3 left-3">
-            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-success shadow-1">
+            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-success shadow-1 border border-success/30">
               <BadgeCheck className="h-3 w-3" />
               Verified
             </div>
@@ -136,15 +136,15 @@ const ListingCard = memo(({
         </button>
 
         {pricePerDay > 0 && (
-          <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-1">
-            <span className="font-bold text-sm tabular-nums">RM{pricePerDay}</span>
+          <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1 shadow-1">
+            <span className="font-bold text-sm tabular-nums text-primary">RM{pricePerDay}</span>
             <span className="text-xs text-muted-foreground">/day</span>
           </div>
         )}
       </div>
 
       <div className="p-3.5 sm:p-4">
-        <h3 className="font-semibold text-sm sm:text-base leading-snug line-clamp-1 mb-2">
+        <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-1 mb-2">
           {title}
         </h3>
 
@@ -163,7 +163,7 @@ const ListingCard = memo(({
             <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{location}</span>
             {distance !== undefined && (
-              <span className="tabular-nums shrink-0">· {distance} km</span>
+              <span className="tabular-nums shrink-0 text-foreground/60">· {distance} km</span>
             )}
           </div>
         )}

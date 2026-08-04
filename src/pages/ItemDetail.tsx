@@ -523,15 +523,22 @@ export default function ItemDetail() {
               )}
 
               {user?.id !== item.owner_id && (
-                <Button
-                  className="w-full h-12 font-semibold"
-                  onClick={handleBooking}
-                  disabled={!dateRange?.from || !dateRange?.to || isBooking || (!!user && !profile?.is_verified)}
-                >
-                  {isBooking ? (
-                    <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t('itemDetail.processing')}</span>
-                  ) : item.instant_book_enabled ? t('itemDetail.confirmInstantBooking') : t('itemDetail.requestBooking')}
-                </Button>
+                <>
+                  <Button
+                    className="w-full h-12 font-semibold"
+                    onClick={handleBooking}
+                    disabled={!dateRange?.from || !dateRange?.to || isBooking || (!!user && !profile?.is_verified)}
+                  >
+                    {isBooking ? (
+                      <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t('itemDetail.processing')}</span>
+                    ) : item.instant_book_enabled ? t('itemDetail.confirmInstantBooking') : t('itemDetail.requestBooking')}
+                  </Button>
+                  {!dateRange?.from && !isBooking && !(user && !profile?.is_verified) && (
+                    <p className="mt-2 text-xs text-muted-foreground text-center">
+                      {t('itemDetail.selectDatesHelper')}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
