@@ -13,6 +13,8 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+      - name: Pin npm (fix "Exit handler never called" GH Actions bug)
+        run: npm install -g npm@10.8.1
       - run: npm ci
       - run: npm run build
       - name: Deploy to Vercel
