@@ -1,5 +1,5 @@
 import { SearchBarV2 } from "@/components/SearchBarV2"
-import { ShieldCheck, Lock, Users } from "lucide-react"
+import { ShieldCheck, Lock, Users, Plus } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from 'react-i18next'
@@ -50,6 +50,7 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
             className="gap-2 shadow-2 rounded-2xl h-12 px-8"
             onClick={onListOrAuth}
           >
+            <Plus className="h-5 w-5" />
             {t('listItem.title')}
           </Button>
         </motion.div>
