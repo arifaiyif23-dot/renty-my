@@ -42,3 +42,4 @@ ios/
 
 # 3D Models (too large for git, served from public/ at deploy time)
 public/models/
+NUL
