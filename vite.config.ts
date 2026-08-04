@@ -102,6 +102,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: 'es2019',
     sourcemap: 'hidden',
     rollupOptions: {
       output: {
