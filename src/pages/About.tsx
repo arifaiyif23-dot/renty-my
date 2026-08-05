@@ -37,7 +37,9 @@ const About = () => {
 
       <WhyRentySection />
 
-      {trustStats && <TrustStatsSection stats={trustStats} />}
+      {/* Only show stats when there's real activity — a row of zeros
+          ("0 Verified members, 0 Successful rentals, — rating") kills trust. */}
+      {trustStats && (trustStats.completedRentals > 0 || trustStats.totalUsers > 0 || trustStats.reviewCount > 0) && <TrustStatsSection stats={trustStats} />}
 
       <TestimonialsSection />
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -194,8 +194,13 @@ export default function Search() {
     setInitialLoading(true);
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
+  // Clear initialLoading only after the FIRST fetch actually completes.
+  // Without the hasStarted gate, the effect fires on mount (loading=false) and
+  // kills the skeleton before the first fetch begins → "No Items Found" flash.
+  const hasStartedRef = useRef(false);
   useEffect(() => {
-    if (!loading && initialLoading) {
+    if (loading) hasStartedRef.current = true;
+    if (!loading && initialLoading && hasStartedRef.current) {
       setInitialLoading(false);
     }
   }, [loading, initialLoading]);
@@ -212,10 +217,6 @@ export default function Search() {
     if (location) setUserLocation(location);
     if (categoryParam) setCategory(categoryParam as ItemCategory | 'all');
   }, [searchParams]);
-
-  useEffect(() => {
-    setInitialLoading(false);
-  }, []);
 
   const saveSearch = (query: string) => {
     if (!query.trim()) return;
