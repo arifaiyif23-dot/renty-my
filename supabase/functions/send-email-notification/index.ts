@@ -54,9 +54,37 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Fail-closed auth: caller must present EITHER a matching webhook secret
+    // (DB/webhook integrations) OR an admin JWT (Admin Health "send test email").
+    // Previously the guard was skipped entirely when WEBHOOK_SECRET env was
+    // unset — anyone could send arbitrary emails as Renty (spam vector).
     const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
     const requestSecret = req.headers.get('x-webhook-secret');
-    if (webhookSecret && (!requestSecret || requestSecret !== webhookSecret)) {
+    const secretOk = !!webhookSecret && requestSecret === webhookSecret;
+
+    const authHeader = req.headers.get('Authorization');
+    let isAdmin = false;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+        if (!error && user) {
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .in('role', ['admin', 'super_admin'])
+            .maybeSingle();
+          isAdmin = !!roles;
+        }
+      } catch { /* fall through to fail-closed check */ }
+    }
+
+    if (!secretOk && !isAdmin) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -66,10 +94,6 @@ serve(async (req) => {
     }
 
     const resend = new Resend(resendApiKey);
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
     
     const fromEmail = getFromEmail();
     console.log(`Using FROM email: ${fromEmail}`);

@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     const bucket = sanitizedPath.split('/')[0];
     
     // Validate bucket is a known name (not empty or malformed)
-    const allowedBuckets = ['verification-documents', 'item-images', 'receipts', 'rental-evidence'];
+    const allowedBuckets = ['verification-documents', 'item-images', 'rental-evidence'];
     if (!allowedBuckets.includes(bucket)) {
       throw new Error(`Invalid bucket: ${bucket}`);
     }
@@ -104,6 +104,32 @@ Deno.serve(async (req) => {
       
       if (!isOwner && !isAdmin) {
         throw new Error('Forbidden: You do not have access to this image');
+      }
+    }
+
+    // For rental-evidence, verify the user is a rental participant (renter or
+    // owner) or admin. Path formats: "{rentalId}/..." or "{userId}/{rentalId}/..."
+    if (bucket === 'rental-evidence') {
+      const parts = sanitizedPath.split('/');
+      const candidateIds = [parts[0], parts[1]].filter(Boolean);
+      if (candidateIds.length === 0) {
+        throw new Error('Invalid evidence path');
+      }
+      const { data: rentals } = await supabase
+        .from('rentals')
+        .select('id')
+        .in('id', candidateIds)
+        .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
+      const isParticipant = !!rentals && rentals.length > 0;
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'super_admin'])
+        .maybeSingle();
+      const isAdmin = !!roles;
+      if (!isParticipant && !isAdmin) {
+        throw new Error('Forbidden: You do not have access to this evidence');
       }
     }
 

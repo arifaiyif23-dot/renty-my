@@ -65,6 +65,28 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Require an authenticated admin/moderator caller — invoked from the admin
+    // UI (use-admin-verification-actions). Without this check ANY anonymous
+    // caller could spam verification emails as Renty (spam/phishing vector).
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Unauthorized: missing bearer token');
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: caller }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !caller) {
+      throw new Error('Unauthorized: invalid token');
+    }
+    const { data: callerRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', caller.id)
+      .in('role', ['admin', 'super_admin', 'moderator'])
+      .maybeSingle();
+    if (!callerRole) {
+      throw new Error('Forbidden: admin only');
+    }
+
     const fromEmail = getFromEmail();
     const { userId, status, rejectionReason } = await req.json();
 
@@ -225,11 +247,12 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Verification email error:', error);
     const message = error.message || 'Failed to send verification email';
-    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Verification');
+    const isExpected = message.startsWith('Missing') || message.startsWith('Unauthorized') || message.startsWith('Forbidden') || message.startsWith('Verification');
+    const status = message.startsWith('Unauthorized') ? 401 : message.startsWith('Forbidden') ? 403 : 500;
     return new Response(
       JSON.stringify({ error: isExpected ? message : 'An unexpected error occurred. Please try again.' }),
       { 
-        status: 500, 
+        status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
