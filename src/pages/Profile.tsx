@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from 'react-router-dom';
@@ -28,6 +29,7 @@ import { useActiveStatus } from "@/hooks/use-active-status";
 import { getSrcSet } from "@/utils/imageOptimization";
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { user, profile, error: authError } = useAuth();
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -58,8 +60,8 @@ export default function Profile() {
   if (authError && !profile) {
     return (
       <PageLayout variant="narrow" className="text-center py-12">
-          <p className="text-muted-foreground">Failed to load profile</p>
-          <Button onClick={() => window.location.reload()} variant="outline" size="sm" className="mt-3">Try Again</Button>
+          <p className="text-muted-foreground">{t('profile.failedToLoad')}</p>
+          <Button onClick={() => window.location.reload()} variant="outline" size="sm" className="mt-3">{t('common.tryAgain')}</Button>
       </PageLayout>
     );
   }

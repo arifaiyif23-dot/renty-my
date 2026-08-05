@@ -296,7 +296,7 @@
       "heading1": "Tak perlu beli semua.",
       "heading2": "Sewa apa yang anda perlukan.",
       "itemsAvailable": "{{count}}+ barang tersedia.",
-      "tagline": "Platform Sewaan No.1 Malaysia",
+      "tagline": "Platform Sewaan Dipercayai Malaysia",
       "trustItems": [
         "Pengguna Disahkan",
         "Bayaran Selamat",
@@ -305,7 +305,7 @@
     },
     "howItWorks": {
       "step1": {
-        "description": "Layan beribu-ribu barangan dari kamera hingga peralatan. Tapis mengikut lokasi, kategori dan harga.",
+        "description": "Layari beribu-ribu barangan dari kamera hingga peralatan. Tapis mengikut lokasi, kategori dan harga.",
         "title": "Cari apa yang anda perlukan"
       },
       "step2": {
@@ -356,8 +356,8 @@
       "verifiedMembers": "Ahli disahkan"
     },
     "testimonials": {
-      "subtitle": "Kisah benar daripada komuniti Renty di seluruh Malaysia",
-      "title": "Apa kata pengguna kami"
+      "subtitle": "Daripada kamera ke mesin gerudi — barangan harian yang orang sewa & pinjamkan.",
+      "title": "Kenapa orang guna Renty"
     },
     "welcome": {
       "active": "Sewaan aktif",
@@ -604,7 +604,7 @@
     "cancellationPolicy": "Dasar Pembatalan",
     "completeInspection": "Selesaikan Pemeriksaan",
     "condition": "Keadaan",
-    "confirmBulkDelete": "Adakah anda pasti mahu memadam penyenaraian?",
+    "confirmBulkDelete": "Adakah anda pasti mahu memadam {{count}} penyenaraian?",
     "confirmDelete": "Adakah anda pasti mahu memadam penyenaraian ini?",
     "conversionRate": "Kadar Penukaran",
     "createNew": "Buat Penyenaraian Baharu",
@@ -817,7 +817,8 @@
     "normal": "Biasa",
     "newUser": "Pengguna Baru",
     "verification": "Pengesahan",
-    "wallet": "Dompet"
+    "wallet": "Dompet",
+    "failedToLoad": "Gagal memuatkan profil"
   },
   "pwa": {
     "androidStep1": "Ketik butang menu (tiga titik)",
@@ -888,9 +889,9 @@
       "cancelled": "Dibatalkan",
       "completed": "Selesai",
       "confirmed": "Disahkan",
-      "disputed": "Pertikaian",
+      "disputed": "Dipertikaikan",
       "overdue": "Terlewat",
-      "payment_pending": "Pembayaran Diproses",
+      "payment_pending": "Pembayaran Belum Selesai",
       "rejected": "Ditolak",
       "requested": "Permintaan",
       "reserved": "Ditempah"
@@ -1058,13 +1059,13 @@
     "clearFilters": "Kosongkan Tapisan",
     "dateRange": "Julat Tarikh",
     "enterLocation": "Masukkan lokasi",
-    "filterCategory": "Kategori",
-    "filterDates": "Tarikh",
-    "filterLocation": "Lokasi",
-    "filterMax": "Maks: RM",
-    "filterMin": "Min: RM",
-    "filterSearch": "Carian",
-    "itemsFound": "item dijumpai",
+    "filterCategory": "Kategori: {{category}}",
+    "filterDates": "Tarikh: {{dates}}",
+    "filterLocation": "Lokasi: {{location}}",
+    "filterMax": "Maks: RM {{price}}",
+    "filterMin": "Min: RM {{price}}",
+    "filterSearch": "Carian: {{query}}",
+    "itemsFound": "{{count}} item dijumpai",
     "location": "Lokasi",
     "locationPlaceholder": "Lokasi",
     "maxPrice": "Maks RM",

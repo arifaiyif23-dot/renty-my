@@ -123,7 +123,7 @@ export default function Wishlist() {
           <EmptyStateV2
             icon={Heart}
             title={t('wishlist.noItems')}
-            description="Save items you love to easily find them later. Tap the heart icon on any listing to add it here."
+            description={t('wishlist.noItemsDesc')}
             actionLabel={t('wishlist.browseItems')}
             onAction={() => navigate('/search')}
             secondaryActionLabel={t('wishlist.exploreCategories')}

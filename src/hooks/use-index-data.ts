@@ -88,7 +88,9 @@ export function useIndexData() {
     try {
       const [itemsResult, usersResult, rentalsResult, reviewsResult] = await Promise.all([
         supabase.from('items').select('*', { count: 'exact', head: true }).eq('status', 'available'),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        // Count VERIFIED members only — the stat is labelled "Verified members"
+        // (home.stats.verifiedMembers); counting all profiles inflated the number
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_verified', true),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
         supabase.from('reviews').select('rating'),
       ])

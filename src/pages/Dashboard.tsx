@@ -76,7 +76,7 @@ export default function Dashboard() {
     return (
       <PageLayout variant="default">
           <h1 className="text-xl font-bold mb-6">My Rentals</h1>
-          <EmptyStateV2 icon={PackageSearch} title="No rentals yet" description="Browse items to start renting." actionLabel="Browse Items" onAction={() => navigate('/search')} />
+          <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noRentals')} description={t('dashboard.noRentalsDesc')} actionLabel={t('dashboard.browseItems')} onAction={() => navigate('/search')} />
       </PageLayout>
     );
   }
@@ -113,7 +113,7 @@ export default function Dashboard() {
 
           <TabsContent value="active" className="space-y-3">
             {filterRentals(['confirmed', 'active', 'overdue']).length === 0 ? (
-              <EmptyStateV2 icon={PackageSearch} title="No active rentals" variant="compact" />
+              <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noActiveRentals')} variant="compact" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
@@ -130,7 +130,7 @@ export default function Dashboard() {
               </div>
             )}
             {filterRentals(['requested', 'payment_pending', 'reserved']).length === 0 ? (
-              <EmptyStateV2 icon={PackageSearch} title="No pending rentals" variant="compact" />
+              <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noPendingRentals')} variant="compact" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
@@ -142,7 +142,7 @@ export default function Dashboard() {
 
           <TabsContent value="past" className="space-y-3">
             {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
-              <EmptyStateV2 icon={PackageSearch} title="No past rentals" variant="compact" />
+              <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noPastRentals')} variant="compact" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (

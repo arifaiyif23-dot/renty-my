@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function Search() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [initialLoading, setInitialLoading] = useState(true);
@@ -434,10 +436,10 @@ export default function Search() {
             <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-3">
               <SearchSlash className="h-6 w-6 text-destructive" />
             </div>
-            <h3 className="font-semibold mb-1">Something went wrong</h3>
+            <h3 className="font-semibold mb-1">{t('common.error')}</h3>
             <p className="text-sm text-muted-foreground mb-3">{error}</p>
             <Button variant="outline" size="sm" onClick={reset}>
-              Try Again
+              {t('common.tryAgain')}
             </Button>
           </div>
         ) : initialLoading ? (
@@ -455,9 +457,9 @@ export default function Search() {
         ) : items.length === 0 ? (
           <AuroraEmptyState
             icon={SearchSlash}
-            title="No items found"
-            description="Try adjusting your filters or search terms."
-            actionLabel="Clear Filters"
+            title={t('search.noItems')}
+            description={t('search.noItemsDesc')}
+            actionLabel={t('search.clearFilters')}
             onAction={() => { setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice(''); setUserLocation(''); setDateRange(undefined); }}
           />
         ) : (

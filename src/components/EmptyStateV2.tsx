@@ -1,4 +1,5 @@
 import { type ElementType } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Package } from "lucide-react";
@@ -15,6 +16,11 @@ interface EmptyStateV2Props {
   onRetry?: () => void;
   className?: string;
   variant?: 'default' | 'compact';
+}
+
+function TryAgainLabel() {
+  const { t } = useTranslation();
+  return <>{t('common.tryAgain')}</>;
 }
 
 const EmptyStateV2 = ({
@@ -58,7 +64,7 @@ const EmptyStateV2 = ({
           )}
           {showRetry && onRetry && (
             <Button variant="ghost" onClick={onRetry} size={isCompact ? "sm" : "default"} className="text-muted-foreground">
-              Try Again
+              <TryAgainLabel />
             </Button>
           )}
         </div>

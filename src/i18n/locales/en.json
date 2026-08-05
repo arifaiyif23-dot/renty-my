@@ -370,8 +370,8 @@
       "verifiedMembers": "Verified members"
     },
     "testimonials": {
-      "subtitle": "Real stories from the Renty community across Malaysia",
-      "title": "What our users say"
+      "subtitle": "From cameras to drills — the everyday things people rent and lend.",
+      "title": "Why people use Renty"
     },
     "welcome": {
       "active": "Active rentals",
@@ -833,7 +833,8 @@
     "normal": "Normal",
     "newUser": "New User",
     "verification": "Verification",
-    "wallet": "Wallet"
+    "wallet": "Wallet",
+    "failedToLoad": "Failed to load profile"
   },
   "pwa": {
     "androidStep1": "Tap the menu button (three dots)",

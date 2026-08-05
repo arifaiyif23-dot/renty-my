@@ -422,7 +422,7 @@ const { t } = useTranslation();
                 icon={DollarSign}
                 title={t('earnings.noPayouts')}
                 description={t('earnings.noPayoutsDesc')}
-                actionLabel={t('earnings.browseItems')}
+                actionLabel={t('dashboard.browseItems')}
                 onAction={() => navigate('/search')}
               />
             </GlassCard>
