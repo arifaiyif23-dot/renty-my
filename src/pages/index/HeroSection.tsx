@@ -60,7 +60,9 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
         <div className="mx-auto max-w-7xl px-4 py-5">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center font-medium text-foreground/70">
-              {t('home.hero.itemsAvailable', { count: totalItemCount })}
+              {totalItemCount > 0
+                ? t('home.hero.itemsAvailable', { count: totalItemCount })
+                : t('home.hero.itemsAvailableZero')}
             </span>
             {trustItems.map((item, i) => {
               const Icon = item.icon

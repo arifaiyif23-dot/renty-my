@@ -301,7 +301,8 @@
         "Pengguna Disahkan",
         "Bayaran Selamat",
         "Didorong Komuniti"
-      ]
+      ],
+      "itemsAvailableZero": "Marketplace baharu — jadilah yang pertama menyenaraikan barang."
     },
     "howItWorks": {
       "step1": {

@@ -315,7 +315,8 @@
         "Verified Users",
         "Secure Payment",
         "Community Powered"
-      ]
+      ],
+      "itemsAvailableZero": "Fresh marketplace — be the first to list your item."
     },
     "howItWorks": {
       "step1": {
