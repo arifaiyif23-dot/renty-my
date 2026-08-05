@@ -99,7 +99,11 @@
     "tryAgain": "Cuba Lagi",
     "under_review": "Dalam Semakan",
     "upload": "Muat Naik",
-    "view": "Lihat"
+    "view": "Lihat",
+    "cancelled": "Dibatalkan",
+    "paid": "Dibayar",
+    "pending_approval": "Menunggu Kelulusan",
+    "rejected": "Ditolak"
   },
   "dashboard": {
     "active": "Aktif",
@@ -507,7 +511,8 @@
     "verificationRequiredToBook": "Pengesahan diperlukan untuk menempah item di Renty",
     "verifyNow": "Sahkan Sekarang",
     "viewingNow": "sedang melihat",
-    "weeklyDiscount": "Diskaun mingguan"
+    "weeklyDiscount": "Diskaun mingguan",
+    "readMore": "Baca lagi"
   },
   "language": {
     "chinese": "简体中文",

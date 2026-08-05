@@ -104,6 +104,22 @@ export default function ItemDetail() {
           .single();
 
         if (error) throw error;
+
+        // Anonymous visitors can't read the profiles table (RLS: active item
+        // owners only, authenticated users only), so the owner FK comes back
+        // null. Fall back to the public_profiles view so the VendorCard still
+        // renders for logged-out visitors — safe fields only, no PII.
+        if (data && !data.owner) {
+          const { data: publicOwner } = await supabase
+            .from('public_profiles')
+            .select('id, full_name, avatar_url, is_verified, verification_level, trust_score, location, created_at')
+            .eq('id', data.owner_id)
+            .maybeSingle();
+          if (publicOwner) {
+            data.owner = publicOwner as unknown as Item['owner'];
+          }
+        }
+
         setItem(data);
 
         if (user && data) {
