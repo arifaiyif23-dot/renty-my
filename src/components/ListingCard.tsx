@@ -48,6 +48,24 @@ const ListingCard = memo(({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.error('Sign in to save items'); return; }
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (saved) {
+        await supabase.from('saved_items').delete().eq('user_id', user.id).eq('item_id', id);
+        setSaved(false);
+      } else {
+        await supabase.from('saved_items').insert({ user_id: user.id, item_id: id });
+        setSaved(true);
+      }
+    } catch { /* silent fail */ }
+    setSaving(false);
+  };
+
   const mergedBadges = useMemo(() => {
     const result: BadgeKind[] = [...(badges || [])];
     if (badge === "trending") result.push("trending");
@@ -69,7 +87,7 @@ const ListingCard = memo(({
           <div className="absolute inset-0 animate-shimmer" />
         )}
         {imgError ? (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-muted to-muted/40">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground bg-muted">
             <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-1.5">
                 <ImageIcon className="h-5 w-5 text-muted-foreground/60" />
@@ -85,19 +103,10 @@ const ListingCard = memo(({
             onLoad={() => setImgLoaded(true)}
             onError={() => setImgError(true)}
             className={cn(
-              "w-full h-full object-cover transition-all duration-500 group-hover:scale-105",
+              "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105",
               imgLoaded ? "opacity-100" : "opacity-0"
             )}
           />
-        )}
-
-        {verificationLevel && verificationLevel !== 'unverified' && (
-          <div className="absolute top-3 left-3">
-            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-success shadow-1 border border-success/30">
-              <BadgeCheck className="h-3 w-3" />
-              {t('listingCard.verified')}
-            </div>
-          </div>
         )}
 
         {mergedBadges && mergedBadges.length > 0 && (
@@ -109,68 +118,43 @@ const ListingCard = memo(({
         )}
 
         <button
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!user) { toast.error('Sign in to save items'); return; }
-            if (saving) return;
-            setSaving(true);
-            try {
-              if (saved) {
-                await supabase.from('saved_items').delete().eq('user_id', user.id).eq('item_id', id);
-                setSaved(false);
-              } else {
-                await supabase.from('saved_items').insert({ user_id: user.id, item_id: id });
-                setSaved(true);
-              }
-            } catch { /* silent fail */ }
-            setSaving(false);
-          }}
-          className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-all duration-200 active:scale-90 shadow-1"
+          onClick={handleWishlistToggle}
+          className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-all duration-200 active:scale-90"
           aria-label={saved ? t('listingCard.removeFromWishlist') : t('listingCard.addToWishlist')}
         >
           <Heart
             className={cn(
               "h-4 w-4 transition-all duration-200",
-              saved
-                ? "fill-destructive text-destructive"
-                : "text-foreground/60"
+              saved ? "fill-white text-white drop-shadow-sm" : "text-white/80"
             )}
           />
         </button>
 
-        {pricePerDay > 0 && (
-          <div className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm rounded-full px-3.5 py-1.5 shadow-1">
-            <span className="font-bold text-base tabular-nums text-primary">RM{pricePerDay}</span>
-            <span className="text-[11px] text-muted-foreground">{t('listingCard.perDay')}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-3.5 sm:p-4">
-        <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 mb-2">
-          {title}
-        </h3>
-
-        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
-          {rating > 0 && (
-            <StarRating rating={rating} reviewCount={reviewCount} />
-          )}
-          <span className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5 text-success" />
-            {t('listingCard.available')}
-          </span>
-        </div>
-
-        {location && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{location}</span>
-            {distance !== undefined && (
-              <span className="tabular-nums shrink-0 text-foreground/60">· {distance} km</span>
+        {/* Gradient overlay + info */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 pb-3.5 px-3.5">
+          <h3 className="font-semibold text-sm text-white leading-snug line-clamp-2 mb-1.5 drop-shadow-sm">
+            {title}
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {location && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-white/80">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate max-w-[80px]">{location}</span>
+                </span>
+              )}
+              {verificationLevel && verificationLevel !== 'unverified' && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-white/90">
+                  <BadgeCheck className="h-3 w-3" />
+                  {t('listingCard.verified')}
+                </span>
+              )}
+            </div>
+            {pricePerDay > 0 && (
+              <span className="font-bold text-sm text-white tabular-nums">RM{pricePerDay}<span className="text-[11px] font-normal text-white/70">{t('listingCard.perDay')}</span></span>
             )}
           </div>
-        )}
+        </div>
       </div>
     </Link>
   );
