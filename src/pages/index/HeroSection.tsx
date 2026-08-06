@@ -23,24 +23,24 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-action/5">
-      <div className="mx-auto max-w-5xl px-4 pt-10 md:pt-24 pb-12 md:pb-16">
+      <div className="mx-auto max-w-5xl px-4 pt-8 md:pt-24 pb-10 md:pb-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: EASE }}
           className="flex flex-col items-center text-center"
         >
-          <h1 className="mb-5 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.05] max-w-3xl">
+          <h1 className="mb-4 md:mb-5 text-3xl md:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.08] md:leading-[1.05] max-w-3xl">
             {t('home.hero.heading1')}
             <br />
             <span className="text-gradient">{t('home.hero.heading2')}</span>
           </h1>
 
-          <p className="mb-8 text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl">
+          <p className="mb-6 md:mb-8 text-sm md:text-lg text-muted-foreground leading-relaxed max-w-xl">
             {t('home.hero.description')}
           </p>
 
-          <div className="w-full max-w-3xl mb-8">
+          <div className="w-full max-w-3xl mb-6 md:mb-8">
             <SearchBarV2 variant="hero" />
           </div>
 
