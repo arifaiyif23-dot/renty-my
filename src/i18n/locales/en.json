@@ -132,8 +132,9 @@
     "rentalTimeline": "Rental Timeline",
     "revenue": "Revenue",
     "select": "Select",
-    "title": "Dashboard",
-    "viewTimeline": "View Timeline"
+    "title": "My Rentals",
+    "viewTimeline": "View Timeline",
+    "earnings": "Earnings"
   },
   "disputes": {
     "errorDesc": "Something went wrong while loading your disputes. Please try again.",

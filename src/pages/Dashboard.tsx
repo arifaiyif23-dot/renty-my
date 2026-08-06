@@ -88,14 +88,30 @@ export default function Dashboard() {
 
   return (
     <PageLayout variant="default">
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl font-bold">My Rentals</h1>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            {stats.totalRevenue > 0 && (
-              <span className="inline-flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" /> RM{stats.totalRevenue.toLocaleString()}</span>
-            )}
-            <span className="inline-flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> {stats.activeRentals} active</span>
-            {stats.pendingRequests > 0 && <Badge variant="outline" className="rounded-full text-[11px]">{stats.pendingRequests} pending</Badge>}
+        <div className="mb-5">
+          <h1 className="text-xl font-bold mb-3">{t('dashboard.title')}</h1>
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <DollarSign className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-medium">{t('dashboard.earnings')}</span>
+              </div>
+              <p className="font-bold text-base tabular-nums">RM{stats.totalRevenue.toLocaleString()}</p>
+            </div>
+            <div className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-medium">{t('dashboard.active')}</span>
+              </div>
+              <p className="font-bold text-base tabular-nums">{stats.activeRentals}</p>
+            </div>
+            <div className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <PackageSearch className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-medium">{t('dashboard.pending')}</span>
+              </div>
+              <p className="font-bold text-base tabular-nums">{stats.pendingRequests}</p>
+            </div>
           </div>
         </div>
 

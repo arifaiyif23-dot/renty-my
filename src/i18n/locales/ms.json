@@ -131,8 +131,9 @@
     "rentalTimeline": "Garis Masa Sewaan",
     "revenue": "Pendapatan",
     "select": "Pilih",
-    "title": "Papan Pemuka",
-    "viewTimeline": "Lihat Garis Masa"
+    "title": "Sewaan Saya",
+    "viewTimeline": "Lihat Garis Masa",
+    "earnings": "Pendapatan"
   },
   "disputes": {
     "errorDesc": "Terdapat masalah semasa memuatkan pertikaian anda. Sila cuba lagi.",
