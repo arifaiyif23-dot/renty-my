@@ -165,7 +165,7 @@ const App = () => (
     {/* ThemeProvider is set up in main.tsx with next-themes. Dark mode CSS variables are defined in index.css.
         The theme toggle in Header is functional. If dark mode contrast issues arise, adjust `.dark` CSS variables in index.css. */}
     <ErrorBoundary>
-      <Sonner />
+      <Sonner position="top-center" />
       <BrowserRouter>
         <TooltipProvider>
           <AuthProvider>
