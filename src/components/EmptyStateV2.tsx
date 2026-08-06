@@ -38,13 +38,16 @@ const EmptyStateV2 = ({
 }: EmptyStateV2Props) => {
   const isCompact = variant === 'compact';
   return (
-    <div className={cn("card-base p-6 text-center", className)}>
+    <div className={cn("rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center", className)}>
       <div className={cn("flex flex-col items-center gap-4", isCompact ? "py-4" : "py-8")}>
-        <div className={cn("rounded-2xl bg-muted flex items-center justify-center", isCompact ? "w-12 h-12" : "w-16 h-16")}>
-          <Icon className={cn("text-muted-foreground/60", isCompact ? "h-6 w-6" : "h-8 w-8")} />
+        <div className={cn(
+          "rounded-full bg-gradient-to-br from-secondary to-secondary/60 flex items-center justify-center ring-8 ring-secondary/30",
+          isCompact ? "w-14 h-14" : "w-20 h-20"
+        )}>
+          <Icon className={cn("text-primary/70", isCompact ? "h-6 w-6" : "h-9 w-9")} />
         </div>
         <div className="max-w-xs">
-          <h3 className={cn("font-semibold mb-1", isCompact ? "text-base" : "text-lg")}>{title}</h3>
+          <h3 className={cn("font-semibold tracking-tight mb-1", isCompact ? "text-base" : "text-lg")}>{title}</h3>
           {description && (
             <p className="text-sm text-muted-foreground leading-relaxed">
               {description}
