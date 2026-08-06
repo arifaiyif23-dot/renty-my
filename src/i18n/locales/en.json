@@ -528,7 +528,8 @@
     "verifyNow": "Verify Now",
     "viewingNow": "viewing now",
     "weeklyDiscount": "Weekly discount",
-    "pickDates": "Pick dates"
+    "pickDates": "Pick dates",
+    "minDays": "Min {{count}} days"
   },
   "language": {
     "chinese": "简体中文",
@@ -1196,5 +1197,40 @@
     "removeFromWishlist": "Remove from wishlist",
     "noImage": "No image",
     "verified": "Verified"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "signInToContinue": "Sign in to continue",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "sendMagicLink": "Send Magic Link",
+    "sending": "Sending...",
+    "sendMagicLinkInstead": "Send magic link instead",
+    "signInWithPassword": "Sign in with password",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "confirmPassword": "Confirm Password",
+    "checkEmailMagic": "Check your email for a magic link.",
+    "checkEmailConfirm": "Check your email to confirm your account.",
+    "sentTo": "Sent to",
+    "resend": "Resend",
+    "backToSignUp": "Back to sign up",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "setNewPassword": "Set new password",
+    "setNewPasswordDesc": "Enter and confirm your new password.",
+    "updating": "Updating...",
+    "updatePassword": "Update Password",
+    "acceptTerms": "I accept the <terms> and <privacy>",
+    "terms": "Terms",
+    "privacyPolicy": "Privacy Policy",
+    "pdpaCompliant": "PDPA Compliant",
+    "encryption": "256-bit Encryption",
+    "rentSmart": "Rent Smart. Earn More.",
+    "rentSmartDesc": "Malaysia's peer-to-peer rental marketplace — list your items or discover what others offer.",
+    "createAccount": "Create Account"
   }
 }

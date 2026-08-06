@@ -527,7 +527,8 @@
     "viewingNow": "sedang melihat",
     "weeklyDiscount": "Diskaun mingguan",
     "readMore": "Baca lagi",
-    "pickDates": "Pilih tarikh"
+    "pickDates": "Pilih tarikh",
+    "minDays": "Min {{count}} hari"
   },
   "language": {
     "chinese": "简体中文",
@@ -1196,5 +1197,40 @@
   "acceptedPayments": "Kaedah Pembayaran Diterima",
   "legal": "Undang-undang",
   "privacyPolicy": "Dasar Privasi",
-  "termsOfService": "Terma Perkhidmatan"
+  "termsOfService": "Terma Perkhidmatan",
+  "auth": {
+    "welcomeBack": "Selamat kembali",
+    "signInToContinue": "Masuk untuk teruskan",
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "signingIn": "Sedang masuk...",
+    "creatingAccount": "Sedang buat akaun...",
+    "sendMagicLink": "Hantar Magic Link",
+    "sending": "Menghantar...",
+    "sendMagicLinkInstead": "Hantar magic link sebaliknya",
+    "signInWithPassword": "Masuk guna kata laluan",
+    "email": "Emel",
+    "password": "Kata Laluan",
+    "fullName": "Nama Penuh",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "checkEmailMagic": "Semak emel anda untuk magic link.",
+    "checkEmailConfirm": "Semak emel anda untuk sahkan akaun.",
+    "sentTo": "Dihantar ke",
+    "resend": "Hantar semula",
+    "backToSignUp": "Kembali ke pendaftaran",
+    "newPassword": "Kata Laluan Baru",
+    "confirmNewPassword": "Sahkan Kata Laluan Baru",
+    "setNewPassword": "Set Kata Laluan Baru",
+    "setNewPasswordDesc": "Masukkan dan sahkan kata laluan baru anda.",
+    "updating": "Mengemas kini...",
+    "updatePassword": "Kemas Kini Kata Laluan",
+    "acceptTerms": "Saya terima <terms> dan <privacy>",
+    "terms": "Terma",
+    "privacyPolicy": "Dasar Privasi",
+    "pdpaCompliant": "Patuh PDPA",
+    "encryption": "Penyulitan 256-bit",
+    "rentSmart": "Sewa Bijak. Cari Lebih.",
+    "rentSmartDesc": "Marketplace sewa peer-to-peer Malaysia — senaraikan barang anda atau cari apa yang orang lain tawarkan.",
+    "createAccount": "Buat Akaun"
+  }
 }

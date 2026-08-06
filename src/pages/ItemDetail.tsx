@@ -391,6 +391,9 @@ export default function ItemDetail() {
                 {Number(item.deposit_amount) > 0 && (
                   <span>RM{Number(item.deposit_amount).toFixed(0)} deposit</span>
                 )}
+                {item.minimum_rental_days && item.minimum_rental_days > 1 && (
+                  <span>{t('itemDetail.minDays', { count: item.minimum_rental_days })}</span>
+                )}
               </div>
 
               <div className="text-sm md:text-[15px] text-muted-foreground leading-relaxed max-w-prose">
@@ -618,6 +621,12 @@ export default function ItemDetail() {
                       )} · {formatDuration(priceBreakdown.hours)}</span>
                     </div>
                     <Separator />
+                    {priceBreakdown.deposit > 0 && (
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>{t('itemDetail.securityDeposit')}</span>
+                        <span>RM {priceBreakdown.deposit.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between font-semibold text-base">
                       <span>Total</span>
                       <span>RM {priceBreakdown.total.toFixed(2)}</span>
