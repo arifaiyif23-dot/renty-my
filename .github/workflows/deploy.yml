@@ -14,6 +14,8 @@ jobs:
           node-version: 22
           # NOTE: no `cache: npm` — it races with `npm ci` on GH runners and
           # causes the "Exit handler never called" npm crash
+      - name: Enable Corepack (npm 11 via packageManager field)
+        run: corepack enable
       - name: Install dependencies
         # npm ci crashes with "Exit handler never called" on GH Actions runners
         # (known npm/cli bug, both 10.8.1 and 10.9.8). Fallback chain: clean
@@ -25,5 +27,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL || 'https://renty.my' }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
       - name: Deploy to Vercel
         run: npx vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
