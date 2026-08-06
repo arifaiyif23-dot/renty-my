@@ -446,9 +446,9 @@ export default function Search() {
         ) : initialLoading ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="rounded-lg overflow-hidden border border-border">
-                <SkeletonV2 variant="rectangular" className="aspect-golden" />
-                <div className="p-3 space-y-2">
+              <div key={i} className="rounded-2xl overflow-hidden border border-border">
+                <SkeletonV2 variant="rectangular" className="aspect-[4/5] rounded-none" />
+                <div className="p-3.5 space-y-2">
                   <SkeletonV2 variant="text" className="h-4 w-3/4" />
                   <SkeletonV2 variant="text" className="h-3 w-1/2" />
                 </div>

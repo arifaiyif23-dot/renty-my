@@ -8,6 +8,10 @@ import { CategoriesSection } from "@/pages/index/CategoriesSection"
 import { NewestListingsSection } from "@/pages/index/NewestListingsSection"
 import { RecentlyViewedSection } from "@/pages/index/RecentlyViewedSection"
 import { OwnerCTASection } from "@/pages/index/OwnerCTASection"
+import { HowItWorksSection } from "@/pages/index/HowItWorksSection"
+import { WhyRentySection } from "@/pages/index/WhyRentySection"
+import { TrustStatsSection } from "@/pages/index/TrustStatsSection"
+import { TestimonialsSection } from "@/pages/index/TestimonialsSection"
 
 const Index = () => {
   const navigate = useNavigate()
@@ -20,6 +24,8 @@ const Index = () => {
     categories,
     totalItemCount,
     recentlyViewed,
+    trustStats,
+    statsLoading,
   } = useIndexData()
 
   const isLoading = loading
@@ -56,9 +62,19 @@ const Index = () => {
 
       <NewestListingsSection items={featuredItems} isLoading={isLoading} onNavigate={navigate} />
 
+      <HowItWorksSection />
+
+      <WhyRentySection />
+
+      {!statsLoading && trustStats && (
+        <TrustStatsSection stats={trustStats} />
+      )}
+
       {recentlyViewed.length > 0 && (
         <RecentlyViewedSection items={recentlyViewed} onNavigate={navigate} />
       )}
+
+      <TestimonialsSection />
 
       <OwnerCTASection onNavigate={navigate} />
     </PageLayout>
