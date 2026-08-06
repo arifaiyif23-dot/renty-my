@@ -710,7 +710,8 @@
     "signOutConfirmDesc": "Anda perlu log masuk semula untuk mengakses akaun anda.",
     "signOutConfirmTitle": "Adakah anda pasti mahu log keluar?",
     "verification": "Pengesahan",
-    "wishlist": "Senarai Hajat"
+    "wishlist": "Senarai Hajat",
+    "list": "Senarai"
   },
   "notFound": {
     "button": "Kembali ke Utama",
@@ -1247,6 +1248,7 @@
     "conditionLikeNew": "Macam Baru",
     "conditionGood": "Baik",
     "conditionFair": "Sederhana",
-    "maximumDistance": "Jarak Maksimum"
+    "maximumDistance": "Jarak Maksimum",
+    "title": "Tapisan"
   }
 }

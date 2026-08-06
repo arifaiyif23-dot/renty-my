@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface MobileFilterDrawerProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ interface MobileFilterDrawerProps {
 
 const MobileFilterDrawer = ({ children, activeFiltersCount = 0 }: MobileFilterDrawerProps) => {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   if (isMobile) {
     return (
@@ -30,7 +32,7 @@ const MobileFilterDrawer = ({ children, activeFiltersCount = 0 }: MobileFilterDr
         </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>Filters</DrawerTitle>
+            <DrawerTitle>{t('filters.title')}</DrawerTitle>
           </DrawerHeader>
           <div className={cn("px-4 pb-6 overflow-y-auto max-h-[70vh]")}>
             {children}

@@ -712,7 +712,8 @@
     "signOutConfirmDesc": "You will need to sign in again to access your account.",
     "signOutConfirmTitle": "Are you sure you want to sign out?",
     "verification": "Verification",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "list": "List"
   },
   "notFound": {
     "button": "Return to Home",
@@ -1247,6 +1248,7 @@
     "conditionLikeNew": "Like New",
     "conditionGood": "Good",
     "conditionFair": "Fair",
-    "maximumDistance": "Maximum Distance"
+    "maximumDistance": "Maximum Distance",
+    "title": "Filters"
   }
 }

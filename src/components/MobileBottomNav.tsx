@@ -4,10 +4,12 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 const MobileBottomNav = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -30,11 +32,11 @@ const MobileBottomNav = () => {
   }, [user, location.pathname]);
 
   const navItems = [
-    { key: "home", icon: Home, label: "Home", path: "/" },
-    { key: "browse", icon: Search, label: "Browse", path: "/search" },
-    { key: "list", icon: Plus, label: "List", path: user ? "/list-item" : "/auth", highlight: true },
-    { key: "messages", icon: MessageCircle, label: "Messages", path: user ? "/messages" : "/auth" },
-    { key: "profile", icon: User, label: "Profile", path: user ? "/profile" : "/auth" },
+    { key: "home", icon: Home, label: t('nav.home'), path: "/" },
+    { key: "browse", icon: Search, label: t('nav.browse'), path: "/search" },
+    { key: "list", icon: Plus, label: t('nav.list'), path: user ? "/list-item" : "/auth", highlight: true },
+    { key: "messages", icon: MessageCircle, label: t('nav.messages'), path: user ? "/messages" : "/auth" },
+    { key: "profile", icon: User, label: t('nav.profile'), path: user ? "/profile" : "/auth" },
   ];
 
   return (
