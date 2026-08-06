@@ -4,7 +4,7 @@ import { TrustBadge } from "@/components/marketplace/TrustBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { VerificationLevel } from "@/types";
 import { UserTrustBadge } from "@/components/trust/UserTrustBadge";
-import { Clock } from "lucide-react";
+import { Clock, ChevronRight } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
 
 interface VendorCardProps {
@@ -44,14 +44,14 @@ const VendorCard = ({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
+      className="group w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
     >
       <GlassCard
         variant="interactive"
         padding="md"
         className={cn("flex items-center gap-4", className)}
       >
-        <Avatar className="h-14 w-14 shrink-0 rounded-2xl border-2 border-border">
+        <Avatar className="h-14 w-14 shrink-0 rounded-2xl border-2 border-border/80">
           <AvatarImage src={avatar} alt={name} />
           <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-semibold text-lg">
             {initials}
@@ -92,6 +92,7 @@ const VendorCard = ({
             )}
           </div>
         </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
       </GlassCard>
     </button>
   );

@@ -52,7 +52,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
     <div className="relative group">
       {/* Main Image */}
       <div
-        className="aspect-video bg-muted rounded-lg overflow-hidden"
+        className="aspect-video bg-muted rounded-2xl overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

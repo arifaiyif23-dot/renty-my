@@ -103,7 +103,7 @@ export default function Profile() {
 
         <div className="card-base p-6 mb-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start">
-            <Avatar className="h-16 w-16 ring-2 ring-border">
+            <Avatar className="h-16 w-16 ring-2 ring-primary/10">
               <AvatarImage src={profile.avatar_url} srcSet={getSrcSet(profile.avatar_url || '')} sizes="64px" alt={profile.full_name} />
               <AvatarFallback className="text-xl rounded-full">{initials}</AvatarFallback>
             </Avatar>
@@ -147,19 +147,19 @@ export default function Profile() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          <div className="card-base p-4 text-center">
+          <div className="card-base p-4 text-center hover:shadow-2 transition-shadow">
             <p className="text-2xl font-bold tabular-nums">{stats?.itemsListed || 0}</p>
             <p className="text-xs text-muted-foreground">Items Listed</p>
           </div>
-          <div className="card-base p-4 text-center">
+          <div className="card-base p-4 text-center hover:shadow-2 transition-shadow">
             <p className="text-2xl font-bold tabular-nums">{stats?.rentalsAsOwner || 0}</p>
             <p className="text-xs text-muted-foreground">Rentals Given</p>
           </div>
-          <div className="card-base p-4 text-center">
+          <div className="card-base p-4 text-center hover:shadow-2 transition-shadow">
             <p className="text-2xl font-bold tabular-nums">{stats?.rentalsAsRenter || 0}</p>
             <p className="text-xs text-muted-foreground">Total Rentals</p>
           </div>
-          <div className="card-base p-4 text-center">
+          <div className="card-base p-4 text-center hover:shadow-2 transition-shadow">
             <p className="text-2xl font-bold tabular-nums">{stats && stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "—"}</p>
             <p className="text-xs text-muted-foreground">Rating</p>
           </div>
