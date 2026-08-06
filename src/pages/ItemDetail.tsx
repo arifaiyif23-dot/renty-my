@@ -381,7 +381,7 @@ export default function ItemDetail() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" /> {item.location}
                 </span>

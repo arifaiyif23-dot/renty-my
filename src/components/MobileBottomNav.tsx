@@ -53,9 +53,9 @@ const MobileBottomNav = () => {
               key={item.key}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px] relative",
+                "flex flex-col items-center justify-center flex-1 h-full transition-all active:scale-[0.96] min-w-[60px] min-h-[44px] relative",
                 isActive
-                  ? item.highlight ? "text-white" : "text-primary"
+                  ? item.highlight ? "text-white" : "text-primary bg-primary/[0.08]"
                   : item.highlight ? "text-primary" : "text-muted-foreground"
               )}
               aria-label={`${item.label}${isActive ? ' (current)' : ''}`}

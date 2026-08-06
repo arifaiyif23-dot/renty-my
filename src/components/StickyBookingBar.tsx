@@ -47,7 +47,7 @@ export default function StickyBookingBar({
         </div>
         <Button
           size="lg"
-          className="flex-shrink-0 min-w-[120px]"
+          className="flex-shrink-0 min-w-[120px] h-12 rounded-xl shadow-1 text-base font-semibold"
           onClick={onBook}
           disabled={disabled || isLoading}
         >

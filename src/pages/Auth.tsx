@@ -182,7 +182,7 @@ export default function Auth() {
               <Label htmlFor="confirm-new-password">Confirm Password</Label>
               <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="h-12 rounded-lg" autoComplete="new-password" required />
             </div>
-            <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
+            <Button type="submit" className="w-full h-12 rounded-lg shadow-1 text-base" disabled={isLoading}>
               {isLoading ? 'Updating...' : 'Update Password'}
             </Button>
           </form>
@@ -212,8 +212,8 @@ export default function Auth() {
           <div aria-hidden className="absolute -top-28 -left-28 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
           <div aria-hidden className="absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-action/10 blur-3xl pointer-events-none" />
           <div className="relative w-full max-w-sm space-y-6">
-            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8">
-              <div className="text-center mb-6">
+            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-5 sm:p-6 md:p-8">
+              <div className="text-center mb-5 md:mb-6">
                 <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
                 <p className="text-sm text-muted-foreground mt-1.5">Sign in to continue</p>
               </div>
@@ -241,7 +241,7 @@ export default function Auth() {
                         <Label htmlFor="login-email-ml">Email</Label>
                         <Input id="login-email-ml" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
-                      <Button className="w-full h-12 rounded-lg gap-2" disabled={isLoading} onClick={handleMagicLink}>
+                      <Button className="w-full h-12 rounded-lg gap-2 shadow-1 text-base" disabled={isLoading} onClick={handleMagicLink}>
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                         {isLoading ? 'Sending...' : 'Send Magic Link'}
                       </Button>
@@ -267,7 +267,7 @@ export default function Auth() {
                           </Button>
                         </div>
                       </div>
-                      <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
+                      <Button type="submit" className="w-full h-12 rounded-lg shadow-1 text-base" disabled={isLoading}>
                         {isLoading ? 'Signing in...' : 'Sign In'}
                       </Button>
                       <div className="text-center">
@@ -320,7 +320,7 @@ export default function Auth() {
                           <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2">Privacy Policy</Link>
                         </Label>
                       </label>
-                      <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading || !acceptedTerms}>
+                      <Button type="submit" className="w-full h-12 rounded-lg shadow-1 text-base" disabled={isLoading || !acceptedTerms}>
                         {isLoading ? 'Creating account...' : 'Create Account'}
                       </Button>
                     </form>
