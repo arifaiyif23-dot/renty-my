@@ -1,7 +1,4 @@
-@import "@fontsource/geist-sans/400.css";
-@import "@fontsource/geist-sans/500.css";
-@import "@fontsource/geist-sans/600.css";
-@import "@fontsource/geist-sans/700.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,34 +6,33 @@
 
 @layer base {
   :root {
-    --bg-gradient: radial-gradient(ellipse 80% 60% at 0% 10%, hsl(var(--primary) / 0.06) 0%, transparent 60%),
-                   radial-gradient(ellipse 60% 50% at 100% 90%, hsl(var(--secondary) / 0.06) 0%, transparent 60%);
-    --background: 220 20% 97%;
-    --foreground: 224 30% 12%;
+    --bg-gradient: radial-gradient(ellipse 80% 60% at 50% 0%, hsl(var(--primary) / 0.04) 0%, transparent 60%);
+    --background: 0 0% 100%;
+    --foreground: 220 20% 10%;
 
-    --card: 220 25% 98%;
-    --card-foreground: 224 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 220 25% 98%;
-    --popover-foreground: 224 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 224 65% 18%;
+    --primary: 220 20% 10%;
     --primary-foreground: 0 0% 100%;
 
-    --brand: 224 65% 18%;
+    --brand: 220 20% 10%;
     --brand-foreground: 0 0% 100%;
 
-    --secondary: 224 45% 77%;
-    --secondary-foreground: 224 30% 12%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 10%;
 
-    --action: 24 78% 44%;
+    --action: 18 90% 52%;
     --action-foreground: 0 0% 100%;
 
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 220 15% 94%;
-    --accent-foreground: 224 30% 12%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 20% 10%;
 
     --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 100%;
@@ -47,44 +43,43 @@
     --warning: 36 85% 44%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 224 65% 18%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 220 20% 10%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
 
   .dark {
     color-scheme: dark;
 
-    --bg-gradient: radial-gradient(ellipse 80% 60% at 0% 10%, hsl(var(--primary) / 0.07) 0%, transparent 60%),
-                   radial-gradient(ellipse 60% 50% at 100% 90%, hsl(var(--secondary) / 0.07) 0%, transparent 60%);
-    --background: 224 35% 8%;
-    --foreground: 220 15% 92%;
+    --bg-gradient: radial-gradient(ellipse 80% 60% at 50% 0%, hsl(var(--primary) / 0.06) 0%, transparent 60%);
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
 
-    --card: 224 30% 12%;
-    --card-foreground: 220 15% 92%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 224 30% 12%;
-    --popover-foreground: 220 15% 92%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 217 80% 54%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 0 0% 4%;
 
-    --brand: 224 65% 18%;
-    --brand-foreground: 0 0% 100%;
+    --brand: 0 0% 96%;
+    --brand-foreground: 0 0% 4%;
 
-    --secondary: 224 20% 16%;
-    --secondary-foreground: 220 15% 92%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 96%;
 
-    --action: 24 78% 46%;
+    --action: 18 90% 54%;
     --action-foreground: 0 0% 100%;
 
-    --muted: 224 20% 16%;
-    --muted-foreground: 220 12% 58%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 224 20% 16%;
-    --accent-foreground: 220 15% 92%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 96%;
 
     --destructive: 0 65% 48%;
     --destructive-foreground: 0 0% 100%;
@@ -95,9 +90,9 @@
     --warning: 36 80% 48%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 224 15% 22%;
-    --input: 224 15% 22%;
-    --ring: 217 80% 54%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 96%;
   }
 }
 
@@ -111,7 +106,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: clamp(0.9375rem, 1.5vw, 1rem);
     line-height: 1.5;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
