@@ -106,7 +106,8 @@
     "upload": "Upload",
     "view": "View",
     "noImagesAvailable": "No images available",
-    "searchItemsPlaceholder": "Search items..."
+    "searchItemsPlaceholder": "Search items...",
+    "total": "total"
   },
   "dashboard": {
     "active": "Active",

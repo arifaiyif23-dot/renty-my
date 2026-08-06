@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,8 @@ const Header = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
 
   const handleSignOut = () => {
     haptics.medium();
@@ -114,9 +116,24 @@ const Header = () => {
     };
   }, [user]);
 
+  // Hide header on scroll down, show on scroll up (native app feel)
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y > lastScrollY.current && y > 120) setHidden(true);
+      else if (y < lastScrollY.current) setHidden(false);
+      lastScrollY.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-border/50 glass">
+      <header className={cn(
+        "sticky top-0 z-50 w-full border-b border-border/50 glass transition-transform duration-300",
+        hidden && "-translate-y-full"
+      )}>
         <div className="mx-auto px-4 lg:px-8 max-w-7xl">
           <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-6">
             <div className="flex items-center gap-2 shrink-0">

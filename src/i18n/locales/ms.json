@@ -105,7 +105,8 @@
     "pending_approval": "Menunggu Kelulusan",
     "rejected": "Ditolak",
     "noImagesAvailable": "Tiada gambar",
-    "searchItemsPlaceholder": "Cari barang..."
+    "searchItemsPlaceholder": "Cari barang...",
+    "total": "jumlah"
   },
   "dashboard": {
     "active": "Aktif",
