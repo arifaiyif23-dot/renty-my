@@ -527,7 +527,8 @@
     "verificationRequiredToBook": "Verification required to book items on Renty",
     "verifyNow": "Verify Now",
     "viewingNow": "viewing now",
-    "weeklyDiscount": "Weekly discount"
+    "weeklyDiscount": "Weekly discount",
+    "pickDates": "Pick dates"
   },
   "language": {
     "chinese": "简体中文",
@@ -1187,5 +1188,13 @@
     "seoDesc": "View your saved items and favorites",
     "title": "My Wishlist",
     "undo": "Undo"
+  },
+  "listingCard": {
+    "available": "Available",
+    "perDay": "/day",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "noImage": "No image",
+    "verified": "Verified"
   }
 }

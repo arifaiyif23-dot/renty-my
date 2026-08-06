@@ -36,11 +36,11 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 const desktopNavLinks = [
-  { key: "home", icon: Home, label: "Home", path: "/" },
-  { key: "browse", icon: Search, label: "Browse", path: "/search" },
-  { key: "about", icon: Info, label: "About", path: "/about" },
-  { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages", auth: true },
-  { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", auth: true },
+  { key: "home", icon: Home, label: "nav.home", path: "/" },
+  { key: "browse", icon: Search, label: "nav.browse", path: "/search" },
+  { key: "about", icon: Info, label: "nav.about", path: "/about" },
+  { key: "messages", icon: MessageCircle, label: "nav.messages", path: "/messages", auth: true },
+  { key: "dashboard", icon: LayoutDashboard, label: "nav.dashboard", path: "/dashboard", auth: true },
 ];
 
 const Header = () => {
@@ -163,7 +163,7 @@ const Header = () => {
                     aria-current={isActive ? "page" : undefined}
                   >
                     {link.highlight ? null : <link.icon className="h-4 w-4" />}
-                    {link.label}
+                    {t(link.label)}
                   </Link>
                 );
               })}

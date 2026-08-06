@@ -224,7 +224,20 @@
     "termsOfService": "Terma perkhidmatan",
     "trustSafety": "Kepercayaan & keselamatan",
     "trusted": "Dipercayai",
-    "verified": "Disahkan"
+    "verified": "Disahkan",
+    "damaged": "Rosak — Buat tuntutan",
+    "damagedDesc": "Item rosak dan tak boleh disewa tanpa dibaiki.",
+    "description": "Apa keadaan \"{{title}}\" selepas sewa?",
+    "failed": "Gagal hantar pemeriksaan",
+    "maintenance": "Perlu Penyelenggaraan",
+    "maintenanceDesc": "Isu kecil yang perlu dibaiki sebelum sewa seterusnya.",
+    "notes": "Nota Pemeriksaan",
+    "notesPlaceholder": "Huraikan sebarang isu yang ditemui semasa pemeriksaan...",
+    "passed": "Lulus — Sedia untuk disewa semula",
+    "passedDesc": "Item dalam keadaan baik dan boleh disenaraikan dengan segera.",
+    "submit": "Hantar Pemeriksaan",
+    "success": "Pemeriksaan selesai. Item kini {{result}}.",
+    "title": "Lengkapkan Pemeriksaan"
   },
   "handover": {
     "codeDesc": "Masukkan kod 4-digit daripada penyewa",
@@ -513,7 +526,8 @@
     "verifyNow": "Sahkan Sekarang",
     "viewingNow": "sedang melihat",
     "weeklyDiscount": "Diskaun mingguan",
-    "readMore": "Baca lagi"
+    "readMore": "Baca lagi",
+    "pickDates": "Pilih tarikh"
   },
   "language": {
     "chinese": "简体中文",
@@ -1170,5 +1184,17 @@
     "seoDesc": "Lihat item dan kegemaran yang anda simpan",
     "title": "Kegemaran Saya",
     "undo": "Buat asal"
-  }
+  },
+  "listingCard": {
+    "available": "Tersedia",
+    "perDay": "/hari",
+    "addToWishlist": "Simpan",
+    "removeFromWishlist": "Buang dari simpanan",
+    "noImage": "Tiada gambar",
+    "verified": "Disahkan"
+  },
+  "acceptedPayments": "Kaedah Pembayaran Diterima",
+  "legal": "Undang-undang",
+  "privacyPolicy": "Dasar Privasi",
+  "termsOfService": "Terma Perkhidmatan"
 }

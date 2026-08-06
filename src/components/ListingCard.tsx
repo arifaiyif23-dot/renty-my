@@ -1,6 +1,7 @@
 import { memo, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { Heart, MapPin, Clock, BadgeCheck, Image as ImageIcon } from "lucide-react";
 import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge";
 import { StarRating } from "@/components/StarRating";
@@ -40,6 +41,7 @@ const ListingCard = memo(({
   className,
   initialSaved = false,
 }: ListingCardProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [saved, setSaved] = useState(initialSaved);
   const [saving, setSaving] = useState(false);
@@ -72,7 +74,7 @@ const ListingCard = memo(({
               <div className="w-12 h-12 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-1.5">
                 <ImageIcon className="h-5 w-5 text-muted-foreground/60" />
               </div>
-              <span className="text-xs">No image</span>
+              <span className="text-xs">{t('listingCard.noImage')}</span>
             </div>
           </div>
         ) : (
@@ -93,7 +95,7 @@ const ListingCard = memo(({
           <div className="absolute top-3 left-3">
             <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-[11px] font-medium text-success shadow-1 border border-success/30">
               <BadgeCheck className="h-3 w-3" />
-              Verified
+              {t('listingCard.verified')}
             </div>
           </div>
         )}
@@ -125,7 +127,7 @@ const ListingCard = memo(({
             setSaving(false);
           }}
           className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-all duration-200 active:scale-90 shadow-1"
-          aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+          aria-label={saved ? t('listingCard.removeFromWishlist') : t('listingCard.addToWishlist')}
         >
           <Heart
             className={cn(
@@ -140,7 +142,7 @@ const ListingCard = memo(({
         {pricePerDay > 0 && (
           <div className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm rounded-full px-3.5 py-1.5 shadow-1">
             <span className="font-bold text-base tabular-nums text-primary">RM{pricePerDay}</span>
-            <span className="text-[11px] text-muted-foreground">/day</span>
+            <span className="text-[11px] text-muted-foreground">{t('listingCard.perDay')}</span>
           </div>
         )}
       </div>
@@ -156,7 +158,7 @@ const ListingCard = memo(({
           )}
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5 text-success" />
-            Available
+            {t('listingCard.available')}
           </span>
         </div>
 

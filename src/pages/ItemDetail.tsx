@@ -434,7 +434,7 @@ export default function ItemDetail() {
               <Separator />
 
               <div>
-                <h3 className="font-semibold mb-3">Reviews</h3>
+                <h3 className="font-semibold mb-3">{t('itemDetail.reviews')}</h3>
                 <ReviewsList itemId={id || ''} />
               </div>
             </div>
@@ -448,12 +448,12 @@ export default function ItemDetail() {
                   <span className="text-muted-foreground text-sm"> /day</span>
                 </div>
                 {item.instant_book_enabled && (
-                  <Badge className="rounded-full">Instant Book</Badge>
+                  <Badge className="rounded-full">{t('itemDetail.instantBook')}</Badge>
                 )}
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">Pick dates</p>
+                <p className="text-sm font-medium mb-2">{t('itemDetail.pickDates')}</p>
                 <UnifiedCalendar
                   itemId={id || ''}
                   mode="select"
@@ -516,13 +516,13 @@ export default function ItemDetail() {
                     )}
                     {priceBreakdown.deposit > 0 && (
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Security deposit</span>
+                        <span>{t('itemDetail.securityDeposit')}</span>
                         <span>RM{priceBreakdown.deposit.toFixed(2)}</span>
                       </div>
                     )}
                     <Separator />
                     <div className="flex justify-between font-semibold text-base">
-                      <span>Total</span>
+                      <span>{t('itemDetail.total')}</span>
                       <span>RM{priceBreakdown.total.toFixed(2)}</span>
                     </div>
                   </div>
@@ -531,7 +531,7 @@ export default function ItemDetail() {
 
               {user && !profile?.is_verified && (
                 <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
-                  <p className="text-warning font-medium mb-1">Verification required to book</p>
+                  <p className="text-warning font-medium mb-1">{t('itemDetail.verificationRequired')}</p>
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/verification', { state: { redirectTo: `/items/${item?.id}` } })}>
                     Verify now
                   </Button>
@@ -564,7 +564,7 @@ export default function ItemDetail() {
         {/* Similar items — full-width row on desktop, tucked under content on mobile */}
         {similarItems.length > 0 && (
           <div className="space-y-4 mt-8 md:mt-12">
-            <h3 className="font-semibold md:text-lg">Similar Items</h3>
+            <h3 className="font-semibold md:text-lg">{t('itemDetail.similarItems')}</h3>
             <div className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4">
               {loadingSimilar ? (
                 [...Array(4)].map((_, i) => (
@@ -609,7 +609,7 @@ export default function ItemDetail() {
                 {dateRange?.from && dateRange?.to && item && priceBreakdown && (
                   <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration</span>
+                      <span className="text-muted-foreground">{t('itemDetail.duration')}</span>
                       <span className="font-medium">{formatRentalPeriod(
                         dateRange.from.toISOString().split('T')[0],
                         dateRange.to.toISOString().split('T')[0],
@@ -651,7 +651,7 @@ export default function ItemDetail() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={confirming}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmBooking(); }} disabled={confirming || !agreeToTerms}>
               {confirming ? (
                 <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Sending...</span>
