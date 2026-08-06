@@ -55,7 +55,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background animate-enter flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background animate-enter flex flex-col safe-area-top">
       <div className="flex items-center gap-3 p-4 border-b border-border">
         <button
           type="button"
@@ -76,7 +76,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
               if (e.key === "Escape") onClose();
             }}
             placeholder="Search items..."
-            className="w-full h-11 bg-muted rounded-lg px-4 pl-10 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full h-12 bg-muted rounded-xl px-4 pl-10 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             aria-label="Search items"
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -148,7 +148,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
                     key={cat}
                     type="button"
                     onClick={() => handleSubmit(cat)}
-                    className="p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-left capitalize press"
+                    className="p-3.5 rounded-xl bg-muted hover:bg-muted/80 transition-colors text-sm font-medium text-left capitalize press"
                   >
                     {cat}
                   </button>
