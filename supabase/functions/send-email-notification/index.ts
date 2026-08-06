@@ -22,6 +22,16 @@ const getFromEmail = () => {
   return 'Renty <onboarding@resend.dev>';
 };
 
+// Escape user-controlled values before injecting into HTML email templates
+// (prevents HTML injection / phishing via item titles or display names)
+const escapeHtml = (value: unknown): string =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 // Helper function to log email to database
 async function logEmail(
   supabase: any,
@@ -157,8 +167,8 @@ serve(async (req) => {
             subject: subject,
             html: `
               <h2>You have a new rental request!</h2>
-              <p>Renter: ${rental.renter.full_name} ${rental.renter.is_verified ? '✓ Verified' : ''}</p>
-              <p>Item: ${rental.item.title}</p>
+              <p>Renter: ${escapeHtml(rental.renter.full_name)} ${rental.renter.is_verified ? '✓ Verified' : ''}</p>
+              <p>Item: ${escapeHtml(rental.item.title)}</p>
               <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
               <p>Total Price: RM ${rental.total_price}</p>
               <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">Review Request</a></p>
@@ -211,8 +221,8 @@ serve(async (req) => {
               subject: subject,
               html: `
                 <h2>Great news! Your rental request has been approved.</h2>
-                <p>Item: ${rental.item.title}</p>
-                <p>Owner: ${rental.owner.full_name}</p>
+                <p>Item: ${escapeHtml(rental.item.title)}</p>
+                <p>Owner: ${escapeHtml(rental.owner.full_name)}</p>
                 <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
                 <p>Total Price: RM ${rental.total_price}</p>
                 <p><strong>Next Step:</strong> Complete your payment to confirm the booking.</p>
@@ -247,11 +257,11 @@ serve(async (req) => {
               subject: subject,
               html: `
                 <h2>Payment received for your rental!</h2>
-                <p>Item: ${rental.item.title}</p>
-                <p>Renter: ${rental.renter.full_name}</p>
+                <p>Item: ${escapeHtml(rental.item.title)}</p>
+                <p>Renter: ${escapeHtml(rental.renter.full_name)}</p>
                 <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
                 <p>Total Price: RM ${rental.total_price}</p>
-                ${record.pickup_code ? `<p><strong>Pickup Code:</strong> ${record.pickup_code}</p>` : ''}
+                ${record.pickup_code ? `<p><strong>Pickup Code:</strong> ${escapeHtml(record.pickup_code)}</p>` : ''}
                 <p>The renter will provide this code during item pickup.</p>
                 <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">View Details</a></p>
               `,
@@ -285,8 +295,8 @@ serve(async (req) => {
               subject: subject,
               html: `
                 <h2>Update on your rental request</h2>
-                <p>Unfortunately, your rental request for <strong>${rental.item.title}</strong> was not approved.</p>
-                <p>Owner: ${rental.owner.full_name}</p>
+                <p>Unfortunately, your rental request for <strong>${escapeHtml(rental.item.title)}</strong> was not approved.</p>
+                <p>Owner: ${escapeHtml(rental.owner.full_name)}</p>
                 <p>Requested Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
                 <p>Don't worry! There are plenty of other items available on Renty.</p>
                 <p><a href="${Deno.env.get('FRONTEND_URL')}/search">Browse More Items</a></p>
