@@ -123,7 +123,7 @@ export default function Profile() {
               </div>
 
               <div className="flex gap-2 mt-3 flex-wrap">
-                <Button size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}><Edit className="h-3.5 w-3.5 mr-1" /> Edit</Button>
+                <Button size="sm" className="h-8 text-xs" onClick={() => setEditDialogOpen(true)}><Edit className="h-3.5 w-3.5 mr-1" /> Edit Profile</Button>
                 <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/my-listings')}>My Items</Button>
                 <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/dashboard')}>Rentals</Button>
                 {isAdmin?.isAdmin && (

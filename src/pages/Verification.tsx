@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
 import { useVerificationStatusQuery } from "@/hooks/use-profile-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -351,7 +351,7 @@ export default function Verification() {
             <div className="flex items-center gap-3 mb-4">
               <ShieldCheck className="h-8 w-8 text-primary" />
               <div>
-                <CardTitle>Identity Verification</CardTitle>
+                <h2 className="text-lg font-semibold leading-none tracking-tight">Identity Verification</h2>
                 <CardDescription>Verify your identity to unlock premium features</CardDescription>
               </div>
             </div>
