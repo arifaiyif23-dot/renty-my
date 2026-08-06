@@ -12,10 +12,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-      - name: Pin npm (fix "Exit handler never called" GH Actions bug)
-        run: npm install -g npm@10.8.1
-      - run: npm ci
+          # NOTE: no `cache: npm` — it races with `npm ci` on GH runners and
+          # causes the "Exit handler never called" npm crash
+      - run: npm ci --no-audit --no-fund || npm ci --no-audit --no-fund
       - run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       - name: Deploy to Vercel
         run: npx vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
