@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
 
 interface ImageCarouselProps {
@@ -10,6 +11,7 @@ interface ImageCarouselProps {
 }
 
 export default function ImageCarousel({ images, title }: ImageCarouselProps) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -21,7 +23,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
           <div className="w-14 h-14 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-2">
             <ImageIcon className="h-6 w-6 text-muted-foreground/60" />
           </div>
-          <p className="text-sm text-muted-foreground">No images available</p>
+          <p className="text-sm text-muted-foreground">{t('common.noImagesAvailable')}</p>
         </div>
       </div>
     );

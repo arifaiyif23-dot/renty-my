@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { X, Download, Smartphone } from "lucide-react";
 import { isNative } from "@/lib/platform";
 
@@ -10,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const PWAInstallPrompt = () => {
+  const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -88,9 +90,9 @@ export const PWAInstallPrompt = () => {
           </div>
 
           <div className="flex-1">
-            <h3 className="font-semibold mb-1">Install RENTY App</h3>
+            <h3 className="font-semibold mb-1">{t('pwa.installTitle')}</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              Get quick access, offline browsing, and instant notifications
+              {t('pwa.installDesc')}
             </p>
 
             <div className="flex gap-2">

@@ -104,7 +104,9 @@
     "tryAgain": "Try Again",
     "under_review": "Under Review",
     "upload": "Upload",
-    "view": "View"
+    "view": "View",
+    "noImagesAvailable": "No images available",
+    "searchItemsPlaceholder": "Search items..."
   },
   "dashboard": {
     "active": "Active",
@@ -863,7 +865,9 @@
     "pushNotifications": "Push Notifications",
     "pushNotificationsDesc": "Never miss a booking or message. Get notified instantly.",
     "subtitle": "Configure your RENTY app experience",
-    "whyInstall": "Why Install RENTY?"
+    "whyInstall": "Why Install RENTY?",
+    "installTitle": "Install RENTY App",
+    "installDesc": "Get quick access, offline browsing, and instant notifications"
   },
   "rental": {
     "activeDescription": "Mark this rental as active? The renter has picked up {{title}}.",
@@ -1232,5 +1236,17 @@
     "rentSmart": "Rent Smart. Earn More.",
     "rentSmartDesc": "Malaysia's peer-to-peer rental marketplace — list your items or discover what others offer.",
     "createAccount": "Create Account"
+  },
+  "filters": {
+    "quickFilters": "Quick Filters",
+    "verifiedOwnersOnly": "Verified Owners Only",
+    "instantBookAvailable": "Instant Book Available",
+    "itemCondition": "Item Condition",
+    "anyCondition": "Any Condition",
+    "conditionNew": "New",
+    "conditionLikeNew": "Like New",
+    "conditionGood": "Good",
+    "conditionFair": "Fair",
+    "maximumDistance": "Maximum Distance"
   }
 }

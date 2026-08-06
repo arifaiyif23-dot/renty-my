@@ -3,6 +3,7 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShieldCheck, Zap, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AdvancedSearchFiltersProps {
   verifiedOnly: boolean;
@@ -27,16 +28,17 @@ export function AdvancedSearchFilters({
   setMaxDistance,
   showDistanceFilter,
 }: AdvancedSearchFiltersProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h3 className="font-semibold text-sm text-muted-foreground">Quick Filters</h3>
+        <h3 className="font-semibold text-sm text-muted-foreground">{t('filters.quickFilters')}</h3>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary" />
             <Label htmlFor="verified-only" className="cursor-pointer">
-              Verified Owners Only
+              {t('filters.verifiedOwnersOnly')}
             </Label>
           </div>
           <Switch
@@ -50,7 +52,7 @@ export function AdvancedSearchFilters({
           <div className="flex items-center gap-2">
             <Zap className="h-4 w-4 text-primary" />
             <Label htmlFor="instant-book" className="cursor-pointer">
-              Instant Book Available
+              {t('filters.instantBookAvailable')}
             </Label>
           </div>
           <Switch
@@ -62,17 +64,17 @@ export function AdvancedSearchFilters({
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="item-condition">Item Condition</Label>
+        <Label htmlFor="item-condition">{t('filters.itemCondition')}</Label>
         <Select value={itemCondition} onValueChange={setItemCondition}>
           <SelectTrigger id="item-condition">
-            <SelectValue placeholder="Any condition" />
+            <SelectValue placeholder={t('filters.anyCondition')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Any Condition</SelectItem>
-            <SelectItem value="new">New</SelectItem>
-            <SelectItem value="like_new">Like New</SelectItem>
-            <SelectItem value="good">Good</SelectItem>
-            <SelectItem value="fair">Fair</SelectItem>
+            <SelectItem value="all">{t('filters.anyCondition')}</SelectItem>
+            <SelectItem value="new">{t('filters.conditionNew')}</SelectItem>
+            <SelectItem value="like_new">{t('filters.conditionLikeNew')}</SelectItem>
+            <SelectItem value="good">{t('filters.conditionGood')}</SelectItem>
+            <SelectItem value="fair">{t('filters.conditionFair')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -82,7 +84,7 @@ export function AdvancedSearchFilters({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" />
-              <Label>Maximum Distance</Label>
+              <Label>{t('filters.maximumDistance')}</Label>
             </div>
             <span className="text-sm text-muted-foreground">
               {maxDistance === 100 ? '100+ km' : `${maxDistance} km`}

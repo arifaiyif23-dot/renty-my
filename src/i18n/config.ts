@@ -27,4 +27,10 @@ i18n
     },
   });
 
+// Keep <html lang> in sync with the active language (SEO + accessibility)
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+});
+document.documentElement.lang = i18n.language || 'en';
+
 export default i18n;

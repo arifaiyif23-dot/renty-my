@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search, X, TrendingUp, Clock, ArrowLeft } from "lucide-react";
 
 
@@ -17,6 +18,7 @@ interface MobileSearchOverlayProps {
 }
 
 const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -75,7 +77,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
               if (e.key === "Enter") handleSubmit(query);
               if (e.key === "Escape") onClose();
             }}
-            placeholder="Search items..."
+            placeholder={t('common.searchItemsPlaceholder')}
             className="w-full h-12 bg-muted rounded-xl px-4 pl-10 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             aria-label="Search items"
           />

@@ -103,7 +103,9 @@
     "cancelled": "Dibatalkan",
     "paid": "Dibayar",
     "pending_approval": "Menunggu Kelulusan",
-    "rejected": "Ditolak"
+    "rejected": "Ditolak",
+    "noImagesAvailable": "Tiada gambar",
+    "searchItemsPlaceholder": "Cari barang..."
   },
   "dashboard": {
     "active": "Aktif",
@@ -860,7 +862,9 @@
     "pushNotifications": "Pemberitahuan Dorongan",
     "pushNotificationsDesc": "Jangan lepaskan tempahan atau mesej. Dapatkan pemberitahuan serta-merta.",
     "subtitle": "Konfigurasikan pengalaman apl RENTY anda",
-    "whyInstall": "Kenapa Pasang RENTY?"
+    "whyInstall": "Kenapa Pasang RENTY?",
+    "installTitle": "Pasang Aplikasi RENTY",
+    "installDesc": "Akses pantas, layari luar talian, dan notifikasi segera"
   },
   "rental": {
     "activeDescription": "Tandakan sewaan ini sebagai aktif? Penyewa telah mengambil {{title}}.",
@@ -1232,5 +1236,17 @@
     "rentSmart": "Sewa Bijak. Cari Lebih.",
     "rentSmartDesc": "Marketplace sewa peer-to-peer Malaysia — senaraikan barang anda atau cari apa yang orang lain tawarkan.",
     "createAccount": "Buat Akaun"
+  },
+  "filters": {
+    "quickFilters": "Tapisan Pantas",
+    "verifiedOwnersOnly": "Pemilik Disahkan Sahaja",
+    "instantBookAvailable": "Tersedia Tempahan Segera",
+    "itemCondition": "Keadaan Item",
+    "anyCondition": "Apa-apa Keadaan",
+    "conditionNew": "Baru",
+    "conditionLikeNew": "Macam Baru",
+    "conditionGood": "Baik",
+    "conditionFair": "Sederhana",
+    "maximumDistance": "Jarak Maksimum"
   }
 }

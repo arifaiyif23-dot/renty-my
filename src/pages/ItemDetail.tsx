@@ -448,7 +448,7 @@ export default function ItemDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-2xl font-bold">RM{Number(item.price_per_day).toFixed(0)}</span>
-                  <span className="text-muted-foreground text-sm"> /day</span>
+                  <span className="text-muted-foreground text-sm"> {t('listingCard.perDay')}</span>
                 </div>
                 {item.instant_book_enabled && (
                   <Badge className="rounded-full">{t('itemDetail.instantBook')}</Badge>
