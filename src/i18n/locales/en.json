@@ -842,7 +842,14 @@
     "newUser": "New User",
     "verification": "Verification",
     "wallet": "Wallet",
-    "failedToLoad": "Failed to load profile"
+    "failedToLoad": "Failed to load profile",
+    "myItems": "My Items",
+    "rentals": "Rentals",
+    "earnings": "Earnings",
+    "itemsListed": "Items Listed",
+    "rentalsGiven": "Rentals Given",
+    "totalRentals": "Total Rentals",
+    "rating": "Rating"
   },
   "pwa": {
     "androidStep1": "Tap the menu button (three dots)",

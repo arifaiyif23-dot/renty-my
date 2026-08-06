@@ -839,7 +839,14 @@
     "newUser": "Pengguna Baru",
     "verification": "Pengesahan",
     "wallet": "Dompet",
-    "failedToLoad": "Gagal memuatkan profil"
+    "failedToLoad": "Gagal memuatkan profil",
+    "myItems": "Barang Saya",
+    "rentals": "Sewaan",
+    "earnings": "Pendapatan",
+    "itemsListed": "Barang Disenarai",
+    "rentalsGiven": "Sewaan Diberi",
+    "totalRentals": "Jumlah Sewaan",
+    "rating": "Penilaian"
   },
   "pwa": {
     "androidStep1": "Ketik butang menu (tiga titik)",
