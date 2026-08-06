@@ -46,6 +46,7 @@ export default function StickyBookingBar({
           </div>
         </div>
         <Button
+          variant="secondary"
           size="lg"
           className="flex-shrink-0 min-w-[120px] h-12 rounded-xl shadow-1 text-base font-semibold"
           onClick={onBook}

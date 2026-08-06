@@ -23,7 +23,7 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-action/5">
-      <div className="mx-auto max-w-5xl px-4 pt-16 md:pt-24 pb-16">
+      <div className="mx-auto max-w-5xl px-4 pt-10 md:pt-24 pb-12 md:pb-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ export function HeroSection({ totalItemCount, onListOrAuth }: HeroSectionProps) 
           </div>
 
           <Button
-            variant="brand"
+            variant="secondary"
             size="lg"
             className="gap-2 shadow-2 rounded-2xl h-12 px-8"
             onClick={onListOrAuth}

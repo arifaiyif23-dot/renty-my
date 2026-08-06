@@ -541,6 +541,7 @@ export default function ItemDetail() {
               {user?.id !== item.owner_id && (
                 <>
                   <Button
+                    variant="secondary"
                     className="w-full h-12 font-semibold"
                     onClick={handleBooking}
                     disabled={!dateRange?.from || !dateRange?.to || isBooking || (!!user && !profile?.is_verified)}

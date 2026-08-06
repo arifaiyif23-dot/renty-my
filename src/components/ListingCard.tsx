@@ -1,7 +1,7 @@
 import { memo, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Heart, MapPin, Clock, BadgeCheck } from "lucide-react";
+import { Heart, MapPin, Clock, BadgeCheck, Image as ImageIcon } from "lucide-react";
 import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge";
 import { StarRating } from "@/components/StarRating";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,14 +62,16 @@ const ListingCard = memo(({
         className
       )}
     >
-      <div className="relative aspect-golden overflow-hidden bg-muted">
+      <div className="relative aspect-[4/5] overflow-hidden bg-muted">
         {!imgLoaded && !imgError && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
         {imgError ? (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-muted to-muted/40">
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-muted mx-auto mb-1" />
+              <div className="w-12 h-12 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-1.5">
+                <ImageIcon className="h-5 w-5 text-muted-foreground/60" />
+              </div>
               <span className="text-xs">No image</span>
             </div>
           </div>
@@ -136,15 +138,15 @@ const ListingCard = memo(({
         </button>
 
         {pricePerDay > 0 && (
-          <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1 shadow-1">
-            <span className="font-bold text-sm tabular-nums text-primary">RM{pricePerDay}</span>
-            <span className="text-xs text-muted-foreground">/day</span>
+          <div className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm rounded-full px-3.5 py-1.5 shadow-1">
+            <span className="font-bold text-base tabular-nums text-primary">RM{pricePerDay}</span>
+            <span className="text-[11px] text-muted-foreground">/day</span>
           </div>
         )}
       </div>
 
       <div className="p-3.5 sm:p-4">
-        <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-1 mb-2">
+        <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 mb-2">
           {title}
         </h3>
 

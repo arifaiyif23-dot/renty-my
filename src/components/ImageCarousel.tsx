@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
@@ -16,8 +16,13 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-        <p className="text-muted-foreground">No images available</p>
+      <div className="aspect-video bg-gradient-to-br from-muted to-muted/40 rounded-2xl flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-2">
+            <ImageIcon className="h-6 w-6 text-muted-foreground/60" />
+          </div>
+          <p className="text-sm text-muted-foreground">No images available</p>
+        </div>
       </div>
     );
   }
