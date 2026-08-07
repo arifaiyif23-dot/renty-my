@@ -12,12 +12,12 @@ import { Loader2, Plus, Trash2, Upload, ChevronLeft, ChevronRight, X, ZoomIn } f
 import type { ConditionGrade } from '@/types';
 
 const CONDITION_OPTIONS: { value: ConditionGrade; label: string; color: string }[] = [
-  { value: 'excellent', label: 'Excellent', color: 'text-green-600 dark:text-green-400' },
-  { value: 'good', label: 'Good', color: 'text-blue-600 dark:text-blue-400' },
-  { value: 'fair', label: 'Fair', color: 'text-yellow-600 dark:text-yellow-400' },
-  { value: 'poor', label: 'Poor', color: 'text-orange-600 dark:text-orange-400' },
-  { value: 'damaged', label: 'Damaged', color: 'text-red-600 dark:text-red-400' },
-  { value: 'missing', label: 'Missing', color: 'text-gray-600 dark:text-gray-400' },
+  { value: 'excellent', label: 'Excellent', color: 'text-success dark:text-success' },
+  { value: 'good', label: 'Good', color: 'text-action dark:text-action' },
+  { value: 'fair', label: 'Fair', color: 'text-warning dark:text-warning' },
+  { value: 'poor', label: 'Poor', color: 'text-warning dark:text-warning' },
+  { value: 'damaged', label: 'Damaged', color: 'text-destructive dark:text-destructive' },
+  { value: 'missing', label: 'Missing', color: 'text-muted-foreground' },
 ];
 
 const CATEGORY_MAP: Record<string, string[]> = {
@@ -321,6 +321,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
                               type="button"
                               className="text-white hover:text-destructive transition-colors"
                               onClick={() => removePhoto(item.id, idx)}
+                              aria-label={`Remove photo ${idx + 1}`}
                             >
                               <X className="h-4 w-4" />
                             </button>

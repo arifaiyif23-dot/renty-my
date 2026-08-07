@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { PrefetchLink } from "@/components/PrefetchLink";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
@@ -12,6 +14,9 @@ import {
   User,
   ShieldCheck,
   Heart,
+  LogOut,
+  FileText,
+  HelpCircle,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -20,7 +25,8 @@ interface MobileNavProps {
 }
 
 const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const userInitials = profile?.full_name
@@ -37,6 +43,12 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
     { icon: Heart, label: t('nav.wishlist'), path: "/wishlist" },
     { icon: ShieldCheck, label: t('nav.verification'), path: "/verification" },
     { icon: User, label: t('nav.profile'), path: "/profile" },
+  ];
+
+  const footerLinks = [
+    { icon: HelpCircle, label: t('footer.helpCenter'), path: "/help" },
+    { icon: FileText, label: t('footer.termsOfService'), path: "/terms" },
+    { icon: FileText, label: t('footer.privacyPolicy'), path: "/privacy" },
   ];
 
   return (
@@ -60,7 +72,7 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
           </div>
         )}
 
-        {/* Navigation Items + Sign Out */}
+        {/* Navigation Items */}
         <div className="flex flex-col flex-1 min-h-0">
           <nav className="flex flex-col gap-2 py-6 overflow-y-auto px-6">
             {navItems.map((item) => {
@@ -78,6 +90,37 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
               );
             })}
           </nav>
+
+          {/* Footer Links */}
+          <div className="border-t px-6 py-4">
+            {footerLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-accent transition-colors text-sm text-muted-foreground"
+              >
+                <link.icon className="h-4 w-4" />
+                <span>{link.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Sign Out */}
+          <div className="border-t px-6 py-4 mt-auto">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 px-4 py-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={async () => {
+                onOpenChange(false);
+                await signOut();
+                navigate('/auth');
+              }}
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium">{t('nav.signOut')}</span>
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

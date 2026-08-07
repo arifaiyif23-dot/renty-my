@@ -122,7 +122,7 @@ const ListingCard = memo(({
             } catch { /* silent fail */ }
             setSaving(false);
           }}
-          className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-all duration-200 active:scale-90 shadow-1"
+          className="absolute top-3 right-3 min-w-[44px] min-h-[44px] rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-all duration-200 active:scale-90 shadow-1"
           aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart

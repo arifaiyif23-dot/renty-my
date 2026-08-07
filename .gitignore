@@ -35,10 +35,20 @@ supabase/.temp/
 
 .vercel
 .env*
+!.env.example
+
+# Playwright test artifacts
+playwright-report/
+test-results/
 
 # Capacitor platforms
 android/
 ios/
+
+# Release keystore — SECRET. Backups must never be committed.
+*.jks
+*.keystore
+keystore.properties
 
 # 3D Models (too large for git, served from public/ at deploy time)
 public/models/

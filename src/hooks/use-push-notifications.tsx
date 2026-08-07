@@ -29,6 +29,7 @@ async function nativeRequestPermission(userId?: string): Promise<boolean> {
             user_id: userId,
             subscription: JSON.stringify({ token: token.value }),
             endpoint: token.value,
+            platform: 'fcm',
           }, { onConflict: 'endpoint' });
         }
       });

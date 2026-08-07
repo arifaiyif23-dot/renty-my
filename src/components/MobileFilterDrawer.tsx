@@ -19,7 +19,7 @@ const MobileFilterDrawer = ({ children, activeFiltersCount = 0 }: MobileFilterDr
     return (
       <Drawer>
         <DrawerTrigger asChild>
-          <Button variant="outline" size="sm" className="h-9 rounded-lg relative">
+          <Button variant="outline" size="sm" className="min-h-[44px] rounded-lg relative">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             {activeFiltersCount > 0 && (
               <span className="ml-1.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
@@ -43,7 +43,7 @@ const MobileFilterDrawer = ({ children, activeFiltersCount = 0 }: MobileFilterDr
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 rounded-lg relative">
+        <Button variant="outline" size="sm" className="min-h-[44px] rounded-lg relative">
           <SlidersHorizontal className="h-3.5 w-3.5" />
           {activeFiltersCount > 0 && (
             <span className="ml-1.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">

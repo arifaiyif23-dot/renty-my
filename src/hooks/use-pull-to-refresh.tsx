@@ -73,5 +73,14 @@ export function usePullToRefresh(onRefresh: () => Promise<void>, enabled = true)
   // Keep ref in sync
   useEffect(() => { pullDistanceRef.current = pullDistance; }, [pullDistance]);
 
+  // Prevent browser native pull-to-refresh interfering with our custom one
+  useEffect(() => {
+    if (!enabled) return;
+    const el = document.documentElement;
+    const prev = el.style.overscrollBehaviorY;
+    el.style.overscrollBehaviorY = 'contain';
+    return () => { el.style.overscrollBehaviorY = prev; };
+  }, [enabled]);
+
   return { isRefreshing, pullDistance };
 }

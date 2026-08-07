@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ interface BankAccount {
 export default function Earnings() {
 const { user } = useAuth();
 const { t } = useTranslation();
+const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);

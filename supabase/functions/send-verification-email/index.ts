@@ -59,14 +59,46 @@ serve(async (req) => {
       throw new Error('RESEND_API_KEY is not configured');
     }
 
+    const authHeader = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const resend = new Resend(resendApiKey);
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Only admins may trigger verification emails (prevents a public email-bomb).
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['admin', 'super_admin'])
+      .maybeSingle();
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const fromEmail = getFromEmail();
     const { userId, status, rejectionReason } = await req.json();
+
+    if (!userId || !status) {
+      return new Response(JSON.stringify({ error: 'userId and status are required' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     console.log(`Sending verification email for user ${userId}, status: ${status}`);
 
@@ -77,6 +109,19 @@ serve(async (req) => {
     }
 
     const userEmail = userData.user.email;
+
+    // Rate limit: max 3 verification emails per recipient per day (anti-abuse).
+    const { count } = await supabase
+      .from('email_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('to_email', userEmail)
+      .like('template_type', 'verification_%')
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+    if ((count ?? 0) >= 3) {
+      return new Response(JSON.stringify({ error: 'Too many verification emails for this user today' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     const { data: profile } = await supabase
       .from('profiles')

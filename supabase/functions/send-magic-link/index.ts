@@ -126,8 +126,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('send-magic-link error:', error);
-    const message = JSON.stringify(error, Object.getOwnPropertyNames(error));
-    return new Response(JSON.stringify({ error: 'Failed to send magic link', detail: message }), {
+    return new Response(JSON.stringify({ error: 'Failed to send magic link' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

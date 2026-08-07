@@ -1,14 +1,14 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSuspensionCheck } from "@/hooks/use-suspension-check";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, ArrowLeft, File as FileIcon, Loader2, RefreshCw } from "lucide-react";
+import { Send, ArrowLeft, MessageCircle, File as FileIcon, Loader2, RefreshCw } from "lucide-react";
 import { FileAttachment } from "@/components/FileAttachment";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
@@ -69,6 +69,7 @@ export default function Messages() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -424,8 +425,12 @@ export default function Messages() {
                     )}
                     {!isLoadingConversations && !conversationsError && conversations.length === 0 && (
                       <div className="p-8 text-center text-muted-foreground">
+                        <MessageCircle className="h-10 w-10 mx-auto mb-2 text-muted-foreground/60" />
                         <p className="text-base">{t('messages.noConversations')}</p>
                         <p className="text-sm mt-2">{t('messages.noConversationsDesc')}</p>
+                        <Button variant="outline" size="sm" className="mt-4 rounded-lg" onClick={() => navigate('/search')}>
+                          {t('messages.browseItems')}
+                        </Button>
                       </div>
                     )}
                   </ScrollArea>

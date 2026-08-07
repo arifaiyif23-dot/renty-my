@@ -56,7 +56,30 @@ serve(async (req) => {
   try {
     const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
     const requestSecret = req.headers.get('x-webhook-secret');
-    if (webhookSecret && (!requestSecret || requestSecret !== webhookSecret)) {
+    const authorized = webhookSecret && requestSecret === webhookSecret;
+
+    // The Admin Health "Send test email" caller authenticates with its JWT
+    // (only admins may send server emails), so accept it as an alternative.
+    if (!authorized) {
+      const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+      const SK = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const s = createClient(SUPABASE_URL, SK);
+      const token = req.headers.get('authorization')?.replace('Bearer ', '');
+      if (token) {
+        const { data: { user } } = await s.auth.getUser(token);
+        if (user?.id) {
+          const { data: roleData } = await s
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .in('role', ['admin', 'super_admin'])
+            .maybeSingle();
+          if (roleData) authorized = true;
+        }
+      }
+    }
+
+    if (!authorized) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 

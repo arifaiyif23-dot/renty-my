@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.renty.app",
+      "sha256_cert_fingerprints": [
+        "D17BDFD6BABB7962DE96A31F409F0021321F12ED87EBCECA89B7276E9F84BF9F"
+      ]
+    }
+  }
+]

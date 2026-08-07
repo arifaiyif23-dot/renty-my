@@ -1,13 +1,17 @@
+import { lazy, Suspense } from "react"
 import { useNavigate } from "react-router-dom"
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts"
 import { PageLayout } from "@/components/PageLayout"
 import SEO from "@/components/SEO"
 import { useIndexData } from "@/hooks/use-index-data"
-import { HeroSection } from "@/pages/index/HeroSection"
-import { CategoriesSection } from "@/pages/index/CategoriesSection"
-import { NewestListingsSection } from "@/pages/index/NewestListingsSection"
-import { RecentlyViewedSection } from "@/pages/index/RecentlyViewedSection"
-import { OwnerCTASection } from "@/pages/index/OwnerCTASection"
+
+// Code-split homepage sections so motion/react and below-fold UI load after
+// first paint instead of inflating the entry bundle.
+const HeroSection = lazy(() => import("@/pages/index/HeroSection").then(m => ({ default: m.HeroSection })))
+const CategoriesSection = lazy(() => import("@/pages/index/CategoriesSection").then(m => ({ default: m.CategoriesSection })))
+const NewestListingsSection = lazy(() => import("@/pages/index/NewestListingsSection").then(m => ({ default: m.NewestListingsSection })))
+const RecentlyViewedSection = lazy(() => import("@/pages/index/RecentlyViewedSection").then(m => ({ default: m.RecentlyViewedSection })))
+const OwnerCTASection = lazy(() => import("@/pages/index/OwnerCTASection").then(m => ({ default: m.OwnerCTASection })))
 
 const Index = () => {
   const navigate = useNavigate()
@@ -45,22 +49,24 @@ const Index = () => {
         }}
       />
 
-      <HeroSection
-        totalItemCount={totalItemCount}
-        onListOrAuth={() => navigate(user ? '/list-item' : '/auth')}
-      />
+      <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
+        <HeroSection
+          totalItemCount={totalItemCount}
+          onListOrAuth={() => navigate(user ? '/list-item' : '/auth')}
+        />
 
-      {(categories.length > 0 || isLoading) && (
-        <CategoriesSection categories={categories} isLoading={isLoading} onNavigate={navigate} />
-      )}
+        {(categories.length > 0 || isLoading) && (
+          <CategoriesSection categories={categories} isLoading={isLoading} onNavigate={navigate} />
+        )}
 
-      <NewestListingsSection items={featuredItems} isLoading={isLoading} onNavigate={navigate} />
+        <NewestListingsSection items={featuredItems} isLoading={isLoading} onNavigate={navigate} />
 
-      {recentlyViewed.length > 0 && (
-        <RecentlyViewedSection items={recentlyViewed} onNavigate={navigate} />
-      )}
+        {recentlyViewed.length > 0 && (
+          <RecentlyViewedSection items={recentlyViewed} onNavigate={navigate} />
+        )}
 
-      <OwnerCTASection onNavigate={navigate} />
+        <OwnerCTASection onNavigate={navigate} />
+      </Suspense>
     </PageLayout>
   )
 }

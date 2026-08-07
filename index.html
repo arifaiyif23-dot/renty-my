@@ -31,10 +31,12 @@
     </script>
 
     <!-- Resource Hints for Performance -->
-    <link rel="preconnect" href="https://rxwmzfaghsdouepbfrnr.supabase.co">
-    <link rel="dns-prefetch" href="https://rxwmzfaghsdouepbfrnr.supabase.co">
+    <link rel="preconnect" href="%VITE_SUPABASE_URL%">
+    <link rel="dns-prefetch" href="%VITE_SUPABASE_URL%">
 
     <!-- SEO / Social -->
+    <meta property="og:locale" content="en_MY" />
+    <meta property="og:site_name" content="RENTY" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Renty — Rent Anything in Malaysia">
     <meta property="og:description" content="Malaysia's trusted peer-to-peer rental platform. Rent cameras, cars, tools, drones and more. Insured rentals, verified users.">
@@ -46,6 +48,9 @@
     <meta name="twitter:title" content="Renty — Rent Anything in Malaysia">
     <meta name="twitter:description" content="Malaysia's trusted peer-to-peer rental platform. Rent cameras, cars, tools, drones and more. Insured rentals, verified users.">
     <meta name="twitter:image" content="https://renty.my/og-image.png">
+
+    <!-- Canonical fallback for pre-JS crawls (per-route canonical injected by SEO component) -->
+    <link rel="canonical" href="https://renty.my/">
 
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" href="/favicon.png">

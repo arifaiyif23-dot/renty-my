@@ -360,7 +360,7 @@ export default function EmailAnalytics() {
           <div className="bg-muted p-4 rounded-lg space-y-2">
             <p className="text-sm font-medium">Webhook URL:</p>
             <code className="text-xs bg-background p-2 rounded block break-all">
-              https://rxwmzfaghsdouepbfrnr.supabase.co/functions/v1/resend-webhook
+              {new URL('/functions/v1/resend-webhook', supabase.supabaseUrl).href}
             </code>
           </div>
           <div className="text-sm text-muted-foreground">

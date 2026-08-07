@@ -141,7 +141,13 @@ export default function AdminReports() {
       ) : (
         <div className="grid gap-3">
           {filtered.map((report) => (
-            <div className={`card-base rounded-lg cursor-pointer hover:border-primary/50 transition-colors ${report.status === 'pending' ? 'border-warning/50' : ''}`} key={report.id} onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}>
+            <button
+              type="button"
+              className={`card-base rounded-lg cursor-pointer hover:border-primary/50 transition-colors text-left w-full ${report.status === 'pending' ? 'border-warning/50' : ''}`}
+              key={report.id}
+              onClick={() => { setSelectedReport(report); setResolutionNote(report.resolution_note || ""); }}
+              aria-label={`View report: ${report.reason} (${report.status})`}
+            >
                 <div className="flex items-start gap-3">
                   <Flag className="h-5 w-5 mt-0.5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -160,7 +166,7 @@ export default function AdminReports() {
                   </div>
                 </div>
               
-            </div>
+            </button>
           ))}
         </div>
       )}

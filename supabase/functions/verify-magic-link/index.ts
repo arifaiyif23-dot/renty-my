@@ -102,8 +102,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('verify-magic-link error:', error);
-    const detail = JSON.stringify(error, Object.getOwnPropertyNames(error));
-    return new Response(JSON.stringify({ error: 'Verification failed', detail }), {
+    return new Response(JSON.stringify({ error: 'Verification failed' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

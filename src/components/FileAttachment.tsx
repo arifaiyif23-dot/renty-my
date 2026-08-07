@@ -79,6 +79,7 @@ export function FileAttachment({ onFileSelect, disabled }: FileAttachmentProps) 
           size="icon"
           className="h-6 w-6"
           onClick={clearPreview}
+          aria-label="Remove attachment"
         >
           <X className="h-3 w-3" />
         </Button>

@@ -4,12 +4,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ConditionReport } from '@/types';
 
 const CONDITION_COLORS: Record<string, string> = {
-  excellent: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-500/15 dark:text-green-300 dark:border-green-500/30',
-  good: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30',
-  fair: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-500/15 dark:text-yellow-300 dark:border-yellow-500/30',
-  poor: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30',
-  damaged: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/30',
-  missing: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-secondary dark:text-muted-foreground dark:border-border',
+  excellent: 'bg-success/10 text-success border-success/30 dark:bg-success/15 dark:text-success dark:border-success/30',
+  good: 'bg-action/10 text-action border-action/30 dark:bg-action/15 dark:text-action dark:border-action/30',
+  fair: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/15 dark:text-warning dark:border-warning/30',
+  poor: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/15 dark:text-warning dark:border-warning/30',
+  damaged: 'bg-destructive/10 text-destructive border-destructive/30 dark:bg-destructive/15 dark:text-destructive dark:border-destructive/30',
+  missing: 'bg-muted text-muted-foreground border-border dark:bg-secondary dark:text-muted-foreground dark:border-border',
 };
 
 interface ConditionReportViewerProps {

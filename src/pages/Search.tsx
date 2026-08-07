@@ -286,7 +286,7 @@ export default function Search() {
 
         <div className="flex items-center gap-2 mb-4">
           <Select value={category} onValueChange={(v) => setCategory(v as ItemCategory | 'all')}>
-            <SelectTrigger className="h-10 text-xs min-w-[100px] rounded-lg">
+            <SelectTrigger className="h-10 text-xs min-w-0 flex-1 rounded-lg">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -297,7 +297,7 @@ export default function Search() {
           </Select>
 
           <Select value={userLocation} onValueChange={setUserLocation}>
-            <SelectTrigger data-testid="search-location" className="h-10 text-xs min-w-[100px] rounded-lg">
+            <SelectTrigger data-testid="search-location" className="h-10 text-xs min-w-0 flex-1 rounded-lg">
               <MapPin className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Location" />
             </SelectTrigger>
@@ -310,7 +310,7 @@ export default function Search() {
           </Select>
 
           <Select value={sortBy} onValueChange={(v: 'newest' | 'price_low' | 'price_high') => setSortBy(v)}>
-            <SelectTrigger className="h-10 text-xs min-w-[90px] rounded-lg">
+            <SelectTrigger className="h-10 text-xs min-w-0 flex-1 rounded-lg">
               <ArrowUpDown className="h-3 w-3 mr-1 shrink-0 text-muted-foreground" />
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
