@@ -217,9 +217,9 @@ export function DocumentViewerModal({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
           {/* Main Image Viewer */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0">
             {/* Toolbar */}
             <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -291,7 +291,7 @@ export function DocumentViewerModal({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-center gap-3 px-4 py-3 border-t bg-muted/30">
+            <div className="flex items-center justify-center gap-3 px-4 py-3 border-t bg-muted/30 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
               {onReject && (
                 <Button variant="destructive" onClick={onReject} className="min-w-32">
                   <X className="h-4 w-4 mr-2" />
@@ -308,7 +308,7 @@ export function DocumentViewerModal({
           </div>
 
           {/* Document Info Sidebar */}
-          <div className="w-80 border-l overflow-y-auto bg-background">
+          <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l overflow-y-auto bg-background shrink-0">
             <div className="p-4 border-b">
               <h3 className="font-semibold mb-1">Document Details</h3>
               <p className="text-xs text-muted-foreground">Submitted document information</p>

@@ -130,7 +130,7 @@ export default function NotificationSettings() {
   return (
     <PageLayout variant="narrow">
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" className="rounded-lg" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="rounded-lg" onClick={() => navigate(-1)} aria-label="Go back">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <PageHeader

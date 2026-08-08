@@ -16,8 +16,9 @@ import { useTranslation } from "react-i18next";
 import type { Message } from "@/types";
 import { PageLayout } from "@/components/PageLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { sanitizeMessage } from "@/utils/sanitize";
+import { sanitizeMessage, safeHttpUrl } from "@/utils/sanitize";
 import { safeFormatDate } from "@/utils/securityHelpers";
+import { haptics } from "@/utils/haptics";
 import { useTypingIndicator } from "@/hooks/use-typing-indicator";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 
@@ -109,6 +110,26 @@ export default function Messages() {
     });
   };
 
+  // Messages are stored at rest as PGP ciphertext in `encrypted_content`
+  // (plaintext `content` is NULL after the 20260807000008 migration). Decrypt
+  // via the participant-authorized decrypt_message_by_id RPC, falling back to
+  // legacy plaintext `content` for rows written before the change.
+  const decryptCacheRef = useRef<Map<string, string>>(new Map());
+
+  const decryptMessageContent = useCallback(async (msg: Message | null | undefined): Promise<Message | null | undefined> => {
+    if (!msg || msg.content != null || !msg.encrypted_content) return msg;
+    const cached = decryptCacheRef.current.get(msg.id);
+    if (cached != null) return { ...msg, content: cached };
+    try {
+      const { data } = await supabase.rpc('decrypt_message_by_id', { p_message_id: msg.id });
+      const decrypted = typeof data === 'string' ? data : '';
+      if (decrypted) decryptCacheRef.current.set(msg.id, decrypted);
+      return { ...msg, content: decrypted };
+    } catch {
+      return msg;
+    }
+  }, []);
+
   useEffect(() => {
     const state = location.state as { recipientId?: string } | null;
     if (state?.recipientId && user) {
@@ -178,8 +199,10 @@ export default function Messages() {
               (newMsg.sender_id === selectedUserId && newMsg.recipient_id === user.id) ||
               (newMsg.sender_id === user.id && newMsg.recipient_id === selectedUserId)
             ) {
-              upsertMessage(newMsg);
-              fetchConversations(true);
+              decryptMessageContent(newMsg).then(norm => {
+                if (norm) upsertMessage(norm);
+                fetchConversations(true);
+              });
             }
           }
         )
@@ -203,7 +226,7 @@ export default function Messages() {
 
     const { data, error } = await supabase
       .from('messages')
-      .select('id, sender_id, recipient_id, content, created_at, is_read, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
+      .select('id, sender_id, recipient_id, content, encrypted_content, created_at, is_read, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
       .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
       .limit(200);
@@ -221,17 +244,18 @@ export default function Messages() {
     setConversationsError(null);
     const conversationMap = new Map<string, Conversation>();
     
-    data?.forEach((msg: Message & { sender?: { full_name: string; avatar_url?: string }; recipient?: { full_name: string; avatar_url?: string } }) => {
+    for (const msg of (data || []) as (Message & { sender?: { full_name: string; avatar_url?: string }; recipient?: { full_name: string; avatar_url?: string } })[]) {
       const otherUserId = msg.sender_id === user.id ? msg.recipient_id : msg.sender_id;
       const otherUser = msg.sender_id === user.id ? msg.recipient : msg.sender;
       const isUnreadForMe = msg.recipient_id === user.id && !msg.is_read;
       
       if (!conversationMap.has(otherUserId)) {
+        const decrypted = msg.encrypted_content ? await decryptMessageContent(msg) : msg;
         conversationMap.set(otherUserId, {
           userId: otherUserId,
           userName: otherUser?.full_name || t('messages.unknownUser'),
           userAvatar: otherUser?.avatar_url,
-          lastMessage: msg.content,
+          lastMessage: decrypted?.content ?? msg.content ?? '',
           lastMessageTime: msg.created_at,
           unreadCount: isUnreadForMe ? 1 : 0,
         });
@@ -239,7 +263,7 @@ export default function Messages() {
         const conversation = conversationMap.get(otherUserId);
         if (conversation) conversation.unreadCount += 1;
       }
-    });
+    }
 
     setConversations(Array.from(conversationMap.values()));
     if (!silent) setIsLoadingConversations(false);
@@ -257,7 +281,7 @@ export default function Messages() {
 
     const { data, error } = await supabase
       .from('messages')
-      .select('id, sender_id, recipient_id, content, created_at, is_read, read_at, attachment_url, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
+      .select('id, sender_id, recipient_id, content, encrypted_content, created_at, is_read, read_at, attachment_url, sender:profiles!messages_sender_id_fkey(full_name, avatar_url), recipient:profiles!messages_recipient_id_fkey(full_name, avatar_url)')
       .or(`and(sender_id.eq.${user.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${user.id})`)
       .order('created_at', { ascending: true })
       .limit(100);
@@ -269,7 +293,8 @@ export default function Messages() {
       return;
     }
 
-    setMessages(data || []);
+    const decrypted = await Promise.all((data || []).map(m => decryptMessageContent(m)));
+    setMessages((decrypted || []) as Message[]);
 
     // Mark messages as read (only unread ones to avoid redundant updates)
     const { error: readError } = await supabase
@@ -342,7 +367,9 @@ export default function Messages() {
       return;
     }
 
-    setMessages(prev => prev.map(msg => msg.id === optimisticId ? data : msg));
+    const confirmed = (await decryptMessageContent(data as Message | null)) ?? (data as Message);
+    setMessages(prev => prev.map(msg => msg.id === optimisticId ? confirmed : msg));
+    haptics.success();
     fetchConversations(true);
   };
 
@@ -392,7 +419,7 @@ export default function Messages() {
           </div>
         </div>
       )}
-      <div className="container mx-auto p-3 md:p-4 pb-mobile-nav max-w-7xl">
+      <div className="container mx-auto p-3 md:p-4 max-w-7xl">
         {/* Mobile: Conditionally show list OR thread */}
         {isMobile ? (
           <>
@@ -401,7 +428,7 @@ export default function Messages() {
                 <h1 className="text-2xl font-bold">{t('messages.title')}</h1>
                 <GlassCard variant="subtle" padding="md">
                   <h2 className="text-lg font-semibold pb-3">{t('messages.conversations')}</h2>
-                  <ScrollArea className="h-[calc(100vh-250px)]">
+                  <ScrollArea className="h-[calc(100dvh-250px)]">
                     {isLoadingConversations ? (
                       <div className="flex items-center justify-center p-8 text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('messages.loadingConversations')}
@@ -460,7 +487,7 @@ export default function Messages() {
                     ) : messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                        className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
                           className={`max-w-[85%] rounded-lg px-4 py-2.5 shadow-1 ${
@@ -473,14 +500,14 @@ export default function Messages() {
                             <div className="mb-2">
                               {msg.attachment_type === 'image' ? (
                                 <img 
-                                  src={msg.attachment_url} 
+                                  src={safeHttpUrl(msg.attachment_url)} 
                                   alt={t('messages.attachment')} 
                                   className="rounded-lg max-w-full h-auto"
                                   loading="lazy"
                                 />
                               ) : (
                                 <a 
-                                  href={msg.attachment_url} 
+                                  href={safeHttpUrl(msg.attachment_url)} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   className="flex items-center gap-2 text-sm underline"
@@ -511,12 +538,12 @@ export default function Messages() {
                     
                     {/* Typing Indicator */}
                     {typingUsers.length > 0 && (
-                      <div className="flex justify-start animate-fade-in">
+                      <div className="flex justify-start">
                         <div className="bg-muted rounded-lg px-4 py-3 rounded-bl-sm">
                           <div className="flex gap-1">
-                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full" />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full" />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full" />
                           </div>
                         </div>
                       </div>
@@ -632,14 +659,14 @@ export default function Messages() {
                                 <div className="mb-2">
                                   {msg.attachment_type === 'image' ? (
                                     <img 
-                                      src={msg.attachment_url} 
+                                      src={safeHttpUrl(msg.attachment_url)} 
                                       alt={t('messages.attachment')} 
                                       className="rounded-lg max-w-full h-auto"
                                       loading="lazy"
                                     />
                                   ) : (
                                     <a 
-                                      href={msg.attachment_url} 
+                                      href={safeHttpUrl(msg.attachment_url)} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
                                       className="flex items-center gap-2 text-sm underline"

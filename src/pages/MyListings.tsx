@@ -380,7 +380,7 @@ export default function MyListings() {
         </div>
       </div>
 
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-0 z-10 bg-background border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <div className="flex-1 relative">
@@ -431,7 +431,7 @@ export default function MyListings() {
           </div>
 
           {selectedItems.length > 0 && (
-            <div className="mt-4 p-3 bg-muted/50 backdrop-blur rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
               <span className="text-sm font-medium">
                 {selectedItems.length} {t('listings.itemsSelected')}
               </span>
@@ -504,6 +504,7 @@ export default function MyListings() {
                   <div className="relative">
                     <label className="absolute top-2 left-2 z-10 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer">
                       <Checkbox
+                        aria-label="Select listing"
                         checked={isSelected}
                         onCheckedChange={(checked) => {
                           if (checked) {

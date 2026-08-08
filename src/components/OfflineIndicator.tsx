@@ -41,7 +41,7 @@ export const OfflineIndicator = () => {
   if (isOnline && !showReconnected) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top">
+    <div className="fixed top-16 md:top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-in slide-in-from-top">
       {!isOnline ? (
         <Alert variant="destructive" className="shadow-3">
           <WifiOff className="h-4 w-4" />

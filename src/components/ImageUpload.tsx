@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { optimizeImage } from "@/utils/imageOptimization";
+import { haptics } from "@/utils/haptics";
 
 interface ImageUploadProps {
   onImagesChange: (urls: string[]) => void;
@@ -172,6 +173,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
 
     if (validUrls.length > 0) {
       toast.success(`${validUrls.length} image(s) uploaded and optimized`);
+      haptics.success();
     }
   };
 
@@ -206,6 +208,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
 
     if (validUrls.length > 0) {
       toast.success(`${validUrls.length} image(s) uploaded and optimized`);
+      haptics.success();
     }
   }, [images, maxImages, onImagesChange, uploadImage, uploading]);
 
@@ -347,7 +350,7 @@ export const ImageUpload = ({ onImagesChange, maxImages = 5, initialImages = [] 
                 variant="destructive"
                 size="icon"
                 aria-label={`Remove image ${index + 1}`}
-                className="absolute top-2 right-2 h-8 w-8 md:h-6 md:w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-1 z-10"
+                className="absolute top-2 right-2 h-11 w-11 md:h-6 md:w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-1 z-10"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeImage(index);

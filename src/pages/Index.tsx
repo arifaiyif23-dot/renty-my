@@ -52,7 +52,6 @@ const Index = () => {
       <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
         <HeroSection
           totalItemCount={totalItemCount}
-          onListOrAuth={() => navigate(user ? '/list-item' : '/auth')}
         />
 
         {(categories.length > 0 || isLoading) && (

@@ -89,7 +89,8 @@ serve(async (req) => {
     await supabase
       .from('rentals')
       .update({ status: 'paid' })
-      .eq('id', payment.rental_id);
+      .eq('id', payment.rental_id)
+      .in('status', ['payment_pending']);
 
     await supabase.from('payment_flow_logs').insert({
       payment_id: paymentId,

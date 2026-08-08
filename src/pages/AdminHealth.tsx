@@ -178,6 +178,7 @@ export default function AdminHealth() {
             <input
               type="email"
               placeholder="recipient@example.com"
+              aria-label="Test email recipient"
               value={testEmail}
               onChange={(e) => setTestEmail(e.target.value)}
               className="rounded-lg flex-1 rounded-lg border bg-background px-3 py-2 text-sm"

@@ -51,8 +51,10 @@ export function useVoiceSearch() {
 
     recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
       const current = event.resultIndex;
-      const transcriptResult = event.results[current][0].transcript;
-      setTranscript(transcriptResult);
+      const transcriptResult = event.results[current]?.[0]?.transcript;
+      if (typeof transcriptResult === 'string') {
+        setTranscript(transcriptResult);
+      }
     };
 
     recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {

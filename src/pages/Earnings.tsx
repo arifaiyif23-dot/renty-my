@@ -116,17 +116,28 @@ const navigate = useNavigate();
 
       const { data: bankData, error: bankError } = await supabase
         .from('owner_bank_accounts')
-        .select('id, account_number, bank_name, account_holder_name')
+        .select('id, account_number, encrypted_account_number, bank_name, account_holder_name')
         .eq('user_id', user?.id)
         .single();
 
       if (bankData) {
-        const { data: masked } = await supabase.rpc('mask_account_number', {
-          account_number: bankData.account_number
-        });
-        if (masked) {
-          bankData.account_number = masked;
+        // account_number is NULL at rest (ciphertext only, migration 20260807000010).
+        // Decrypt the caller's own account (owner-authorized RPC) to build the
+        // masked preview; fall back to legacy plaintext rows.
+        let rawAccount = bankData.account_number;
+        if (bankData.encrypted_account_number) {
+          const { data: dec } = await supabase.rpc('decrypt_bank_account_number', {
+            p_id: bankData.id
+          });
+          if (typeof dec === 'string' && dec) rawAccount = dec;
         }
+        if (rawAccount != null) {
+          const { data: masked } = await supabase.rpc('mask_account_number', {
+            account_number: rawAccount
+          });
+          if (masked) rawAccount = masked;
+        }
+        bankData.account_number = rawAccount ?? bankData.account_number ?? '';
       }
 
       if (bankError && bankError.code !== 'PGRST116') throw bankError;

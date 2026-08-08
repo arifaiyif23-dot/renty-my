@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle, Clock, XCircle, ExternalLink } from "lucide-rea
 import { SkeletonV2 } from "@/components/SkeletonV2";
 import { format } from "date-fns";
 import { formatRentalPeriod } from "@/lib/rentalTime";
+import { safeHttpUrl } from "@/utils/sanitize";
 
 export default function PaymentDetail() {
   const { t } = useTranslation();
@@ -58,7 +59,7 @@ export default function PaymentDetail() {
       </PageLayout>
     );
   }
-  if (error || !payment) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('paymentDetail.notFound')}</p></div>;
+  if (error || !payment) return <PageLayout variant="narrow"><div className="flex items-center justify-center min-h-[50vh]"><p className="text-muted-foreground">{t('paymentDetail.notFound')}</p></div></PageLayout>;
 
   const statusIcon: Record<string, JSX.Element> = {
     paid: <CheckCircle className="h-5 w-5 text-success" />,
@@ -119,7 +120,7 @@ export default function PaymentDetail() {
           </div>
 
           {payment.status === "pending" && payment.toyyibpay_bill_url && (
-            <Button className="w-full" onClick={() => window.open(payment.toyyibpay_bill_url, "_blank")}>
+            <Button className="w-full" onClick={() => { const url = safeHttpUrl(payment.toyyibpay_bill_url); if (url) window.open(url, "_blank", "noopener,noreferrer"); }}>
               <ExternalLink className="h-4 w-4 mr-2" /> {t('paymentDetail.completePayment')}
             </Button>
           )}

@@ -1,5 +1,7 @@
 /**
- * Image optimization utilities for better mobile performance
+ * Image optimization utilities for better mobile performance.
+ * Handles EXIF orientation correction (e.g. iPhone photos loading sideways)
+ * and HEIC/HEIF inputs via createImageBitmap where supported.
  */
 
 function getNetworkQuality(): 'slow' | 'medium' | 'fast' {
@@ -11,111 +13,130 @@ function getNetworkQuality(): 'slow' | 'medium' | 'fast' {
   return 'fast';
 }
 
-// Convert image to WebP format with quality optimization
+interface LoadedImage {
+  source: CanvasImageSource;
+  width: number;
+  height: number;
+  close?: () => void;
+}
+
+// Load a file into a drawable source. Uses createImageBitmap with
+// imageOrientation:'from-image' (honors EXIF and decodes HEIC on Safari/WebKit).
+// Falls back to <img>, whose rendering also applies EXIF orientation by default.
+async function loadImage(file: File): Promise<LoadedImage> {
+  if (typeof createImageBitmap === 'function') {
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      return {
+        source: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        close: () => bitmap.close(),
+      };
+    } catch {
+      /* HEIC/encoding decode issue -> fall back to <img> */
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    let objectUrl: string | null = null;
+    let settled = false;
+
+    img.onload = () => {
+      if (settled) return;
+      settled = true;
+      const naturalWidth = img.naturalWidth || img.width;
+      const naturalHeight = img.naturalHeight || img.height;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (naturalWidth === 0 || naturalHeight === 0) {
+        reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
+        return;
+      }
+      resolve({ source: img, width: naturalWidth, height: naturalHeight });
+    };
+
+    img.onerror = () => {
+      if (settled) return;
+      settled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
+    };
+
+    objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
+  });
+}
+
+function isHEICType(mime: string): boolean {
+  return mime === 'image/heic' || mime === 'image/heif';
+}
+
+// Convert image to WebP with correct orientation
 export const convertToWebP = async (
   file: File,
   quality: number = 0.8
 ): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    let objectUrl: string | null = null;
+  const loaded = await loadImage(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = loaded.width;
+  canvas.height = loaded.height;
+  const ctx = canvas.getContext('2d');
 
-    img.onload = () => {
-      // Revoke object URL to free memory
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-      
-      // Set canvas dimensions
-      canvas.width = img.width;
-      canvas.height = img.height;
+  if (!ctx) {
+    loaded.close?.();
+    throw new Error('Could not get canvas context');
+  }
 
-      if (!ctx) {
-        reject(new Error('Could not get canvas context'));
-        return;
-      }
+  ctx.drawImage(loaded.source, 0, 0);
+  loaded.close?.();
 
-      // Draw and convert to WebP
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to convert image'));
-          }
-        },
-        'image/webp',
-        quality
-      );
-    };
-
-    img.onerror = () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-      reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
-    };
-    
-    objectUrl = URL.createObjectURL(file);
-    img.src = objectUrl;
-  });
+  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/webp', quality));
+  if (!blob) throw new Error('Failed to convert image');
+  return blob;
 };
 
-// Resize image if it exceeds max dimensions
+// Resize image if it exceeds max dimensions, preserving orientation
 export const resizeImage = async (
   file: File,
   maxWidth: number = 1920,
   maxHeight: number = 1080
 ): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    let objectUrl: string | null = null;
+  const loaded = await loadImage(file);
+  let { width, height } = loaded;
 
-    img.onload = () => {
-      // Revoke object URL to free memory
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-      
-      let { width, height } = img;
+  // Calculate new dimensions while maintaining aspect ratio
+  if (width > maxWidth || height > maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height);
+    width = Math.max(1, Math.round(width * ratio));
+    height = Math.max(1, Math.round(height * ratio));
+  }
 
-      // Calculate new dimensions while maintaining aspect ratio
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = width * ratio;
-        height = height * ratio;
-      }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
 
-      canvas.width = width;
-      canvas.height = height;
+  if (!ctx) {
+    loaded.close?.();
+    throw new Error('Could not get canvas context');
+  }
 
-      if (!ctx) {
-        reject(new Error('Could not get canvas context'));
-        return;
-      }
+  ctx.drawImage(loaded.source, 0, 0, width, height);
+  loaded.close?.();
 
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to resize image'));
-          }
-        },
-        file.type || 'image/jpeg',
-        0.9
-      );
-    };
-
-    img.onerror = () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-      reject(new Error('Failed to load image. Please ensure the file is a valid image.'));
-    };
-    
-    objectUrl = URL.createObjectURL(file);
-    img.src = objectUrl;
+  // HEIC input -> output as JPEG since HEIC can't be re-encoded everywhere
+  const outputType = isFileType(file.type) && !isHEICType(file.type) ? file.type : 'image/jpeg';
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, outputType, 0.9);
   });
+  if (!blob) throw new Error('Failed to resize image');
+  return blob;
 };
+
+function isFileType(type: string): boolean {
+  return typeof type === 'string' && type.startsWith('image/');
+}
 
 // Optimize image based on network quality
 export const optimizeImage = async (file: File): Promise<Blob> => {
@@ -130,11 +151,11 @@ export const optimizeImage = async (file: File): Promise<Blob> => {
 
     // Convert to WebP for better compression
     const quality = isSlow ? 0.6 : 0.8;
-    
+
     // Create a proper File object from the resized blob with correct MIME type
-    const resizedType = file.type.startsWith('image/') ? file.type : 'image/jpeg';
+    const resizedType = resized.type || 'image/jpeg';
     const resizedFile = new File([resized], file.name, { type: resizedType });
-    
+
     const webpBlob = await convertToWebP(resizedFile, quality);
     return webpBlob;
   } catch (error) {

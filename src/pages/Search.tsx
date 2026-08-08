@@ -12,7 +12,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, ArrowUpDown, SearchSlash, MapPin, BookmarkPlus, Loader2 } from 'lucide-react';
+import { X, ArrowUpDown, SearchSlash, MapPin, BookmarkPlus, Loader2, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -23,6 +23,7 @@ import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { getVerifiedUserIds } from '@/utils/verifiedFilter';
 import { toast } from 'sonner';
 import { MALAYSIA_STATES } from '@/components/SearchBarV2';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 const CATEGORY_OPTIONS = [
   { value: 'all', label: 'All' },
@@ -187,9 +188,15 @@ export default function Search() {
     pageSize: 12,
   });
 
+  const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
+    reset();
+    setInitialLoading(true);
+  });
+
   useEffect(() => {
     reset();
     setInitialLoading(true);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
   useEffect(() => {
@@ -228,6 +235,16 @@ export default function Search() {
 
   return (
     <PageLayout>
+      {pullDistance > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
+          <div
+            className="bg-primary text-primary-foreground rounded-full p-2 shadow-3"
+            style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </div>
+        </div>
+      )}
       <SEO
         title="Search — RENTY"
         description="Browse thousands of items available for rent across Malaysia."
@@ -276,7 +293,7 @@ export default function Search() {
               <button
                 key={search}
                 onClick={() => { setSearchQuery(search); saveSearch(search); }}
-                className="px-2.5 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors min-h-[36px]"
+                className="px-2.5 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 transition-colors min-h-[44px]"
               >
                 {search}
               </button>
@@ -370,49 +387,49 @@ export default function Search() {
         {(searchQuery || category !== 'all' || minPrice || maxPrice || dateRange || userLocation) && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {searchQuery && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[44px]">
                 {searchQuery}
-                <button type="button" onClick={() => setSearchQuery('')} className="-m-1 p-1.5" aria-label={`Remove search: ${searchQuery}`}>
+                <button type="button" onClick={() => setSearchQuery('')} className="-my-1 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5" aria-label={`Remove search: ${searchQuery}`}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {category !== 'all' && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[44px]">
                 {category}
-                <button type="button" onClick={() => setCategory('all')} className="-m-1 p-1.5" aria-label={`Remove category: ${category}`}>
+                <button type="button" onClick={() => setCategory('all')} className="-my-1 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5" aria-label={`Remove category: ${category}`}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {minPrice && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[44px]">
                 Min RM{minPrice}
-                <button type="button" onClick={() => setMinPrice('')} className="-m-1 p-1.5" aria-label={`Remove minimum price: RM${minPrice}`}>
+                <button type="button" onClick={() => setMinPrice('')} className="-my-1 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5" aria-label={`Remove minimum price: RM${minPrice}`}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {maxPrice && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[44px]">
                 Max RM{maxPrice}
-                <button type="button" onClick={() => setMaxPrice('')} className="-m-1 p-1.5" aria-label={`Remove maximum price: RM${maxPrice}`}>
+                <button type="button" onClick={() => setMaxPrice('')} className="-my-1 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5" aria-label={`Remove maximum price: RM${maxPrice}`}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {userLocation && userLocation !== 'all' && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[44px]">
                 {userLocation}
-                <button type="button" onClick={() => setUserLocation('')} className="-m-1 p-1.5" aria-label={`Remove location: ${userLocation}`}>
+                <button type="button" onClick={() => setUserLocation('')} className="-my-1 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5" aria-label={`Remove location: ${userLocation}`}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {dateRange?.from && dateRange?.to && (
-              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[36px]">
+              <Badge variant="outline" className="gap-1 rounded-full text-[11px] min-h-[44px]">
                 {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
-                <button type="button" onClick={() => setDateRange(undefined)} className="-m-1 p-1.5" aria-label="Remove date range">
+                <button type="button" onClick={() => setDateRange(undefined)} className="-my-1 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5" aria-label="Remove date range">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>

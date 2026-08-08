@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { MapPin, Share2, MessageCircle, Loader2, ChevronDown, PackageX } from 'lucide-react';
 import { isNative } from '@/lib/platform';
+import { haptics } from '@/utils/haptics';
 import type { DateRange } from 'react-day-picker';
 import { PageLayout } from '@/components/PageLayout';
 import BackButton from '@/components/BackButton';
@@ -75,6 +76,12 @@ export default function ItemDetail() {
   useEffect(() => {
     const trackView = async () => {
       if (!id) return;
+      // In-session throttle (covers anonymous visitors + language-toggle re-runs):
+      // count an item view at most once per 60s per tab.
+      const viewKey = `renty_view_${id}`;
+      const lastView = Number(sessionStorage.getItem(viewKey) || 0);
+      if (Date.now() - lastView < 60000) return;
+      sessionStorage.setItem(viewKey, String(Date.now()));
       try {
         if (user) {
           const { count } = await supabase
@@ -242,6 +249,7 @@ export default function ItemDetail() {
       });
       if (bookingResult.error) throw new Error(bookingResult.error.message);
       toast.success(instantBook ? t('itemDetail.bookingConfirmed') : t('itemDetail.requestSent'));
+      haptics.success();
       navigate(-1);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : t('itemDetail.anErrorOccurred'));

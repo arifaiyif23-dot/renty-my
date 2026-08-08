@@ -76,9 +76,9 @@ export default function Wishlist() {
       />
       <div>
         {pullDistance > 0 && (
-          <div className="flex justify-center py-3">
+          <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
             <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-3" style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}>
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </div>
           </div>
         )}

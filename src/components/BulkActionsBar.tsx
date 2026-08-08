@@ -22,7 +22,7 @@ export function BulkActionsBar({
   return (
     <>
       {selectedCount > 0 && (
-        <div className="fixed bottom-20 md:bottom-4 left-4 right-4 mx-auto max-w-2xl z-50 animate-slide-in-right">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+0.75rem)] md:bottom-4 left-4 right-4 mx-auto max-w-2xl z-50 animate-slide-in-right">
           <div className="bg-card border shadow-3 rounded-lg p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">

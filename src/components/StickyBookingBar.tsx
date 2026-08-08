@@ -28,7 +28,7 @@ export default function StickyBookingBar({
   return (
     <div
       className={cn(
-        "fixed left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-md p-3 md:hidden bottom-mobile-nav",
+        "fixed left-0 right-0 z-50 border-t border-border/40 bg-card p-3 md:hidden bottom-mobile-nav",
         className
       )}
     >
@@ -47,7 +47,7 @@ export default function StickyBookingBar({
         </div>
         <Button
           size="lg"
-          className="flex-shrink-0 min-w-[120px]"
+          className="flex-shrink-0 min-w-[120px] bg-primary text-primary-foreground"
           onClick={onBook}
           disabled={disabled || isLoading}
         >

@@ -170,7 +170,7 @@ export default function Auth() {
   if (isRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8 w-full max-w-md text-center">
+        <div className="rounded-2xl border border-border bg-card shadow-2 p-6 md:p-8 w-full max-w-md text-center">
           <h1 className="text-xl font-bold mb-1">Set new password</h1>
           <p className="text-sm text-muted-foreground mb-6">Enter and confirm your new password.</p>
           <form onSubmit={handleResetPassword} className="space-y-4">
@@ -193,11 +193,10 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <div className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm">
+      <div className="sticky top-0 z-50 w-full border-b bg-background pt-[env(safe-area-inset-top)]">
         <div className="mx-auto px-4 max-w-5xl h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src="/logo-light.png" alt="Renty" className="h-7 w-auto dark:hidden" />
-            <img src="/logo-dark.png" alt="Renty" className="h-7 w-auto hidden dark:block" />
+            <img src="/logo-light.png" alt="Renty" className="h-7 w-auto" />
           </Link>
           <Link to="/">
             <Button variant="ghost" size="icon" className="rounded-lg">
@@ -208,11 +207,9 @@ export default function Auth() {
       </div>
 
       <div className="flex-1 lg:grid lg:grid-cols-2">
-        <div className="relative flex items-center justify-center p-4 pb-mobile-nav overflow-hidden">
-          <div aria-hidden className="absolute -top-28 -left-28 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-          <div aria-hidden className="absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-action/10 blur-3xl pointer-events-none" />
-          <div className="relative w-full max-w-sm space-y-6">
-            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8">
+        <div className="relative flex items-start justify-center p-4 pb-mobile-nav overflow-y-auto">
+          <div className="relative w-full max-w-sm space-y-6 my-auto">
+            <div className="rounded-2xl border border-border bg-card shadow-2 p-6 md:p-8">
               <div className="text-center mb-6">
                 <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
                 <p className="text-sm text-muted-foreground mt-1.5">Sign in to continue</p>
@@ -223,7 +220,7 @@ export default function Auth() {
                   <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="login" className="animate-fade-in">
+                <TabsContent value="login">
                   {magicLinkSent ? (
                     <div className="text-center py-6 space-y-3">
                       <p className="text-sm">Check your email for a magic link.</p>
@@ -277,7 +274,7 @@ export default function Auth() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="signup" className="animate-fade-in">
+                <TabsContent value="signup">
                   {showConfirmEmail ? (
                     <div className="text-center py-6 space-y-3">
                       <p className="text-sm">Check your email to confirm your account.</p>
@@ -336,9 +333,7 @@ export default function Auth() {
           </div>
         </div>
 
-        <div className="hidden lg:flex relative bg-gradient-to-br from-[hsl(224_70%_10%)] via-brand to-[hsl(224_70%_10%)] items-center justify-center overflow-hidden">
-          <div aria-hidden className="absolute -top-32 -right-24 w-96 h-96 rounded-full bg-action/25 blur-3xl pointer-events-none" />
-          <div aria-hidden className="absolute -bottom-32 -left-24 w-96 h-96 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
+        <div className="hidden lg:flex relative bg-gradient-to-br from-primary via-brand to-primary items-center justify-center overflow-hidden">
           <div className="relative z-10 text-center px-12 max-w-md">
             <h1 className="text-3xl font-semibold text-white leading-[1.1] mb-3 tracking-tight">
               Rent Smart. Earn More.

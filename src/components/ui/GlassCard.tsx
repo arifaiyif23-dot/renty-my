@@ -14,9 +14,9 @@ const paddingStyles: Record<string, string> = {
 };
 
 const variantStyles: Record<string, string> = {
-  subtle: "glass",
-  elevated: "glass-elevated",
-  interactive: "glass hover:glass-elevated transition-all duration-300 cursor-pointer",
+  subtle: "bg-card border border-border",
+  elevated: "bg-card border border-border",
+  interactive: "bg-card border border-border hover:border-primary/30 transition-colors cursor-pointer",
 };
 
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
@@ -25,7 +25,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-lg",
+          "rounded-xl",
           variantStyles[variant],
           paddingStyles[padding],
           className

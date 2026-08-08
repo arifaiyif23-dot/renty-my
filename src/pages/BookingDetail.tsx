@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,21 +36,24 @@ export default function BookingDetail() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelDialog, setCancelDialog] = useState(false);
 
+  const fetchRental = useCallback(async () => {
+    if (!id) return;
+    const { data, error: fetchError } = await supabase
+      .from("rentals")
+      .select(`*, item:items(id, title, category, images:item_images(image_url)), renter:profiles!rentals_renter_id_fkey(full_name, avatar_url), owner:profiles!rentals_owner_id_fkey(full_name, avatar_url)`)
+      .eq("id", id)
+      .single();
+    if (fetchError || !data) { setError(true); setLoading(false); return; }
+    setRental(data as unknown as Rental);
+    setLoading(false);
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
-    (async () => {
-      setLoading(true);
-      setError(false);
-      const { data, error: fetchError } = await supabase
-        .from("rentals")
-        .select(`*, item:items(id, title, category, images:item_images(image_url)), renter:profiles!rentals_renter_id_fkey(full_name, avatar_url), owner:profiles!rentals_owner_id_fkey(full_name, avatar_url)`)
-        .eq("id", id)
-        .single();
-      if (fetchError || !data) { setError(true); setLoading(false); return; }
-      setRental(data as unknown as Rental);
-      setLoading(false);
-    })();
-  }, [id]);
+    setLoading(true);
+    setError(false);
+    fetchRental();
+  }, [id, fetchRental]);
 
   // Poll for status changes when waiting for payment or owner confirmation
   useEffect(() => {
@@ -64,11 +67,11 @@ export default function BookingDetail() {
         .eq("id", id)
         .single();
       if (data && data.status !== s) {
-        window.location.reload();
+        fetchRental();
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [id, rental?.status]);
+  }, [id, rental?.status, fetchRental]);
 
   if (loading) {
     return (
@@ -94,33 +97,33 @@ export default function BookingDetail() {
       </PageLayout>
     );
   }
-  if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('bookingDetail.notFound')}</p></div>;
+  if (error || !rental) return <PageLayout variant="narrow"><div className="flex items-center justify-center min-h-[50vh]"><p className="text-muted-foreground">{t('bookingDetail.notFound')}</p></div></PageLayout>;
 
   const isOwner = user?.id === rental.owner_id;
 
   const handleApprove = async () => {
     setConfirming(true);
     const { error } = await supabase.functions.invoke("process-rental-approval", { body: { rentalId: rental.id, action: "approve" } });
-    if (error) { console.error(error); } else { window.location.reload(); }
+    if (error) { console.error(error); } else { fetchRental(); }
     setConfirming(false);
   };
   const handleReject = async () => {
     setConfirming(true);
     const { error } = await supabase.functions.invoke("process-rental-approval", { body: { rentalId: rental.id, action: "reject" } });
-    if (error) { console.error(error); } else { window.location.reload(); }
+    if (error) { console.error(error); } else { fetchRental(); }
     setConfirming(false);
   };
   const handleCancel = async () => {
     setCancelling(true);
     const { error } = await supabase.functions.invoke("cancel-booking", { body: { rentalId: rental.id } });
-    if (error) { toast.error(error.message); } else { window.location.reload(); }
+    if (error) { toast.error(error.message); } else { fetchRental(); }
     setCancelling(false);
     setCancelDialog(false);
   };
   const handleReportNoShow = async () => {
     setConfirming(true);
     const { error } = await supabase.functions.invoke("confirm-handover", { body: { action: "report_no_show", rentalId: rental.id } });
-    if (error) { toast.error(error.message); } else { window.location.reload(); }
+    if (error) { toast.error(error.message); } else { fetchRental(); }
     setConfirming(false);
   };
 

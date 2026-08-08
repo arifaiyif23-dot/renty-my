@@ -188,6 +188,7 @@ export interface Message {
   recipient_id: string;
   rental_id?: string;
   content: string;
+  encrypted_content?: string | null;
   is_read: boolean;
   created_at: string;
   read_at?: string;

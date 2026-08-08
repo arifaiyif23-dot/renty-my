@@ -123,7 +123,7 @@ export default function AdminVerification() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="rounded-lg" variant="ghost" size="icon" onClick={() => setShowShortcutsHelp(!showShortcutsHelp)}>
+                <Button className="rounded-lg" variant="ghost" size="icon" onClick={() => setShowShortcutsHelp(!showShortcutsHelp)} aria-label="Show keyboard shortcuts">
                   <Keyboard className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>

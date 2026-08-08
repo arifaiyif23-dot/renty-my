@@ -45,9 +45,8 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
 
   return (
     <div className="relative group">
-      {/* Main Image */}
       <div
-        className="aspect-video bg-muted rounded-lg overflow-hidden"
+        className="aspect-[4/3] md:aspect-video bg-muted rounded-xl overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -62,13 +61,12 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
         />
       </div>
 
-      {/* Navigation Buttons */}
       {images.length > 1 && (
         <>
           <Button
             variant="secondary"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 md:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
+            className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 md:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-card hover:bg-card/90 rounded-full"
             onClick={goToPrevious}
             aria-label="Previous image"
           >
@@ -77,7 +75,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 md:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-background/90"
+            className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 md:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity bg-card hover:bg-card/90 rounded-full"
             onClick={goToNext}
             aria-label="Next image"
           >
@@ -86,16 +84,32 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
         </>
       )}
 
-      {/* Image Counter */}
       {images.length > 1 && (
-        <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm text-foreground px-3 py-1 rounded-full text-sm font-medium">
+        <div className="absolute bottom-3 right-3 bg-card text-foreground px-2.5 py-1 rounded-full text-xs font-medium">
           {currentIndex + 1} / {images.length}
         </div>
       )}
 
-      {/* Thumbnail Navigation */}
       {images.length > 1 && (
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              aria-label={`Go to image ${index + 1}`}
+              className={cn(
+                "rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center",
+                index === currentIndex
+                  ? "bg-white w-4 h-1.5"
+                  : "bg-white/50 w-1.5 h-1.5"
+              )}
+            />
+          ))}
+        </div>
+      )}
+
+      {images.length > 1 && (
+        <div className="hidden md:flex gap-2 mt-3 overflow-x-auto pb-2">
           {images.map((image, index) => (
             <button
               key={image.id}

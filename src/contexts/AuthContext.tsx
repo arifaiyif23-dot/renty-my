@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types';
@@ -25,6 +25,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const profileRef = useRef<Profile | null>(null);
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,20 +85,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload) => {
           const newData = payload.new as Record<string, unknown>;
-          setProfile((prev) => {
-            if (!prev) {
-              fetchProfile(user.id);
-              return prev;
+          if (!profileRef.current) {
+            // Profile not loaded yet — fetch it outside the state updater (pure).
+            fetchProfile(user.id);
+            return;
+          }
+          // Only merge known Profile fields from the payload
+          const safe: Record<string, unknown> = {};
+          for (const key of Object.keys(newData)) {
+            if (key in profileRef.current) {
+              safe[key] = newData[key];
             }
-            // Only merge known Profile fields from the payload
-            const safe: Record<string, unknown> = {};
-            for (const key of Object.keys(newData)) {
-              if (key in prev) {
-                safe[key] = newData[key];
-              }
-            }
-            return { ...prev, ...safe };
-          });
+          }
+          setProfile((prev) => (prev ? { ...prev, ...safe } : prev));
         }
       )
       .subscribe((status) => {

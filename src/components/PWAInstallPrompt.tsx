@@ -72,7 +72,7 @@ export const PWAInstallPrompt = () => {
   if (isInstalled || !showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom duration-300">
+    <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+0.75rem)] left-4 right-4 md:bottom-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom duration-300">
       <Card className="p-4 shadow-3 border-2 border-primary/20 bg-card">
         <button
           onClick={handleDismiss}

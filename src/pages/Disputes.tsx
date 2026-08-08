@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ const statusLabel = (t: TFunction, s: string): string => {
 };
 
 export default function Disputes() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
   const [disputes, setDisputes] = useState<DisputeDisplay[]>([]);

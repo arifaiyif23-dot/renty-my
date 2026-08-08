@@ -88,7 +88,7 @@ export function useIndexData() {
     try {
       const [itemsResult, usersResult, rentalsResult, reviewsResult] = await Promise.all([
         supabase.from('items').select('*', { count: 'exact', head: true }).eq('status', 'available'),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('public_profiles').select('id', { count: 'exact', head: true }),
         supabase.from('rentals').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
         supabase.from('reviews').select('rating'),
       ])

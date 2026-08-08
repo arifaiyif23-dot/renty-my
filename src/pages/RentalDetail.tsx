@@ -69,7 +69,7 @@ export default function RentalDetail() {
       </PageLayout>
     );
   }
-  if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">{t('rentalDetail.notFound')}</p></div>;
+  if (error || !rental) return <PageLayout variant="narrow"><div className="flex items-center justify-center min-h-[50vh]"><p className="text-muted-foreground">{t('rentalDetail.notFound')}</p></div></PageLayout>;
 
   const isOwner = user?.id === rental.owner_id;
 

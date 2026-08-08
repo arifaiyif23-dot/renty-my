@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -13,7 +13,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AdminRoute } from "@/components/AdminRoute";
 import { useScrollToTop } from "@/hooks/use-scroll-to-top";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import PageTransition from "@/components/PageTransition";
+
 import { isNative } from "@/lib/platform";
 
 // Eager load critical pages (landing + auth)
@@ -70,7 +70,6 @@ const About = lazy(() => import("./pages/About"));
 
 function AppRoutes() {
   useScrollToTop();
-  const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,6 +89,22 @@ function AppRoutes() {
           // Ignore malformed URLs
         }
       });
+      App.addListener('backButton', () => {
+        const openModal = document.querySelector(
+          '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [data-vaul-drawer], [data-vaul-overlay]'
+        );
+        const bodyLocked = document.body.style.overflow === 'hidden';
+        if (openModal || bodyLocked) {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+          return;
+        }
+        const idx = window.history.state?.idx;
+        if (typeof idx === 'number' && idx > 0) {
+          navigate(-1);
+        } else {
+          App.minimizeApp();
+        }
+      });
     });
     return () => { cancelled = true; };
   }, [navigate]);
@@ -102,7 +117,6 @@ function AppRoutes() {
         Skip to main content
       </a>
       <Suspense fallback={<LoadingSpinner />}>
-        <PageTransition key={location.pathname}>
           <Routes>
             <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
             <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
@@ -153,7 +167,6 @@ function AppRoutes() {
             <Route path="/review/:rentalId" element={<ErrorBoundary><ProtectedRoute><ReviewPage /></ProtectedRoute></ErrorBoundary>} />
             <Route path="*" element={<ErrorBoundary><NotFound /></ErrorBoundary>} />
           </Routes>
-        </PageTransition>
       </Suspense>
       <MobileBottomNav />
     </>
@@ -162,8 +175,6 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    {/* ThemeProvider is set up in main.tsx with next-themes. Dark mode CSS variables are defined in index.css.
-        The theme toggle in Header is functional. If dark mode contrast issues arise, adjust `.dark` CSS variables in index.css. */}
     <ErrorBoundary>
       <Sonner />
       <BrowserRouter>

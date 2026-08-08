@@ -18,6 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { haptics } from '@/utils/haptics';
 import { formatDuration, formatRentalPeriod, rentalHours } from '@/lib/rentalTime';
 import { isNative } from '@/lib/platform';
+import { safeHttpUrl } from '@/utils/sanitize';
 
 interface PayNowButtonProps {
   rental: Rental;
@@ -104,11 +105,17 @@ if (payResponse) {
       haptics.success();
       toast.success('Redirecting to payment...');
 
+      const paymentUrl = safeHttpUrl(data.paymentUrl);
+      if (!paymentUrl) {
+        toast.error('Invalid payment URL');
+        return;
+      }
+
       if (isNative()) {
         const { Browser } = await import('@capacitor/browser');
-        await Browser.open({ url: data.paymentUrl });
+        await Browser.open({ url: paymentUrl });
       } else {
-        window.location.href = data.paymentUrl;
+        window.location.href = paymentUrl;
       }
 
     } catch (error: unknown) {

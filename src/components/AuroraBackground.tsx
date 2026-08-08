@@ -116,7 +116,6 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
         style={{ willChange: "transform" }}
         aria-hidden="true"
       />
-      <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 h-full">{children}</div>
     </div>
   );

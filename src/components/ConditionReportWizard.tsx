@@ -10,13 +10,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Plus, Trash2, Upload, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import type { ConditionGrade } from '@/types';
+import { safeHttpUrl, sanitizeFileName } from '@/utils/sanitize';
+import { optimizeImage } from '@/utils/imageOptimization';
 
 const CONDITION_OPTIONS: { value: ConditionGrade; label: string; color: string }[] = [
-  { value: 'excellent', label: 'Excellent', color: 'text-success dark:text-success' },
-  { value: 'good', label: 'Good', color: 'text-action dark:text-action' },
-  { value: 'fair', label: 'Fair', color: 'text-warning dark:text-warning' },
-  { value: 'poor', label: 'Poor', color: 'text-warning dark:text-warning' },
-  { value: 'damaged', label: 'Damaged', color: 'text-destructive dark:text-destructive' },
+  { value: 'excellent', label: 'Excellent', color: 'text-success' },
+  { value: 'good', label: 'Good', color: 'text-action' },
+  { value: 'fair', label: 'Fair', color: 'text-warning' },
+  { value: 'poor', label: 'Poor', color: 'text-warning' },
+  { value: 'damaged', label: 'Damaged', color: 'text-destructive' },
   { value: 'missing', label: 'Missing', color: 'text-muted-foreground' },
 ];
 
@@ -95,10 +97,13 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
 
     setUploading(true);
     try {
-      const fileName = `${rentalId}/condition/${itemId}_${Date.now()}_${file.name}`;
+      const optimized = await optimizeImage(file);
+      const optimizedFile = new File([optimized], `${Date.now()}_${sanitizeFileName(file.name).replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp' });
+
+      const fileName = `${rentalId}/condition/${itemId}_${Date.now()}_${optimizedFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('rental-evidence')
-        .upload(fileName, file);
+        .upload(fileName, optimizedFile);
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
@@ -188,7 +193,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChangeWrapper}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {reportType === 'pre_rental' ? 'Item Condition Report — Check-out' : 'Item Condition Report — Check-in'}
@@ -242,7 +247,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
 
             {items.map((item) => (
               <div key={item.id} className="p-4 border rounded-lg space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs">Category</Label>
                     <Select value={item.category} onValueChange={(v) => updateItem(item.id, 'category', v)}>
@@ -265,7 +270,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
                       onChange={(e) => updateItem(item.id, 'label', e.target.value)}
                     />
                   </div>
-                  <div className="w-32 space-y-1">
+                  <div className="w-full sm:w-32 space-y-1">
                     <Label className="text-xs">Condition</Label>
                     <Select value={item.condition} onValueChange={(v) => updateItem(item.id, 'condition', v)}>
                       <SelectTrigger className="h-9 text-sm">
@@ -279,7 +284,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
                     </Select>
                   </div>
                   {items.length > 1 && (
-                    <Button variant="ghost" size="icon" className="h-10 w-10 mt-5 shrink-0" onClick={() => removeItem(item.id)}>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 sm:mt-5 shrink-0" onClick={() => removeItem(item.id)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   )}
@@ -311,21 +316,21 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
                   {item.photoUrls.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {item.photoUrls.map((url, idx) => (
-                        <div key={idx} className="group relative w-16 h-16 rounded-lg overflow-hidden border">
+                        <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border">
                           <img src={url} alt="" className="object-cover w-full h-full" loading="lazy" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                            <a href={url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-white/80">
-                              <ZoomIn className="h-4 w-4" />
+                          <div className="absolute top-0 right-0 flex gap-1">
+                            <a href={safeHttpUrl(url)} target="_blank" rel="noopener noreferrer" aria-label={`View photo ${idx + 1}`} className="w-11 h-11 bg-black/60 text-white flex items-center justify-center rounded-bl-lg">
+                              <ZoomIn className="h-5 w-5" />
                             </a>
-                            <button
-                              type="button"
-                              className="text-white hover:text-destructive transition-colors"
-                              onClick={() => removePhoto(item.id, idx)}
-                              aria-label={`Remove photo ${idx + 1}`}
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
                           </div>
+                          <button
+                            type="button"
+                            className="absolute -top-2 -right-2 w-11 h-11 rounded-full bg-destructive text-white flex items-center justify-center border border-background shadow-1"
+                            onClick={() => removePhoto(item.id, idx)}
+                            aria-label={`Remove photo ${idx + 1}`}
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
                         </div>
                       ))}
                     </div>

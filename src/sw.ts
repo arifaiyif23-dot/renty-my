@@ -122,7 +122,17 @@ self.addEventListener('fetch', (event) => {
 });
 
 registerRoute(
-  /^https:\/\/.*\.supabase\.co\/.*/i,
+  ({ url, request }) => {
+    if (request.method !== 'GET') return false;
+    if (!/^https?:\/\/.*\.supabase\.co(?:\/|$)/i.test(url.href)) return false;
+    const path = url.pathname;
+    // Never cache auth, realtime, or the PostgREST JSON API (data is
+    // user-scoped and not idempotent to time-box).
+    if (path.startsWith('/auth/') || path.startsWith('/realtime/') || path.startsWith('/rest/v1')) return false;
+    // Avoid caching signed URLs that carry expiring token/Authorization params.
+    if (url.searchParams.has('token') || url.searchParams.has('Authorization')) return false;
+    return true;
+  },
   new NetworkFirst({
     cacheName: 'supabase-cache',
     networkTimeoutSeconds: 10,

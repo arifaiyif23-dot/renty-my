@@ -21,16 +21,49 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
       const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
       if (stored) setRecentSearches(JSON.parse(stored));
       setTimeout(() => inputRef.current?.focus(), 100);
+      document.body.style.overflow = "hidden";
     } else {
       setQuery("");
+      document.body.style.overflow = "";
     }
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const focusables = containerRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusables || focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
 
   const saveRecentSearch = (q: string) => {
     const trimmed = q.trim();
@@ -55,8 +88,8 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background animate-enter flex flex-col">
-      <div className="flex items-center gap-3 p-4 border-b border-border">
+    <div ref={containerRef} className="fixed inset-0 z-[60] bg-background flex flex-col pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+      <div className="flex items-center gap-3 pt-[max(1rem,env(safe-area-inset-top))] pb-4 px-4 border-b border-border">
         <button
           type="button"
           onClick={onClose}
@@ -84,7 +117,8 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[36px] min-w-[36px] flex items-center justify-center"
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -92,7 +126,7 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
         {query ? (
           <div className="p-4">
             <button
@@ -117,7 +151,8 @@ const MobileSearchOverlay = ({ open, onClose, onSearch }: MobileSearchOverlayPro
                   <button
                     type="button"
                     onClick={clearRecent}
-                    className="text-xs text-muted-foreground hover:text-foreground"
+                    aria-label="Clear recent searches"
+                    className="text-xs text-muted-foreground hover:text-foreground min-h-[44px] flex items-center px-2"
                   >
                     Clear
                   </button>

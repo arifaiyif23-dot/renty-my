@@ -125,11 +125,11 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
                 <AvatarImage src={avatarUrl} />
                 <AvatarFallback className="text-2xl">{initials}</AvatarFallback>
               </Avatar>
-              <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors">
+              <label htmlFor="avatar-upload" className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors h-11 w-11">
                 {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Camera className="h-4 w-4" />
+                  <Camera className="h-5 w-5" />
                 )}
               </label>
               <input
@@ -170,6 +170,8 @@ export default function ProfileEditDialog({ open, onOpenChange, onSuccess }: Pro
               <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
+                type="tel"
+                inputMode="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+60 12 345 6789"

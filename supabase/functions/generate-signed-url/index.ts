@@ -38,15 +38,17 @@ Deno.serve(async (req) => {
       throw new Error('Missing path parameter');
     }
 
-    // Sanitize path: prevent path traversal attacks
-    // Use iterative replacement to catch nested traversal like ....//
-    let sanitizedPath = path;
-    while (sanitizedPath.includes('..')) {
-      sanitizedPath = sanitizedPath.replace(/\.\.\//g, '').replace(/\.\.\\/g, '');
-    }
-    sanitizedPath = sanitizedPath.replace(/\\/g, '/').replace(/^\/+/, '');
-    
-    // Check no path traversal remains after sanitization
+    // Sanitize path: prevent path traversal attacks.
+    // Segment-wise filtering TERMINATES by construction (no while/includes loop),
+    // dropping '.', '..', empty and backslash fragments so no traversal survives.
+    const sanitizedPath = (path || '')
+      .replace(/\\/g, '/')
+      .split('/')
+      .filter((seg) => seg !== '.' && seg !== '..' && seg !== '')
+      .join('/')
+      .replace(/^\/+/, '');
+
+    // Final guard: reject if any traversal marker still present (should be unused)
     if (sanitizedPath.includes('..')) {
       throw new Error('Invalid path: path traversal detected');
     }
@@ -104,6 +106,34 @@ Deno.serve(async (req) => {
       
       if (!isOwner && !isAdmin) {
         throw new Error('Forbidden: You do not have access to this image');
+      }
+    }
+
+    // For rental-evidence and receipts, only rental participants or admins can access
+    if (bucket === 'rental-evidence' || bucket === 'receipts') {
+      const rentalId = sanitizedPath.split('/')[1];
+      if (!rentalId) {
+        throw new Error('Invalid file path');
+      }
+
+      const { data: rental } = await supabase
+        .from('rentals')
+        .select('owner_id, renter_id')
+        .eq('id', rentalId)
+        .single();
+
+      const isParticipant = !!rental && (rental.owner_id === user.id || rental.renter_id === user.id);
+
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'super_admin'])
+        .maybeSingle();
+      const isAdmin = !!roles;
+
+      if (!isParticipant && !isAdmin) {
+        throw new Error('Forbidden: You do not have access to this file');
       }
     }
 

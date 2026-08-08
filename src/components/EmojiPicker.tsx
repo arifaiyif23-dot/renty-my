@@ -33,7 +33,7 @@ export function EmojiPicker({ onSelect }: EmojiPickerProps) {
                     <button
                       key={emoji}
                       onClick={() => onSelect(emoji)}
-                      className="text-2xl hover:bg-accent rounded p-1 transition-colors"
+                      className="text-2xl hover:bg-accent rounded p-2.5 transition-colors"
                     >
                       {emoji}
                     </button>

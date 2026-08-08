@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
         name: 'RENTY - Malaysia P2P Rental Marketplace',
         short_name: 'RENTY',
         description: 'Rent anything, earn from anything. From cameras to cars.',
-        theme_color: '#0f1729',
+        theme_color: '#2851E3',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',
@@ -104,7 +104,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     target: 'es2019',
-    sourcemap: 'hidden',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {

@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Camera, Video, Check, Smartphone } from "lucide-react";
+import { Camera, Video, Check } from "lucide-react";
 import { toast } from "sonner";
-import { isNative } from "@/lib/platform";
 
 interface VideoLivenessCaptureProps {
   onCapture: (videoBlob: Blob, frames: Blob[]) => void;
@@ -27,27 +26,6 @@ export const VideoLivenessCapture = ({ onCapture, onSkip }: VideoLivenessCapture
       stopCamera();
     };
   }, []);
-
-  if (isNative()) {
-    return (
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold">Liveness Check</h3>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Camera liveness check is handled by the native app. Please use the app camera feature to complete verification.
-          </p>
-          {onSkip && (
-            <Button onClick={onSkip} variant="outline" className="w-full">
-              Skip for now
-            </Button>
-          )}
-        </div>
-      </Card>
-    );
-  }
 
   const startCamera = async () => {
     try {

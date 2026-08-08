@@ -14,7 +14,7 @@ interface SEOProps {
 export default function SEO({
   title,
   description,
-  image = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80",
+  image = "https://renty.my/og-image.png",
   url = isNative() ? "" : window.location.href,
   type = "website",
   jsonLd

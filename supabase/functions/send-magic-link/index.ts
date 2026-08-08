@@ -53,6 +53,19 @@ serve(async (req) => {
       SERVICE_KEY
     );
 
+    // Global throttle: cap total magic-link sends per window to blunt mass
+    // account-creation / email-flood abuse across many distinct addresses.
+    const { count: globalCount } = await supabase
+      .from('magic_links')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString());
+
+    if (globalCount && globalCount >= 30) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please try again later.' }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Rate limit: 3 requests per 15 min per email
     const { count } = await supabase
       .from('magic_links')

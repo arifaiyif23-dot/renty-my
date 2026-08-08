@@ -4,18 +4,19 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp, Camera } from 'lucide-react';
 import type { ConditionReport } from '@/types';
+import { safeHttpUrl } from '@/utils/sanitize';
 
 interface ReturnConditionComparisonProps {
   rentalId: string;
 }
 
 const CONDITION_COLORS: Record<string, string> = {
-  excellent: 'bg-success/10 text-success border-success/30 dark:bg-success/15 dark:text-success dark:border-success/30',
-  good: 'bg-action/10 text-action border-action/30 dark:bg-action/15 dark:text-action dark:border-action/30',
-  fair: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/15 dark:text-warning dark:border-warning/30',
-  poor: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/15 dark:text-warning dark:border-warning/30',
-  damaged: 'bg-destructive/10 text-destructive border-destructive/30 dark:bg-destructive/15 dark:text-destructive dark:border-destructive/30',
-  missing: 'bg-muted text-muted-foreground border-border dark:bg-secondary dark:text-muted-foreground dark:border-border',
+  excellent: 'bg-success/10 text-success border-success/30',
+  good: 'bg-action/10 text-action border-action/30',
+  fair: 'bg-warning/10 text-warning border-warning/30',
+  poor: 'bg-warning/10 text-warning border-warning/30',
+  damaged: 'bg-destructive/10 text-destructive border-destructive/30',
+  missing: 'bg-muted text-muted-foreground border-border',
 };
 
 export function ReturnConditionComparison({ rentalId }: ReturnConditionComparisonProps) {
@@ -84,7 +85,7 @@ export function ReturnConditionComparison({ rentalId }: ReturnConditionCompariso
             <p className="text-xs text-muted-foreground mb-2">Pre-rental photos ({allPhotos.length})</p>
             <div className="grid grid-cols-4 gap-2">
               {allPhotos.map((url, idx) => (
-                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-lg overflow-hidden border hover:opacity-80">
+                <a key={idx} href={safeHttpUrl(url)} target="_blank" rel="noopener noreferrer" className="aspect-square rounded-lg overflow-hidden border hover:opacity-80">
                   <img src={url} alt={`Pre-rental ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
                 </a>
               ))}

@@ -602,6 +602,7 @@ export default function Verification() {
                     onChange={(e) => handleIdentityNumberChange(e.target.value)}
                     placeholder="e.g. 990101-10-1234"
                     maxLength={16}
+                    inputMode="numeric"
                   />
                   {identityNumber && identityNumberError && (
                     <p className="text-sm text-destructive">{identityNumberError}</p>

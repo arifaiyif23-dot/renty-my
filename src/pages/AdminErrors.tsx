@@ -94,11 +94,11 @@ export default function AdminErrors() {
 
   const typeBadge = (type: string) => {
     const colors: Record<string, string> = {
-      runtime: "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300",
-      promise: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/15 dark:text-yellow-300",
-      boundary: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
+      runtime: "bg-red-100 text-red-800",
+      promise: "bg-yellow-100 text-yellow-800",
+      boundary: "bg-orange-100 text-orange-800",
     };
-    return colors[type] || "bg-gray-100 text-gray-800 dark:bg-secondary dark:text-muted-foreground";
+    return colors[type] || "bg-gray-100 text-gray-800";
   };
 
   const types = useMemo(() => [...new Set(errors.map((e) => e.error_type))], [errors]);
@@ -179,10 +179,10 @@ export default function AdminErrors() {
                     <p className="text-sm font-medium break-words">{err.error_message}</p>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toggleExpand(err.id)}>
-                      {expanded.has(err.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => deleteError(err.id)}>
+<Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toggleExpand(err.id)} aria-label="Toggle details">
+                    {expanded.has(err.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive" onClick={() => deleteError(err.id)} aria-label="Delete error">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

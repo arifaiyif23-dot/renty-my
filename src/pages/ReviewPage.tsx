@@ -11,8 +11,10 @@ import { ReviewsList } from "@/components/ReviewsList";
 import { ArrowLeft, Star } from "lucide-react";
 import { SkeletonV2 } from "@/components/SkeletonV2";
 import { formatRentalPeriod } from "@/lib/rentalTime";
+import { useTranslation } from "react-i18next";
 
 export default function ReviewPage() {
+  const { t } = useTranslation();
   const { rentalId } = useParams<{ rentalId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -59,7 +61,7 @@ export default function ReviewPage() {
       </PageLayout>
     );
   }
-  if (error || !rental) return <div className="flex items-center justify-center min-h-screen"><p className="text-muted-foreground">Rental not found</p></div>;
+  if (error || !rental) return <PageLayout variant="narrow"><div className="flex items-center justify-center min-h-[50vh]"><p className="text-muted-foreground">{t('rentalDetail.notFound')}</p></div></PageLayout>;
 
   const canReview = ["completed", "disputed"].includes(rental.status);
   const isOwner = user?.id === rental.owner_id;

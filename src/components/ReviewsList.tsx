@@ -178,14 +178,14 @@ export const ReviewsList = ({ itemId, userId }: ReviewsListProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <StarRating rating={averageRating} size="lg" showValue={false} />
           <span className="text-2xl font-bold">{averageRating.toFixed(1)}</span>
           <span className="text-muted-foreground">({reviews.length} reviews)</span>
         </div>
         <Select value={sortBy} onValueChange={(v: 'recent' | 'highest' | 'lowest') => setSortBy(v)}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[150px] shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

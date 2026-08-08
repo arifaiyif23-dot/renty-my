@@ -165,7 +165,7 @@ export default function AdminManageAdmins() {
                           setNewPermissions((prev) => prev.filter((p) => p !== perm.key));
                         }
                       }}
-                      className="rounded border-gray-300 dark:border-border dark:bg-secondary dark:accent-primary"
+                      className="rounded border-gray-300 accent-primary"
                     />
                     {perm.label}
                   </label>

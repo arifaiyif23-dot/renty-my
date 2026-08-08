@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MapPin, Calendar, Edit, ShieldCheck, ShieldAlert, Bell, Search, HelpCircle, Loader2, MessageCircle, Trash2 } from "lucide-react";
+import { MapPin, Calendar, Edit, ShieldCheck, ShieldAlert, Bell, Search, Loader2, MessageCircle, Trash2 } from "lucide-react";
 import { UserTrustBadge, TrustScoreRing } from "@/components/trust/UserTrustBadge";
 import { format } from "date-fns";
 import { PageLayout } from "@/components/PageLayout";
@@ -28,6 +29,7 @@ import { useActiveStatus } from "@/hooks/use-active-status";
 import { getSrcSet } from "@/utils/imageOptimization";
 
 export default function Profile() {
+  const { t } = useTranslation();
   const { user, profile, error: authError } = useAuth();
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -125,7 +127,7 @@ export default function Profile() {
                 <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/my-listings')}>My Items</Button>
                 <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/dashboard')}>Rentals</Button>
                 {isAdmin?.isAdmin && (
-                  <Button size="sm" variant="secondary" className="h-8 text-xs" onClick={() => navigate('/admin')}>Admin</Button>
+                  <Button size="sm" variant="secondary" className="h-8 text-xs hidden md:inline-flex" onClick={() => navigate('/admin')}>Admin</Button>
                 )}
                 <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/earnings')}>Earnings</Button>
               </div>
@@ -168,7 +170,6 @@ export default function Profile() {
           <div className="flex flex-wrap gap-1.5">
             <Button variant="ghost" size="sm" className="h-8 text-xs" asChild><Link to="/notification-settings"><Bell className="h-3.5 w-3.5 mr-1.5" /> Notifications</Link></Button>
             <Button variant="ghost" size="sm" className="h-8 text-xs" asChild><Link to="/saved-searches"><Search className="h-3.5 w-3.5 mr-1.5" /> Saved Searches</Link></Button>
-            <Button variant="ghost" size="sm" className="h-8 text-xs" asChild><Link to="/help"><HelpCircle className="h-3.5 w-3.5 mr-1.5" /> Help</Link></Button>
             <Button variant="ghost" size="sm" className="h-8 text-xs" asChild><Link to="/verification"><ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> Verification</Link></Button>
           </div>
         </div>

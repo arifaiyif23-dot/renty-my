@@ -60,3 +60,44 @@ export function sanitizeMessage(message: string): string {
     ALLOW_DATA_ATTR: false,
   }).trim();
 }
+
+const SAFE_URL_SCHEMES = ['http:', 'https:'];
+
+/**
+ * Returns true only if the value is an absolute http/https URL.
+ * Used to block javascript:, data:, vbscript:, and other dangerous schemes
+ * when assigning href / window.location / window.open from stored values.
+ */
+export function isSafeHttpUrl(value: unknown): value is string {
+  if (typeof value !== 'string' || !value.trim()) return false;
+  try {
+    const url = new URL(value);
+    return SAFE_URL_SCHEMES.includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Returns a safe http/https URL string, or an empty string when the input
+ * would be unsafe. Safe to bind directly to href / navigate targets.
+ */
+export function safeHttpUrl(value: unknown): string {
+  return isSafeHttpUrl(value) ? value : '';
+}
+
+/**
+ * Sanitizes a user-supplied filename for use as a storage object key segment.
+ * Strips path separators, traversal sequences, and control/weird characters,
+ * so a filename cannot escape its intended folder.
+ */
+export function sanitizeFileName(name: string): string {
+  if (!name) return '';
+  const cleaned = name
+    .replace(/[\\/]+/g, '-')
+    .replace(/\.\./g, '')
+    .replace(/[^\w.\- ]/g, '')
+    .trim()
+    .slice(0, 100);
+  return cleaned;
+}

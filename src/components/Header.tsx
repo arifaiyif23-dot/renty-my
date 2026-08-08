@@ -6,8 +6,6 @@ import { User, Menu, LogOut, Plus, Home, Search, MessageCircle, LayoutDashboard,
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { SearchBarV2 } from "@/components/SearchBarV2";
 import {
@@ -48,7 +46,6 @@ const Header = () => {
   const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { theme, setTheme } = useTheme();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
@@ -116,7 +113,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-border/50 glass">
+      <header className="sticky top-0 z-50 w-full bg-card border-b border-border/40 safe-area-top">
         <div className="mx-auto px-4 lg:px-8 max-w-7xl">
           <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-6">
             <div className="flex items-center gap-2 shrink-0">
@@ -132,12 +129,10 @@ const Header = () => {
                 </Button>
               )}
               <Link to="/" className="flex items-center" aria-label="Renty homepage">
-                <img src="/logo-light.png" alt="Renty" className="h-7 md:h-8 w-auto dark:hidden" />
-                <img src="/logo-dark.png" alt="Renty" className="h-7 md:h-8 w-auto hidden dark:block" />
+                <img src="/logo-light.png" alt="Renty" className="h-7 md:h-8 w-auto" />
               </Link>
             </div>
 
-            {/* Desktop marketplace search — mobile search lives in the bottom nav / hero */}
             <div className="hidden md:block flex-1 max-w-md lg:max-w-lg">
               <SearchBarV2 variant="inline" />
             </div>
@@ -170,15 +165,6 @@ const Header = () => {
             </nav>
 
             <div className="flex items-center gap-1 shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              </Button>
               <LanguageSwitcher />
               {user ? (
                 <>

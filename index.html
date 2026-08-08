@@ -10,22 +10,29 @@
     <meta name="author" content="Renty" />
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#0f1729" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0b0f1a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#2851E3" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RENTY" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="format-detection" content="telephone=no" />
     
-    <!-- Reload page when SW updates (ensures fresh JS on every SW activation) -->
+    <!-- Reload page when SW updates (ensures fresh JS on every SW activation).
+         Loop-safe: only reload when the controller scriptURL actually changes, and
+         never on the very first activation (avoids a spurious first-load reload). -->
     <script>
       if ('serviceWorker' in navigator) {
-        var refreshing = false;
+        var lastController = sessionStorage.getItem('renty_sw_controller');
         navigator.serviceWorker.addEventListener('controllerchange', function () {
-          if (refreshing) return;
-          refreshing = true;
-          window.location.reload();
+          var ctrl = (navigator.serviceWorker.controller || {}).scriptURL;
+          if (!ctrl) return;
+          if (lastController && ctrl !== lastController) {
+            sessionStorage.setItem('renty_sw_controller', ctrl);
+            window.location.reload();
+          } else if (!lastController) {
+            lastController = ctrl;
+            sessionStorage.setItem('renty_sw_controller', ctrl);
+          }
         });
       }
     </script>
@@ -55,7 +62,6 @@
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
   </head>
 
   <body>

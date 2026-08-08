@@ -12,8 +12,9 @@ import { RentalCard } from '@/components/RentalCard';
 import { IncomingRequests } from '@/components/IncomingRequests';
 import { SkeletonV2 } from '@/components/SkeletonV2';
 import { EmptyStateV2 } from '@/components/EmptyStateV2';
-import { PackageSearch, DollarSign, TrendingUp } from 'lucide-react';
+import { PackageSearch, DollarSign, TrendingUp, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -34,6 +35,10 @@ export default function Dashboard() {
       setStats({ totalRevenue, activeRentals, pendingRequests });
     } catch { /* silent */ }
   }, [user]);
+
+  const { isRefreshing, pullDistance } = usePullToRefresh(async () => {
+    await Promise.all([fetchRentals(), fetchStats()]);
+  });
 
   const fetchRentals = useCallback(async () => {
     try {
@@ -88,6 +93,16 @@ export default function Dashboard() {
 
   return (
     <PageLayout variant="default">
+        {pullDistance > 0 && (
+          <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
+            <div
+              className="bg-primary text-primary-foreground rounded-full p-2 shadow-3"
+              style={{ transform: `rotate(${pullDistance * 2}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
+            >
+              <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-xl font-bold">My Rentals</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">

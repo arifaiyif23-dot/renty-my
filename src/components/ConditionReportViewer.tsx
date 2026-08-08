@@ -4,12 +4,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ConditionReport } from '@/types';
 
 const CONDITION_COLORS: Record<string, string> = {
-  excellent: 'bg-success/10 text-success border-success/30 dark:bg-success/15 dark:text-success dark:border-success/30',
-  good: 'bg-action/10 text-action border-action/30 dark:bg-action/15 dark:text-action dark:border-action/30',
-  fair: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/15 dark:text-warning dark:border-warning/30',
-  poor: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/15 dark:text-warning dark:border-warning/30',
-  damaged: 'bg-destructive/10 text-destructive border-destructive/30 dark:bg-destructive/15 dark:text-destructive dark:border-destructive/30',
-  missing: 'bg-muted text-muted-foreground border-border dark:bg-secondary dark:text-muted-foreground dark:border-border',
+  excellent: 'bg-success/10 text-success border-success/30',
+  good: 'bg-action/10 text-action border-action/30',
+  fair: 'bg-warning/10 text-warning border-warning/30',
+  poor: 'bg-warning/10 text-warning border-warning/30',
+  damaged: 'bg-destructive/10 text-destructive border-destructive/30',
+  missing: 'bg-muted text-muted-foreground border-border',
 };
 
 interface ConditionReportViewerProps {

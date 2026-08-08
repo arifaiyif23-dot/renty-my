@@ -6,6 +6,6 @@ export function useScrollToTop() {
 
   useEffect(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
+    window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'auto' });
   }, [pathname]);
 }

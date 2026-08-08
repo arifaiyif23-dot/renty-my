@@ -21,6 +21,7 @@ import { ContentModerationFeedback } from '@/components/ContentModerationFeedbac
 import { useDebounce } from '@/hooks/use-debounce';
 import { Switch } from '@/components/ui/switch';
 import { categorySpecLabels } from '@/components/SpecificationsSection';
+import { haptics } from '@/utils/haptics';
 
 export default function ListItem() {
   const { t } = useTranslation();
@@ -155,6 +156,7 @@ export default function ListItem() {
         }
 
         toast.success('Draft saved!');
+        haptics.success();
         navigate(`/items/${data.id}`);
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : 'An error occurred');
@@ -259,6 +261,7 @@ export default function ListItem() {
       if (imageError) throw imageError;
 
       toast.success('Item listed successfully!');
+      haptics.success();
       navigate(`/items/${data.id}`);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'An error occurred');
@@ -415,7 +418,7 @@ export default function ListItem() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, payment_mode: 'escrow' })}
-                  className={`h-16 rounded-lg border-2 text-left px-3 transition ${
+                  className={`h-16 rounded-lg border-2 text-left px-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                     formData.payment_mode === 'escrow'
                       ? 'border-primary bg-primary/5'
                       : 'border-border'
@@ -427,7 +430,7 @@ export default function ListItem() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, payment_mode: 'manual' })}
-                  className={`h-16 rounded-lg border-2 text-left px-3 transition ${
+                  className={`h-16 rounded-lg border-2 text-left px-3 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                     formData.payment_mode === 'manual'
                       ? 'border-primary bg-primary/5'
                       : 'border-border'
@@ -529,7 +532,7 @@ export default function ListItem() {
               ))}
             </div>
 
-            <div className="sticky bottom-mobile-nav left-0 right-0 bg-background border-t pt-4 -mx-6 px-6 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
+            <div className="sticky bottom-mobile-nav left-0 right-0 bg-background border-t pt-4 -mx-4 px-4 pb-2 md:relative md:border-0 md:p-0 md:pt-2">
               <div className="flex gap-3">
                 <Button
                   type="button"

@@ -10,13 +10,16 @@ import { PayNowButton } from "@/components/PayNowButton";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { RentalTimer } from "@/components/RentalTimer";
 import { isNative } from "@/lib/platform";
+import { safeHttpUrl } from "@/utils/sanitize";
 
 async function openPhoto(url: string) {
+  const safeUrl = safeHttpUrl(url);
+  if (!safeUrl) return;
   if (isNative()) {
     const { Browser } = await import('@capacitor/browser');
-    await Browser.open({ url });
+    await Browser.open({ url: safeUrl });
   } else {
-    window.open(url, '_blank', 'noopener');
+    window.open(safeUrl, '_blank', 'noopener');
   }
 }
 import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";

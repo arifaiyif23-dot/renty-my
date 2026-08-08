@@ -27,8 +27,14 @@ test.describe('Search and Browse', () => {
 
   test('should navigate to search page', async ({ page }) => {
     await page.goto('/search');
-    // The search page has no "Search" heading; assert the filters sidebar landmark.
-    await expect(page.getByRole('heading', { name: /^filters$/i })).toBeVisible({ timeout: 8000 });
+    // Desktop renders a "Filters" sidebar heading; mobile uses an icon-only filter
+    // trigger (aria-label "Filters") that opens the filter drawer. Assert per breakpoint.
+    const isDesktop = (page.viewportSize()?.width ?? 0) >= 768;
+    if (isDesktop) {
+      await expect(page.getByRole('heading', { name: /^filters$/i })).toBeVisible({ timeout: 8000 });
+    } else {
+      await expect(page.getByRole('button', { name: /^filters$/i })).toBeVisible({ timeout: 8000 });
+    }
   });
 
   test('selecting All Malaysia location does not empty results', async ({ page }) => {

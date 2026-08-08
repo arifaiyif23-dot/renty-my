@@ -2561,6 +2561,8 @@ export type Database = {
         Returns: Json
       }
       decrypt_message: { Args: { encrypted_text: string }; Returns: string }
+      decrypt_message_by_id: { Args: { p_message_id: string }; Returns: string }
+      decrypt_bank_account_number: { Args: { p_id: string }; Returns: string }
       decrypt_sensitive_data: {
         Args: { encrypted_data: string; key?: string }
         Returns: string

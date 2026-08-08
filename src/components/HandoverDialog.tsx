@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Upload, Camera, CheckCircle } from 'lucide-react';
 import { Rental } from '@/types';
+import { sanitizeFileName } from '@/utils/sanitize';
 
 interface HandoverDialogProps {
   rental: Rental;
@@ -48,7 +49,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
     // Upload to storage
     const uploadedUrls: string[] = [];
     for (const file of files) {
-      const fileName = `${rental.id}/${Date.now()}_${file.name}`;
+      const fileName = `${rental.id}/${Date.now()}_${sanitizeFileName(file.name)}`;
       const { error } = await supabase.storage
         .from('rental-evidence')
         .upload(fileName, file);
@@ -160,6 +161,9 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
               <Input
                 id="pickup-code"
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="one-time-code"
                 maxLength={4}
                 placeholder={t('handover.codePlaceholder')}
                 value={enteredCode}

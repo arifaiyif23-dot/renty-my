@@ -3,8 +3,9 @@ import { test, expect } from '@playwright/test';
 test.describe('Accessibility', () => {
   test('should have proper heading hierarchy', async ({ page }) => {
     await page.goto('/');
-    
-    // Should have h1
+
+    // Should have h1 (rendered by the lazily-loaded Hero section, so wait for it)
+    await expect(page.locator('h1').first()).toBeVisible({ timeout: 10000 });
     const h1Count = await page.locator('h1').count();
     expect(h1Count).toBeGreaterThanOrEqual(1);
   });
