@@ -104,3 +104,38 @@
 - Empty states: EmptyStateV2/AuroraEmptyState with CTAs (no raw "No data")
 - Navigation: Header (desktop: Home/Browse/About + auth-gated Messages/Dashboard) + MobileBottomNav (Home/Browse/List/Messages/Profile) â€” all paths resolve, auth-gated
 - Previous UI passes (DESIGN_SYSTEM V2 compliance, touch targets, glass rules) already committed
+
+## Mobile + Web Final Audit — 2026-08-09 ? VERIFIED
+**Scope:** full static + runtime audit of Capacitor app and renty.my after the mobile rework wave. All findings fixed, committed (`6d6b2e3`), and deployed (prod = https://renty.my, alias live).
+
+### Mobile fixes (all applied)
+- **C1** Messages conversation list `100vh` ? `100dvh` (list ran under bottom nav) — `Messages.tsx:431`
+- **C2** New Android **hardware-back handler** (`App.tsx`): closes open dialog/sheet/drawer/overlay (Escape bridge) ? router back ? else `App.minimizeApp()`
+- **Medium:** ListItem sticky footer `-mx-6`?`-mx-4` (h-overflow on =360px); ConditionReportWizard checklist stacks `flex-col sm:flex-row`; BulkActionsBar / PWAInstallPrompt / ScrollToTop moved ABOVE the bottom nav via `calc(4rem+safe-area+…)`; ReviewsList rating row `flex-wrap`
+- **Minors (~20):** 44px targets (dialog/sheet close, ImageUpload remove, FileAttachment clear, EmojiPicker, Search chips/filter X, ConditionReportWizard zoom link, ScrollToTop, MobileSearchOverlay Clear), PTR `touchcancel` handler, `85vh`?`85dvh`, drawer safe-area bottom, `70vh`?`70dvh`, Wishlist PTR indicator moved to fixed overlay, OfflineIndicator below header, theme-color `#2851E3`
+- **Hero regression found & fixed:** homepage had NO `h1` (lazy Hero lost its headline) — restored "Don't buy everything / Rent what you need." in all 4 locales; search-browse + accessibility E2E rewritten for lazy headings + mobile filter button (now has `aria-label="Filters"`, was unlabeled icon-only)
+
+### Web / security fixes (all applied)
+- Sourcemaps OFF (new deploys ship no `.js.map` under `dist/assets/`)
+- CSP tightened: removed `unsafe-eval` + `cdn.jsdelivr.net` (confirmed live on renty.my)
+- Duplicate `<link rel="manifest">` removed (plugin single-inject — confirmed 1 link live)
+- SEO default og:image ? `https://renty.my/og-image.png` (was an Unsplash stock photo)
+- `document.documentElement.lang` synced to i18n language; unused `Chunk.{ttf,otf}` fonts deleted; aria-labels on 8+ icon-only controls (NotificationSettings/SavedSearches back, AdminErrors expand/delete, AdminVerification shortcuts, AdminHealth email, MyListings bulk checkbox)
+- `*.apk` added to .gitignore; stale root `app-release.apk` removed (keystore signing remains user-side)
+
+### Tests executed
+- typecheck / lint / madge-circular / `npm run verify` (all 5 checks) — **PASS**
+- Horizontal-overflow scan: 20 routes × Pixel5/iPhone12 — **ZERO overflow**
+- Playwright (auth-free, chromium + Mobile Chrome): accessibility, responsive, search-browse — **18/18 PASS**
+- auth.spec (validation): 4/4 PASS
+- Live-site sweep (renty.my): 10 routes — **0 page errors, 0 console errors**; h1 present; single manifest link; CSP tightened live
+- item-listing/profile/admin E2E: **BLOCKED by Supabase signup 429 rate limit** (known infra limitation; CI auto-run disabled) — reruns need a stable pre-created test account
+
+### APK / device
+- Fresh APK built with Java 21 (Android Studio JBR): `android/app/build/outputs/apk/debug/app-debug.apk` (also copied to `app-debug.apk` at repo root)
+- **Emulator test NOT possible on this machine:** x86_64 AVD requires Android Emulator Hypervisor driver (not installed; cannot auto-install)
+- **ON-DEVICE checklist (user):** install `app-debug.apk` ? verify (1) hardware Back closes dialogs ? then returns; (2) camera permission prompts (listing photos, VideoLiveness); (3) haptics on pull-to-refresh; (4) numeric keyboard on pickup code; (5) bottom nav + PWA prompt placement; (6) offline banner + retry; (7) GCM push registration banner.
+
+### Remaining manual items
+1. **Apply migrations `20260807000005`?`20260807000010` to the remote DB** (untracked security hardening: RLS scope, encryption RPC lockdown, key rotation, message/bank at-rest). Last known good audit (2026-08-02) matched remote to 20260802000001; these 5 were popped AFTER. Apply via `npx supabase db push` (after `supabase link`) or dashboard SQL editor.
+2. **Release-sign the APK** with the production keystore (`renty-release.jks` missing; only `renty-release-backup.jks` on disk) before store/distribution. Debug APK is self-signed (fine for devices).
