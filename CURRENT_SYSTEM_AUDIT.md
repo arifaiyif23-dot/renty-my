@@ -139,3 +139,20 @@
 ### Remaining manual items
 1. **Migrasi remote â€” APPLIED âœ… (2026-08-09):** `20260807000005`â€¦`00010` diaplikasi melalui `supabase db push` (CLI tersambung ke `gsucsqtqtpaeuxwrykmf`, pengesahan akhir: *Remote database is up to date*). `20260804000001` + `20260807000001`â€¦`00004` rupanya **sudah berada** di remote (hanya 5 terakhir yang kurang). Untuk kegunaan lintas-lingkungan, `00005` kini dijaga `to_regclass()` (seksyen `owner_earnings` dilangkau jika jadual tak wujud) dan `00006` `GRANT`s dijaga dengan pangkalan `pg_proc` â€” sengaja kukuh idempotens. Nota: putaran kekunci (`00007`) dan backfill plaintext (`00008`/`00010`) kekal no-op (memerlukan sesi `set app.*` oleh pengendali) â€” ini adalah sengaja.
 2. **Release APK â€” RESOLVED** (2026-08-09): `android/renty-release.jks` + `android/keystore.properties` present dan berfungsi. `app-release.apk` (5.6 MB, R8-minify, signed CN=Renty, SHA-256 `d17bdfd6â€¦`) dibina dan disalin ke repo root. Ready untuk kedai / edaran. Nota "keystore hilang" yang sebelum adalah salah â€” ia berada di disk sepanjang masa.
+
+## Sign In / Sign Up Flow — Seamlessness + Email Delivery (2026-08-09)
+**Root cause (confirmed):** confirmation emails for new signups were sent by Supabase Auth's built-in mailer (`mailer_autoconfirm = false` verified via `/auth/v1/settings`), with NO custom SMTP configured on the project — so emails were rate-limited/delayed/lost. Additionally all app emails (magic link, welcome) go through Resend using `onboarding@resend.dev` + a send-only API key, which only delivers to the Resend account owner — real users never received them either.
+
+**Code changes (committed):**
+- `Auth.tsx` signup ? confirmation screen now has: **Resend confirmation email** (`supabase.auth.resend`, 60s cooldown, `check_rate_limit` 3/60min), spam-folder hint, **"I've confirmed — Sign me in"** (auto-login with entered credentials), and **auto-detection** — polls `getUser()` up to 2 min and logs the user in the moment `email_confirmed_at` is set (works cross-tab via shared origin storage).
+- `Auth.tsx` login ? "Email not confirmed" now renders an **inline amber panel** with Resend + dismiss (instead of a dead-end toast).
+- `ForgotPasswordDialog` ? added spam hint + resend with 30s cooldown.
+- `.env` ? added `VITE_SITE_URL="https://renty.my"` so confirmation/reset links resolve to the real site (and not `capacitor://localhost` on native). NOTE: `.env` is gitignored — mirror in Vercel/GH-actions env.
+- E2E `auth.spec` 4/4 pass with new UI; `npm run verify` 5/5; release APK rebuilt with the changes.
+
+**REQUIRED operator action to finish delivery (dashboard, cannot be scripted):**
+1. Resend ? Domains: add `renty.my`, follow DNS records until Verified.
+2. Set `.env`/Vercel `RESEND_FROM_EMAIL="Renty <no-reply@renty.my>"` (or the verified address).
+3. Supabase ? Authentication ? SMTP Settings: enable custom SMTP — Host `smtp.resend.com`, Port `587`, Username `resend`, Password = Resend API key, Sender `Renty <no-reply@renty.my>`.
+4. Optional: temporarily set Auth ? Email ? "Confirm email" OFF for instant signup if delivery can't wait.
+After that: signup confirmation, password reset, and magic links all deliver reliably from the own domain.

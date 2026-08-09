@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Loader2, Home } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Home, Mail } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { z } from 'zod';
 import { sanitizeText } from '@/utils/sanitize';
@@ -70,6 +70,17 @@ export default function Auth() {
   const [showConfirmEmail, setShowConfirmEmail] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
   const signedUpRef = useRef(false);
+  const [confirmResendIn, setConfirmResendIn] = useState(0);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const confirmPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+      if (confirmPollRef.current) clearTimeout(confirmPollRef.current);
+    };
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,6 +110,7 @@ export default function Auth() {
       const withinLimit = await checkRateLimit('login', 5, 15, loginData.email);
       if (!withinLimit) { toast.error('Too many attempts. Try again in 15 minutes.'); return; }
       await signIn(result.data.email, result.data.password);
+      setUnconfirmedEmail(null);
       const { data: { user: signedInUser } } = await supabase.auth.getUser();
       if (signedInUser) {
         const { data: prof } = await supabase.from('profiles').select('is_suspended, suspension_reason').eq('id', signedInUser.id).maybeSingle();
@@ -113,7 +125,10 @@ export default function Auth() {
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : '';
       if (msg.includes('Invalid login credentials')) toast.error('Invalid email or password.');
-      else if (msg.includes('Email not confirmed')) toast.error('Please confirm your email first.');
+      else if (msg.includes('Email not confirmed')) {
+        setUnconfirmedEmail(result.data.email);
+        toast.error('Please confirm your email first.');
+      }
       else toast.error('Sign in failed. Try again.');
     } finally { setIsLoading(false); }
   };
@@ -166,6 +181,83 @@ export default function Auth() {
       else toast.error('Failed to create account.');
     } finally { setIsLoading(false); }
   };
+
+  const startResendCooldown = () => {
+    setConfirmResendIn(60);
+    if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    cooldownTimerRef.current = setInterval(() => {
+      setConfirmResendIn((prev) => {
+        if (prev <= 1) {
+          if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+          cooldownTimerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const resendConfirmation = async (email: string) => {
+    if (confirmResendIn > 0) return;
+    setIsLoading(true);
+    try {
+      const withinLimit = await checkRateLimit('resend_confirmation', 3, 60, email);
+      if (!withinLimit) {
+        toast.error('Too many requests. Please try again later.');
+        return;
+      }
+      const { error } = await supabase.auth.resend({ type: 'signup', email });
+      if (error) throw error;
+      toast.success('Confirmation email sent! Check your inbox.');
+      startResendCooldown();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to resend confirmation.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmedContinue = async () => {
+    setIsLoading(true);
+    try {
+      await signIn(signupData.email, signupData.password);
+      signedUpRef.current = true;
+      setUnconfirmedEmail(null);
+      toast.success('Email confirmed! Welcome to Renty!');
+      navigate(redirectTo || '/', { replace: true });
+    } catch {
+      toast.error('Confirmation is still pending. Check your email for the confirmation link.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // After a signup that requires confirmation, keep watching for the confirmation
+  // (another tab / the mail link shares the same origin storage) so the user lands
+  // straight on the homepage once they verify — no manual refresh needed.
+  useEffect(() => {
+    if (!showConfirmEmail) return;
+    let cancelled = false;
+    const startedAt = Date.now();
+    const poll = async () => {
+      if (cancelled) return;
+      const { data } = await supabase.auth.getUser();
+      if (data.user?.email_confirmed_at) {
+        signedUpRef.current = true;
+        navigate(redirectTo || '/', { replace: true });
+        return;
+      }
+      if (Date.now() - startedAt < 120000) {
+        confirmPollRef.current = setTimeout(poll, 5000);
+      }
+    };
+    confirmPollRef.current = setTimeout(poll, 3000);
+    return () => {
+      cancelled = true;
+      if (confirmPollRef.current) clearTimeout(confirmPollRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showConfirmEmail]);
 
   if (isRecovery) {
     return (
@@ -264,11 +356,25 @@ export default function Auth() {
                           </Button>
                         </div>
                       </div>
+                      {unconfirmedEmail && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 space-y-2">
+                          <p className="text-xs text-amber-800 dark:text-amber-200">
+                            Your email hasn't been confirmed yet. Check your inbox (and spam folder) for the confirmation link we sent to <strong>{unconfirmedEmail}</strong>.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <Button type="button" variant="outline" size="sm" disabled={isLoading || confirmResendIn > 0} onClick={() => resendConfirmation(unconfirmedEmail)}>
+                              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                              {confirmResendIn > 0 ? `Resend in ${confirmResendIn}s` : 'Resend confirmation email'}
+                            </Button>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => setUnconfirmedEmail(null)}>Dismiss</Button>
+                          </div>
+                        </div>
+                      )}
                       <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
                         {isLoading ? 'Signing in...' : 'Sign In'}
                       </Button>
                       <div className="text-center">
-                        <Button type="button" variant="link" size="sm" onClick={() => setLoginMethod('magic_link')}>Send magic link instead</Button>
+                        <Button type="button" variant="link" size="sm" onClick={() => { setUnconfirmedEmail(null); setLoginMethod('magic_link'); }}>Send magic link instead</Button>
                       </div>
                     </form>
                   )}
@@ -277,9 +383,23 @@ export default function Auth() {
                 <TabsContent value="signup">
                   {showConfirmEmail ? (
                     <div className="text-center py-6 space-y-3">
-                      <p className="text-sm">Check your email to confirm your account.</p>
-                      <p className="text-xs text-muted-foreground">Sent to <strong>{signupEmail}</strong></p>
-                      <Button variant="link" size="sm" onClick={() => setShowConfirmEmail(false)}>Back to sign up</Button>
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                        <Mail className="h-6 w-6 text-primary" />
+                      </div>
+                      <p className="text-sm font-medium">Check your email to confirm your account.</p>
+                      <p className="text-xs text-muted-foreground">We sent a confirmation link to <strong>{signupEmail}</strong>. Click it to finish signing up.</p>
+                      <p className="text-xs text-muted-foreground">Didn't see it? Check your spam / promotions folder — it can take a minute.</p>
+                      <div className="flex flex-col gap-2 pt-1">
+                        <Button variant="outline" size="sm" disabled={isLoading || confirmResendIn > 0} onClick={() => resendConfirmation(signupEmail)}>
+                          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                          {confirmResendIn > 0 ? `Resend in ${confirmResendIn}s` : 'Resend confirmation email'}
+                        </Button>
+                        <Button variant="secondary" size="sm" disabled={isLoading} onClick={handleConfirmedContinue}>
+                          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                          I've confirmed — Sign me in
+                        </Button>
+                        <Button variant="link" size="sm" onClick={() => setShowConfirmEmail(false)}>Back to sign up</Button>
+                      </div>
                     </div>
                   ) : (
                     <form onSubmit={handleSignup} className="space-y-4">

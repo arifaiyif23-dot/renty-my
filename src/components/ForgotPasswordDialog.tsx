@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,13 @@ export function ForgotPasswordDialog() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +55,7 @@ export function ForgotPasswordDialog() {
       if (error) throw error;
 
       setEmailSent(true);
+      setResendIn(30);
       toast.success('Password reset link sent!');
     } catch (error: unknown) {
       console.error('Password reset error:', error);
@@ -86,9 +94,37 @@ export function ForgotPasswordDialog() {
               <Mail className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold text-lg mb-2">Check your email</h3>
-            <p className="text-muted-foreground text-sm mb-4">
+            <p className="text-muted-foreground text-sm mb-2">
               We've sent a password reset link to <strong>{email}</strong>
             </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              {resendIn > 0
+                ? <>Didn't receive it? You can resend in <strong>{resendIn}s</strong> — also check your spam / promotions folder.</>
+                : "Didn't receive it? Check your spam / promotions folder, then try again."}
+            </p>
+            {resendIn === 0 && (
+              <Button
+                variant="outline"
+                className="mb-2"
+                disabled={isLoading}
+                onClick={async () => {
+                  setIsLoading(true);
+                  try {
+                    await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${import.meta.env.VITE_SITE_URL || window.location.origin}/auth?reset=true`,
+                    });
+                    setResendIn(30);
+                    toast.success('Password reset link sent!');
+                  } catch {
+                    toast.error('Failed to resend. Try again.');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+              >
+                Resend
+              </Button>
+            )}
             <Button variant="outline" onClick={() => handleOpenChange(false)}>
               Close
             </Button>
