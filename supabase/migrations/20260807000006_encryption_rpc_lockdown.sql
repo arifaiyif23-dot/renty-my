@@ -40,10 +40,24 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.encrypt_message_content() TO service_role;
-GRANT EXECUTE ON FUNCTION public.encrypt_sensitive_data(TEXT, TEXT) TO service_role;
-GRANT EXECUTE ON FUNCTION public.decrypt_sensitive_data(TEXT, TEXT) TO service_role;
-GRANT EXECUTE ON FUNCTION public.encrypt_bank_account_on_insert() TO service_role;
+-- Backend (service_role) still needs these; grant to every matching overload
+-- that actually exists on this project (guarded so missing functions do not
+-- abort the migration on environments where they were never created).
+DO $$
+DECLARE
+  fn RECORD;
+BEGIN
+  FOR fn IN
+    SELECT p.oid::regprocedure AS sig
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname IN ('encrypt_message_content', 'encrypt_sensitive_data', 'decrypt_sensitive_data', 'encrypt_bank_account_on_insert')
+  LOOP
+    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role', fn.sig);
+  END LOOP;
+END;
+$$;
 
 -- Participant-authorized decryption. Never accepts ciphertext directly; the row
 -- id is looked up and the caller must be a party to that conversation.
