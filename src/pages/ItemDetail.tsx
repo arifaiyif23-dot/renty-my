@@ -259,6 +259,7 @@ export default function ItemDetail() {
   const handleMessageOwner = async () => {
     if (!user) { toast.error(t('itemDetail.signInToMessage')); navigate('/auth'); return; }
     if (item?.owner_id === user.id) { toast.error(t('itemDetail.cantMessageSelf')); return; }
+    if (!profile?.is_verified) { toast.error(t('messages.verifyIdentity')); navigate('/verification'); return; }
     navigate('/messages', { state: { recipientId: item?.owner_id } });
   };
 
@@ -416,7 +417,7 @@ export default function ItemDetail() {
                 />
               )}
 
-              {user?.id !== item.owner_id && (
+              {user?.id !== item.owner_id && profile?.is_verified && (
                 <Button variant="outline" size="sm" className="gap-1.5" onClick={handleMessageOwner}>
                   <MessageCircle className="h-4 w-4" />
                   {t('itemDetail.messageOwner')}

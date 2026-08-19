@@ -1,4 +1,4 @@
-import { type ReactNode } from "react"
+import { type ReactNode, useMemo } from "react"
 import { motion } from "motion/react"
 
 interface ScrollRevealProps {
@@ -11,7 +11,7 @@ interface ScrollRevealProps {
 const EASE = [0.16, 1, 0.3, 1] as const
 
 export function ScrollReveal({ children, delay = 0, className, as = "div" }: ScrollRevealProps) {
-  const Component = motion.create(as)
+  const Component = useMemo(() => motion.create(as), [as])
   return (
     <Component
       initial={{ opacity: 0, y: 20 }}

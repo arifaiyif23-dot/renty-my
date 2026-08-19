@@ -68,7 +68,7 @@ const ConversationItem = memo(({ conv, onSelect, isSelected }: { conv: Conversat
 
 export default function Messages() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -244,18 +244,28 @@ export default function Messages() {
     setConversationsError(null);
     const conversationMap = new Map<string, Conversation>();
     
-    for (const msg of (data || []) as (Message & { sender?: { full_name: string; avatar_url?: string }; recipient?: { full_name: string; avatar_url?: string } })[]) {
+    // Pre-decrypt all messages in parallel for efficiency
+    const decryptedMessages = await Promise.all(
+      (data || []).map(async (msg) => {
+        if (msg.encrypted_content) {
+          return { ...msg, _decrypted: await decryptMessageContent(msg) };
+        }
+        return { ...msg, _decrypted: null };
+      })
+    );
+
+    for (const msg of decryptedMessages as (Message & { sender?: { full_name: string; avatar_url?: string }; recipient?: { full_name: string; avatar_url?: string }; _decrypted: Message | null })[]) {
       const otherUserId = msg.sender_id === user.id ? msg.recipient_id : msg.sender_id;
       const otherUser = msg.sender_id === user.id ? msg.recipient : msg.sender;
       const isUnreadForMe = msg.recipient_id === user.id && !msg.is_read;
       
       if (!conversationMap.has(otherUserId)) {
-        const decrypted = msg.encrypted_content ? await decryptMessageContent(msg) : msg;
+        const content = msg._decrypted?.content ?? msg.content ?? '';
         conversationMap.set(otherUserId, {
           userId: otherUserId,
           userName: otherUser?.full_name || t('messages.unknownUser'),
           userAvatar: otherUser?.avatar_url,
-          lastMessage: decrypted?.content ?? msg.content ?? '',
+          lastMessage: content,
           lastMessageTime: msg.created_at,
           unreadCount: isUnreadForMe ? 1 : 0,
         });
@@ -314,6 +324,11 @@ export default function Messages() {
   const sendMessage = async () => {
     if (!user || !selectedUserId || isSending || (!newMessage.trim() && !attachmentUrl)) return;
     if (!checkNotSuspended(t('messages.sendAction'))) return;
+    if (!profile?.is_verified) {
+      toast.error(t('messages.verifyIdentity'));
+      navigate('/verification');
+      return;
+    }
 
     stopTyping();
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);

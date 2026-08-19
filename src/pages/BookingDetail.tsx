@@ -8,6 +8,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { RentalTimeline } from "@/components/RentalTimeline";
 import { PayNowButton } from "@/components/PayNowButton";
+import { ResumePaymentButton } from "@/components/ResumePaymentButton";
 import { RentalStatusBadge } from "@/components/RentalStatusBadge";
 import { SkeletonV2 } from "@/components/SkeletonV2";
 import { ArrowLeft, Calendar, DollarSign, User, Key, Camera, CheckCircle, XCircle, Clock, AlertTriangle, Ban, FileText } from "lucide-react";
@@ -104,13 +105,13 @@ export default function BookingDetail() {
   const handleApprove = async () => {
     setConfirming(true);
     const { error } = await supabase.functions.invoke("process-rental-approval", { body: { rentalId: rental.id, action: "approve" } });
-    if (error) { console.error(error); } else { fetchRental(); }
+    if (error) { console.error(error); toast.error(t('common.error')); } else { fetchRental(); }
     setConfirming(false);
   };
   const handleReject = async () => {
     setConfirming(true);
     const { error } = await supabase.functions.invoke("process-rental-approval", { body: { rentalId: rental.id, action: "reject" } });
-    if (error) { console.error(error); } else { fetchRental(); }
+    if (error) { console.error(error); toast.error(t('common.error')); } else { fetchRental(); }
     setConfirming(false);
   };
   const handleCancel = async () => {
@@ -178,6 +179,7 @@ export default function BookingDetail() {
             <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg space-y-3">
               <p className="text-sm text-warning flex items-center gap-2"><Clock className="h-4 w-4" /> {t('bookingDetail.waitingPayment')}</p>
               <p className="text-xs text-muted-foreground">{t('bookingDetail.waitingPaymentDesc')}</p>
+              <ResumePaymentButton rental={rental} />
             </div>
           )}
 

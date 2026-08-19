@@ -26,6 +26,34 @@ const AuroraBackground = ({ className, children, variant = "accent" }: AuroraBac
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Skip animation for users who prefer reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      // Draw a static version
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+      const blobs = [
+        { x: 0.15, y: 0.25, r: 0.45, color: "hsla(217, 80%, 54%, 0.15)" },
+        { x: 0.85, y: 0.45, r: 0.4, color: "hsla(280, 60%, 50%, 0.12)" },
+        { x: 0.5, y: 0.75, r: 0.35, color: "hsla(152, 60%, 40%, 0.10)" },
+      ];
+      blobs.forEach((blob) => {
+        const x = w * blob.x;
+        const y = h * blob.y;
+        const r = w * blob.r;
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+        gradient.addColorStop(0, blob.color);
+        gradient.addColorStop(1, "transparent");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      return;
+    }
+
     let animationId: number;
     let time = 0;
     const particles: Particle[] = [];

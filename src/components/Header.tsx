@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, memo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { haptics } from "@/utils/haptics";
 import { cn } from "@/lib/utils";
-
-import { supabase } from "@/integrations/supabase/client";
+import { useUnreadCount } from "@/hooks/use-unread-count";
 
 const desktopNavLinks = [
   { key: "home", icon: Home, label: "Home", path: "/" },
@@ -41,75 +40,31 @@ const desktopNavLinks = [
   { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", auth: true },
 ];
 
-const Header = () => {
+const Header = memo(() => {
   const { t } = useTranslation();
   const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const unreadCount = useUnreadCount();
 
-  const handleSignOut = () => {
+  const handleSignOut = useCallback(() => {
     haptics.medium();
     setShowSignOutDialog(true);
-  };
+  }, []);
 
-  const confirmSignOut = async () => {
+  const confirmSignOut = useCallback(async () => {
     haptics.success();
     await signOut();
     setShowSignOutDialog(false);
-  };
+  }, [signOut]);
 
   const userInitials = profile?.full_name
     ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase() || "U";
-
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchUnreadCount = async () => {
-      try {
-        const { count, error } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', user.id)
-          .eq('is_read', false);
-        if (error) throw error;
-        setUnreadCount(count || 0);
-      } catch (err) {
-        console.error('Failed to fetch unread count:', err);
-      }
-    };
-
-    fetchUnreadCount();
-
-    const channel = supabase
-      .channel(`unread-messages-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `recipient_id=eq.${user.id}`,
-        },
-        () => {
-          fetchUnreadCount();
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR') {
-          console.error('Unread messages channel error');
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
 
   return (
     <>
@@ -245,6 +200,8 @@ const Header = () => {
       </AlertDialog>
     </>
   );
-};
+});
+
+Header.displayName = "Header";
 
 export default Header;

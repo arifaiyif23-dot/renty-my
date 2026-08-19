@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { ItemCategory } from '@/types';
@@ -26,17 +27,18 @@ import { MALAYSIA_STATES } from '@/components/SearchBarV2';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 const CATEGORY_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'electronics', label: 'Electronics' },
-  { value: 'vehicles', label: 'Vehicles' },
-  { value: 'tools', label: 'Tools' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'party', label: 'Party' },
-  { value: 'fashion', label: 'Fashion' },
-  { value: 'other', label: 'Other' },
+  { value: 'all', labelKey: 'search.all' },
+  { value: 'electronics', labelKey: 'search.electronics' },
+  { value: 'vehicles', labelKey: 'search.vehicles' },
+  { value: 'tools', labelKey: 'search.tools' },
+  { value: 'sports', labelKey: 'search.sports' },
+  { value: 'party', labelKey: 'search.party' },
+  { value: 'fashion', labelKey: 'search.fashion' },
+  { value: 'other', labelKey: 'search.other' },
 ];
 
 export default function Search() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [initialLoading, setInitialLoading] = useState(true);
@@ -308,7 +310,7 @@ export default function Search() {
             </SelectTrigger>
             <SelectContent>
               {CATEGORY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>
               ))}
             </SelectContent>
           </Select>

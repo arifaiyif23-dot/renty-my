@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -28,6 +29,18 @@ const ADMIN_MANAGEMENT_ACTIONS = [
   'remove_admin_role',
   'list_admins',
 ];
+
+const VALID_ACTIONS = [
+  ...Object.keys(ACTION_PERMISSIONS),
+  ...ADMIN_MANAGEMENT_ACTIONS,
+  'list_admins',
+];
+
+const AdminActionSchema = z.object({
+  action: z.string().refine((a) => VALID_ACTIONS.includes(a), {
+    message: `Invalid action. Must be one of: ${VALID_ACTIONS.join(', ')}`,
+  }),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -77,7 +90,15 @@ serve(async (req) => {
     }
 
     const isSuperAdmin = roleData.role === 'super_admin';
-    const { action, ...payload } = await req.json();
+    const body = await req.json();
+    const parsed = AdminActionSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: parsed.error.flatten().fieldErrors }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+    const { action, ...payload } = parsed.data;
 
     if (ADMIN_MANAGEMENT_ACTIONS.includes(action) && !isSuperAdmin) {
       return new Response(

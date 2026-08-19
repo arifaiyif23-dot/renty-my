@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, RotateCcw, Home, Bug, RefreshCw } from 'lucide-react';
 import { logBoundaryError } from '@/lib/errorLogger';
+import i18n from '@/i18n/config';
 
 interface Props {
   children: ReactNode;
@@ -41,6 +42,8 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentWillUnmount() {
     this.clearAutoRetry();
   }
+
+  t = (key: string) => i18n.t(key);
 
   startAutoRetry = () => {
     this.clearAutoRetry();
@@ -101,35 +104,35 @@ export default class ErrorBoundary extends Component<Props, State> {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
-                Something went wrong
+                {this.t('errorBoundary.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                We encountered an unexpected error. Auto-retrying in <span className="font-mono font-bold">{countdown}</span>s.
+                {this.t('errorBoundary.autoRetry')} <span className="font-mono font-bold">{countdown}</span>{this.t('errorBoundary.seconds')}
               </p>
               <p className="text-xs text-muted-foreground">
-                If the issue persists, you can report it to help us fix it faster.
+                {this.t('errorBoundary.reportHint')}
               </p>
               {error && (
                 <details className="text-xs text-muted-foreground bg-muted p-3 rounded">
-                  <summary className="cursor-pointer font-medium mb-2">Error Details</summary>
+                  <summary className="cursor-pointer font-medium mb-2">{this.t('errorBoundary.errorDetails')}</summary>
                   <pre className="overflow-auto break-words whitespace-pre-wrap">{error.message}</pre>
                 </details>
               )}
               <div className="flex flex-col gap-2">
                 <Button onClick={this.handleRetry} className="w-full">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Try Again Now
+                  {this.t('errorBoundary.tryAgain')}
                 </Button>
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={this.handleReset} variant="outline">
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    Dismiss
+                    {this.t('errorBoundary.dismiss')}
                   </Button>
                   <Button onClick={this.handleGoHome} variant="outline">
                     <Home className="h-4 w-4 mr-2" />
-                    Home
+                    {this.t('errorBoundary.home')}
                   </Button>
                 </div>
                 <Button
@@ -140,7 +143,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   disabled={reported}
                 >
                   <Bug className="h-4 w-4 mr-2" />
-                  {reported ? 'Reported ✓' : 'Report this error'}
+                  {reported ? this.t('errorBoundary.reported') : this.t('errorBoundary.reportError')}
                 </Button>
               </div>
             </CardContent>

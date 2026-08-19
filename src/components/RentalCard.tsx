@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ReviewForm } from "@/components/ReviewForm";
 import { RentalModificationDialog } from "@/components/RentalModificationDialog";
 import { PayNowButton } from "@/components/PayNowButton";
+import { ResumePaymentButton } from "@/components/ResumePaymentButton";
 import { HandoverDialog } from "@/components/HandoverDialog";
 import { RentalTimer } from "@/components/RentalTimer";
 import { isNative } from "@/lib/platform";
@@ -357,6 +358,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
                     <Clock className="h-4 w-4" />
                     {t('rental.paymentProcessing')}
                   </p>
+                  <ResumePaymentButton rental={rental} />
                 </div>
               )}
               {!isOwner && rental.status === 'reserved' && (
@@ -617,6 +619,7 @@ const RentalCard = memo(({ rental, isOwner, onReviewSuccess, hasPendingModificat
                   <Clock className="h-4 w-4" />
                   {t('rental.paymentProcessing')}
                 </p>
+                <ResumePaymentButton rental={rental} />
               </div>
             )}
 

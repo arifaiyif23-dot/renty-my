@@ -59,7 +59,8 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
     }
   };
 
-  const pendingRequests = rentals.filter(r => r.status === 'reserved');
+  const PENDING_STATUSES = ['requested', 'payment_pending', 'reserved'];
+  const pendingRequests = rentals.filter(r => PENDING_STATUSES.includes(r.status));
 
   if (pendingRequests.length === 0) {
     return (
@@ -153,53 +154,62 @@ export function IncomingRequests({ rentals, onUpdate }: IncomingRequestsProps) {
                 </p>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    onClick={() => setConfirmDialog({ 
-                      open: true, 
-                      rentalId: rental.id, 
-                      action: 'approve',
-                      rental 
-                    })}
-                    disabled={processingId === rental.id}
-                  >
-                    {processingId === rental.id && confirmDialog.action === 'approve' ? (
-                      <>
-                        <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        {t('incomingRequests.approving')}
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        {t('incomingRequests.approve')}
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setConfirmDialog({ 
-                      open: true, 
-                      rentalId: rental.id, 
-                      action: 'reject',
-                      rental 
-                    })}
-                    disabled={processingId === rental.id}
-                  >
-                    {processingId === rental.id && confirmDialog.action === 'reject' ? (
-                      <>
-                        <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        {t('incomingRequests.declining')}
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-4 w-4 mr-2" />
-                        {t('incomingRequests.decline')}
-                      </>
-                    )}
-                  </Button>
-                </div>
+                {rental.status === 'reserved' ? (
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      onClick={() => setConfirmDialog({ 
+                        open: true, 
+                        rentalId: rental.id, 
+                        action: 'approve',
+                        rental 
+                      })}
+                      disabled={processingId === rental.id}
+                    >
+                      {processingId === rental.id && confirmDialog.action === 'approve' ? (
+                        <>
+                          <Clock className="h-4 w-4 mr-2 animate-spin" />
+                          {t('incomingRequests.approving')}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {t('incomingRequests.approve')}
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setConfirmDialog({ 
+                        open: true, 
+                        rentalId: rental.id, 
+                        action: 'reject',
+                        rental 
+                      })}
+                      disabled={processingId === rental.id}
+                    >
+                      {processingId === rental.id && confirmDialog.action === 'reject' ? (
+                        <>
+                          <Clock className="h-4 w-4 mr-2 animate-spin" />
+                          {t('incomingRequests.declining')}
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {t('incomingRequests.decline')}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                    <p className="text-sm text-warning flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {t('incomingRequests.waitingRenterPayment')}
+                    </p>
+                  </div>
+                )}
               </div>
             );
           })}

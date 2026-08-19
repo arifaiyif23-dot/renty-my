@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,8 @@ interface ItemWithRating extends Item {
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user, profile: currentProfile } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [items, setItems] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,13 @@ export default function UserProfile() {
     loadUser();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const handleMessage = () => {
+    if (!currentProfile) { toast.error(t('messages.signInToMessage')); navigate('/auth'); return; }
+    if (!id || id === currentProfile.id) return;
+    if (!currentProfile.is_verified) { toast.error(t('messages.verifyIdentity')); navigate('/verification'); return; }
+    navigate('/messages', { state: { recipientId: id } });
+  };
 
   const loadUser = async () => {
     setLoading(true);
@@ -202,6 +213,13 @@ export default function UserProfile() {
                   </div>
                 )}
               </div>
+
+              {user?.id !== id && (
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={handleMessage}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  {t('userProfile.messageUser')}
+                </Button>
+              )}
 
               <Button variant="outline" size="sm" className="rounded-lg" onClick={() => setShowReport(true)}>
                 {t('userProfile.reportUser')}

@@ -316,8 +316,12 @@ export default function ListItem() {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="h-12 text-base rounded-lg"
                 placeholder={t('listItem.titlePlaceholder')}
+                maxLength={200}
                 required
               />
+              <p className="text-xs text-muted-foreground text-right">
+                {formData.title.length} / 200
+              </p>
             </div>
 
             <div className="space-y-2">

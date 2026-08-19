@@ -421,7 +421,8 @@
     "noPending": "暂无待处理的预订请求",
     "notVerified": "未验证",
     "requested": "请求于",
-    "title": "收到的请求"
+    "title": "收到的请求",
+    "waitingRenterPayment": "等待租客付款"
   },
   "inspection": {
     "damaged": "损坏 — 提交索赔",
@@ -667,9 +668,11 @@
     "selectConversationDesc": "从列表中选择一个会话开始聊天",
     "sendAction": "发送消息",
     "sending": "发送中",
+    "signInToMessage": "登录以发送消息",
     "title": "消息",
     "typeMessage": "输入消息...",
     "unknownUser": "未知用户",
+    "verifyIdentity": "验证身份后才能联系卖家",
     "viewDocument": "查看文档"
   },
   "nav": {
@@ -783,7 +786,15 @@
     "title": "付款成功！",
     "transactionId": "交易编号",
     "tryAgain": "重试",
-    "viewRentals": "查看我的租赁"
+    "viewRentals": "查看我的租赁",
+    "verifying": "正在验证付款...",
+    "confirmed": "付款已确认！",
+    "notConfirmed": "付款未确认",
+    "checkDashboard": "请查看您的仪表板了解租赁详情。",
+    "tryAgainOrSupport": "请重试或联系客服。",
+    "goDashboard": "前往仪表板",
+    "retryPayment": "重试付款",
+    "contactSupport": "联系客服"
   },
   "privacy": {
     "contactDpo": "邮箱：privacy@renty.my",
@@ -869,7 +880,9 @@
     "owner": "业主",
     "paymentFrozen": "付款已冻结，等待管理员审核",
     "paymentProcessing": "正在验证付款...",
+    "paymentExpiresIn": "支付链接将在 {{time}} 后过期",
     "pickupCode": "将此代码提供给业主：",
+    "resumePayment": "继续支付",
     "processReturn": "处理归还",
     "rateExperience": "评价你的体验",
     "rejectDescription": "您确定要拒绝 {{title}} 的租赁请求吗？",
@@ -1029,7 +1042,20 @@
     "sortNewest": "最新优先",
     "sortPriceHigh": "价格：从高到低",
     "sortPriceLow": "价格：从低到高",
-    "title": "搜索物品"
+    "title": "搜索物品",
+    "all": "全部",
+    "electronics": "电子产品",
+    "vehicles": "车辆",
+    "tools": "工具",
+    "sports": "体育",
+    "party": "派对",
+    "fashion": "时尚",
+    "other": "其他",
+    "newest": "最新",
+    "priceLow": "低价",
+    "priceHigh": "高价",
+    "verifiedOnly": "仅验证用户",
+    "instantBook": "即时预订"
   },
   "terms": {
     "draftWarning": "草稿 — 等待法律审核。",
@@ -1083,6 +1109,7 @@
     "hr": "{{count}} 小时",
     "joined": "加入于",
     "listingsBy": "{{name}} 的列表",
+    "messageUser": "发消息",
     "min": "{{count}} 分钟",
     "noActiveListings": "暂无活跃列表",
     "noRatings": "暂无评分",
@@ -1116,5 +1143,29 @@
     "seoDesc": "查看您保存的物品和收藏",
     "title": "我的心愿单",
     "undo": "撤销"
+  },
+  "errorBoundary": {
+    "title": "出了点问题",
+    "autoRetry": "我们遇到了意外错误。正在自动重试，",
+    "seconds": "秒后。",
+    "reportHint": "如果问题持续存在，您可以报告以帮助我们更快修复。",
+    "errorDetails": "错误详情",
+    "tryAgain": "立即重试",
+    "dismiss": "关闭",
+    "home": "首页",
+    "reportError": "报告此错误",
+    "reported": "已报告 ✓"
+  },
+  "offline": {
+    "title": "您已离线",
+    "description": "看起来您已失去互联网连接。请检查您的网络并重试。",
+    "troubleshooting": "故障排除提示：",
+    "tip1": "检查您的Wi-Fi或移动数据连接",
+    "tip2": "尝试关闭再打开飞行模式",
+    "tip3": "如果使用Wi-Fi，请重启路由器",
+    "tip4": "移动到信号更好的区域",
+    "retryConnection": "重试连接",
+    "stillOffline": "仍然离线...",
+    "connectionRestored": "✓ 连接已恢复！点击重试继续。"
   }
 }

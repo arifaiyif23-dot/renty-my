@@ -420,7 +420,8 @@
     "noPending": "Tiada permintaan tempahan yang belum selesai",
     "notVerified": "Tidak Disahkan",
     "requested": "Diminta",
-    "title": "Permintaan Masuk"
+    "title": "Permintaan Masuk",
+    "waitingRenterPayment": "Menunggu pembayaran penyewa"
   },
   "inspection": {
     "damaged": "Rosak — Failkan tuntutan",
@@ -666,9 +667,11 @@
     "selectConversationDesc": "Pilih perbualan daripada senarai untuk mula berbual",
     "sendAction": "menghantar mesej",
     "sending": "menghantar",
+    "signInToMessage": "Log masuk untuk menghantar mesej",
     "title": "Mesej",
     "typeMessage": "Taip mesej...",
     "unknownUser": "Pengguna Tidak Dikenali",
+    "verifyIdentity": "Sahkan identiti anda untuk menghantar mesej kepada penjual",
     "viewDocument": "Lihat Dokumen"
   },
   "nav": {
@@ -782,7 +785,15 @@
     "title": "Pembayaran Berjaya!",
     "transactionId": "ID Transaksi",
     "tryAgain": "Cuba Lagi",
-    "viewRentals": "Lihat Sewaan Saya"
+    "viewRentals": "Lihat Sewaan Saya",
+    "verifying": "Mengesahkan pembayaran...",
+    "confirmed": "Pembayaran disahkan!",
+    "notConfirmed": "Pembayaran tidak disahkan",
+    "checkDashboard": "Semak papan pemuka anda untuk butiran sewaan.",
+    "tryAgainOrSupport": "Sila cuba lagi atau hubungi sokongan.",
+    "goDashboard": "Pergi ke Papan Pemuka",
+    "retryPayment": "Cuba Semula Pembayaran",
+    "contactSupport": "Hubungi Sokongan"
   },
   "privacy": {
     "contactDpo": "Email: privacy@renty.my",
@@ -868,7 +879,9 @@
     "owner": "Pemilik",
     "paymentFrozen": "Pembayaran dibekukan menunggu semakan admin",
     "paymentProcessing": "Pembayaran sedang disahkan...",
+    "paymentExpiresIn": "Pautan pembayaran tamat dalam {{time}}",
     "pickupCode": "Berikan kod ini kepada Pemilik:",
+    "resumePayment": "Sambung Pembayaran",
     "processReturn": "Proses Pemulangan",
     "rateExperience": "Nilai pengalaman anda",
     "rejectDescription": "Adakah anda pasti mahu menolak permintaan sewaan ini untuk {{title}}?",
@@ -1076,7 +1089,20 @@
     "sortNewest": "Terbaharu Dahulu",
     "sortPriceHigh": "Harga: Tinggi ke Rendah",
     "sortPriceLow": "Harga: Rendah ke Tinggi",
-    "title": "Cari Item"
+    "title": "Cari Item",
+    "all": "Semua",
+    "electronics": "Elektronik",
+    "vehicles": "Kenderaan",
+    "tools": "Alatan",
+    "sports": "Sukan",
+    "party": "Parti",
+    "fashion": "Fesyen",
+    "other": "Lain-lain",
+    "newest": "Terbaharu",
+    "priceLow": "Harga Rendah",
+    "priceHigh": "Harga Tinggi",
+    "verifiedOnly": "Disahkan Sahaja",
+    "instantBook": "Tempah Segera"
   },
   "terms": {
     "draftWarning": "Draft — pending semakan peguam.",
@@ -1130,6 +1156,7 @@
     "hr": "{{count}} jam",
     "joined": "Menyertai",
     "listingsBy": "Senarai oleh {{name}}",
+    "messageUser": "Mesej",
     "min": "{{count}} min",
     "noActiveListings": "Tiada senarai aktif",
     "noRatings": "Tiada penilaian",
@@ -1163,5 +1190,29 @@
     "seoDesc": "Lihat item dan kegemaran yang anda simpan",
     "title": "Kegemaran Saya",
     "undo": "Buat asal"
+  },
+  "errorBoundary": {
+    "title": "Sesuatu telah berlaku",
+    "autoRetry": "Kami menghadapi ralat yang tidak dijangka. Cuba semula automatik dalam",
+    "seconds": "saat.",
+    "reportHint": "Jika masalah berterusan, anda boleh melaporkannya untuk membantu kami memperbaikinya dengan lebih pantas.",
+    "errorDetails": "Butiran Ralat",
+    "tryAgain": "Cuba Lagi Sekarang",
+    "dismiss": "Tutup",
+    "home": "Utama",
+    "reportError": "Laporkan ralat ini",
+    "reported": "Dilaporkan ✓"
+  },
+  "offline": {
+    "title": "Anda Luar Talian",
+    "description": "Nampaknya anda telah kehilangan sambungan internet. Sila semak rangkaian anda dan cuba lagi.",
+    "troubleshooting": "Petua penyelesaian masalah:",
+    "tip1": "Semak sambungan Wi-Fi atau data mudah alih anda",
+    "tip2": "Cuba matikan dan hidupkan mod pesawat",
+    "tip3": "Mulakan semula penghala jika menggunakan Wi-Fi",
+    "tip4": "Bergerak ke kawasan dengan isyarat yang lebih baik",
+    "retryConnection": "Cuba Semula Sambungan",
+    "stillOffline": "Masih Luar Talian...",
+    "connectionRestored": "✓ Sambungan dipulihkan! Klik cuba semula untuk meneruskan."
   }
 }

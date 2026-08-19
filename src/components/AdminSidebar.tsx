@@ -35,8 +35,9 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        "hidden md:flex flex-col border-r bg-card transition-all duration-200",
-        collapsed ? "w-16" : "w-56"
+        "flex flex-col border-r bg-card transition-all duration-200",
+        "fixed inset-y-0 left-0 z-40 w-56 md:relative md:w-56",
+        collapsed ? "md:w-16" : "md:w-56"
       )}
     >
       <div className="flex items-center justify-between p-3 border-b">

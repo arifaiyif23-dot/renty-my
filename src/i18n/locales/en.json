@@ -438,7 +438,8 @@
     "noPending": "No pending booking requests",
     "notVerified": "Not Verified",
     "requested": "Requested",
-    "title": "Incoming Requests"
+    "title": "Incoming Requests",
+    "waitingRenterPayment": "Awaiting renter payment"
   },
   "inspection": {
     "damaged": "Damaged — File a claim",
@@ -686,9 +687,11 @@
     "selectConversationDesc": "Choose a conversation from the list to start messaging",
     "sendAction": "send a message",
     "sending": "sending",
+    "signInToMessage": "Sign in to send messages",
     "title": "Messages",
     "typeMessage": "Type a message...",
     "unknownUser": "Unknown User",
+    "verifyIdentity": "Verify your identity to message vendors",
     "viewDocument": "View Document"
   },
   "nav": {
@@ -802,7 +805,15 @@
     "title": "Payment Successful!",
     "transactionId": "Transaction ID",
     "tryAgain": "Try Again",
-    "viewRentals": "View My Rentals"
+    "viewRentals": "View My Rentals",
+    "verifying": "Verifying payment...",
+    "confirmed": "Payment confirmed!",
+    "notConfirmed": "Payment not confirmed",
+    "checkDashboard": "Check your dashboard for rental details.",
+    "tryAgainOrSupport": "Please try again or contact support.",
+    "goDashboard": "Go to Dashboard",
+    "retryPayment": "Retry Payment",
+    "contactSupport": "Contact Support"
   },
   "privacy": {
     "contactDpo": "Email: privacy@renty.my",
@@ -889,7 +900,9 @@
     "owner": "Owner",
     "paymentFrozen": "Payment frozen pending admin review",
     "paymentProcessing": "Payment is being verified...",
+    "paymentExpiresIn": "Payment link expires in {{time}}",
     "pickupCode": "Give this code to the Owner:",
+    "resumePayment": "Resume Payment",
     "processReturn": "Process Return",
     "rateExperience": "Rate your experience",
     "rejectDescription": "Are you sure you want to reject this rental request for {{title}}?",
@@ -1097,7 +1110,20 @@
     "sortNewest": "Newest First",
     "sortPriceHigh": "Price: High to Low",
     "sortPriceLow": "Price: Low to High",
-    "title": "Search Items"
+    "title": "Search Items",
+    "all": "All",
+    "electronics": "Electronics",
+    "vehicles": "Vehicles",
+    "tools": "Tools",
+    "sports": "Sports",
+    "party": "Party",
+    "fashion": "Fashion",
+    "other": "Other",
+    "newest": "Newest",
+    "priceLow": "Low Price",
+    "priceHigh": "High Price",
+    "verifiedOnly": "Verified Only",
+    "instantBook": "Instant Book"
   },
   "terms": {
     "draftWarning": "Draft — pending legal review.",
@@ -1152,6 +1178,7 @@
     "hr": "{{count}} hr",
     "joined": "Joined",
     "listingsBy": "Listings by {{name}}",
+    "messageUser": "Message",
     "min": "{{count}} min",
     "noActiveListings": "No active listings",
     "noRatings": "No ratings",
@@ -1185,5 +1212,29 @@
     "seoDesc": "View your saved items and favorites",
     "title": "My Wishlist",
     "undo": "Undo"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "autoRetry": "We encountered an unexpected error. Auto-retrying in",
+    "seconds": "s.",
+    "reportHint": "If the issue persists, you can report it to help us fix it faster.",
+    "errorDetails": "Error Details",
+    "tryAgain": "Try Again Now",
+    "dismiss": "Dismiss",
+    "home": "Home",
+    "reportError": "Report this error",
+    "reported": "Reported ✓"
+  },
+  "offline": {
+    "title": "You're Offline",
+    "description": "It looks like you've lost your internet connection. Please check your network and try again.",
+    "troubleshooting": "Troubleshooting tips:",
+    "tip1": "Check your Wi-Fi or mobile data connection",
+    "tip2": "Try turning airplane mode off and on",
+    "tip3": "Restart your router if using Wi-Fi",
+    "tip4": "Move to an area with better signal",
+    "retryConnection": "Retry Connection",
+    "stillOffline": "Still Offline...",
+    "connectionRestored": "✓ Connection restored! Click retry to continue."
   }
 }

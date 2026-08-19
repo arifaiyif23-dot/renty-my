@@ -22,10 +22,13 @@ interface AdminRental {
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Status" },
+  { value: "draft", label: "Draft" },
   { value: "requested", label: "Requested" },
-  { value: "approved", label: "Approved" },
-  { value: "paid", label: "Paid" },
+  { value: "payment_pending", label: "Payment Pending" },
+  { value: "reserved", label: "Reserved" },
+  { value: "confirmed", label: "Confirmed" },
   { value: "active", label: "Active" },
+  { value: "overdue", label: "Overdue" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
   { value: "rejected", label: "Rejected" },
@@ -33,10 +36,13 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_BADGE: Record<string, { class: string; label: string }> = {
-  pending_approval: { class: "bg-warning/10 text-warning", label: "Pending" },
-  approved: { class: "bg-primary/10 text-primary-foreground", label: "Approved" },
-  paid: { class: "bg-primary/10 text-primary-foreground", label: "Paid" },
+  draft: { class: "bg-muted text-muted-foreground", label: "Draft" },
+  requested: { class: "bg-warning/10 text-warning", label: "Requested" },
+  payment_pending: { class: "bg-warning/10 text-warning", label: "Payment Pending" },
+  reserved: { class: "bg-primary/10 text-primary-foreground", label: "Reserved" },
+  confirmed: { class: "bg-primary/10 text-primary-foreground", label: "Confirmed" },
   active: { class: "bg-success/10 text-success-foreground", label: "Active" },
+  overdue: { class: "bg-destructive/10 text-destructive-foreground", label: "Overdue" },
   completed: { class: "bg-success/10 text-success-foreground", label: "Completed" },
   cancelled: { class: "bg-muted text-muted-foreground", label: "Cancelled" },
   rejected: { class: "bg-destructive/10 text-destructive-foreground", label: "Rejected" },
@@ -73,7 +79,7 @@ export default function AdminRentals() {
 
       const [totalRes, activeRes, completedRes, disputedRes] = await Promise.all([
         supabase.from("rentals").select("*", { count: "exact", head: true }),
-        supabase.from("rentals").select("*", { count: "exact", head: true }).in("status", ["paid", "active", "approved"]),
+        supabase.from("rentals").select("*", { count: "exact", head: true }).in("status", ["confirmed", "active", "overdue"]),
         supabase.from("rentals").select("*", { count: "exact", head: true }).eq("status", "completed"),
         supabase.from("rentals").select("*", { count: "exact", head: true }).eq("is_disputed", true),
       ]);

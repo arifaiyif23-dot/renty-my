@@ -1,41 +1,22 @@
+import { memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Search, MessageCircle, User, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useUnreadCount } from "@/hooks/use-unread-count";
 
-const MobileBottomNav = () => {
+const navItems = [
+  { key: "home", icon: Home, label: "Home", path: "/" },
+  { key: "browse", icon: Search, label: "Search", path: "/search" },
+  { key: "list", icon: Plus, label: "List", path: "/list-item", authRequired: true },
+  { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages", authRequired: true },
+  { key: "profile", icon: User, label: "Profile", path: "/profile", authRequired: true },
+];
+
+const MobileBottomNav = memo(() => {
   const location = useLocation();
   const { user } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    if (!user) {
-      setUnreadCount(0);
-      return;
-    }
-    let cancelled = false;
-    const fetchUnread = async () => {
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user.id)
-        .eq('is_read', false);
-      if (!cancelled) setUnreadCount(count ?? 0);
-    };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => { cancelled = true; clearInterval(interval); };
-  }, [user, location.pathname]);
-
-  const navItems = [
-    { key: "home", icon: Home, label: "Home", path: "/" },
-    { key: "browse", icon: Search, label: "Search", path: "/search" },
-    { key: "list", icon: Plus, label: "List", path: user ? "/list-item" : "/auth" },
-    { key: "messages", icon: MessageCircle, label: "Messages", path: user ? "/messages" : "/auth" },
-    { key: "profile", icon: User, label: "Profile", path: user ? "/profile" : "/auth" },
-  ];
+  const unreadCount = useUnreadCount();
 
   return (
     <nav
@@ -45,13 +26,14 @@ const MobileBottomNav = () => {
     >
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
-          const isActive = item.path === '/'
-            ? location.pathname === '/'
+          const path = item.authRequired && !user ? "/auth" : item.path;
+          const isActive = item.path === "/"
+            ? location.pathname === "/"
             : location.pathname.startsWith(item.path);
           return (
             <Link
               key={item.key}
-              to={item.path}
+              to={path}
               className={cn(
                 "relative flex flex-col items-center justify-center flex-1 h-full transition-colors min-w-[60px] min-h-[44px]",
                 isActive ? "text-primary" : "text-muted-foreground"
@@ -72,6 +54,8 @@ const MobileBottomNav = () => {
       </div>
     </nav>
   );
-};
+});
+
+MobileBottomNav.displayName = "MobileBottomNav";
 
 export default MobileBottomNav;

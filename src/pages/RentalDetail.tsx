@@ -73,6 +73,19 @@ export default function RentalDetail() {
 
   const isOwner = user?.id === rental.owner_id;
 
+  const statusLabels: Record<string, string> = {
+    requested: t('rental.statusLabels.requested'),
+    pending_approval: t('common.pending_approval'),
+    approved: t('rental.statusLabels.confirmed'),
+    paid: t('common.paid'),
+    active: t('common.active'),
+    completed: t('rental.statusLabels.completed'),
+    cancelled: t('common.cancelled'),
+    disputed: t('rental.statusLabels.disputed'),
+    rejected: t('common.rejected'),
+    reserved: t('common.reserved'),
+  };
+
   return (
     <PageLayout variant="narrow">
         <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
@@ -146,7 +159,7 @@ export default function RentalDetail() {
               {events.map((ev, i) => (
                 <div key={ev.id || i} className="flex items-center gap-3 text-sm text-muted-foreground">
                   <div className="w-2 h-2 rounded-full bg-primary/50" />
-                  <span>{ev.old_status} → {ev.new_status}</span>
+                  <span>{statusLabels[ev.old_status] || ev.old_status} → {statusLabels[ev.new_status] || ev.new_status}</span>
                   <span className="text-xs">{format(new Date(ev.created_at), "MMM d, HH:mm")}</span>
                 </div>
               ))}

@@ -147,7 +147,7 @@ export default function MyListings() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: incomingRequests } = useQuery({
+  const { data: incomingRequests, refetch: refetchRequests } = useQuery({
     queryKey: ['incoming-requests', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -160,7 +160,7 @@ export default function MyListings() {
           renter:profiles!rentals_renter_id_fkey(*)
         `)
         .eq('owner_id', user.id)
-        .eq('status', 'requested')
+        .in('status', ['requested', 'payment_pending', 'reserved'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -609,6 +609,7 @@ export default function MyListings() {
           rentals={incomingRequests || []}
           onUpdate={() => {
             refetch();
+            refetchRequests();
           }}
         />
       )}

@@ -4,10 +4,13 @@ declare const self: ServiceWorkerGlobalScope;
 
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { NetworkFirst, CacheFirst } from 'workbox-strategies';
+import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 
 precacheAndRoute(self.__WB_MANIFEST);
+
+// Serve offline page as fallback for navigation failures
+const OFFLINE_URL = '/offline';
 
 cleanupOutdatedCaches();
 self.skipWaiting();
@@ -109,9 +112,21 @@ self.addEventListener('fetch', (event) => {
         try {
           return await navigationStrategy.handle({ event, request: event.request });
         } catch {
-          const cache = await caches.open('navigation-cache');
-          const cachedResponse = await cache.match('/');
-          return cachedResponse || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
+          // Try to serve the cached offline page
+          const offlineCache = await caches.open('offline-cache');
+          let offlineResponse = await offlineCache.match(OFFLINE_URL);
+          if (!offlineResponse) {
+            try {
+              const netResponse = await fetch(OFFLINE_URL);
+              if (netResponse.ok) {
+                offlineResponse = netResponse.clone();
+                await offlineCache.put(OFFLINE_URL, netResponse);
+              }
+            } catch {
+              // Offline page also unavailable
+            }
+          }
+          return offlineResponse || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
         }
       })()
     );
@@ -161,7 +176,7 @@ registerRoute(
 
 registerRoute(
   /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
-  new CacheFirst({
+  new StaleWhileRevalidate({
     cacheName: 'images-cache',
     plugins: [
       new ExpirationPlugin({

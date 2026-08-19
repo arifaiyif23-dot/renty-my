@@ -25,7 +25,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.verify-admin]
-verify_jwt = false
+verify_jwt = true
 
 [functions.resolve-dispute]
 verify_jwt = true

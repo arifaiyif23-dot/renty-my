@@ -9,8 +9,18 @@ import { registerServiceWorker } from './utils/registerServiceWorker';
 import { prefetchRoutes } from '@/hooks/use-prefetch';
 import { logRejection, logCaughtError } from '@/lib/errorLogger';
 
-// Performance monitoring — configure with your analytics provider
-// import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
+// Performance monitoring — Web Vitals
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
+import { logError } from '@/lib/errorLogger';
+
+function sendToAnalytics(metric: { name: string; delta: number; id: string; value: number }) {
+  logError({
+    error_type: 'runtime',
+    error_message: `WebVitals:${metric.name}`,
+    error_stack: undefined,
+    metadata: { name: metric.name, delta: metric.delta, id: metric.id, value: metric.value },
+  });
+}
 
 // Register service worker for offline support (web only — SW crashes in Capacitor WebView)
 if (import.meta.env.PROD && isWeb()) {
@@ -34,6 +44,13 @@ createRoot(document.getElementById("root")!).render(
     </HelmetProvider>
   </StrictMode>
 );
+
+// Report Web Vitals after mount
+onCLS(sendToAnalytics);
+onINP(sendToAnalytics);
+onFCP(sendToAnalytics);
+onLCP(sendToAnalytics);
+onTTFB(sendToAnalytics);
 
 // Preload remaining lazy chunks after initial paint
 if ('requestIdleCallback' in window) {

@@ -119,6 +119,53 @@ serve(async (req) => {
       }
     }
     
+    // Cancel stale 'requested' rentals that never had a payment created (renter abandoned checkout)
+    const staleRequestedCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: staleRequested } = await supabase
+      .from('rentals')
+      .select('id, renter_id, item_id')
+      .eq('status', 'requested')
+      .lt('created_at', staleRequestedCutoff)
+      .limit(500);
+
+    if (staleRequested && staleRequested.length > 0) {
+      const staleIds = staleRequested.map(r => r.id);
+      const { data: existingPayments } = await supabase
+        .from('payments')
+        .select('rental_id')
+        .in('rental_id', staleIds);
+      const withPayments = new Set((existingPayments || []).map(p => p.rental_id));
+      const orphaned = staleRequested.filter(r => !withPayments.has(r.id));
+
+      if (orphaned.length > 0) {
+        const orphanedIds = orphaned.map(r => r.id);
+        const { error: orphanError } = await supabase
+          .from('rentals')
+          .update({ status: 'cancelled', updated_at: nowIso })
+          .in('id', orphanedIds)
+          .in('status', ['requested']);
+
+        if (orphanError) {
+          console.error('Error cancelling orphaned requested rentals:', orphanError);
+        } else {
+          for (const rental of orphaned) {
+            const { error: notifError } = await supabase
+              .from('notifications')
+              .insert({
+                user_id: rental.renter_id,
+                type: 'rental_rejected',
+                title: 'Booking Expired',
+                message: 'Your unconfirmed booking request expired. Please create a new booking to rent this item.',
+                link: `/item/${rental.item_id}`
+              });
+            if (notifError) {
+              console.error(`Failed to send notification to renter ${rental.renter_id}:`, notifError);
+            }
+          }
+        }
+      }
+    }
+
     console.log(`Successfully cleaned up ${expiredPayments.length} expired payments`);
     
     // Log execution

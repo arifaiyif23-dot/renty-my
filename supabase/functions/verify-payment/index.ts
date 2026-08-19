@@ -1,10 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const VerifyPaymentSchema = z.object({
+  billCode: z.string().min(1, 'billCode is required').max(200),
+  paymentId: z.string().uuid('paymentId must be a valid UUID'),
+});
 
 interface Tx {
   billpaymentStatus?: string;
@@ -32,13 +38,15 @@ serve(async (req) => {
     const { error: suspendError } = await supabase.rpc('check_user_not_suspended', { p_user_id: user.id });
     if (suspendError) throw new Error('Your account has been suspended. Contact support for assistance.');
 
-    const { billCode, paymentId } = await req.json();
-    if (!billCode || !paymentId) {
+    const body = await req.json();
+    const parsed = VerifyPaymentSchema.safeParse(body);
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: 'billCode and paymentId required' }),
+        JSON.stringify({ error: 'Invalid input', details: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    const { billCode, paymentId } = parsed.data;
 
     const isSandbox = Deno.env.get('TOYYIBPAY_SANDBOX') === 'true';
     const secretKey = isSandbox
