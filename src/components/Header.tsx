@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from "react";
+import { useState, memo, useCallback, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -33,11 +33,11 @@ import { cn } from "@/lib/utils";
 import { useUnreadCount } from "@/hooks/use-unread-count";
 
 const desktopNavLinks = [
-  { key: "home", icon: Home, label: "Home", path: "/" },
-  { key: "browse", icon: Search, label: "Browse", path: "/search" },
-  { key: "about", icon: Info, label: "About", path: "/about" },
-  { key: "messages", icon: MessageCircle, label: "Messages", path: "/messages", auth: true },
-  { key: "dashboard", icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", auth: true },
+  { key: "home", icon: Home, label: "nav.home", path: "/" },
+  { key: "browse", icon: Search, label: "nav.browse", path: "/search" },
+  { key: "about", icon: Info, label: "nav.about", path: "/about" },
+  { key: "messages", icon: MessageCircle, label: "nav.messages", path: "/messages", auth: true },
+  { key: "dashboard", icon: LayoutDashboard, label: "nav.dashboard", path: "/dashboard", auth: true },
 ];
 
 const Header = memo(() => {
@@ -47,7 +47,9 @@ const Header = memo(() => {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
-  const unreadCount = useUnreadCount();
+const unreadCount = useUnreadCount();
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
 
   const handleSignOut = useCallback(() => {
     haptics.medium();
@@ -66,9 +68,24 @@ const Header = memo(() => {
     .join("")
     .toUpperCase() || "U";
 
+// Hide header on scroll down, show on scroll up (native app feel)
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y > lastScrollY.current && y > 120) setHidden(true);
+      else if (y < lastScrollY.current) setHidden(false);
+      lastScrollY.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-card border-b border-border/40 safe-area-top">
+      <header className={cn(
+        "sticky top-0 z-50 w-full border-b border-border/50 glass transition-transform duration-300",
+        hidden && "-translate-y-full"
+      )}>
         <div className="mx-auto px-4 lg:px-8 max-w-7xl">
           <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-6">
             <div className="flex items-center gap-2 shrink-0">
@@ -113,7 +130,7 @@ const Header = memo(() => {
                     aria-current={isActive ? "page" : undefined}
                   >
                     {link.highlight ? null : <link.icon className="h-4 w-4" />}
-                    {link.label}
+                    {t(link.label)}
                   </Link>
                 );
               })}

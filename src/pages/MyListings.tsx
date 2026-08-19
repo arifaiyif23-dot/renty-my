@@ -470,13 +470,13 @@ export default function MyListings() {
             <div className="text-center py-12">
               <p className="text-destructive font-medium mb-2">Failed to load listings</p>
               <p className="text-sm text-muted-foreground mb-4">{error?.message || "An unexpected error occurred"}</p>
-              <Button variant="outline" onClick={() => refetch()} className="rounded-lg">Try Again</Button>
+              <Button variant="outline" onClick={() => refetch()} className="rounded-lg">{t('common.tryAgain')}</Button>
             </div>
           ) : !filteredItems || filteredItems.length === 0 ? (
             <EmptyStateV2
               icon={List}
               title={t('listings.noListings')}
-              description="Start earning by listing your first item. It only takes a few minutes to set up."
+              description={t('listings.noListingsDesc')}
               actionLabel={t('listings.createNew')}
               onAction={() => navigate('/list-item')}
               secondaryActionLabel="Learn How It Works"

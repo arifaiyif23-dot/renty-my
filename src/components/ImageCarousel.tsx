@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { getOptimizedImageUrl, getSrcSet } from "@/utils/imageOptimization";
 
 interface ImageCarouselProps {
@@ -10,14 +11,22 @@ interface ImageCarouselProps {
 }
 
 export default function ImageCarousel({ images, title }: ImageCarouselProps) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-        <p className="text-muted-foreground">No images available</p>
+      <div className="aspect-video bg-gradient-to-br from-muted to-muted/40 rounded-2xl flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-2">
+            <ImageIcon className="h-6 w-6 text-muted-foreground/60" />
+          </div>
+          <p className="text-sm text-muted-foreground">{t('common.noImagesAvailable')}</p>
+        </div>
       </div>
     );
   }
@@ -46,19 +55,38 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
   return (
     <div className="relative group">
       <div
-        className="aspect-[4/3] md:aspect-video bg-muted rounded-xl overflow-hidden"
+className="aspect-video bg-muted rounded-2xl overflow-hidden relative"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <img
-          src={getOptimizedImageUrl(images[currentIndex].image_url, { width: 1200, quality: 85 })}
-          srcSet={getSrcSet(images[currentIndex].image_url)}
-          sizes="(max-width: 640px) 100vw, 75vw"
-          alt={`${title} - Image ${currentIndex + 1}`}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
+        {!imgLoaded && !imgError && (
+          <div className="absolute inset-0 animate-shimmer" />
+        )}
+        {imgError ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-2">
+                <ImageIcon className="h-6 w-6 text-muted-foreground/60" />
+              </div>
+              <p className="text-sm text-muted-foreground">{t('common.noImagesAvailable')}</p>
+            </div>
+          </div>
+        ) : (
+          <img
+            src={getOptimizedImageUrl(images[currentIndex].image_url, { width: 1200, quality: 85 })}
+            srcSet={getSrcSet(images[currentIndex].image_url)}
+            sizes="(max-width: 640px) 100vw, 75vw"
+            alt={`${title} - Image ${currentIndex + 1}`}
+            className={cn(
+              "w-full h-full object-cover transition-opacity duration-500",
+              imgLoaded ? "opacity-100" : "opacity-0"
+            )}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+          />
+        )}
       </div>
 
       {images.length > 1 && (
@@ -85,7 +113,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
       )}
 
       {images.length > 1 && (
-        <div className="absolute bottom-3 right-3 bg-card text-foreground px-2.5 py-1 rounded-full text-xs font-medium">
+<div className="absolute bottom-3 right-3 bg-black/40 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold">
           {currentIndex + 1} / {images.length}
         </div>
       )}
@@ -116,7 +144,7 @@ export default function ImageCarousel({ images, title }: ImageCarouselProps) {
               onClick={() => setCurrentIndex(index)}
               aria-label={`Go to image ${index + 1}`}
               className={cn(
-                "flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
+                "flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 transition-all",
                 index === currentIndex
                   ? "border-primary ring-2 ring-primary/20"
                   : "border-border hover:border-primary/50"

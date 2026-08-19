@@ -111,6 +111,22 @@ export default function ItemDetail() {
           .single();
 
         if (error) throw error;
+
+        // Anonymous visitors can't read the profiles table (RLS: active item
+        // owners only, authenticated users only), so the owner FK comes back
+        // null. Fall back to the public_profiles view so the VendorCard still
+        // renders for logged-out visitors — safe fields only, no PII.
+        if (data && !data.owner) {
+          const { data: publicOwner } = await supabase
+            .from('public_profiles')
+            .select('id, full_name, avatar_url, is_verified, verification_level, trust_score, location, created_at')
+            .eq('id', data.owner_id)
+            .maybeSingle();
+          if (publicOwner) {
+            data.owner = publicOwner as unknown as Item['owner'];
+          }
+        }
+
         setItem(data);
 
         if (user && data) {
@@ -374,7 +390,7 @@ export default function ItemDetail() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" /> {item.location}
                 </span>
@@ -383,6 +399,9 @@ export default function ItemDetail() {
                 )}
                 {Number(item.deposit_amount) > 0 && (
                   <span>RM{Number(item.deposit_amount).toFixed(0)} deposit</span>
+                )}
+                {item.minimum_rental_days && item.minimum_rental_days > 1 && (
+                  <span>{t('itemDetail.minDays', { count: item.minimum_rental_days })}</span>
                 )}
               </div>
 
@@ -427,7 +446,7 @@ export default function ItemDetail() {
               <Separator />
 
               <div>
-                <h3 className="font-semibold mb-3">Reviews</h3>
+                <h3 className="font-semibold mb-3">{t('itemDetail.reviews')}</h3>
                 <ReviewsList itemId={id || ''} />
               </div>
             </div>
@@ -438,15 +457,15 @@ export default function ItemDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-2xl font-bold">RM{Number(item.price_per_day).toFixed(0)}</span>
-                  <span className="text-muted-foreground text-sm"> /day</span>
+                  <span className="text-muted-foreground text-sm"> {t('listingCard.perDay')}</span>
                 </div>
                 {item.instant_book_enabled && (
-                  <Badge className="rounded-full">Instant Book</Badge>
+                  <Badge className="rounded-full">{t('itemDetail.instantBook')}</Badge>
                 )}
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">Pick dates</p>
+                <p className="text-sm font-medium mb-2">{t('itemDetail.pickDates')}</p>
                 <UnifiedCalendar
                   itemId={id || ''}
                   mode="select"
@@ -509,13 +528,13 @@ export default function ItemDetail() {
                     )}
                     {priceBreakdown.deposit > 0 && (
                       <div className="flex justify-between text-muted-foreground">
-                        <span>Security deposit</span>
+                        <span>{t('itemDetail.securityDeposit')}</span>
                         <span>RM{priceBreakdown.deposit.toFixed(2)}</span>
                       </div>
                     )}
                     <Separator />
                     <div className="flex justify-between font-semibold text-base">
-                      <span>Total</span>
+                      <span>{t('itemDetail.total')}</span>
                       <span>RM{priceBreakdown.total.toFixed(2)}</span>
                     </div>
                   </div>
@@ -524,7 +543,7 @@ export default function ItemDetail() {
 
               {user && !profile?.is_verified && (
                 <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
-                  <p className="text-warning font-medium mb-1">Verification required to book</p>
+                  <p className="text-warning font-medium mb-1">{t('itemDetail.verificationRequired')}</p>
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate('/verification', { state: { redirectTo: `/items/${item?.id}` } })}>
                     Verify now
                   </Button>
@@ -534,6 +553,7 @@ export default function ItemDetail() {
               {user?.id !== item.owner_id && (
                 <>
                   <Button
+                    variant="secondary"
                     className="w-full h-12 font-semibold"
                     onClick={handleBooking}
                     disabled={!dateRange?.from || !dateRange?.to || isBooking || (!!user && !profile?.is_verified)}
@@ -556,7 +576,7 @@ export default function ItemDetail() {
         {/* Similar items — full-width row on desktop, tucked under content on mobile */}
         {similarItems.length > 0 && (
           <div className="space-y-4 mt-8 md:mt-12">
-            <h3 className="font-semibold md:text-lg">Similar Items</h3>
+            <h3 className="font-semibold md:text-lg">{t('itemDetail.similarItems')}</h3>
             <div className="grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-4">
               {loadingSimilar ? (
                 [...Array(4)].map((_, i) => (
@@ -601,7 +621,7 @@ export default function ItemDetail() {
                 {dateRange?.from && dateRange?.to && item && priceBreakdown && (
                   <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration</span>
+                      <span className="text-muted-foreground">{t('itemDetail.duration')}</span>
                       <span className="font-medium">{formatRentalPeriod(
                         dateRange.from.toISOString().split('T')[0],
                         dateRange.to.toISOString().split('T')[0],
@@ -610,6 +630,12 @@ export default function ItemDetail() {
                       )} · {formatDuration(priceBreakdown.hours)}</span>
                     </div>
                     <Separator />
+                    {priceBreakdown.deposit > 0 && (
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>{t('itemDetail.securityDeposit')}</span>
+                        <span>RM {priceBreakdown.deposit.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between font-semibold text-base">
                       <span>Total</span>
                       <span>RM {priceBreakdown.total.toFixed(2)}</span>
@@ -643,7 +669,7 @@ export default function ItemDetail() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={confirming}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={confirming}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={(e) => { e.preventDefault(); handleConfirmBooking(); }} disabled={confirming || !agreeToTerms}>
               {confirming ? (
                 <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Sending...</span>

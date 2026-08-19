@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
@@ -201,8 +202,13 @@ export default function Search() {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [debouncedSearchQuery, category, minPrice, maxPrice, dateRange, userLocation, sortBy, verifiedOnly, instantBookOnly, itemCondition, reset]);
 
+  // Clear initialLoading only after the FIRST fetch actually completes.
+  // Without the hasStarted gate, the effect fires on mount (loading=false) and
+  // kills the skeleton before the first fetch begins → "No Items Found" flash.
+  const hasStartedRef = useRef(false);
   useEffect(() => {
-    if (!loading && initialLoading) {
+    if (loading) hasStartedRef.current = true;
+    if (!loading && initialLoading && hasStartedRef.current) {
       setInitialLoading(false);
     }
   }, [loading, initialLoading]);
@@ -219,10 +225,6 @@ export default function Search() {
     if (location) setUserLocation(location);
     if (categoryParam) setCategory(categoryParam as ItemCategory | 'all');
   }, [searchParams]);
-
-  useEffect(() => {
-    setInitialLoading(false);
-  }, []);
 
   const saveSearch = (query: string) => {
     if (!query.trim()) return;
@@ -453,18 +455,18 @@ export default function Search() {
             <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-3">
               <SearchSlash className="h-6 w-6 text-destructive" />
             </div>
-            <h3 className="font-semibold mb-1">Something went wrong</h3>
+            <h3 className="font-semibold mb-1">{t('common.error')}</h3>
             <p className="text-sm text-muted-foreground mb-3">{error}</p>
             <Button variant="outline" size="sm" onClick={reset}>
-              Try Again
+              {t('common.tryAgain')}
             </Button>
           </div>
         ) : initialLoading ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="rounded-lg overflow-hidden border border-border">
-                <SkeletonV2 variant="rectangular" className="aspect-golden" />
-                <div className="p-3 space-y-2">
+              <div key={i} className="rounded-2xl overflow-hidden border border-border">
+                <SkeletonV2 variant="rectangular" className="aspect-[4/5] rounded-none" />
+                <div className="p-3.5 space-y-2">
                   <SkeletonV2 variant="text" className="h-4 w-3/4" />
                   <SkeletonV2 variant="text" className="h-3 w-1/2" />
                 </div>
@@ -474,9 +476,9 @@ export default function Search() {
         ) : items.length === 0 ? (
           <AuroraEmptyState
             icon={SearchSlash}
-            title="No items found"
-            description="Try adjusting your filters or search terms."
-            actionLabel="Clear Filters"
+            title={t('search.noItems')}
+            description={t('search.noItemsDesc')}
+            actionLabel={t('search.clearFilters')}
             onAction={() => { setSearchQuery(''); setCategory('all'); setMinPrice(''); setMaxPrice(''); setUserLocation(''); setDateRange(undefined); }}
           />
         ) : (

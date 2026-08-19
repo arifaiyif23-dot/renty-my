@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ const signUpSchema = z.object({
 }).refine(data => data.password === data.confirmPassword, { message: 'Passwords do not match', path: ['confirmPassword'] });
 
 export default function Auth() {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const { user, signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -262,20 +264,20 @@ export default function Auth() {
   if (isRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-        <div className="rounded-2xl border border-border bg-card shadow-2 p-6 md:p-8 w-full max-w-md text-center">
-          <h1 className="text-xl font-bold mb-1">Set new password</h1>
-          <p className="text-sm text-muted-foreground mb-6">Enter and confirm your new password.</p>
+<div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-6 md:p-8 w-full max-w-md text-center">
+          <h1 className="text-xl font-bold mb-1">{t('auth.setNewPassword')}</h1>
+          <p className="text-sm text-muted-foreground mb-6">{t('auth.setNewPasswordDesc')}</p>
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-1.5 text-left">
-              <Label htmlFor="new-password">New Password</Label>
+              <Label htmlFor="new-password">{t('auth.newPassword')}</Label>
               <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-12 rounded-lg" autoComplete="new-password" required />
             </div>
             <div className="space-y-1.5 text-left">
-              <Label htmlFor="confirm-new-password">Confirm Password</Label>
+              <Label htmlFor="confirm-new-password">{t('auth.confirmNewPassword')}</Label>
               <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className="h-12 rounded-lg" autoComplete="new-password" required />
             </div>
-            <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
-              {isLoading ? 'Updating...' : 'Update Password'}
+            <Button type="submit" className="w-full h-12 rounded-lg shadow-1 text-base" disabled={isLoading}>
+              {isLoading ? t('auth.updating') : t('auth.updatePassword')}
             </Button>
           </form>
         </div>
@@ -299,54 +301,56 @@ export default function Auth() {
       </div>
 
       <div className="flex-1 lg:grid lg:grid-cols-2">
-        <div className="relative flex items-start justify-center p-4 pb-mobile-nav overflow-y-auto">
-          <div className="relative w-full max-w-sm space-y-6 my-auto">
-            <div className="rounded-2xl border border-border bg-card shadow-2 p-6 md:p-8">
-              <div className="text-center mb-6">
-                <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-                <p className="text-sm text-muted-foreground mt-1.5">Sign in to continue</p>
+<div className="relative flex items-center justify-center p-4 pb-mobile-nav overflow-hidden">
+          <div aria-hidden className="absolute -top-28 -left-28 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          <div aria-hidden className="absolute -bottom-28 -right-28 w-80 h-80 rounded-full bg-action/10 blur-3xl pointer-events-none" />
+          <div className="relative w-full max-w-sm space-y-6">
+            <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-xl shadow-2 p-5 sm:p-6 md:p-8">
+              <div className="text-center mb-5 md:mb-6">
+                <h1 className="text-2xl font-bold tracking-tight">{t('auth.welcomeBack')}</h1>
+                <p className="text-sm text-muted-foreground mt-1.5">{t('auth.signInToContinue')}</p>
               </div>
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2 bg-muted p-0.5 rounded-lg gap-0.5">
-                  <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">Sign Up</TabsTrigger>
+                  <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">{t('auth.signIn')}</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-1 text-sm">{t('auth.signUp')}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login">
                   {magicLinkSent ? (
                     <div className="text-center py-6 space-y-3">
-                      <p className="text-sm">Check your email for a magic link.</p>
-                      <p className="text-xs text-muted-foreground">Sent to <strong>{loginData.email}</strong></p>
+                      <p className="text-sm">{t('auth.checkEmailMagic')}</p>
+                      <p className="text-xs text-muted-foreground">{t('auth.sentTo')} <strong>{loginData.email}</strong></p>
                       <Button variant="outline" size="sm" disabled={isLoading} onClick={handleMagicLink}>
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null} Resend
+                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null} {t('auth.resend')}
                       </Button>
                       <Button variant="link" size="sm" onClick={() => { setMagicLinkSent(false); setLoginMethod('password'); }}>
-                        Sign in with password
+                        {t('auth.signInWithPassword')}
                       </Button>
                     </div>
                   ) : loginMethod === 'magic_link' ? (
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="login-email-ml">Email</Label>
+                        <Label htmlFor="login-email-ml">{t('auth.email')}</Label>
                         <Input id="login-email-ml" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
-                      <Button className="w-full h-12 rounded-lg gap-2" disabled={isLoading} onClick={handleMagicLink}>
+                      <Button className="w-full h-12 rounded-lg gap-2 shadow-1 text-base" disabled={isLoading} onClick={handleMagicLink}>
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                        {isLoading ? 'Sending...' : 'Send Magic Link'}
+                        {isLoading ? t('auth.sending') : t('auth.sendMagicLink')}
                       </Button>
                       <div className="text-center">
-                        <Button type="button" variant="link" size="sm" onClick={() => setLoginMethod('password')}>Sign in with password</Button>
+                        <Button type="button" variant="link" size="sm" onClick={() => setLoginMethod('password')}>{t('auth.signInWithPassword')}</Button>
                       </div>
                     </div>
                   ) : (
                     <form onSubmit={handleLogin} className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="login-email">Email</Label>
+                        <Label htmlFor="login-email">{t('auth.email')}</Label>
                         <Input id="login-email" type="email" placeholder="your@email.com" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <Label htmlFor="login-password">Password</Label>
+                          <Label htmlFor="login-password">{t('auth.password')}</Label>
                           <ForgotPasswordDialog />
                         </div>
                         <div className="relative">
@@ -356,7 +360,7 @@ export default function Auth() {
                           </Button>
                         </div>
                       </div>
-                      {unconfirmedEmail && (
+{unconfirmedEmail && (
                         <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-3 space-y-2">
                           <p className="text-xs text-amber-800 dark:text-amber-200">
                             Your email hasn't been confirmed yet. Check your inbox (and spam folder) for the confirmation link we sent to <strong>{unconfirmedEmail}</strong>.
@@ -370,11 +374,11 @@ export default function Auth() {
                           </div>
                         </div>
                       )}
-                      <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading}>
-                        {isLoading ? 'Signing in...' : 'Sign In'}
+                      <Button type="submit" className="w-full h-12 rounded-lg shadow-1 text-base" disabled={isLoading}>
+                        {isLoading ? t('auth.signingIn') : t('auth.signIn')}
                       </Button>
                       <div className="text-center">
-                        <Button type="button" variant="link" size="sm" onClick={() => { setUnconfirmedEmail(null); setLoginMethod('magic_link'); }}>Send magic link instead</Button>
+                        <Button type="button" variant="link" size="sm" onClick={() => { setUnconfirmedEmail(null); setLoginMethod('magic_link'); }}>{t('auth.sendMagicLinkInstead')}</Button>
                       </div>
                     </form>
                   )}
@@ -383,11 +387,11 @@ export default function Auth() {
                 <TabsContent value="signup">
                   {showConfirmEmail ? (
                     <div className="text-center py-6 space-y-3">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
                         <Mail className="h-6 w-6 text-primary" />
                       </div>
-                      <p className="text-sm font-medium">Check your email to confirm your account.</p>
-                      <p className="text-xs text-muted-foreground">We sent a confirmation link to <strong>{signupEmail}</strong>. Click it to finish signing up.</p>
+                      <p className="text-sm font-medium">{t('auth.checkEmailConfirm')}</p>
+                      <p className="text-xs text-muted-foreground">{t('auth.sentTo')} <strong>{signupEmail}</strong>. Click it to finish signing up.</p>
                       <p className="text-xs text-muted-foreground">Didn't see it? Check your spam / promotions folder — it can take a minute.</p>
                       <div className="flex flex-col gap-2 pt-1">
                         <Button variant="outline" size="sm" disabled={isLoading || confirmResendIn > 0} onClick={() => resendConfirmation(signupEmail)}>
@@ -398,21 +402,21 @@ export default function Auth() {
                           {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                           I've confirmed — Sign me in
                         </Button>
-                        <Button variant="link" size="sm" onClick={() => setShowConfirmEmail(false)}>Back to sign up</Button>
+                        <Button variant="link" size="sm" onClick={() => setShowConfirmEmail(false)}>{t('auth.backToSignUp')}</Button>
                       </div>
                     </div>
                   ) : (
                     <form onSubmit={handleSignup} className="space-y-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="signup-name">Full Name</Label>
+                        <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
                         <Input id="signup-name" type="text" placeholder="John Doe" value={signupData.fullName} onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="signup-email">Email</Label>
+                        <Label htmlFor="signup-email">{t('auth.email')}</Label>
                         <Input id="signup-email" type="email" placeholder="your@email.com" value={signupData.email} onChange={(e) => setSignupData({ ...signupData, email: e.target.value })} className="h-12 rounded-lg" required />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="signup-password">Password</Label>
+                        <Label htmlFor="signup-password">{t('auth.password')}</Label>
                         <div className="relative">
                           <Input id="signup-password" type={showSignupPassword ? 'text' : 'password'} value={signupData.password} onChange={(e) => setSignupData({ ...signupData, password: e.target.value })} className="h-12 rounded-lg pr-12" required />
                           <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-12 w-12" onClick={() => setShowSignupPassword(!showSignupPassword)} aria-label={showSignupPassword ? 'Hide password' : 'Show password'}>
@@ -421,7 +425,7 @@ export default function Auth() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="signup-confirm">Confirm Password</Label>
+                        <Label htmlFor="signup-confirm">{t('auth.confirmPassword')}</Label>
                         <div className="relative">
                           <Input id="signup-confirm" type={showConfirmPassword ? 'text' : 'password'} value={signupData.confirmPassword} onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })} className="h-12 rounded-lg pr-12" required />
                           <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-12 w-12" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
@@ -432,13 +436,17 @@ export default function Auth() {
                       <label className="flex items-start gap-2 min-h-[44px] cursor-pointer">
                         <Checkbox id="signup-terms" checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
                         <Label htmlFor="signup-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
-                          I accept the{' '}
-                          <Link to="/terms" target="_blank" className="text-primary underline underline-offset-2">Terms</Link> and{' '}
-                          <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2">Privacy Policy</Link>
+                          <Trans
+                            i18nKey="auth.acceptTerms"
+                            components={{
+                              terms: <Link to="/terms" target="_blank" className="text-primary underline underline-offset-2">{t('auth.terms')}</Link>,
+                              privacy: <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2">{t('auth.privacyPolicy')}</Link>,
+                            }}
+                          />
                         </Label>
                       </label>
-                      <Button type="submit" className="w-full h-12 rounded-lg" disabled={isLoading || !acceptedTerms}>
-                        {isLoading ? 'Creating account...' : 'Create Account'}
+                      <Button type="submit" className="w-full h-12 rounded-lg shadow-1 text-base" disabled={isLoading || !acceptedTerms}>
+                        {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
                       </Button>
                     </form>
                   )}
@@ -447,8 +455,8 @@ export default function Auth() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div className="text-center px-3 py-2.5 rounded-lg bg-muted/30"><span className="text-xs text-muted-foreground">PDPA Compliant</span></div>
-              <div className="text-center px-3 py-2.5 rounded-lg bg-muted/30"><span className="text-xs text-muted-foreground">256-bit Encryption</span></div>
+              <div className="text-center px-3 py-2.5 rounded-lg bg-muted/30"><span className="text-xs text-muted-foreground">{t('auth.pdpaCompliant')}</span></div>
+              <div className="text-center px-3 py-2.5 rounded-lg bg-muted/30"><span className="text-xs text-muted-foreground">{t('auth.encryption')}</span></div>
             </div>
           </div>
         </div>
@@ -456,10 +464,10 @@ export default function Auth() {
         <div className="hidden lg:flex relative bg-gradient-to-br from-primary via-brand to-primary items-center justify-center overflow-hidden">
           <div className="relative z-10 text-center px-12 max-w-md">
             <h1 className="text-3xl font-semibold text-white leading-[1.1] mb-3 tracking-tight">
-              Rent Smart. Earn More.
+              {t('auth.rentSmart')}
             </h1>
             <p className="text-sm text-white/60 leading-relaxed max-w-sm mx-auto">
-              Malaysia's peer-to-peer rental marketplace — list your items or discover what others offer.
+              {t('auth.rentSmartDesc')}
             </p>
           </div>
         </div>

@@ -82,7 +82,7 @@ const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
                   key={item.path}
                   to={item.path}
                   onClick={() => onOpenChange(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-accent active:scale-[0.98] transition-all"
                 >
                   <item.icon className="h-5 w-5 text-muted-foreground" />
                   <span className="font-medium">{item.label}</span>

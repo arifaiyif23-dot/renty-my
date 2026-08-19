@@ -61,7 +61,7 @@ try {
 // 4. Leftover console.log/debug
 process.stdout.write('\n[4/5] Debug log check... ');
 try {
-  const logs = exec('rg "console\\.(log|debug)\\(" src/ --type-add "web:*.{tsx,ts}" -t web -g "!sw.ts" -g "!registerSW.js" 2>NUL || exit 0', { ignoreFail: true });
+  const logs = exec('rg "console\\.(log|debug)\\(" src/ --type-add "web:*.{tsx,ts}" -t web -g "!sw.ts" -g "!registerSW.js" 2>/dev/null || exit 0', { ignoreFail: true });
   if (logs) {
     warnings.push('Found console.log/debug calls:\n' + logs);
     warn(`console.log/debug found (${logs.split('\n').length} line(s))`);
@@ -75,7 +75,7 @@ try {
 // 5. TODO/FIXME/HACK markers
 process.stdout.write('\n[5/5] Marker check... ');
 try {
-  const markers = exec('rg "TODO|FIXME|HACK" src/ --type-add "web:*.{tsx,ts,css}" -t web 2>NUL || exit 0', { ignoreFail: true });
+  const markers = exec('rg "TODO|FIXME|HACK" src/ --type-add "web:*.{tsx,ts,css}" -t web 2>/dev/null || exit 0', { ignoreFail: true });
   if (markers) {
     warnings.push('Unresolved markers:\n' + markers);
     warn(`TODO/FIXME/HACK markers found (${markers.split('\n').length} line(s))`);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { X, Download, Smartphone } from "lucide-react";
 import { isNative } from "@/lib/platform";
 
@@ -10,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export const PWAInstallPrompt = () => {
+  const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -72,7 +74,7 @@ export const PWAInstallPrompt = () => {
   if (isInstalled || !showPrompt) return null;
 
   return (
-    <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom)+0.75rem)] left-4 right-4 md:bottom-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom duration-300">
+<div className="fixed bottom-mobile-nav left-4 right-4 md:bottom-4 md:left-auto md:right-4 md:w-96 z-50 animate-in slide-in-from-bottom duration-300">
       <Card className="p-4 shadow-3 border-2 border-primary/20 bg-card">
         <button
           onClick={handleDismiss}
@@ -88,13 +90,13 @@ export const PWAInstallPrompt = () => {
           </div>
 
           <div className="flex-1">
-            <h3 className="font-semibold mb-1">Install RENTY App</h3>
+            <h3 className="font-semibold mb-1">{t('pwa.installTitle')}</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              Get quick access, offline browsing, and instant notifications
+              {t('pwa.installDesc')}
             </p>
 
             <div className="flex gap-2">
-              <Button onClick={handleInstall} size="sm" className="gap-2">
+              <Button onClick={handleInstall} size="sm" variant="secondary" className="gap-2">
                 <Download className="w-4 h-4" />
                 Install
               </Button>

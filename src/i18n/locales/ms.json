@@ -99,7 +99,14 @@
     "tryAgain": "Cuba Lagi",
     "under_review": "Dalam Semakan",
     "upload": "Muat Naik",
-    "view": "Lihat"
+    "view": "Lihat",
+    "cancelled": "Dibatalkan",
+    "paid": "Dibayar",
+    "pending_approval": "Menunggu Kelulusan",
+    "rejected": "Ditolak",
+    "noImagesAvailable": "Tiada gambar",
+    "searchItemsPlaceholder": "Cari barang...",
+    "total": "jumlah"
   },
   "dashboard": {
     "active": "Aktif",
@@ -124,8 +131,9 @@
     "rentalTimeline": "Garis Masa Sewaan",
     "revenue": "Pendapatan",
     "select": "Pilih",
-    "title": "Papan Pemuka",
-    "viewTimeline": "Lihat Garis Masa"
+    "title": "Sewaan Saya",
+    "viewTimeline": "Lihat Garis Masa",
+    "earnings": "Pendapatan"
   },
   "disputes": {
     "errorDesc": "Terdapat masalah semasa memuatkan pertikaian anda. Sila cuba lagi.",
@@ -220,7 +228,20 @@
     "termsOfService": "Terma perkhidmatan",
     "trustSafety": "Kepercayaan & keselamatan",
     "trusted": "Dipercayai",
-    "verified": "Disahkan"
+    "verified": "Disahkan",
+    "damaged": "Rosak — Buat tuntutan",
+    "damagedDesc": "Item rosak dan tak boleh disewa tanpa dibaiki.",
+    "description": "Apa keadaan \"{{title}}\" selepas sewa?",
+    "failed": "Gagal hantar pemeriksaan",
+    "maintenance": "Perlu Penyelenggaraan",
+    "maintenanceDesc": "Isu kecil yang perlu dibaiki sebelum sewa seterusnya.",
+    "notes": "Nota Pemeriksaan",
+    "notesPlaceholder": "Huraikan sebarang isu yang ditemui semasa pemeriksaan...",
+    "passed": "Lulus — Sedia untuk disewa semula",
+    "passedDesc": "Item dalam keadaan baik dan boleh disenaraikan dengan segera.",
+    "submit": "Hantar Pemeriksaan",
+    "success": "Pemeriksaan selesai. Item kini {{result}}.",
+    "title": "Lengkapkan Pemeriksaan"
   },
   "handover": {
     "codeDesc": "Masukkan kod 4-digit daripada penyewa",
@@ -292,16 +313,17 @@
       "heading1": "Tak perlu beli semua.",
       "heading2": "Sewa apa yang anda perlukan.",
       "itemsAvailable": "{{count}}+ barang tersedia.",
-      "tagline": "Platform Sewaan No.1 Malaysia",
+      "tagline": "Platform Sewaan Dipercayai Malaysia",
       "trustItems": [
         "Pengguna Disahkan",
         "Bayaran Selamat",
         "Didorong Komuniti"
-      ]
+      ],
+      "itemsAvailableZero": "Marketplace baharu — jadilah yang pertama menyenaraikan barang."
     },
     "howItWorks": {
       "step1": {
-        "description": "Layan beribu-ribu barangan dari kamera hingga peralatan. Tapis mengikut lokasi, kategori dan harga.",
+        "description": "Layari beribu-ribu barangan dari kamera hingga peralatan. Tapis mengikut lokasi, kategori dan harga.",
         "title": "Cari apa yang anda perlukan"
       },
       "step2": {
@@ -352,8 +374,8 @@
       "verifiedMembers": "Ahli disahkan"
     },
     "testimonials": {
-      "subtitle": "Kisah benar daripada komuniti Renty di seluruh Malaysia",
-      "title": "Apa kata pengguna kami"
+      "subtitle": "Daripada kamera ke mesin gerudi — barangan harian yang orang sewa & pinjamkan.",
+      "title": "Kenapa orang guna Renty"
     },
     "welcome": {
       "active": "Sewaan aktif",
@@ -508,7 +530,10 @@
     "verificationRequiredToBook": "Pengesahan diperlukan untuk menempah item di Renty",
     "verifyNow": "Sahkan Sekarang",
     "viewingNow": "sedang melihat",
-    "weeklyDiscount": "Diskaun mingguan"
+    "weeklyDiscount": "Diskaun mingguan",
+    "readMore": "Baca lagi",
+    "pickDates": "Pilih tarikh",
+    "minDays": "Min {{count}} hari"
   },
   "language": {
     "chinese": "简体中文",
@@ -600,7 +625,7 @@
     "cancellationPolicy": "Dasar Pembatalan",
     "completeInspection": "Selesaikan Pemeriksaan",
     "condition": "Keadaan",
-    "confirmBulkDelete": "Adakah anda pasti mahu memadam penyenaraian?",
+    "confirmBulkDelete": "Adakah anda pasti mahu memadam {{count}} penyenaraian?",
     "confirmDelete": "Adakah anda pasti mahu memadam penyenaraian ini?",
     "conversionRate": "Kadar Penukaran",
     "createNew": "Buat Penyenaraian Baharu",
@@ -690,7 +715,8 @@
     "signOutConfirmDesc": "Anda perlu log masuk semula untuk mengakses akaun anda.",
     "signOutConfirmTitle": "Adakah anda pasti mahu log keluar?",
     "verification": "Pengesahan",
-    "wishlist": "Senarai Hajat"
+    "wishlist": "Senarai Hajat",
+    "list": "Senarai"
   },
   "notFound": {
     "button": "Kembali ke Utama",
@@ -823,7 +849,15 @@
     "normal": "Biasa",
     "newUser": "Pengguna Baru",
     "verification": "Pengesahan",
-    "wallet": "Dompet"
+    "wallet": "Dompet",
+    "failedToLoad": "Gagal memuatkan profil",
+    "myItems": "Barang Saya",
+    "rentals": "Sewaan",
+    "earnings": "Pendapatan",
+    "itemsListed": "Barang Disenarai",
+    "rentalsGiven": "Sewaan Diberi",
+    "totalRentals": "Jumlah Sewaan",
+    "rating": "Penilaian"
   },
   "pwa": {
     "androidStep1": "Ketik butang menu (tiga titik)",
@@ -849,7 +883,9 @@
     "pushNotifications": "Pemberitahuan Dorongan",
     "pushNotificationsDesc": "Jangan lepaskan tempahan atau mesej. Dapatkan pemberitahuan serta-merta.",
     "subtitle": "Konfigurasikan pengalaman apl RENTY anda",
-    "whyInstall": "Kenapa Pasang RENTY?"
+    "whyInstall": "Kenapa Pasang RENTY?",
+    "installTitle": "Pasang Aplikasi RENTY",
+    "installDesc": "Akses pantas, layari luar talian, dan notifikasi segera"
   },
   "rental": {
     "activeDescription": "Tandakan sewaan ini sebagai aktif? Penyewa telah mengambil {{title}}.",
@@ -896,9 +932,9 @@
       "cancelled": "Dibatalkan",
       "completed": "Selesai",
       "confirmed": "Disahkan",
-      "disputed": "Pertikaian",
+      "disputed": "Dipertikaikan",
       "overdue": "Terlewat",
-      "payment_pending": "Pembayaran Diproses",
+      "payment_pending": "Pembayaran Belum Selesai",
       "rejected": "Ditolak",
       "requested": "Permintaan",
       "reserved": "Ditempah"
@@ -1066,13 +1102,13 @@
     "clearFilters": "Kosongkan Tapisan",
     "dateRange": "Julat Tarikh",
     "enterLocation": "Masukkan lokasi",
-    "filterCategory": "Kategori",
-    "filterDates": "Tarikh",
-    "filterLocation": "Lokasi",
-    "filterMax": "Maks: RM",
-    "filterMin": "Min: RM",
-    "filterSearch": "Carian",
-    "itemsFound": "item dijumpai",
+    "filterCategory": "Kategori: {{category}}",
+    "filterDates": "Tarikh: {{dates}}",
+    "filterLocation": "Lokasi: {{location}}",
+    "filterMax": "Maks: RM {{price}}",
+    "filterMin": "Min: RM {{price}}",
+    "filterSearch": "Carian: {{query}}",
+    "itemsFound": "{{count}} item dijumpai",
     "location": "Lokasi",
     "locationPlaceholder": "Lokasi",
     "maxPrice": "Maks RM",
@@ -1191,7 +1227,7 @@
     "title": "Kegemaran Saya",
     "undo": "Buat asal"
   },
-  "errorBoundary": {
+"errorBoundary": {
     "title": "Sesuatu telah berlaku",
     "autoRetry": "Kami menghadapi ralat yang tidak dijangka. Cuba semula automatik dalam",
     "seconds": "saat.",
@@ -1214,5 +1250,65 @@
     "retryConnection": "Cuba Semula Sambungan",
     "stillOffline": "Masih Luar Talian...",
     "connectionRestored": "✓ Sambungan dipulihkan! Klik cuba semula untuk meneruskan."
+  },
+  "listingCard": {
+    "available": "Tersedia",
+    "perDay": "/hari",
+    "addToWishlist": "Simpan",
+    "removeFromWishlist": "Buang dari simpanan",
+    "noImage": "Tiada gambar",
+    "verified": "Disahkan"
+  },
+  "acceptedPayments": "Kaedah Pembayaran Diterima",
+  "legal": "Undang-undang",
+  "privacyPolicy": "Dasar Privasi",
+  "termsOfService": "Terma Perkhidmatan",
+  "auth": {
+    "welcomeBack": "Selamat kembali",
+    "signInToContinue": "Masuk untuk teruskan",
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "signingIn": "Sedang masuk...",
+    "creatingAccount": "Sedang buat akaun...",
+    "sendMagicLink": "Hantar Magic Link",
+    "sending": "Menghantar...",
+    "sendMagicLinkInstead": "Hantar magic link sebaliknya",
+    "signInWithPassword": "Masuk guna kata laluan",
+    "email": "Emel",
+    "password": "Kata Laluan",
+    "fullName": "Nama Penuh",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "checkEmailMagic": "Semak emel anda untuk magic link.",
+    "checkEmailConfirm": "Semak emel anda untuk sahkan akaun.",
+    "sentTo": "Dihantar ke",
+    "resend": "Hantar semula",
+    "backToSignUp": "Kembali ke pendaftaran",
+    "newPassword": "Kata Laluan Baru",
+    "confirmNewPassword": "Sahkan Kata Laluan Baru",
+    "setNewPassword": "Set Kata Laluan Baru",
+    "setNewPasswordDesc": "Masukkan dan sahkan kata laluan baru anda.",
+    "updating": "Mengemas kini...",
+    "updatePassword": "Kemas Kini Kata Laluan",
+    "acceptTerms": "Saya terima <terms> dan <privacy>",
+    "terms": "Terma",
+    "privacyPolicy": "Dasar Privasi",
+    "pdpaCompliant": "Patuh PDPA",
+    "encryption": "Penyulitan 256-bit",
+    "rentSmart": "Sewa Bijak. Cari Lebih.",
+    "rentSmartDesc": "Marketplace sewa peer-to-peer Malaysia — senaraikan barang anda atau cari apa yang orang lain tawarkan.",
+    "createAccount": "Buat Akaun"
+  },
+  "filters": {
+    "quickFilters": "Tapisan Pantas",
+    "verifiedOwnersOnly": "Pemilik Disahkan Sahaja",
+    "instantBookAvailable": "Tersedia Tempahan Segera",
+    "itemCondition": "Keadaan Item",
+    "anyCondition": "Apa-apa Keadaan",
+    "conditionNew": "Baru",
+    "conditionLikeNew": "Macam Baru",
+    "conditionGood": "Baik",
+    "conditionFair": "Sederhana",
+    "maximumDistance": "Jarak Maksimum",
+    "title": "Tapisan"
   }
 }

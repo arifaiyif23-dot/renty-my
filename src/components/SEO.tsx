@@ -20,7 +20,10 @@ export default function SEO({
   jsonLd
 }: SEOProps) {
   if (isNative()) return null;
-  const fullTitle = `${title} | RENTY - Malaysia's Rental Platform`;
+  // Avoid double-branding: pages that already include the RENTY brand in their
+  // title (e.g. homepage "Renty — Rent Anything in Malaysia") keep it as-is.
+  const brand = "RENTY - Malaysia's Rental Platform";
+  const fullTitle = title.toLowerCase().includes("renty") ? title : `${title} | ${brand}`;
   const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
   return (

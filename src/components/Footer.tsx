@@ -59,7 +59,7 @@ const Footer = () => {
                 <Link to="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.helpCenter')}</Link>
               </li>
               <li>
-                <a href="https://wa.me/60123456789" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">WhatsApp</a>
+                <span className="text-sm text-muted-foreground">WhatsApp (coming soon)</span>
               </li>
               <li>
                 <Link to="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{t('footer.contactUs')}</Link>

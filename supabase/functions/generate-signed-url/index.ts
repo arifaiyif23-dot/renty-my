@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     const bucket = sanitizedPath.split('/')[0];
     
     // Validate bucket is a known name (not empty or malformed)
-    const allowedBuckets = ['verification-documents', 'item-images', 'receipts', 'rental-evidence'];
+    const allowedBuckets = ['verification-documents', 'item-images', 'rental-evidence'];
     if (!allowedBuckets.includes(bucket)) {
       throw new Error(`Invalid bucket: ${bucket}`);
     }
@@ -109,21 +109,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // For rental-evidence and receipts, only rental participants or admins can access
+// For rental-evidence and receipts, verify the user is a rental participant
+    // (renter or owner) or admin. Path formats: "{rentalId}/..." or "{userId}/{rentalId}/..."
     if (bucket === 'rental-evidence' || bucket === 'receipts') {
-      const rentalId = sanitizedPath.split('/')[1];
-      if (!rentalId) {
-        throw new Error('Invalid file path');
+      const parts = sanitizedPath.split('/');
+      const candidateIds = [parts[0], parts[1]].filter(Boolean);
+      if (candidateIds.length === 0) {
+        throw new Error('Invalid evidence path');
       }
-
-      const { data: rental } = await supabase
+      const { data: rentals } = await supabase
         .from('rentals')
-        .select('owner_id, renter_id')
-        .eq('id', rentalId)
-        .single();
-
-      const isParticipant = !!rental && (rental.owner_id === user.id || rental.renter_id === user.id);
-
+        .select('id')
+        .in('id', candidateIds)
+        .or(`renter_id.eq.${user.id},owner_id.eq.${user.id}`);
+      const isParticipant = !!rentals && rentals.length > 0;
       const { data: roles } = await supabase
         .from('user_roles')
         .select('role')

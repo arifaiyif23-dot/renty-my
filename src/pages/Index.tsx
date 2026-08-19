@@ -12,6 +12,10 @@ const CategoriesSection = lazy(() => import("@/pages/index/CategoriesSection").t
 const NewestListingsSection = lazy(() => import("@/pages/index/NewestListingsSection").then(m => ({ default: m.NewestListingsSection })))
 const RecentlyViewedSection = lazy(() => import("@/pages/index/RecentlyViewedSection").then(m => ({ default: m.RecentlyViewedSection })))
 const OwnerCTASection = lazy(() => import("@/pages/index/OwnerCTASection").then(m => ({ default: m.OwnerCTASection })))
+const HowItWorksSection = lazy(() => import("@/pages/index/HowItWorksSection").then(m => ({ default: m.HowItWorksSection })))
+const WhyRentySection = lazy(() => import("@/pages/index/WhyRentySection").then(m => ({ default: m.WhyRentySection })))
+const TrustStatsSection = lazy(() => import("@/pages/index/TrustStatsSection").then(m => ({ default: m.TrustStatsSection })))
+const TestimonialsSection = lazy(() => import("@/pages/index/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })))
 
 const Index = () => {
   const navigate = useNavigate()
@@ -24,6 +28,8 @@ const Index = () => {
     categories,
     totalItemCount,
     recentlyViewed,
+    trustStats,
+    statsLoading,
   } = useIndexData()
 
   const isLoading = loading
@@ -52,6 +58,7 @@ const Index = () => {
       <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
         <HeroSection
           totalItemCount={totalItemCount}
+          onListOrAuth={() => navigate(user ? '/list-item' : '/auth')}
         />
 
         {(categories.length > 0 || isLoading) && (
@@ -60,9 +67,19 @@ const Index = () => {
 
         <NewestListingsSection items={featuredItems} isLoading={isLoading} onNavigate={navigate} />
 
+        <HowItWorksSection />
+
+        <WhyRentySection />
+
+        {!statsLoading && trustStats && (
+          <TrustStatsSection stats={trustStats} />
+        )}
+
         {recentlyViewed.length > 0 && (
           <RecentlyViewedSection items={recentlyViewed} onNavigate={navigate} />
         )}
+
+        <TestimonialsSection />
 
         <OwnerCTASection onNavigate={navigate} />
       </Suspense>

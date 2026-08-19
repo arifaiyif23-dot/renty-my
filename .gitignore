@@ -52,7 +52,6 @@ keystore.properties
 
 # 3D Models (too large for git, served from public/ at deploy time)
 public/models/
-NUL
 
 # APK build artifacts (fresh builds live in android/app/build/outputs/)
 *.apk

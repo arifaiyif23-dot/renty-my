@@ -28,7 +28,7 @@ export default function StickyBookingBar({
   return (
     <div
       className={cn(
-        "fixed left-0 right-0 z-50 border-t border-border/40 bg-card p-3 md:hidden bottom-mobile-nav",
+"fixed left-0 right-0 z-50 border-t border-border/60 bg-background/95 backdrop-blur-md px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden bottom-mobile-nav animate-slide-up",
         className
       )}
     >
@@ -36,18 +36,19 @@ export default function StickyBookingBar({
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-1">
             <span className="text-lg font-bold tabular-nums">RM{pricePerDay}</span>
-            <span className="text-sm text-muted-foreground">/day</span>
+            <span className="text-sm text-muted-foreground">{t('listingCard.perDay')}</span>
             {totalPrice != null && ready && (
               <>
                 <span className="text-muted-foreground mx-1">·</span>
-                <span className="text-sm font-semibold tabular-nums text-muted-foreground">RM{totalPrice} total</span>
+                <span className="text-sm font-semibold tabular-nums text-muted-foreground">RM{totalPrice} {t('common.total')}</span>
               </>
             )}
           </div>
         </div>
         <Button
+          variant="secondary"
           size="lg"
-          className="flex-shrink-0 min-w-[120px] bg-primary text-primary-foreground"
+className="flex-shrink-0 min-w-[120px] h-12 rounded-xl shadow-1 text-base font-semibold"
           onClick={onBook}
           disabled={disabled || isLoading}
         >

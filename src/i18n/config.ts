@@ -27,11 +27,10 @@ i18n
     },
   });
 
-const syncDocumentLang = (lng: string) => {
-  document.documentElement.lang = lng || 'en';
-};
-
-i18n.on('languageChanged', syncDocumentLang);
-syncDocumentLang(i18n.resolvedLanguage || i18n.language);
+// Keep <html lang> in sync with the active language (SEO + accessibility)
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+});
+document.documentElement.lang = i18n.language || 'en';
 
 export default i18n;

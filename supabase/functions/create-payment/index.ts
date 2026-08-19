@@ -183,14 +183,12 @@ serve(async (req) => {
       }
     }
 
-    const { data: feeSetting } = await supabase
-      .from('platform_settings')
-      .select('value')
-      .eq('key', 'platform_fee_percentage')
-      .single();
-    
-    const feePercentage = parseFloat(feeSetting?.value || '10');
-    const platformFee = Math.round(((rental.total_price * feePercentage) / 100) * 100) / 100;
+    // Founder decision (2026-08-05): Renty bears the RM1 per-transaction cost.
+    // NO platform fee is charged to renter (bill = total_price) or deducted
+    // from the owner (payout = full total via create_payout_on_rental_complete,
+    // which subtracts platform_fee — keep it 0).
+    const feePercentage = 0;
+    const platformFee = 0;
     const totalAmount = rental.total_price;
 
     console.log('Creating payment:', { totalPrice: rental.total_price, platformFee, totalAmount, feePercentage });

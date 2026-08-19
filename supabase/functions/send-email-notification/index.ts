@@ -22,6 +22,16 @@ const getFromEmail = () => {
   return 'Renty <onboarding@resend.dev>';
 };
 
+// Escape user-controlled values before injecting into HTML email templates
+// (prevents HTML injection / phishing via item titles or display names)
+const escapeHtml = (value: unknown): string =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 // Helper function to log email to database
 async function logEmail(
   supabase: any,
@@ -54,32 +64,37 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Fail-closed auth: caller must present EITHER a matching webhook secret
+    // (DB/webhook integrations) OR an admin JWT (Admin Health "send test email").
+    // Previously the guard was skipped entirely when WEBHOOK_SECRET env was
+    // unset — anyone could send arbitrary emails as Renty (spam vector).
     const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
     const requestSecret = req.headers.get('x-webhook-secret');
-    const authorized = webhookSecret && requestSecret === webhookSecret;
+    const secretOk = !!webhookSecret && requestSecret === webhookSecret;
 
-    // The Admin Health "Send test email" caller authenticates with its JWT
-    // (only admins may send server emails), so accept it as an alternative.
-    if (!authorized) {
-      const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-      const SK = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const s = createClient(SUPABASE_URL, SK);
-      const token = req.headers.get('authorization')?.replace('Bearer ', '');
-      if (token) {
-        const { data: { user } } = await s.auth.getUser(token);
-        if (user?.id) {
-          const { data: roleData } = await s
+    const authHeader = req.headers.get('Authorization');
+    let isAdmin = false;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+        if (!error && user) {
+          const { data: roles } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', user.id)
             .in('role', ['admin', 'super_admin'])
             .maybeSingle();
-          if (roleData) authorized = true;
+          isAdmin = !!roles;
         }
-      }
+      } catch { /* fall through to fail-closed check */ }
     }
 
-    if (!authorized) {
+    if (!secretOk && !isAdmin) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -89,10 +104,6 @@ serve(async (req) => {
     }
 
     const resend = new Resend(resendApiKey);
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
     
     const fromEmail = getFromEmail();
     console.log(`Using FROM email: ${fromEmail}`);
@@ -156,8 +167,8 @@ serve(async (req) => {
             subject: subject,
             html: `
               <h2>You have a new rental request!</h2>
-              <p>Renter: ${rental.renter.full_name} ${rental.renter.is_verified ? '✓ Verified' : ''}</p>
-              <p>Item: ${rental.item.title}</p>
+              <p>Renter: ${escapeHtml(rental.renter.full_name)} ${rental.renter.is_verified ? '✓ Verified' : ''}</p>
+              <p>Item: ${escapeHtml(rental.item.title)}</p>
               <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
               <p>Total Price: RM ${rental.total_price}</p>
               <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">Review Request</a></p>
@@ -210,8 +221,8 @@ serve(async (req) => {
               subject: subject,
               html: `
                 <h2>Great news! Your rental request has been approved.</h2>
-                <p>Item: ${rental.item.title}</p>
-                <p>Owner: ${rental.owner.full_name}</p>
+                <p>Item: ${escapeHtml(rental.item.title)}</p>
+                <p>Owner: ${escapeHtml(rental.owner.full_name)}</p>
                 <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
                 <p>Total Price: RM ${rental.total_price}</p>
                 <p><strong>Next Step:</strong> Complete your payment to confirm the booking.</p>
@@ -246,11 +257,11 @@ serve(async (req) => {
               subject: subject,
               html: `
                 <h2>Payment received for your rental!</h2>
-                <p>Item: ${rental.item.title}</p>
-                <p>Renter: ${rental.renter.full_name}</p>
+                <p>Item: ${escapeHtml(rental.item.title)}</p>
+                <p>Renter: ${escapeHtml(rental.renter.full_name)}</p>
                 <p>Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
                 <p>Total Price: RM ${rental.total_price}</p>
-                ${record.pickup_code ? `<p><strong>Pickup Code:</strong> ${record.pickup_code}</p>` : ''}
+                ${record.pickup_code ? `<p><strong>Pickup Code:</strong> ${escapeHtml(record.pickup_code)}</p>` : ''}
                 <p>The renter will provide this code during item pickup.</p>
                 <p><a href="${Deno.env.get('FRONTEND_URL')}/my-listings">View Details</a></p>
               `,
@@ -284,8 +295,8 @@ serve(async (req) => {
               subject: subject,
               html: `
                 <h2>Update on your rental request</h2>
-                <p>Unfortunately, your rental request for <strong>${rental.item.title}</strong> was not approved.</p>
-                <p>Owner: ${rental.owner.full_name}</p>
+                <p>Unfortunately, your rental request for <strong>${escapeHtml(rental.item.title)}</strong> was not approved.</p>
+                <p>Owner: ${escapeHtml(rental.owner.full_name)}</p>
                 <p>Requested Dates: ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
                 <p>Don't worry! There are plenty of other items available on Renty.</p>
                 <p><a href="${Deno.env.get('FRONTEND_URL')}/search">Browse More Items</a></p>

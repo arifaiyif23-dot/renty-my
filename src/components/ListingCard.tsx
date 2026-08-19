@@ -1,7 +1,8 @@
 import { memo, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Heart, MapPin, BadgeCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Heart, MapPin, BadgeCheck, Image as ImageIcon } from "lucide-react";
 import { TrustBadge, type BadgeKind } from "@/components/marketplace/TrustBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,20 +31,36 @@ const ListingCard = memo(({
   image,
   pricePerDay,
   location,
-  rating = 0,
-  reviewCount = 0,
-  distance,
   verificationLevel,
   badge,
   badges,
   className,
   initialSaved = false,
 }: ListingCardProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [saved, setSaved] = useState(initialSaved);
   const [saving, setSaving] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { toast.error('Sign in to save items'); return; }
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (saved) {
+        await supabase.from('saved_items').delete().eq('user_id', user.id).eq('item_id', id);
+        setSaved(false);
+      } else {
+        await supabase.from('saved_items').insert({ user_id: user.id, item_id: id });
+        setSaved(true);
+      }
+    } catch { /* silent fail */ }
+    setSaving(false);
+  };
 
   const mergedBadges = useMemo(() => {
     const result: BadgeKind[] = [...(badges || [])];
@@ -57,19 +74,21 @@ const ListingCard = memo(({
     <Link
       to={`/items/${id}`}
       className={cn(
-        "group block rounded-xl overflow-hidden bg-card border border-border/40 transition-all duration-200 hover:shadow-2 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group block rounded-2xl overflow-hidden glass-elevated transition-all duration-300 hover:-translate-y-1 hover:shadow-3 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className="relative aspect-[4/5] overflow-hidden bg-muted">
         {!imgLoaded && !imgError && (
           <div className="absolute inset-0 animate-shimmer" />
         )}
         {imgError ? (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground bg-muted">
             <div className="text-center">
-              <div className="w-10 h-10 rounded-full bg-muted mx-auto mb-1" />
-              <span className="text-xs">No image</span>
+              <div className="w-12 h-12 rounded-2xl bg-background/70 flex items-center justify-center mx-auto mb-1.5">
+                <ImageIcon className="h-5 w-5 text-muted-foreground/60" />
+              </div>
+              <span className="text-xs">{t('listingCard.noImage')}</span>
             </div>
           </div>
         ) : (
@@ -80,23 +99,14 @@ const ListingCard = memo(({
             onLoad={() => setImgLoaded(true)}
             onError={() => setImgError(true)}
             className={cn(
-              "w-full h-full object-cover transition-all duration-500 group-hover:scale-105",
+              "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105",
               imgLoaded ? "opacity-100" : "opacity-0"
             )}
           />
         )}
 
-        {verificationLevel && verificationLevel !== 'unverified' && (
-          <div className="absolute top-2 left-2">
-            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-card/90 text-[10px] font-medium text-success">
-              <BadgeCheck className="h-3 w-3" />
-              Verified
-            </div>
-          </div>
-        )}
-
         {mergedBadges && mergedBadges.length > 0 && (
-          <div className="absolute bottom-2 left-2 flex items-center gap-1">
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
             {mergedBadges.map((badgeKind) => (
               <TrustBadge key={badgeKind} kind={badgeKind} size="sm" />
             ))}
@@ -104,61 +114,43 @@ const ListingCard = memo(({
         )}
 
         <button
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!user) { toast.error('Sign in to save items'); return; }
-            if (saving) return;
-            setSaving(true);
-            try {
-              if (saved) {
-                await supabase.from('saved_items').delete().eq('user_id', user.id).eq('item_id', id);
-                setSaved(false);
-              } else {
-                await supabase.from('saved_items').insert({ user_id: user.id, item_id: id });
-                setSaved(true);
-              }
-            } catch { /* silent fail */ }
-            setSaving(false);
-          }}
-          className="absolute top-2 right-2 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-card/90 flex items-center justify-center hover:bg-card transition-all duration-200 active:scale-90"
-          aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+          onClick={handleWishlistToggle}
+          className="absolute top-3 right-3 min-w-[36px] min-h-[36px] rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-all duration-200 active:scale-90"
+          aria-label={saved ? t('listingCard.removeFromWishlist') : t('listingCard.addToWishlist')}
         >
           <Heart
             className={cn(
               "h-4 w-4 transition-all duration-200",
-              saved
-                ? "fill-destructive text-destructive"
-                : "text-foreground/60"
+              saved ? "fill-white text-white drop-shadow-sm" : "text-white/80"
             )}
           />
         </button>
-      </div>
 
-      <div className="p-2.5">
-        <div className="flex items-start justify-between gap-1 mb-0.5">
-          <h3 className="font-semibold text-xs leading-snug line-clamp-1">{title}</h3>
-          {pricePerDay > 0 && (
-            <span className="text-xs font-bold tabular-nums whitespace-nowrap">RM{pricePerDay}<span className="font-normal text-muted-foreground">/day</span></span>
-          )}
-        </div>
-
-        {rating > 0 && (
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-0.5">
-            <span className="text-foreground font-medium">{rating.toFixed(1)}</span>
-            <span>({reviewCount})</span>
-          </div>
-        )}
-
-        {location && (
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <MapPin className="h-3 w-3 shrink-0" />
-            <span className="truncate">{location}</span>
-            {distance !== undefined && (
-              <span className="tabular-nums shrink-0">· {distance} km</span>
+        {/* Gradient overlay + info */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 pb-3.5 px-3.5">
+          <h3 className="font-semibold text-sm text-white leading-snug line-clamp-2 mb-1.5 drop-shadow-sm">
+            {title}
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {location && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-white/80">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate max-w-[80px]">{location}</span>
+                </span>
+              )}
+              {verificationLevel && verificationLevel !== 'unverified' && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-white/90">
+                  <BadgeCheck className="h-3 w-3" />
+                  {t('listingCard.verified')}
+                </span>
+              )}
+            </div>
+            {pricePerDay > 0 && (
+              <span className="font-bold text-sm text-white tabular-nums">RM{pricePerDay}<span className="text-[11px] font-normal text-white/70">{t('listingCard.perDay')}</span></span>
             )}
           </div>
-        )}
+        </div>
       </div>
     </Link>
   );

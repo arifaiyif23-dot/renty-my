@@ -1,22 +1,24 @@
 import { useTranslation } from 'react-i18next'
 import { StarRating } from "@/components/StarRating"
 
+// Illustrative use cases — NOT fabricated named testimonials. Kept honest:
+// role + city personas, no invented earnings or named individuals.
 const TESTIMONIALS = [
   {
-    name: "Aina Rahman",
-    location: "Kuala Lumpur",
+    name: "Renter · Kuala Lumpur",
+    location: "Camera gear",
     rating: 5,
     quote: "Rented a camera lens for the weekend. The process was so smooth — found it, paid, and picked up within an hour. Will definitely use again!",
   },
   {
-    name: "Rajesh Kumar",
-    location: "Petaling Jaya",
+    name: "Owner · Petaling Jaya",
+    location: "Tools & DIY",
     rating: 5,
-    quote: "I was hesitant to rent out my drill at first, but the verification system gave me confidence. Earned RM150 in my first month!",
+    quote: "I was hesitant to rent out my drill at first, but the verification system gave me confidence. Now it earns for me when I'm not using it.",
   },
   {
-    name: "Sarah Tan",
-    location: "Penang",
+    name: "Renter · Pulau Pinang",
+    location: "Home & garden",
     rating: 5,
     quote: "Much cheaper than buying a pressure washer for one-time use. The owner was helpful and the equipment was in great condition.",
   },

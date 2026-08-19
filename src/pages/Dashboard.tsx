@@ -81,7 +81,7 @@ export default function Dashboard() {
     return (
       <PageLayout variant="default">
           <h1 className="text-xl font-bold mb-6">My Rentals</h1>
-          <EmptyStateV2 icon={PackageSearch} title="No rentals yet" description="Browse items to start renting." actionLabel="Browse Items" onAction={() => navigate('/search')} />
+          <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noRentals')} description={t('dashboard.noRentalsDesc')} actionLabel={t('dashboard.browseItems')} onAction={() => navigate('/search')} />
       </PageLayout>
     );
   }
@@ -93,7 +93,7 @@ export default function Dashboard() {
 
   return (
     <PageLayout variant="default">
-        {pullDistance > 0 && (
+{pullDistance > 0 && (
           <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
             <div
               className="bg-primary text-primary-foreground rounded-full p-2 shadow-3"
@@ -103,14 +103,30 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl font-bold">My Rentals</h1>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            {stats.totalRevenue > 0 && (
-              <span className="inline-flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" /> RM{stats.totalRevenue.toLocaleString()}</span>
-            )}
-            <span className="inline-flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5" /> {stats.activeRentals} active</span>
-            {stats.pendingRequests > 0 && <Badge variant="outline" className="rounded-full text-[11px]">{stats.pendingRequests} pending</Badge>}
+        <div className="mb-5">
+          <h1 className="text-xl font-bold mb-3">{t('dashboard.title')}</h1>
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <DollarSign className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-medium">{t('dashboard.earnings')}</span>
+              </div>
+              <p className="font-bold text-base tabular-nums">RM{stats.totalRevenue.toLocaleString()}</p>
+            </div>
+            <div className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-medium">{t('dashboard.active')}</span>
+              </div>
+              <p className="font-bold text-base tabular-nums">{stats.activeRentals}</p>
+            </div>
+            <div className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <PackageSearch className="h-3.5 w-3.5" />
+                <span className="text-[11px] font-medium">{t('dashboard.pending')}</span>
+              </div>
+              <p className="font-bold text-base tabular-nums">{stats.pendingRequests}</p>
+            </div>
           </div>
         </div>
 
@@ -128,7 +144,7 @@ export default function Dashboard() {
 
           <TabsContent value="active" className="space-y-3">
             {filterRentals(['confirmed', 'active', 'overdue']).length === 0 ? (
-              <EmptyStateV2 icon={PackageSearch} title="No active rentals" variant="compact" />
+              <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noActiveRentals')} variant="compact" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['confirmed', 'active', 'overdue']).map(rental => (
@@ -145,7 +161,7 @@ export default function Dashboard() {
               </div>
             )}
             {filterRentals(['requested', 'payment_pending', 'reserved']).length === 0 ? (
-              <EmptyStateV2 icon={PackageSearch} title="No pending rentals" variant="compact" />
+              <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noPendingRentals')} variant="compact" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['requested', 'payment_pending', 'reserved']).map(rental => (
@@ -157,7 +173,7 @@ export default function Dashboard() {
 
           <TabsContent value="past" className="space-y-3">
             {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).length === 0 ? (
-              <EmptyStateV2 icon={PackageSearch} title="No past rentals" variant="compact" />
+              <EmptyStateV2 icon={PackageSearch} title={t('dashboard.noPastRentals')} variant="compact" />
             ) : (
               <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
                 {filterRentals(['completed', 'cancelled', 'rejected', 'disputed']).map(rental => (

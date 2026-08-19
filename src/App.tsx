@@ -176,7 +176,7 @@ function AppRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
-      <Sonner />
+      <Sonner position="top-center" />
       <BrowserRouter>
         <TooltipProvider>
           <AuthProvider>

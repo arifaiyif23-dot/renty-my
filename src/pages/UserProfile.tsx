@@ -50,8 +50,11 @@ export default function UserProfile() {
   const loadUser = async () => {
     setLoading(true);
     try {
-      const [profileRes, itemsRes, ratingRes] = await Promise.all([
+      const [profileRes, publicProfileRes, itemsRes, ratingRes] = await Promise.all([
         supabase.from("profiles").select("id, full_name, avatar_url, is_verified, verification_level, trust_score, location, bio, created_at, is_suspended, is_deleted, total_rentals_completed, total_reviews_received, response_rate, avg_response_time_minutes, last_active_at").eq("id", id).maybeSingle(),
+        // Fallback for anonymous visitors: RLS hides the full profiles table from
+        // anon, but public_profiles view exposes safe fields to everyone.
+        supabase.from("public_profiles").select("id, full_name, avatar_url, is_verified, verification_level, trust_score, location, created_at, is_suspended").eq("id", id).maybeSingle(),
         supabase
           .from("items")
           .select("*, images:item_images(*)")
@@ -61,14 +64,19 @@ export default function UserProfile() {
         supabase.from("reviews").select("rating").eq("reviewee_id", id || ""),
       ]);
 
-      if (profileRes.error) throw profileRes.error;
       if (itemsRes.error) throw itemsRes.error;
+      if (ratingRes.error) throw ratingRes.error;
 
       const itemsList = itemsRes.data || [];
 
       if (ratingRes.data && ratingRes.data.length > 0) {
         setAvgRating(ratingRes.data.reduce((s, r) => s + r.rating, 0) / ratingRes.data.length);
       }
+
+      // Full profile row for logged-in users (RLS: self or active item owners);
+      // public_profiles view as fallback so anonymous visitors still see the
+      // owner's public info instead of a "User not found" page.
+      const mergedProfile = (profileRes.data ?? publicProfileRes.data ?? null) as Profile | null;
 
       // Always populate items (even with zero reviews) — previously setItems was
       // only called inside the itemStats branch, so listings vanished when a user
@@ -101,7 +109,7 @@ export default function UserProfile() {
         };
       }));
 
-      setProfile(profileRes.data);
+      setProfile(mergedProfile);
     } catch (err) {
       console.error(err);
     } finally {
@@ -169,7 +177,7 @@ export default function UserProfile() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-3">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {t('userProfile.joined')} {format(new Date(profile.created_at), "MMMM yyyy")}
+                  {profile.created_at ? t('userProfile.joined') + ' ' + format(new Date(profile.created_at), "MMMM yyyy") : null}
                 </span>
                 {profile.last_active_at && (
                   <span className="flex items-center gap-1">

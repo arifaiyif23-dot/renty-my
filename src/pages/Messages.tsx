@@ -505,10 +505,10 @@ export default function Messages() {
                         className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-lg px-4 py-2.5 shadow-1 ${
+                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-1 ${
                             msg.sender_id === user.id
-                              ? 'bg-primary text-primary-foreground rounded-br-sm'
-                              : 'bg-muted rounded-bl-sm'
+                              ? 'bg-primary text-primary-foreground rounded-br-md'
+                              : 'bg-muted rounded-bl-md'
                           }`}
                         >
                           {msg.attachment_url && (
