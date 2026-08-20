@@ -63,6 +63,15 @@ verify_jwt = false
 [functions.verify-payment]
 verify_jwt = true
 
+[functions.admin-operations]
+verify_jwt = true
+
+[functions.submit-condition-report]
+verify_jwt = true
+
+[functions.complete-rental]
+verify_jwt = true
+
 [storage]
 enabled = true
 
