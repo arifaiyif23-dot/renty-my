@@ -14,6 +14,15 @@ serve(async (req) => {
 
   try {
     const { rentalId, action } = await req.json(); // action: 'approve' or 'reject'
+
+    // Whitelist the action: an unknown action must NOT fall through to the
+    // reject (refund) path.
+    if (action !== 'approve' && action !== 'reject') {
+      return new Response(
+        JSON.stringify({ error: "Invalid action. Must be 'approve' or 'reject'." }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     console.log('Processing rental approval:', { rentalId, action });
     

@@ -75,7 +75,7 @@ serve(async (req) => {
           .from('rentals')
           .select('*', { count: 'exact', head: true })
           .eq('item_id', modification.rental.item_id)
-          .in('status', ['pending_approval', 'approved', 'paid', 'active'])
+          .in('status', ['payment_pending', 'reserved', 'confirmed', 'active', 'overdue'])
           .neq('id', modification.rental_id)
           .lte('start_date', modification.new_end_date)
           .gte('end_date', modification.rental.end_date);
@@ -87,6 +87,28 @@ serve(async (req) => {
         if ((overlapCount ?? 0) > 0) {
           throw new Error('The item is no longer available for the extended dates');
         }
+      }
+
+      // Server-side price recomputation: never trust the client's
+      // price_adjustment. The delta is item.price_per_day x number of days
+      // changed (positive = extension, negative = early return).
+      const { data: itemPrice, error: itemPriceError } = await supabase
+        .from('items')
+        .select('price_per_day')
+        .eq('id', modification.rental.item_id)
+        .single();
+
+      if (itemPriceError || !itemPrice) {
+        throw new Error('Failed to verify item pricing');
+      }
+
+      const baseDate = new Date(`${modification.rental.end_date}T00:00:00`);
+      const targetDate = new Date(`${modification.new_end_date}T00:00:00`);
+      const deltaDays = Math.round((targetDate.getTime() - baseDate.getTime()) / 86400000);
+      const expectedAdjustment = Math.round(deltaDays * Number(itemPrice.price_per_day || 0) * 100) / 100;
+
+      if (Math.abs(expectedAdjustment - Number(modification.price_adjustment || 0)) > 0.01) {
+        throw new Error(`Price adjustment mismatch. Expected RM${expectedAdjustment.toFixed(2)} for a ${Math.abs(deltaDays)}-day change.`);
       }
 
       // Update modification status
@@ -105,13 +127,13 @@ serve(async (req) => {
         throw updateModError;
       }
 
-      // Update rental end_date and total_price
-      const newTotalPrice = Number(modification.rental.total_price) + Number(modification.price_adjustment);
+      // Update rental end_date and total_price using the SERVER-computed delta.
+      const newTotalPrice = Math.max(0, Number(modification.rental.total_price) + expectedAdjustment);
       const { error: updateRentalError } = await supabase
         .from('rentals')
         .update({
           end_date: modification.new_end_date,
-          total_price: Math.max(0, newTotalPrice),
+          total_price: Math.round(newTotalPrice * 100) / 100,
         })
         .eq('id', modification.rental_id);
 

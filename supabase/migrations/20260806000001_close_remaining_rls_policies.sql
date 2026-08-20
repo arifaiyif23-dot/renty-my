@@ -18,8 +18,16 @@
 
 BEGIN;
 
-ALTER POLICY "Service role can insert audit logs" ON payment_audit_log TO service_role;
-REVOKE INSERT, UPDATE, DELETE ON payment_audit_log FROM anon, authenticated;
+-- payment_audit_log doesn't exist in this DB (verified 2026-08-20); guard the
+-- ALTER so this migration is safe on projects where the table was never created.
+DO $$
+BEGIN
+  IF to_regclass('public.payment_audit_log') IS NOT NULL THEN
+    EXECUTE 'ALTER POLICY "Service role can insert audit logs" ON payment_audit_log TO service_role';
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON public.payment_audit_log FROM anon, authenticated';
+  END IF;
+END
+$$;
 
 ALTER POLICY "System can insert receipts" ON storage.objects TO service_role;
 

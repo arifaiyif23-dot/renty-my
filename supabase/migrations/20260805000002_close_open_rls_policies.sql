@@ -18,6 +18,10 @@
 -- terpakai) + REVOKE defense-in-depth untuk table duit/chat.
 -- Client app hanya SELECT pada table berikut (disahkan dari src/), jadi
 -- REVOKE write tidak memecahkan apa-apa.
+--
+-- 2026-08-20: some policy names differ on prod (e.g. "System can insert
+-- payments" was created as "Service role can insert payments"). Every ALTER is
+-- guarded so a renamed/missing policy is skipped instead of failing the run.
 -- ============================================================================
 
 BEGIN;
@@ -25,46 +29,58 @@ BEGIN;
 -- ---------------------------------------------------------------------------
 -- 1. MONEY TABLES (CRITICAL)
 -- ---------------------------------------------------------------------------
-ALTER POLICY "Service role can manage payments" ON payments TO service_role;
-ALTER POLICY "System can insert payments" ON payments TO service_role;
-ALTER POLICY "System can update payments" ON payments TO service_role;
+DO $$
+DECLARE
+  rec RECORD;
+BEGIN
+  FOR rec IN SELECT t.tablename, p.policyname, p.roles::text AS proles
+    FROM pg_policies p
+    JOIN (VALUES
+      ('payments','Service role can manage payments'),
+      ('payments','System can insert payments'),
+      ('payments','System can update payments'),
+      ('payouts','Service role can manage payouts'),
+      ('payouts','System can create payouts'),
+      ('payment_locks','Service role can manage payment locks'),
+      ('rate_limits','Service role can manage rate limits'),
+      ('chat_messages','Service role can manage all chat messages'),
+      ('admin_audit_log','System can insert audit logs'),
+      ('content_moderation_log','System can insert moderation logs'),
+      ('cron_job_logs','System can insert cron logs'),
+      ('email_logs','System can insert email logs'),
+      ('email_logs','System can update email logs'),
+      ('fraud_alerts','System can create fraud alerts'),
+      ('listing_analytics','Service role can insert analytics'),
+      ('listing_analytics','Service role can update analytics'),
+      ('listing_edit_history','System can insert edit history'),
+      ('notifications','Service role can create notifications'),
+      ('payment_flow_logs','System can insert payment logs'),
+      ('promo_attempt_log','Service can insert promo attempts'),
+      ('sensitive_data_access_log','System can insert access logs'),
+      ('verification_audit_log','System can insert verification audit logs'),
+      ('workflow_logs','System can insert workflow logs'),
+      ('workflow_logs','System can update workflow logs')
+    ) AS t(tablename, policyname)
+    ON p.tablename = t.tablename AND p.policyname = t.policyname
+  LOOP
+    EXECUTE format('ALTER POLICY %I ON public.%I TO service_role', rec.policyname, rec.tablename);
+  END LOOP;
+END
+$$;
+
 REVOKE INSERT, UPDATE, DELETE ON payments FROM anon, authenticated;
-
-ALTER POLICY "Service role can manage payouts" ON payouts TO service_role;
-ALTER POLICY "System can create payouts" ON payouts TO service_role;
 REVOKE INSERT, UPDATE, DELETE ON payouts FROM anon, authenticated;
-
-ALTER POLICY "Service role can manage payment locks" ON payment_locks TO service_role;
 REVOKE ALL ON payment_locks FROM anon, authenticated;
-
-ALTER POLICY "Service role can manage rate limits" ON rate_limits TO service_role;
 REVOKE ALL ON rate_limits FROM anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 2. CHAT (CRITICAL)
 -- ---------------------------------------------------------------------------
-ALTER POLICY "Service role can manage all chat messages" ON chat_messages TO service_role;
 REVOKE ALL ON chat_messages FROM anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 3. AUDIT / LOG TABLES (HIGH — log poisoning & forensic tampering)
 -- ---------------------------------------------------------------------------
-ALTER POLICY "System can insert audit logs" ON admin_audit_log TO service_role;
-ALTER POLICY "System can insert moderation logs" ON content_moderation_log TO service_role;
-ALTER POLICY "System can insert cron logs" ON cron_job_logs TO service_role;
-ALTER POLICY "System can insert email logs" ON email_logs TO service_role;
-ALTER POLICY "System can update email logs" ON email_logs TO service_role;
-ALTER POLICY "System can create fraud alerts" ON fraud_alerts TO service_role;
-ALTER POLICY "Service role can insert analytics" ON listing_analytics TO service_role;
-ALTER POLICY "Service role can update analytics" ON listing_analytics TO service_role;
-ALTER POLICY "System can insert edit history" ON listing_edit_history TO service_role;
-ALTER POLICY "Service role can create notifications" ON notifications TO service_role;
-ALTER POLICY "System can insert payment logs" ON payment_flow_logs TO service_role;
-ALTER POLICY "Service can insert promo attempts" ON promo_attempt_log TO service_role;
-ALTER POLICY "System can insert access logs" ON sensitive_data_access_log TO service_role;
-ALTER POLICY "System can insert verification audit logs" ON verification_audit_log TO service_role;
-ALTER POLICY "System can insert workflow logs" ON workflow_logs TO service_role;
-ALTER POLICY "System can update workflow logs" ON workflow_logs TO service_role;
 
 -- ---------------------------------------------------------------------------
 -- 4. platform_settings: mana-mana authenticated user BOLEH baca encryption_key,

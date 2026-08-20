@@ -83,7 +83,7 @@ serve(async (req) => {
       );
     }
 
-    await supabase
+    const { error: paymentUpdateError } = await supabase
       .from('payments')
       .update({
         status: 'paid',
@@ -94,11 +94,22 @@ serve(async (req) => {
       .eq('id', paymentId)
       .eq('status', 'pending');
 
-    await supabase
+    if (paymentUpdateError) {
+      throw new Error(`Failed to record payment as paid: ${paymentUpdateError.message}`);
+    }
+
+    // SOP: payment verified -> rental goes payment_pending -> reserved.
+    // (The legacy 'paid' value is NOT part of the rental_status enum and would
+    // silently fail the update, leaving the rental stuck in payment_pending.)
+    const { error: rentalUpdateError } = await supabase
       .from('rentals')
-      .update({ status: 'paid' })
+      .update({ status: 'reserved' })
       .eq('id', payment.rental_id)
       .in('status', ['payment_pending']);
+
+    if (rentalUpdateError) {
+      throw new Error(`Failed to update rental status: ${rentalUpdateError.message}`);
+    }
 
     await supabase.from('payment_flow_logs').insert({
       payment_id: paymentId,

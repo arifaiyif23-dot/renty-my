@@ -97,6 +97,39 @@ serve(async (req) => {
       throw new Error('Forbidden: You can only create payments for your own rentals');
     }
 
+    // Overlap guard: a slot already claimed by ANY other booking (including a
+    // still-requested one) must not be payable. Without this, two requesters
+    // could both pay for the same slot and the loser could never be refunded.
+    const { data: slotConflicts, error: slotError } = await supabase
+      .from('rentals')
+      .select('id, start_date, end_date, pickup_time, return_time')
+      .eq('item_id', existingRental.item_id)
+      .neq('id', existingRental.id)
+      .in('status', ['requested', 'payment_pending', 'reserved', 'confirmed', 'active', 'overdue'])
+      .lte('start_date', existingRental.end_date)
+      .gte('end_date', existingRental.start_date)
+      .limit(20);
+
+    if (slotError) {
+      throw new Error('Failed to verify availability');
+    }
+
+    // Time-aware overlap: legacy rentals without times count as all-day.
+    const rentalStartTs = new Date(`${existingRental.start_date}T${existingRental.pickup_time || '00:00'}`).getTime();
+    const rentalEndTs = new Date(`${existingRental.end_date}T${existingRental.return_time || '23:59'}`).getTime();
+    const slotTaken = (slotConflicts || []).some((c: { start_date: string; end_date: string; pickup_time: string | null; return_time: string | null }) => {
+      const cStart = new Date(`${c.start_date}T${c.pickup_time || '00:00'}`).getTime();
+      const cEnd = new Date(`${c.end_date}T${c.return_time || '23:59'}`).getTime();
+      return cStart < rentalEndTs && cEnd > rentalStartTs;
+    });
+
+    if (slotTaken) {
+      return new Response(
+        JSON.stringify({ error: 'Item is not available for the selected dates' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     rental = existingRental;
     
     console.log('Creating payment for rental:', rental.id);

@@ -11,11 +11,20 @@
 -- untuk app — cuma buka lubang. Selamat untuk drop.
 --
 -- NOTA: SELECT policy asal (peserta rental sahaja) dikekalkan.
+--
+-- 2026-08-20: guarded — some projects do not have a `transactions` table at
+-- all; the DROP must be skipped there instead of failing the migration.
 -- ============================================================================
 
 BEGIN;
 
-DROP POLICY IF EXISTS "System can create transactions" ON public.transactions;
-DROP POLICY IF EXISTS "System can update transactions" ON public.transactions;
+DO $$
+BEGIN
+  IF to_regclass('public.transactions') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS "System can create transactions" ON public.transactions';
+    EXECUTE 'DROP POLICY IF EXISTS "System can update transactions" ON public.transactions';
+  END IF;
+END
+$$;
 
 COMMIT;
