@@ -21,6 +21,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
   const [path, setPath] = useState<'good' | 'dispute' | null>(null);
   const [, setPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [disputeReason, setDisputeReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -31,9 +32,11 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
     setPhotos(prev => [...prev, ...files]);
 
     // Upload to storage
-    const uploadedUrls: string[] = [];
+    const uploadedPaths: string[] = [];
+    const uploadedPreviews: string[] = [];
     for (const file of files) {
       const fileName = `${rental.id}/return_${Date.now()}_${file.name}`;
+      const path = `rental-evidence/${fileName}`;
       const { error } = await supabase.storage
         .from('rental-evidence')
         .upload(fileName, file);
@@ -44,14 +47,12 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
         continue;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('rental-evidence')
-        .getPublicUrl(fileName);
-
-      uploadedUrls.push(publicUrl);
+      uploadedPaths.push(path);
+      uploadedPreviews.push(URL.createObjectURL(file));
     }
 
-    setPhotoUrls(prev => [...prev, ...uploadedUrls]);
+    setPhotoUrls(prev => [...prev, ...uploadedPaths]);
+    setPreviews(prev => [...prev, ...uploadedPreviews]);
     toast.success(`${files.length} photo(s) uploaded`);
   };
 
@@ -117,6 +118,7 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
     setPath(null);
     setPhotos([]);
     setPhotoUrls([]);
+    setPreviews([]);
     setDisputeReason('');
   };
 
@@ -195,9 +197,9 @@ export function ReturnDisputeDialog({ rental, open, onOpenChange, onSuccess }: R
 
               {photoUrls.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
-                  {photoUrls.map((url, idx) => (
+                  {photoUrls.map((_url, idx) => (
                     <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border">
-                      <img src={url} alt={`Return ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
+                      <img src={previews[idx] || ''} alt={`Return ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
                       <div className="absolute top-1 right-1 bg-success rounded-full p-1">
                         <CheckCircle className="h-3 w-3 text-white" />
                       </div>

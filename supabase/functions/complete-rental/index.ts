@@ -7,16 +7,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Evidence entries are either legacy public URLs or `rental-evidence/<...>` storage paths.
+const evidenceRef = z.string().refine(
+  (v) => /^https?:\/\//.test(v) || v.startsWith('rental-evidence/'),
+  'Photo must be a URL or rental-evidence storage path'
+);
+
 const schema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('complete'),
     rentalId: z.string().uuid(),
-    returnPhotos: z.array(z.string().url()).min(1, 'At least 1 return photo required'),
+    returnPhotos: z.array(evidenceRef).min(1, 'At least 1 return photo required'),
   }),
   z.object({
     action: z.literal('dispute'),
     rentalId: z.string().uuid(),
-    returnPhotos: z.array(z.string().url()).min(1, 'At least 1 evidence photo required'),
+    returnPhotos: z.array(evidenceRef).min(1, 'At least 1 evidence photo required'),
     disputeReason: z.string().trim().min(10, 'Please describe the issue (min 10 characters)'),
   }),
 ]);

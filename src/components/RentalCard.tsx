@@ -12,9 +12,10 @@ import { HandoverDialog } from "@/components/HandoverDialog";
 import { RentalTimer } from "@/components/RentalTimer";
 import { isNative } from "@/lib/platform";
 import { safeHttpUrl } from "@/utils/sanitize";
+import { getEvidenceUrl } from "@/utils/signedUrls";
 
-async function openPhoto(url: string) {
-  const safeUrl = safeHttpUrl(url);
+async function openPhoto(value: string) {
+  const safeUrl = safeHttpUrl(await getEvidenceUrl(value));
   if (!safeUrl) return;
   if (isNative()) {
     const { Browser } = await import('@capacitor/browser');

@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronUp, Camera } from 'lucide-react';
 import type { ConditionReport } from '@/types';
 import { safeHttpUrl } from '@/utils/sanitize';
+import { useSignedUrls } from '@/hooks/useSignedUrls';
 
 interface ReturnConditionComparisonProps {
   rentalId: string;
@@ -23,6 +24,8 @@ export function ReturnConditionComparison({ rentalId }: ReturnConditionCompariso
   const [preRentalReport, setPreRentalReport] = useState<ConditionReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+
+  const allPhotoUrls = useSignedUrls(preRentalReport?.items?.flatMap(i => i.photo_urls || []) ?? null);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +50,7 @@ export function ReturnConditionComparison({ rentalId }: ReturnConditionCompariso
 
   if (loading || !preRentalReport) return null;
 
-  const allPhotos = preRentalReport.items?.flatMap(i => i.photo_urls || []) || [];
+  const allPhotos = allPhotoUrls;
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="border rounded-lg">

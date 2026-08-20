@@ -22,6 +22,15 @@ export const getSignedUrl = async (path: string, expiresIn: number = DEFAULT_URL
   }
 };
 
+export const isPublicUrl = (value: string): boolean => /^https?:\/\//i.test(value);
+
+// Resolves a stored evidence value to a displayable URL. Legacy rows store a
+// full public URL; new rows store a storage path like `rental-evidence/<...>`.
+export const getEvidenceUrl = async (value: string): Promise<string> => {
+  if (isPublicUrl(value)) return value;
+  return getSignedUrl(value);
+};
+
 export const getVerificationDocumentUrl = async (documentUrl: string, userId: string): Promise<string> => {
   // Extract the file path from the full URL
   const fileName = documentUrl.split('/').pop();

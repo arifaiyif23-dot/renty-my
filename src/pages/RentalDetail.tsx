@@ -13,6 +13,7 @@ import { ReturnDisputeDialog } from "@/components/ReturnDisputeDialog";
 import { RentalStatusBadge } from "@/components/RentalStatusBadge";
 import { ArrowLeft, Calendar, DollarSign, User, Camera, CheckCircle } from "lucide-react";
 import { SkeletonV2 } from "@/components/SkeletonV2";
+import { useSignedUrls } from "@/hooks/useSignedUrls";
 import { format } from "date-fns";
 import { formatRentalPeriod } from "@/lib/rentalTime";
 
@@ -27,6 +28,9 @@ export default function RentalDetail() {
   const [error, setError] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [returnOpen, setReturnOpen] = useState(false);
+
+  const handoverPhotoUrls = useSignedUrls(rental?.handover_photos);
+  const returnPhotoUrls = useSignedUrls(rental?.return_photos);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
@@ -133,8 +137,8 @@ export default function RentalDetail() {
             <div>
               <p className="text-sm font-medium mb-2">{t('rentalDetail.handoverPhotos')}</p>
               <div className="flex gap-2 overflow-x-auto">
-                {rental.handover_photos.map((url, i) => (
-                  <img key={i} src={url} alt="" className="w-24 h-24 rounded-lg object-cover flex-shrink-0" />
+                {handoverPhotoUrls.map((url, i) => (
+                  url && <img key={i} src={url} alt="" className="w-24 h-24 rounded-lg object-cover flex-shrink-0" />
                 ))}
               </div>
             </div>
@@ -144,8 +148,8 @@ export default function RentalDetail() {
             <div>
               <p className="text-sm font-medium mb-2">{t('rentalDetail.returnPhotosLabel')}</p>
               <div className="flex gap-2 overflow-x-auto">
-                {rental.return_photos.map((url, i) => (
-                  <img key={i} src={url} alt="" className="w-24 h-24 rounded-lg object-cover flex-shrink-0" />
+                {returnPhotoUrls.map((url, i) => (
+                  url && <img key={i} src={url} alt="" className="w-24 h-24 rounded-lg object-cover flex-shrink-0" />
                 ))}
               </div>
             </div>

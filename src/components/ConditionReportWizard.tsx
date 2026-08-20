@@ -65,6 +65,7 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
     { id: crypto.randomUUID(), category: categories[0], label: DEFAULT_PRE_FILL, condition: 'good', notes: '', photoUrls: [] },
   ]);
   const [uploading, setUploading] = useState(false);
+  const [previews, setPreviews] = useState<Record<string, string[]>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signatureName, setSignatureName] = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -89,6 +90,10 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
     const item = items.find(i => i.id === itemId);
     if (!item) return;
     updateItem(itemId, 'photoUrls', item.photoUrls.filter((_, i) => i !== photoIndex));
+    setPreviews(prev => ({
+      ...prev,
+      [itemId]: (prev[itemId] || []).filter((_, i) => i !== photoIndex),
+    }));
   };
 
   const handlePhotoUpload = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,16 +106,17 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
       const optimizedFile = new File([optimized], `${Date.now()}_${sanitizeFileName(file.name).replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp' });
 
       const fileName = `${rentalId}/condition/${itemId}_${Date.now()}_${optimizedFile.name}`;
+      const path = `rental-evidence/${fileName}`;
       const { error: uploadError } = await supabase.storage
         .from('rental-evidence')
         .upload(fileName, optimizedFile);
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('rental-evidence')
-        .getPublicUrl(fileName);
-
-      updateItem(itemId, 'photoUrls', [...(items.find(i => i.id === itemId)?.photoUrls || []), publicUrl]);
+      updateItem(itemId, 'photoUrls', [...(items.find(i => i.id === itemId)?.photoUrls || []), path]);
+      setPreviews(prev => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] || []), URL.createObjectURL(optimizedFile)],
+      }));
     } catch (error) {
       toast.error('Failed to upload photo');
       console.error(error);
@@ -315,11 +321,11 @@ export function ConditionReportWizard({ rentalId, reportType, open, onOpenChange
 
                   {item.photoUrls.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {item.photoUrls.map((url, idx) => (
+                      {item.photoUrls.map((_url, idx) => (
                         <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border">
-                          <img src={url} alt="" className="object-cover w-full h-full" loading="lazy" />
+                          <img src={previews[item.id]?.[idx] || ''} alt="" className="object-cover w-full h-full" loading="lazy" />
                           <div className="absolute top-0 right-0 flex gap-1">
-                            <a href={safeHttpUrl(url)} target="_blank" rel="noopener noreferrer" aria-label={`View photo ${idx + 1}`} className="w-11 h-11 bg-black/60 text-white flex items-center justify-center rounded-bl-lg">
+                            <a href={safeHttpUrl(previews[item.id]?.[idx] || '')} target="_blank" rel="noopener noreferrer" aria-label={`View photo ${idx + 1}`} className="w-11 h-11 bg-black/60 text-white flex items-center justify-center rounded-bl-lg">
                               <ZoomIn className="h-5 w-5" />
                             </a>
                           </div>

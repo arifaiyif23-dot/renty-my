@@ -22,6 +22,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
   const [step, setStep] = useState<'upload' | 'verify'>('upload');
   const [, setPhotos] = useState<File[]>([]);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [enteredCode, setEnteredCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -29,6 +30,7 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
     setStep('upload');
     setPhotos([]);
     setPhotoUrls([]);
+    setPreviews([]);
     setEnteredCode('');
     setIsProcessing(false);
   };
@@ -47,9 +49,11 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
     setPhotos(prev => [...prev, ...files]);
 
     // Upload to storage
-    const uploadedUrls: string[] = [];
+    const uploadedPaths: string[] = [];
+    const uploadedPreviews: string[] = [];
     for (const file of files) {
       const fileName = `${rental.id}/${Date.now()}_${sanitizeFileName(file.name)}`;
+      const path = `rental-evidence/${fileName}`;
       const { error } = await supabase.storage
         .from('rental-evidence')
         .upload(fileName, file);
@@ -60,14 +64,12 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
         continue;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('rental-evidence')
-        .getPublicUrl(fileName);
-
-      uploadedUrls.push(publicUrl);
+      uploadedPaths.push(path);
+      uploadedPreviews.push(URL.createObjectURL(file));
     }
 
-    setPhotoUrls(prev => [...prev, ...uploadedUrls]);
+    setPhotoUrls(prev => [...prev, ...uploadedPaths]);
+    setPreviews(prev => [...prev, ...uploadedPreviews]);
     toast.success(t('handover.photosUploaded', { count: files.length }));
   };
 
@@ -136,9 +138,9 @@ export function HandoverDialog({ rental, open, onOpenChange, onSuccess }: Handov
 
             {photoUrls.length > 0 && (
               <div className="grid grid-cols-3 gap-2">
-                {photoUrls.map((url, idx) => (
+                {photoUrls.map((_url, idx) => (
                   <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border">
-                    <img src={url} alt={`Evidence ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
+                    <img src={previews[idx] || ''} alt={`Evidence ${idx + 1}`} className="object-cover w-full h-full" loading="lazy" />
                     <div className="absolute top-1 right-1 bg-success rounded-full p-1">
                       <CheckCircle className="h-3 w-3 text-white" />
                     </div>
