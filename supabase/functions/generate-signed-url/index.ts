@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1';
+import { enforceRateLimit, RateLimitError } from '../_shared/ratelimit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -28,6 +29,13 @@ Deno.serve(async (req) => {
     if (userError || !user) {
       throw new Error('Unauthorized');
     }
+
+    await enforceRateLimit(supabase, {
+      userId: user.id,
+      action: 'generate-signed-url',
+      maxAttempts: 240,
+      windowMinutes: 10,
+    });
 
     const { path, expiresIn = 900 } = await req.json(); // Default 15 minutes for security
     
@@ -158,6 +166,12 @@ Deno.serve(async (req) => {
 
   } catch (error: any) {
     console.error('Error in generate-signed-url:', error);
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const errorMessage = error?.message || 'Unknown error';
     const isExpected = errorMessage === 'Unauthorized' || errorMessage.startsWith('Forbidden') || errorMessage.startsWith('Missing');
     return new Response(

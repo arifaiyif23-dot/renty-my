@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { enforceRateLimit, RateLimitError } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -39,6 +40,13 @@ serve(async (req) => {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    await enforceRateLimit(supabase, {
+      userId: user.id,
+      action: 'submit-condition-report',
+      maxAttempts: 60,
+      windowMinutes: 10,
+    });
 
     const { rental_id, report_type, overall_condition, overall_notes, items, action, signature_name } = await req.json();
 
@@ -149,6 +157,11 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('submit-condition-report error:', error);
+    if (error instanceof RateLimitError) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
     return new Response(JSON.stringify({ error: 'Failed to submit condition report' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

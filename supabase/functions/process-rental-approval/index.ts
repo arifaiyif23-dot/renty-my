@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { enforceRateLimit, RateLimitError } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -60,6 +61,13 @@ serve(async (req) => {
     if (suspendError) {
       throw new Error('Your account has been suspended. Contact support for assistance.');
     }
+
+    await enforceRateLimit(supabase, {
+      userId: user.id,
+      action: 'process-rental-approval',
+      maxAttempts: 60,
+      windowMinutes: 10,
+    });
 
     // Get rental details
     const { data: rental, error: rentalError } = await supabase
@@ -257,6 +265,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Rental approval processing error:', error);
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const message = error instanceof Error ? error.message : 'An error occurred while processing the rental';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Rental') || message.startsWith('Your account') || message.startsWith('Another approved');
     return new Response(

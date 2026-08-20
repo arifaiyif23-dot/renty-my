@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { enforceRateLimit, RateLimitError } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -38,6 +39,13 @@ serve(async (req) => {
     if (suspendError) {
       throw new Error('Your account has been suspended. Contact support for assistance.');
     }
+
+    await enforceRateLimit(supabase, {
+      userId: user.id,
+      action: 'process-modification',
+      maxAttempts: 60,
+      windowMinutes: 10,
+    });
 
     // Get modification with rental info
     const { data: modification, error: modError } = await supabase
@@ -208,6 +216,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Modification processing error:', error);
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const message = error instanceof Error ? error.message : 'An error occurred while processing the modification';
     const isExpected = message.startsWith('Unauthorized') || message.startsWith('Modification') || message.startsWith('Cannot') || message.startsWith('The item') || message.startsWith('Your account') || message.startsWith('Failed');
     return new Response(

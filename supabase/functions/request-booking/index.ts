@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { enforceRateLimit, RateLimitError } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -122,6 +123,13 @@ serve(async (req) => {
     if (suspendError) {
       throw new Error('Your account has been suspended. Contact support for assistance.');
     }
+
+    await enforceRateLimit(supabase, {
+      userId: user.id,
+      action: 'request-booking',
+      maxAttempts: 30,
+      windowMinutes: 10,
+    });
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -380,6 +388,12 @@ serve(async (req) => {
     
   } catch (error) {
     console.error('Booking request error:', error);
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     
     let status = 500;

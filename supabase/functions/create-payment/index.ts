@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { enforceRateLimit, RateLimitError } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': Deno.env.get('FRONTEND_URL') || 'https://renty.my',
@@ -58,6 +59,13 @@ serve(async (req) => {
     if (suspendError) {
       throw new Error('Your account has been suspended. Contact support for assistance.');
     }
+
+    await enforceRateLimit(supabase, {
+      userId: user.id,
+      action: 'create-payment',
+      maxAttempts: 20,
+      windowMinutes: 10,
+    });
     
     const body = await req.json();
     const validationResult = createPaymentSchema.safeParse(body);
@@ -243,6 +251,10 @@ serve(async (req) => {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
 
+    // Per-bill callback secret: embedded in the callback URL, stored on the
+    // payment row, verified by payment-callback before it does anything.
+    const callbackToken = crypto.randomUUID();
+
     const { data: paymentData, error: paymentError } = await supabase
       .from('payments')
       .insert({
@@ -257,6 +269,7 @@ serve(async (req) => {
         discount_amount: discountAmount || rental.discount_amount || 0,
         original_amount: originalAmount || rental.original_total_price || rental.total_price,
         idempotency_key: idempotencyKey || null,
+        callback_token: callbackToken,
       })
       .select()
       .single();
@@ -305,7 +318,7 @@ serve(async (req) => {
       billPayorInfo: '0',
       billAmount: billAmount,
       billReturnUrl: `${Deno.env.get('FRONTEND_URL')}/payment-success`,
-      billCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/payment-callback`,
+      billCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/payment-callback?cb_token=${callbackToken}`,
       billExternalReferenceNo: payment.id,
       billTo: '',
       billEmail: '',
@@ -389,6 +402,12 @@ serve(async (req) => {
     
   } catch (error) {
     console.error('Payment creation error:', error);
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const message = error instanceof Error ? error.message : 'Payment processing failed';
 
     try {
