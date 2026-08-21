@@ -121,6 +121,7 @@ Single responsive codebase (no route/layout fork). Breakpoint `md` = 768px; CSS-
 
 ## Security (August 2026 Hardening)
 - **ENCRYPTION KEY ROTATION**: Old key `r3nty_pr0d_m5g_enc_k3y_2026_a8f7b2c9d1e4` (visible in git history) is being replaced. New key starts with `AYw8ky3+`. Run `supabase/rotate-encryption-key.sql` in Supabase SQL Editor. The script: (A) fixes encrypt/decrypt fns (param renamed `key`→`p_key` + platform_settings fallback), (B) drops triggers temporarily, (C) re-encrypts messages + bank accounts, (D) recreates triggers, (E) verifies. All atomic in one transaction. Backup new key in a secrets manager (NOT in code/git).
+- **ENCRYPTION KEY VAULT BACKUP**: Key is backed up in Supabase Vault (`vault.secrets` table, name `renty_encryption_key`). Recovery: `SELECT vault.decrypt_secret(id) FROM vault.secrets WHERE name = 'renty_encryption_key';` then UPDATE platform_settings. Also `get_encryption_key_vault()` convenience function exists.
 - **pgBouncer note**: Supabase resets the `app.settings.encryption_key` GUC between statements (transaction pooling). All encryption functions MUST keep the `platform_settings` table fallback (see `20260731000001`, `20260731000008`, `20260807000010`, `20260819000001`). Never remove that fallback.
 - **verify-admin**: Now has `verify_jwt = true` in config.toml (defense-in-depth)
 - **Edge function validation**: verify-payment and admin-operations now use Zod schemas for input validation

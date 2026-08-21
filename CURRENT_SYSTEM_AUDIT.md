@@ -1,7 +1,7 @@
 # CURRENT_SYSTEM_AUDIT — RENTY (2026-08-20)
 
 **Output Phase 1 (Implementation Plan):** System Audit
-**Status:** ✅ PRODUCTION-READY (pending operator actions) — all code/security hardening complete. B4 encryption key backup + email SMTP still require manual setup.
+**Status:** ✅ PRODUCTION-READY (pending email SMTP setup) — all code/security hardening complete. B4 encryption key backed up to Vault. Email SMTP via Resend still requires manual DNS setup.
 
 ---
 
@@ -174,8 +174,8 @@ All changes committed and deployed. Commits: `c0a800c`, `1ff4617`, `e109091`, `4
 - Same pgBouncer rule as encryption key: keep `platform_settings` fallback
 
 ### Operator actions remaining
-1. **B4 — Backup encryption key** to secrets manager: `AYw8ky3+45/eAhNjWcRjHEGN4Outn3zBQ8jwmxrAZqhUmkQ2hKnaDysXUBUoT/3z` (NOT in git). Old compromised key `r3nty_pr0d_m5g_enc_k3y_2026_a8f7b2c9d1e4` can be destroyed after backup.
-2. **Email delivery** (from earlier audit): Custom SMTP via Resend still pending — Supabase Auth emails won't deliver reliably until configured.
+1. **B4 — RESOLVED** (2026-08-20): Encryption key backed up to Supabase Vault (`vault.secrets`, name `renty_encryption_key`, id `0eb3022e`). Recovery: `SELECT vault.decrypt_secret(id) FROM vault.secrets WHERE name = 'renty_encryption_key';` then UPDATE platform_settings. Old compromised key `r3nty_pr0d_m5g_enc_k3y_2026_a8f7b2c9d1e4` in git history — cannot be removed, but no longer used.
+2. **Email delivery** (from earlier audit): Custom SMTP via Resend still pending — Supabase Auth emails won't deliver reliably until configured. See `docs/SETUP_EMAIL_SMTP.md`.
 
 ## Sign In / Sign Up Flow � Seamlessness + Email Delivery (2026-08-09)
 **Root cause (confirmed):** confirmation emails for new signups were sent by Supabase Auth's built-in mailer (`mailer_autoconfirm = false` verified via `/auth/v1/settings`), with NO custom SMTP configured on the project � so emails were rate-limited/delayed/lost. Additionally all app emails (magic link, welcome) go through Resend using `onboarding@resend.dev` + a send-only API key, which only delivers to the Resend account owner � real users never received them either.
