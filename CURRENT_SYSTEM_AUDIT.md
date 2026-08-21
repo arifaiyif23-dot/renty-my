@@ -1,7 +1,7 @@
-# CURRENT_SYSTEM_AUDIT — RENTY (2026-08-02)
+# CURRENT_SYSTEM_AUDIT — RENTY (2026-08-20)
 
 **Output Phase 1 (Implementation Plan):** System Audit
-**Status:** ✅ HEALTHY — critical flows (auth, verification, lifecycle, booking, payment) all guarded server-side.
+**Status:** ✅ PRODUCTION-READY (pending operator actions) — all code/security hardening complete. B4 encryption key backup + email SMTP still require manual setup.
 
 ---
 
@@ -117,7 +117,7 @@
 
 ### Web / security fixes (all applied)
 - Sourcemaps OFF (new deploys ship no `.js.map` under `dist/assets/`)
-- CSP tightened: removed `unsafe-eval` + `cdn.jsdelivr.net` (confirmed live on renty.my)
+- CSP tightened: removed `unsafe-eval` (live); `cdn.jsdelivr.net` removed from vercel.json (commit 6e3982d) — no code uses it
 - Duplicate `<link rel="manifest">` removed (plugin single-inject � confirmed 1 link live)
 - SEO default og:image ? `https://renty.my/og-image.png` (was an Unsplash stock photo)
 - `document.documentElement.lang` synced to i18n language; unused `Chunk.{ttf,otf}` fonts deleted; aria-labels on 8+ icon-only controls (NotificationSettings/SavedSearches back, AdminErrors expand/delete, AdminVerification shortcuts, AdminHealth email, MyListings bulk checkbox)
@@ -140,19 +140,56 @@
 1. **Migrasi remote — APPLIED ✅ (2026-08-09):** `20260807000005`…`00010` diaplikasi melalui `supabase db push` (CLI tersambung ke `gsucsqtqtpaeuxwrykmf`, pengesahan akhir: *Remote database is up to date*). `20260804000001` + `20260807000001`…`00004` rupanya **sudah berada** di remote (hanya 5 terakhir yang kurang). Untuk kegunaan lintas-lingkungan, `00005` kini dijaga `to_regclass()` (seksyen `owner_earnings` dilangkau jika jadual tak wujud) dan `00006` `GRANT`s dijaga dengan pangkalan `pg_proc` — sengaja kukuh idempotens. Nota: putaran kekunci (`00007`) dan backfill plaintext (`00008`/`00010`) kekal no-op (memerlukan sesi `set app.*` oleh pengendali) — ini adalah sengaja.
 2. **Release APK — RESOLVED** (2026-08-09): `android/renty-release.jks` + `android/keystore.properties` present dan berfungsi. `app-release.apk` (5.6 MB, R8-minify, signed CN=Renty, SHA-256 `d17bdfd6…`) dibina dan disalin ke repo root. Ready untuk kedai / edaran. Nota "keystore hilang" yang sebelum adalah salah — ia berada di disk sepanjang masa.
 
-## Sign In / Sign Up Flow � Seamlessness + Email Delivery (2026-08-09)
-**Root cause (confirmed):** confirmation emails for new signups were sent by Supabase Auth's built-in mailer (`mailer_autoconfirm = false` verified via `/auth/v1/settings`), with NO custom SMTP configured on the project � so emails were rate-limited/delayed/lost. Additionally all app emails (magic link, welcome) go through Resend using `onboarding@resend.dev` + a send-only API key, which only delivers to the Resend account owner � real users never received them either.
+## 11. Phase B Security Hardening (2026-08-20)
+
+All changes committed and deployed. Commits: `c0a800c`, `1ff4617`, `e109091`, `4110cc7`, `546d3e5`, `6e3982d`.
+
+### B1 — Private storage + signed-URL display
+- `rental-evidence` bucket: **public=false** (was public; any URL with UUID could view photos)
+- `uploadEvidence` now stores paths (`rental-evidence/${fileName}`) instead of raw File references
+- 5 components refactored: `HandoverDialog`, `ReturnDisputeDialog`, `ConditionReportWizard`, `RentalDetail`, `RentalCard`, `ReturnConditionComparison` — all use `useSignedUrls` hook / `getEvidenceUrl` helper
+- `complete-rental` zod schema accepts paths (validated, committed separately)
+
+### B2 — payment-callback per-bill token
+- `payments.callback_token` column (UUID, generated in `create-payment`)
+- `create-payment` embeds `?cb_token=<uuid>` in ToyyibPay callback URL
+- `payment-callback` validates token via `safeEqual` (constant-time) + billcode match; rejects if either fails
+- Closes vector: guessing billcode alone no longer triggers false payment confirmation
+
+### B3 — Rate limits on edge functions
+- RPC `check_rate_limit_track` (SECURITY DEFINER, `GRANT service_role`): atomic check+insert, fail-open
+- `_shared/ratelimit.ts` — `enforceRateLimit()` + `RateLimitError` (429 JSON)
+- Applied to 8 abuse-prone functions: `generate-signed-url` (240/10min), `create-payment` (20/10min), `request-booking` (30/10min), `confirm-handover` (30/10min), `complete-rental` (30/10min), `process-rental-approval` (60/10min), `process-modification` (60/10min), `submit-condition-report` (60/10min)
+- `cleanup-rate-limits` cron: `cleanup_old_rate_limits()` every 6h (jobid 6), deletes records >7 days
+
+### B5 — CORS / verify_jwt / CSP
+- CORS audit: no wildcard origins; all use `FRONTEND_URL`; webhook fns (email/push/resend) use shared-secret fail-closed
+- `verify_jwt=true` enforced on 4 client-called functions (previously config.toml drift): `verify-admin`, `admin-operations`, `submit-condition-report`, `complete-rental`
+- CSP: `cdn.jsdelivr.net` removed from `script-src` in `vercel.json` (no code loads from it)
+
+### IC hash salt (critical)
+- **Before:** `hash_ic_number()` fell back to a publicly-known salt (`r3nty_ic_salt_2026_...`, committed in git history) when the GUC was unset; on prod the GUC was NULL — all IC hashes trivially reversible offline
+- **After:** random 32-byte salt generated at migration time, stored in `platform_settings.ic_hash_salt`; function uses GUC → platform_settings → RAISE (fail-closed, no known fallback)
+- Legacy `verification_requests.ic_number_hash` and `profiles.identity_number_hash` NULLed (no code reads them; computed with public salt — lossless)
+- Same pgBouncer rule as encryption key: keep `platform_settings` fallback
+
+### Operator actions remaining
+1. **B4 — Backup encryption key** to secrets manager: `AYw8ky3+45/eAhNjWcRjHEGN4Outn3zBQ8jwmxrAZqhUmkQ2hKnaDysXUBUoT/3z` (NOT in git). Old compromised key `r3nty_pr0d_m5g_enc_k3y_2026_a8f7b2c9d1e4` can be destroyed after backup.
+2. **Email delivery** (from earlier audit): Custom SMTP via Resend still pending — Supabase Auth emails won't deliver reliably until configured.
+
+## Sign In / Sign Up Flow � Seamlessness + Email Delivery (2026-08-09)
+**Root cause (confirmed):** confirmation emails for new signups were sent by Supabase Auth's built-in mailer (`mailer_autoconfirm = false` verified via `/auth/v1/settings`), with NO custom SMTP configured on the project � so emails were rate-limited/delayed/lost. Additionally all app emails (magic link, welcome) go through Resend using `onboarding@resend.dev` + a send-only API key, which only delivers to the Resend account owner � real users never received them either.
 
 **Code changes (committed):**
-- `Auth.tsx` signup ? confirmation screen now has: **Resend confirmation email** (`supabase.auth.resend`, 60s cooldown, `check_rate_limit` 3/60min), spam-folder hint, **"I've confirmed � Sign me in"** (auto-login with entered credentials), and **auto-detection** � polls `getUser()` up to 2 min and logs the user in the moment `email_confirmed_at` is set (works cross-tab via shared origin storage).
+- `Auth.tsx` signup ? confirmation screen now has: **Resend confirmation email** (`supabase.auth.resend`, 60s cooldown, `check_rate_limit` 3/60min), spam-folder hint, **"I've confirmed � Sign me in"** (auto-login with entered credentials), and **auto-detection** � polls `getUser()` up to 2 min and logs the user in the moment `email_confirmed_at` is set (works cross-tab via shared origin storage).
 - `Auth.tsx` login ? "Email not confirmed" now renders an **inline amber panel** with Resend + dismiss (instead of a dead-end toast).
 - `ForgotPasswordDialog` ? added spam hint + resend with 30s cooldown.
-- `.env` ? added `VITE_SITE_URL="https://renty.my"` so confirmation/reset links resolve to the real site (and not `capacitor://localhost` on native). NOTE: `.env` is gitignored � mirror in Vercel/GH-actions env.
+- `.env` ? added `VITE_SITE_URL="https://renty.my"` so confirmation/reset links resolve to the real site (and not `capacitor://localhost` on native). NOTE: `.env` is gitignored � mirror in Vercel/GH-actions env.
 - E2E `auth.spec` 4/4 pass with new UI; `npm run verify` 5/5; release APK rebuilt with the changes.
 
 **REQUIRED operator action to finish delivery (dashboard, cannot be scripted):**
 1. Resend ? Domains: add `renty.my`, follow DNS records until Verified.
 2. Set `.env`/Vercel `RESEND_FROM_EMAIL="Renty <no-reply@renty.my>"` (or the verified address).
-3. Supabase ? Authentication ? SMTP Settings: enable custom SMTP � Host `smtp.resend.com`, Port `587`, Username `resend`, Password = Resend API key, Sender `Renty <no-reply@renty.my>`.
+3. Supabase ? Authentication ? SMTP Settings: enable custom SMTP � Host `smtp.resend.com`, Port `587`, Username `resend`, Password = Resend API key, Sender `Renty <no-reply@renty.my>`.
 4. Optional: temporarily set Auth ? Email ? "Confirm email" OFF for instant signup if delivery can't wait.
 After that: signup confirmation, password reset, and magic links all deliver reliably from the own domain.
